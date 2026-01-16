@@ -1,22 +1,60 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Login</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
 
-<h2>Login</h2>
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-4">
 
-<form method="post" action="<?= base_url('login'); ?>">
-    <input type="email" name="email" placeholder="Email" required><br><br>
-    <input type="password" name="password" placeholder="Password" required><br><br>
+            <div class="card shadow">
+                <div class="card-body">
 
-    <button type="submit">Login</button>
-</form>
+                    <h4 class="text-center mb-4">Login</h4>
+                    <!-- ERROR MESSAGE Start-->
+                    <?php if (session()->getFlashdata('error')) : ?>
+                        <div class="alert alert-danger">
+                            <?= session()->getFlashdata('error') ?>
+                        </div>
+                    <?php endif; ?>
+                    <!-- ERROR MESSAGE End-->
+                    <!-- Login Form -->
+                    <form method="post" action="<?= base_url('login') ?>">
 
-<p>
-    New candidate? <a href="<?= base_url('register'); ?>">Register here</a>
-</p>
+                        <div class="mb-3">
+                            <label>Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Login
+                        </button>
+
+                    </form>
+
+                    <p class="text-center mt-3">
+                        New candidate?
+                        <a href="<?= base_url('register') ?>">Register here</a>
+                    </p>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

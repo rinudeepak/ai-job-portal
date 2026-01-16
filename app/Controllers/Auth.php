@@ -55,6 +55,9 @@ class Auth extends BaseController
     public function saveCandidate()
     {
         $model = new UserModel();
+        if ($this->request->getPost('password') !== $this->request->getPost('confirm_password')) {
+            return redirect()->back()->with('error', 'Passwords do not match');
+        }
 
         $model->insert([
             'name'     => $this->request->getPost('name'),
@@ -80,7 +83,9 @@ class Auth extends BaseController
     {
 
         $model = new UserModel();
-
+        if ($this->request->getPost('password') !== $this->request->getPost('confirm_password')) {
+            return redirect()->back()->with('error', 'Passwords do not match');
+        }
         $model->insert([
             'name'     => $this->request->getPost('name'),
             'email'    => $this->request->getPost('email'),

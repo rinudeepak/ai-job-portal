@@ -5,6 +5,7 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+
 $routes->get('/', 'Home::index');
 // Login
 $routes->get('login', 'Auth::login');
@@ -16,5 +17,9 @@ $routes->get('register', 'Auth::registerCandidate');
 $routes->post('register', 'Auth::saveCandidate');
 
 // Admin registration (restricted)
-$routes->get('admin/register', 'Auth::registerAdmin');
-$routes->post('admin/register', 'Auth::saveAdmin');
+$routes->get('recruiter/register', 'Auth::registerAdmin');
+$routes->post('recruiter/register', 'Auth::saveAdmin');
+
+$routes->get('jobs', 'Jobs::index');
+$routes->get('job/(:num)', 'Jobs::jobDetail/$1');
+$routes->post('job/apply/(:num)', 'JobApplications::apply/$1');
