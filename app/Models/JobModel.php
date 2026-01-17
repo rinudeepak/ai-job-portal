@@ -11,6 +11,7 @@ class JobModel extends Model
 
     protected $allowedFields = [
         'title',
+        'recruiter_id',
         'company',
         'location',
         'description',

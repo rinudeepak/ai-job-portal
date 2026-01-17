@@ -41,12 +41,9 @@
                                 <div class="main-menu">
                                     <nav class="d-none d-lg-block">
                                         <ul id="navigation">
-                                            <li><a href="<?= base_url('dashboard') ?>">Home</a></li>
-                                            <li><a href="<?= base_url('jobs') ?>">Jobs</a></li>
-                                            <li><a href="<?= base_url('candidate/profile') ?>">My Profile</a>
-                                            </li>
-                                            <li><a href="<?= base_url('candidate/ai-interview') ?>">AI Interview</a>
-                                            </li>
+                                            <li><a href="<?= base_url('recruiter/dashboard') ?>">Home</a></li>
+                                            <li><a href="<?= base_url('recruiter/post_job') ?>">Post Jobs</a></li>
+                                            
                                             <!-- <li><a href="#">Page</a>
                                             <ul class="submenu">
                                                 <li><a href="blog.html">Jobs</a></li>
@@ -74,4 +71,4 @@
             </div>
         </div>
     </header>
-    <main>
+    

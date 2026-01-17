@@ -1,4 +1,4 @@
-<?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
+<?= view('Layouts/candidate_header', ['title' => 'Job Listing']) ?>
 
 <!-- Hero Area Start-->
 <div class="slider-area ">

@@ -35,7 +35,7 @@ class Auth extends BaseController
         ]);
 
         return ($user['role'] === 'admin')
-            ?  view('admin/dashboard')
+            ?  view('recruiter/dashboard')
             :  view('candidate/dashboard');
     }
 
@@ -43,6 +43,21 @@ class Auth extends BaseController
     {
         session()->destroy();
         return redirect()->to(base_url('login'));
+    }
+
+    public function dashboard()
+    {
+        $session = session();
+        // 1️⃣ Check login
+        if (!$session->get('logged_in')) {
+            return redirect()->to(base_url('login'));
+        }
+
+        
+        $role = $session->get('role');
+        return ($role === 'admin')
+            ?  view('recruiter/dashboard')
+            :  view('candidate/dashboard');
     }
 
     /* ================= CANDIDATE REGISTRATION ================= */

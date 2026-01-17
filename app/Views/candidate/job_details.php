@@ -1,4 +1,4 @@
-<?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
+<?= view('Layouts/candidate_header', ['title' => 'Job Details']) ?>
  <!-- Hero Area Start-->
         <div class="slider-area ">
         <div class="single-slider section-overly slider-height2 d-flex align-items-center" data-background="<?= base_url('assets/img/hero/about.jpg') ?>">
@@ -80,8 +80,24 @@
                               <li>Salary :  <span>$7,800 yearly</span></li>
                               <li>Application date : <span>12 Sep 2020</span></li> -->
                           </ul>
+                          <?php if (session()->getFlashdata('success')): ?>
+                                <div class="alert alert-success">
+                                    <?= session()->getFlashdata('success') ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (session()->getFlashdata('error')): ?>
+                                <div class="alert alert-danger">
+                                    <?= session()->getFlashdata('error') ?>
+                                </div>
+                            <?php endif; ?>
+
                          <div class="apply-btn2">
-                            <a href="#" class="btn">Apply Now</a>
+                            <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn">Apply Now</button>
+                            </form>
+
                          </div>
                        </div>
                         <!-- <div class="post-details4  mb-50">-->
