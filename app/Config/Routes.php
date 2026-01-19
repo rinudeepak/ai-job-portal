@@ -31,5 +31,7 @@ $routes->get('recruiter/post_job', 'Recruiter::postJob');
 $routes->post('recruiter/post_job', 'Recruiter::saveJob');
 
 $routes->get('candidate/profile', 'Candidate::profile');
-$routes->post('candidate/profile', 'Candidate::saveProfile');
+//$routes->post('candidate/profile', 'Candidate::saveProfile');
+$routes->post('candidate/resume_upload', 'Candidate::resumeUpload');
+$routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills');
 
