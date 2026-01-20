@@ -6,13 +6,15 @@ use CodeIgniter\Model;
 
 class GithubAnalysisModel extends Model
 {
-    protected $table = 'candidate_github_analysis';
+    protected $table = 'candidate_github_stats';
 
     protected $allowedFields = [
         'candidate_id',
+        'github_username',
         'repo_count',
-        'languages',
-        'commits',
-        'github_score'
+        'commit_count',
+        'languages_used',
+        'github_score',
+        'created_at'
     ];
 }

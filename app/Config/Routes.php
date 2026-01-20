@@ -31,7 +31,38 @@ $routes->get('recruiter/post_job', 'Recruiter::postJob');
 $routes->post('recruiter/post_job', 'Recruiter::saveJob');
 
 $routes->get('candidate/profile', 'Candidate::profile');
-//$routes->post('candidate/profile', 'Candidate::saveProfile');
 $routes->post('candidate/resume_upload', 'Candidate::resumeUpload');
 $routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills');
+
+// AI Interview Routes
+// $routes->group('ai-interview', function ($routes) {
+//     $routes->post('create', 'AiInterview::create');
+//     $routes->post('start/(:num)', 'AiInterview::start/$1');
+//     $routes->post('submit/(:num)', 'AiInterview::submit/$1');
+//     $routes->get('results/(:num)', 'AiInterview::results/$1');
+//     $routes->get('candidate/(:num)', 'AiInterview::candidateInterviews/$1');
+// });
+
+$routes->group('ai-interview', function ($routes) {
+
+    // Overview page
+    $routes->get('overview', 'AiInterview::overview');
+    $routes->get('/', 'AiInterview::interview');
+    // Start interview (generate questions + session)
+    $routes->post('start', 'AiInterview::start');
+
+    // Question page
+    $routes->get('question', 'AiInterview::question');
+
+    // Submit answer
+    $routes->post('submit', 'AiInterview::submit');
+
+    // Save draft (AJAX)
+    $routes->post('save-draft', 'AiInterview::saveDraft');
+
+    // Result page
+    $routes->get('result', 'AiInterview::result');
+});
+
+
 

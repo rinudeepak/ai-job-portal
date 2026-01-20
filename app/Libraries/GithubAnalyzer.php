@@ -42,32 +42,68 @@ class GithubAnalyzer
         return json_decode($response, true);
     }
 
+
     public function fetchRepos($username)
     {
-        return $this->request("https://api.github.com/users/$username/repos?per_page=10");
+        $allRepos = [];
+        $page = 1;
+        $perPage = 100; // max allowed by GitHub
+
+        do {
+            $repos = $this->request(
+                "https://api.github.com/users/{$username}/repos?per_page={$perPage}&page={$page}"
+            );
+
+            if (empty($repos)) {
+                break;
+            }
+
+            $allRepos = array_merge($allRepos, $repos);
+            $page++;
+
+        } while (count($repos) === $perPage);
+
+        return $allRepos;
     }
 
     public function fetchCommitCount($username, $repoName)
     {
-        $url = "https://api.github.com/repos/$username/$repoName/commits?per_page=1";
+        $url = "https://api.github.com/repos/{$username}/{$repoName}/commits?per_page=1";
 
-        $this->request($url);
+        $ch = curl_init($url);
 
-        global $http_response_header;
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => true,
+            CURLOPT_USERAGENT => 'JobPortal',
+            CURLOPT_HTTPHEADER => [
+                "Authorization: token {$this->token}",
+                "Accept: application/vnd.github+json"
+            ],
+        ]);
 
-        if (!isset($http_response_header) || !is_array($http_response_header)) {
-            return 0; // API failed
+        $response = curl_exec($ch);
+
+        if ($response === false) {
+            curl_close($ch);
+            return 0;
         }
 
-        foreach ($http_response_header as $header) {
-            if (strpos($header, 'Link:') !== false && strpos($header, 'last') !== false) {
-                preg_match('/page=(\d+)>; rel="last"/', $header, $matches);
-                return isset($matches[1]) ? (int) $matches[1] : 1;
-            }
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $headers = substr($response, 0, $headerSize);
+
+        curl_close($ch);
+
+        // Extract total commit count from Link header
+        if (preg_match('/<[^>]*page=(\d+)[^>]*>; rel="last"/', $headers, $matches)) {
+            return (int) $matches[1];
         }
 
+        // Repo has 0 or 1 commit
         return 1;
     }
+
+
 
 
     public function fetchLanguages($username, $repoName)

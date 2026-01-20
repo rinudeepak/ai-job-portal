@@ -2,9 +2,10 @@
 
 namespace App\Controllers;
 
-// use App\Models\UserModel;
+use App\Models\UserModel;
 use App\Libraries\ResumeParser;
 use App\Models\CandidateSkillsModel;
+use App\Models\GithubAnalysisModel;
 use App\Libraries\GithubAnalyzer;
 
 
@@ -15,25 +16,19 @@ class Candidate extends BaseController
         return view('candidate/profile');
     }
 
-    // public function saveProfile()
-    // {
-    //     $session = session();
 
-    //     $model = new UserModel();
-
-    //     $model->update($session->get('user_id'), [
-    //         'github_username' => $this->request->getPost('github_username'),
-    //         'linkedin_link' => $this->request->getPost('linkedin_link')
-    //         // 'resume'          => $resumePath
-    //     ]);
-
-
-
-    //     return redirect()->back()->with('profile_success', 'Profile Updated Successfully');
-    // }
 
     public function resumeUpload()
     {
+        $session = session();
+
+        // 1️⃣ Check login
+        if (!$session->get('logged_in')) {
+            return redirect()->to(base_url('login'));
+        }
+
+
+        $candidateId = $session->get('user_id');
         $file = $this->request->getFile('resume');
 
         if (!$file || !$file->isValid()) {
@@ -65,13 +60,19 @@ class Candidate extends BaseController
 
         $filePath = $uploadPath . $file->getName();
 
+        // Save resume file path in DB
+        $candidateModel = new UserModel();
+        $candidateModel->update($candidateId, [
+            'resume_path' => 'uploads/resumes/' . $file->getName()
+        ]);
+
         // Parse resume
         $parser = new ResumeParser();
         $result = $parser->parse($filePath);
         $skillModel = new CandidateSkillsModel();
 
-        $candidateId = session()->get('user_id');
-        //if user uploads the same resume twice, skills will be inserted again.preventing duplicate entry
+
+        //if user uploads the same resume twice, skills will be inserted again.delete the previous one
         $skillModel->where('candidate_id', $candidateId)->delete();
 
         foreach ($result['skills'] as $skill) {
@@ -87,6 +88,7 @@ class Candidate extends BaseController
     public function analyzeGithubSkills()
     {
         $session = session();
+        $candidateId = $session->get('user_id');
         $username = $this->request->getPost('github_username');
 
         if (!$username) {
@@ -101,8 +103,12 @@ class Candidate extends BaseController
         }
 
         $db = \Config\Database::connect();
+        //if user update the github username, deleting previous entries
+        $githubModel = new GithubAnalysisModel();
 
-        $db->table('candidate_github_stats')->insert([
+        $githubModel->where('candidate_id', $candidateId)->delete();
+
+        $githubModel->insert([
             'candidate_id' => $session->get('user_id'),
             'github_username' => $username,
             'repo_count' => $data['repo_count'],
