@@ -1,5 +1,14 @@
 <?php
 
+use CodeIgniter\Config\DotEnv;
+
+// Load .env file (older CI4 versions)
+$dotenv = new DotEnv(ROOTPATH);
+$dotenv->load();
+
+
+
+
 /*
  |--------------------------------------------------------------------------
  | ERROR DISPLAY

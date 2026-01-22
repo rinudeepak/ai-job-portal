@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 20, 2026 at 01:38 PM
+-- Generation Time: Jan 22, 2026 at 02:20 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -33,7 +33,7 @@ CREATE TABLE `ai_interviews` (
   `job_id` int(10) UNSIGNED DEFAULT NULL,
   `skills_tested` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `github_languages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`github_languages`)),
-  `questions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`questions`)),
+  `questions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `answers` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`answers`)),
   `technical_score` decimal(5,2) DEFAULT NULL,
   `communication_score` decimal(5,2) DEFAULT NULL,
@@ -53,7 +53,14 @@ CREATE TABLE `ai_interviews` (
 
 INSERT INTO `ai_interviews` (`id`, `candidate_id`, `job_id`, `skills_tested`, `github_languages`, `questions`, `answers`, `technical_score`, `communication_score`, `overall_rating`, `ai_decision`, `ai_feedback`, `status`, `started_at`, `completed_at`, `created_at`, `updated_at`) VALUES
 (1, 7, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":2,\"topic\":\"EJS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with EJS and provide a practical example.\",\"expected_keywords\":[\"EJS\"],\"points\":10},{\"id\":3,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":4,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10},{\"id\":5,\"topic\":\"Vue\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with Vue and provide a practical example.\",\"expected_keywords\":[\"Vue\"],\"points\":10}]', '[]', NULL, NULL, NULL, 'pending', NULL, 'in_progress', '2026-01-20 12:26:30', NULL, '2026-01-20 12:26:30', '2026-01-20 12:26:30'),
-(2, 7, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":2,\"topic\":\"EJS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with EJS and provide a practical example.\",\"expected_keywords\":[\"EJS\"],\"points\":10},{\"id\":3,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":4,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10},{\"id\":5,\"topic\":\"Vue\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with Vue and provide a practical example.\",\"expected_keywords\":[\"Vue\"],\"points\":10}]', '[]', NULL, NULL, NULL, 'pending', NULL, 'in_progress', '2026-01-20 12:27:31', NULL, '2026-01-20 12:27:31', '2026-01-20 12:27:31');
+(2, 7, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":2,\"topic\":\"EJS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with EJS and provide a practical example.\",\"expected_keywords\":[\"EJS\"],\"points\":10},{\"id\":3,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":4,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10},{\"id\":5,\"topic\":\"Vue\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with Vue and provide a practical example.\",\"expected_keywords\":[\"Vue\"],\"points\":10}]', '[]', NULL, NULL, NULL, 'pending', NULL, 'in_progress', '2026-01-20 12:27:31', NULL, '2026-01-20 12:27:31', '2026-01-20 12:27:31'),
+(3, 8, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"PHP\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with PHP and provide a practical example.\",\"expected_keywords\":[\"PHP\"],\"points\":10},{\"id\":2,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":3,\"topic\":\"SCSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with SCSS and provide a practical example.\",\"expected_keywords\":[\"SCSS\"],\"points\":10},{\"id\":4,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":5,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10}]', '[]', NULL, NULL, NULL, 'pending', NULL, 'in_progress', '2026-01-20 14:05:48', NULL, '2026-01-20 14:05:48', '2026-01-20 14:05:48'),
+(4, 8, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"PHP\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with PHP and provide a practical example.\",\"expected_keywords\":[\"PHP\"],\"points\":10},{\"id\":2,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":3,\"topic\":\"SCSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with SCSS and provide a practical example.\",\"expected_keywords\":[\"SCSS\"],\"points\":10},{\"id\":4,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":5,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10}]', '[]', NULL, NULL, NULL, 'pending', NULL, 'in_progress', '2026-01-21 07:19:19', NULL, '2026-01-21 07:19:19', '2026-01-21 07:19:19'),
+(5, 8, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"PHP\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with PHP and provide a practical example.\",\"expected_keywords\":[\"PHP\"],\"points\":10},{\"id\":2,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":3,\"topic\":\"SCSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with SCSS and provide a practical example.\",\"expected_keywords\":[\"SCSS\"],\"points\":10},{\"id\":4,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":5,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10}]', '[\"\",\"\",\"\",\"\",\"\"]', NULL, NULL, NULL, 'pending', NULL, 'completed', '2026-01-21 09:45:46', '2026-01-21 10:12:08', '2026-01-21 09:45:46', '2026-01-21 10:12:08'),
+(6, 8, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"PHP\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with PHP and provide a practical example.\",\"expected_keywords\":[\"PHP\"],\"points\":10},{\"id\":2,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":3,\"topic\":\"SCSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with SCSS and provide a practical example.\",\"expected_keywords\":[\"SCSS\"],\"points\":10},{\"id\":4,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":5,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10}]', '[\"Yes i have experience in PHP\",\"No I don\'t have experience in javascript\",\"I dont have experince\",\"\",\"\",\"I have hands-on experience working with HTML for building structured and responsive web pages. I understand semantic HTML elements such as header, nav, section, article, and footer, which help improve accessibility and SEO.\\r\\n\\r\\nIn my projects, I have used HTML to create forms, tables, and reusable page layouts, and I often integrate it with CSS and JavaScript for styling and interactivity. I also follow best practices like proper form validation, clean markup, and accessibility-friendly labels.\\r\\n\\r\\nPractical example:\\r\\nIn one project, I converted static HTML designs into dynamic WordPress templates. I used HTML forms to collect user data such as name, email, and preferences, validated the inputs, and passed the data to the backend for processing. I also used semantic tags to structure the page, which improved readability and performance.\\r\\n\\r\\nOverall, I am comfortable translating UI designs into clean, maintainable HTML code and integrating it with backend systems.\",\"I have hands-on experience working with HTML for building structured and responsive web pages. I understand semantic HTML elements such as header, nav, section, article, and footer, which help improve accessibility and SEO.\\r\\n\\r\\nIn my projects, I have used HTML to create forms, tables, and reusable page layouts, and I often integrate it with CSS and JavaScript for styling and interactivity. I also follow best practices like proper form validation, clean markup, and accessibility-friendly labels.\\r\\n\\r\\nPractical example:\\r\\nIn one project, I converted static HTML designs into dynamic WordPress templates. I used HTML forms to collect user data such as name, email, and preferences, validated the inputs, and passed the data to the backend for processing. I also used semantic tags to structure the page, which improved readability and performance.\\r\\n\\r\\nOverall, I am comfortable translating UI designs into clean, maintainable HTML code and integrating it with backend systems.\"]', NULL, NULL, NULL, 'pending', NULL, 'completed', '2026-01-21 10:12:47', '2026-01-21 10:51:14', '2026-01-21 10:12:47', '2026-01-21 10:51:14'),
+(7, 7, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":2,\"topic\":\"EJS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with EJS and provide a practical example.\",\"expected_keywords\":[\"EJS\"],\"points\":10},{\"id\":3,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":4,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10},{\"id\":5,\"topic\":\"Vue\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with Vue and provide a practical example.\",\"expected_keywords\":[\"Vue\"],\"points\":10}]', '[\"I have working knowledge of JavaScript and have used it mainly to add interactivity and improve user experience in web applications.\\r\\n\\r\\nIn my projects, I have used JavaScript for form validation, handling button clicks, dynamically showing or hiding elements, and making AJAX requests using fetch() to communicate with the backend.\\r\\n\\r\\nFor example, in an AI interview module I worked on, I used JavaScript to implement a countdown timer for each question. The timer updates every second, tracks the time taken by the candidate, and automatically submits the form when the time expires. I also used JavaScript to save draft answers asynchronously without refreshing the page.\\r\\n\\r\\nWhile I am not a JavaScript expert, I am comfortable understanding existing code, debugging issues, and quickly learning new concepts as needed.\",\"I have used EJS (Embedded JavaScript Templates) to create dynamic server-side rendered pages in Node.js applications, mainly with Express.js.\\r\\n\\r\\nMy experience includes:\\r\\n\\r\\nPassing data from controllers to views\\r\\n\\r\\nLooping through arrays and displaying lists\\r\\n\\r\\nConditional rendering (if\\/else)\\r\\n\\r\\nCreating reusable partials like headers and footers\\r\\n\\r\\nEJS helped me separate business logic from presentation and made pages dynamic without writing complex frontend frameworks.\",\"\",\"\",\"\"]', NULL, NULL, NULL, 'pending', NULL, 'completed', '2026-01-21 10:53:18', '2026-01-21 11:07:01', '2026-01-21 10:53:18', '2026-01-21 11:07:01'),
+(8, 7, NULL, NULL, NULL, '[{\"id\":1,\"topic\":\"JavaScript\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with JavaScript and provide a practical example.\",\"expected_keywords\":[\"JavaScript\"],\"points\":10},{\"id\":2,\"topic\":\"EJS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with EJS and provide a practical example.\",\"expected_keywords\":[\"EJS\"],\"points\":10},{\"id\":3,\"topic\":\"CSS\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with CSS and provide a practical example.\",\"expected_keywords\":[\"CSS\"],\"points\":10},{\"id\":4,\"topic\":\"HTML\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with HTML and provide a practical example.\",\"expected_keywords\":[\"HTML\"],\"points\":10},{\"id\":5,\"topic\":\"Vue\",\"type\":\"short_answer\",\"difficulty\":\"intermediate\",\"question\":\"Explain your experience with Vue and provide a practical example.\",\"expected_keywords\":[\"Vue\"],\"points\":10}]', '[\"i didnt tell\"]', NULL, NULL, NULL, 'pending', NULL, 'in_progress', '2026-01-21 11:22:41', NULL, '2026-01-21 11:22:41', '2026-01-21 11:22:53'),
+(9, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'pending', NULL, '', NULL, NULL, '2026-01-21 12:32:52', '2026-01-21 12:32:52');
 
 -- --------------------------------------------------------
 
@@ -75,7 +82,9 @@ CREATE TABLE `applications` (
 
 INSERT INTO `applications` (`id`, `candidate_id`, `job_id`, `status`, `applied_at`) VALUES
 (1, 2, 4, 'applied', '2026-01-17 06:00:27'),
-(2, 7, 3, 'applied', '2026-01-20 05:36:47');
+(2, 7, 3, 'applied', '2026-01-20 05:36:47'),
+(3, 8, 4, 'applied', '2026-01-20 14:00:18'),
+(4, 7, 4, 'applied', '2026-01-22 04:49:58');
 
 -- --------------------------------------------------------
 
@@ -99,8 +108,8 @@ CREATE TABLE `candidate_github_stats` (
 --
 
 INSERT INTO `candidate_github_stats` (`id`, `candidate_id`, `github_username`, `repo_count`, `commit_count`, `languages_used`, `github_score`, `created_at`) VALUES
-(1, 8, 'rinudeepak', 3, 0, 'PHP,JavaScript,SCSS,CSS,HTML,Hack', 0, '2026-01-19 13:06:11'),
-(8, 7, 'younisyousaf', 31, 278, 'JavaScript,EJS,CSS,HTML,Vue,PHP,Blade,TypeScript,C#,Dart,C++,CMake,Swift,C,Dockerfile,Shell,Kotlin,Objective-C,Python,SCSS', 10, '2026-01-20 07:19:23');
+(10, 8, 'rinudeepak', 3, 21, 'PHP,JavaScript,SCSS,CSS,HTML,Hack', 1, '2026-01-20 14:02:44'),
+(12, 7, 'rinudeepak', 3, 21, 'PHP,JavaScript,SCSS,CSS,HTML,Hack', 1, '2026-01-22 10:33:39');
 
 -- --------------------------------------------------------
 
@@ -125,67 +134,60 @@ INSERT INTO `candidate_skills` (`id`, `candidate_id`, `skill_name`, `created_at`
 (6, 2, 'jQuery', '2026-01-19 09:20:47'),
 (7, 2, 'WordPress', '2026-01-19 09:20:47'),
 (8, 2, 'Building dynamic', '2026-01-19 09:20:47'),
-(44, 8, 'JavaScript', '2026-01-19 10:26:05'),
-(45, 8, 'HTML', '2026-01-19 10:26:05'),
-(46, 8, 'CSS', '2026-01-19 10:26:05'),
-(47, 8, 'MongoDB', '2026-01-19 10:26:05'),
-(48, 8, 'React', '2026-01-19 10:26:05'),
-(49, 8, 'Node.js', '2026-01-19 10:26:05'),
-(50, 8, 'Express.js', '2026-01-19 10:26:05'),
-(51, 8, 'PHP', '2026-01-19 10:26:50'),
-(52, 8, 'MySQL', '2026-01-19 10:26:50'),
-(53, 8, 'jQuery', '2026-01-19 10:26:50'),
-(54, 8, 'WordPress', '2026-01-19 10:26:50'),
-(55, 8, 'JavaScript', '2026-01-19 10:28:54'),
-(56, 8, 'HTML', '2026-01-19 10:28:54'),
-(57, 8, 'CSS', '2026-01-19 10:28:54'),
-(58, 8, 'MongoDB', '2026-01-19 10:28:54'),
-(59, 8, 'React', '2026-01-19 10:28:54'),
-(60, 8, 'Node.js', '2026-01-19 10:28:54'),
-(61, 8, 'Express.js', '2026-01-19 10:28:54'),
-(62, 8, 'JavaScript', '2026-01-19 10:30:13'),
-(63, 8, 'HTML', '2026-01-19 10:30:13'),
-(64, 8, 'CSS', '2026-01-19 10:30:13'),
-(65, 8, 'MongoDB', '2026-01-19 10:30:13'),
-(66, 8, 'React', '2026-01-19 10:30:13'),
-(67, 8, 'Node.js', '2026-01-19 10:30:13'),
-(68, 8, 'Express.js', '2026-01-19 10:30:13'),
-(69, 8, 'Git', '2026-01-19 10:30:13'),
-(70, 8, 'JavaScript', '2026-01-19 10:32:05'),
-(71, 8, 'HTML', '2026-01-19 10:32:05'),
-(72, 8, 'CSS', '2026-01-19 10:32:05'),
-(73, 8, 'MongoDB', '2026-01-19 10:32:05'),
-(74, 8, 'React', '2026-01-19 10:32:05'),
-(75, 8, 'Node.js', '2026-01-19 10:32:05'),
-(76, 8, 'Express.js', '2026-01-19 10:32:05'),
-(77, 8, 'Git', '2026-01-19 10:32:05'),
-(78, 8, 'PHP', '2026-01-19 10:32:05'),
-(79, 8, 'JavaScript', '2026-01-19 10:55:35'),
-(80, 8, 'React', '2026-01-19 10:55:35'),
-(81, 8, 'HTML', '2026-01-19 10:55:35'),
-(82, 8, 'CSS', '2026-01-19 10:55:35'),
-(83, 8, 'Node.js', '2026-01-19 10:55:35'),
-(84, 8, 'Express.js', '2026-01-19 10:55:35'),
-(85, 8, 'MongoDB', '2026-01-19 10:55:35'),
-(86, 8, 'Git', '2026-01-19 10:55:35'),
-(87, 8, 'PHP', '2026-01-19 10:55:35'),
-(88, 8, 'JavaScript', '2026-01-19 10:58:49'),
-(89, 8, 'React', '2026-01-19 10:58:49'),
-(90, 8, 'HTML', '2026-01-19 10:58:49'),
-(91, 8, 'CSS', '2026-01-19 10:58:49'),
-(92, 8, 'Node.js', '2026-01-19 10:58:49'),
-(93, 8, 'Express.js', '2026-01-19 10:58:49'),
-(94, 8, 'MongoDB', '2026-01-19 10:58:49'),
-(95, 8, 'PHP', '2026-01-19 10:58:49'),
-(96, 7, 'JavaScript', '2026-01-20 04:56:12'),
-(97, 7, 'React', '2026-01-20 04:56:12'),
-(98, 7, 'HTML', '2026-01-20 04:56:12'),
-(99, 7, 'CSS', '2026-01-20 04:56:12'),
-(100, 7, 'Node.js', '2026-01-20 04:56:12'),
-(101, 7, 'Express.js', '2026-01-20 04:56:12'),
-(102, 7, 'MongoDB', '2026-01-20 04:56:12'),
-(103, 7, 'Git', '2026-01-20 04:56:12'),
-(104, 7, 'PHP', '2026-01-20 04:56:12');
+(105, 8, 'JavaScript', '2026-01-20 14:03:30'),
+(106, 8, 'React', '2026-01-20 14:03:30'),
+(107, 8, 'HTML', '2026-01-20 14:03:30'),
+(108, 8, 'CSS', '2026-01-20 14:03:30'),
+(109, 8, 'Node.js', '2026-01-20 14:03:30'),
+(110, 8, 'Express.js', '2026-01-20 14:03:30'),
+(111, 8, 'MongoDB', '2026-01-20 14:03:30'),
+(112, 8, 'Git', '2026-01-20 14:03:30'),
+(113, 8, 'PHP', '2026-01-20 14:03:30'),
+(114, 7, 'JavaScript', '2026-01-22 04:52:10'),
+(115, 7, 'React', '2026-01-22 04:52:10'),
+(116, 7, 'HTML', '2026-01-22 04:52:10'),
+(117, 7, 'CSS', '2026-01-22 04:52:10'),
+(118, 7, 'Node.js', '2026-01-22 04:52:10'),
+(119, 7, 'Express.js', '2026-01-22 04:52:10'),
+(120, 7, 'MongoDB', '2026-01-22 04:52:10'),
+(121, 7, 'Git', '2026-01-22 04:52:10'),
+(122, 7, 'PHP', '2026-01-22 04:52:10');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `interview_sessions`
+--
+
+CREATE TABLE `interview_sessions` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `session_id` varchar(100) NOT NULL,
+  `position` varchar(255) NOT NULL,
+  `conversation_history` longtext NOT NULL,
+  `turn` int(11) NOT NULL DEFAULT 1,
+  `max_turns` int(11) NOT NULL DEFAULT 10,
+  `status` enum('active','completed','evaluated') NOT NULL DEFAULT 'active',
+  `evaluation_data` longtext DEFAULT NULL,
+  `technical_score` decimal(5,2) DEFAULT NULL,
+  `communication_score` decimal(5,2) DEFAULT NULL,
+  `problem_solving_score` decimal(5,2) DEFAULT NULL,
+  `adaptability_score` decimal(5,2) DEFAULT NULL,
+  `enthusiasm_score` decimal(5,2) DEFAULT NULL,
+  `overall_rating` decimal(5,2) DEFAULT NULL,
+  `ai_decision` enum('qualified','rejected') DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `interview_sessions`
+--
+
+INSERT INTO `interview_sessions` (`id`, `user_id`, `session_id`, `position`, `conversation_history`, `turn`, `max_turns`, `status`, `evaluation_data`, `technical_score`, `communication_score`, `problem_solving_score`, `adaptability_score`, `enthusiasm_score`, `overall_rating`, `ai_decision`, `created_at`, `updated_at`, `completed_at`) VALUES
+(1, 7, 'interview_6970ce5f6a2a89.81000865', 'PHP Developer ', '[{\"role\":\"system\",\"content\":\"You are Sarah, an expert technical interviewer for a growing tech company.\\r\\nYou are conducting a first-round screening interview for the position: **PHP Developer **.\\r\\n\\r\\n**CANDIDATE\'S BACKGROUND:**\\r\\n- Resume Skills: \\r\\n- GitHub Languages: \\r\\n\\r\\n**YOUR INTERVIEW APPROACH:**\\r\\n\\r\\n1. **Introduction (Turn 1):**\\r\\n   - Introduce yourself warmly: \\\"Hi! I\'m Sarah, and I\'ll be conducting your technical interview today.\\\"\\r\\n   - Ask them to briefly introduce themselves and what excites them about this role.\\r\\n\\r\\n2. **Resume Deep-Dive (Turns 2-4):**\\r\\n   - Pick specific skills from their resume and ask about real experience\\r\\n   - If they mention a project, dig deeper: \\\"Tell me more about that project...\\\"\\r\\n   - Ask about challenges they faced and how they solved them\\r\\n   - Example: \\\"I see you have React on your resume. Can you walk me through a complex component you built?\\\"\\r\\n\\r\\n3. **GitHub Analysis (Turns 3-5):**\\r\\n   - Reference their GitHub languages naturally\\r\\n   - Example: \\\"I noticed you\'ve been working with Python. What\'s the most interesting thing you\'ve built with it?\\\"\\r\\n   - Ask about coding patterns, testing, or architecture decisions\\r\\n\\r\\n4. **Technical Probing (Turns 4-7):**\\r\\n   - Ask follow-up technical questions based on their answers\\r\\n   - If they give a shallow answer, probe deeper: \\\"That\'s interesting. Can you elaborate on how you handled [specific aspect]?\\\"\\r\\n   - If they seem uncertain, give hints: \\\"Let me rephrase - have you worked with [related concept]?\\\"\\r\\n   - If they answer well, ask a slightly harder question\\r\\n   - If they struggle, ask an easier question to build confidence\\r\\n\\r\\n5. **Behavioral & Communication (Throughout):**\\r\\n   - Assess clarity, confidence, and professionalism\\r\\n   - Notice if they explain things well\\r\\n   - Check if they admit when they don\'t know something (positive trait!)\\r\\n\\r\\n6. **Adaptive Questioning:**\\r\\n   - **If answer is WRONG\\/WEAK:** Don\'t immediately move on. Probe gently:\\r\\n     * \\\"Interesting perspective. Let me ask this differently...\\\"\\r\\n     * \\\"That\'s one approach. Have you considered [alternative]?\\\"\\r\\n     * \\\"I think there might be some confusion. Let me clarify...\\\"\\r\\n   - **If answer is STRONG:** Follow up with harder question:\\r\\n     * \\\"Great! Now, how would you handle [edge case]?\\\"\\r\\n     * \\\"Excellent. What if we had [constraint]?\\\"\\r\\n   - **If answer shows confusion:** Help them:\\r\\n     * \\\"No worries! Let me give you a hint...\\\"\\r\\n     * \\\"Think about it from [angle]...\\\"\\r\\n\\r\\n7. **Natural Conversation Flow:**\\r\\n   - Use transitions: \\\"That makes sense. Building on that...\\\"\\r\\n   - Show engagement: \\\"Interesting!\\\", \\\"I see what you mean.\\\"\\r\\n   - Be encouraging: \\\"Good thinking!\\\", \\\"That\'s a solid approach.\\\"\\r\\n   - Be empathetic: \\\"I know this can be challenging...\\\"\\r\\n\\r\\n8. **Closing (Turn 8-10):**\\r\\n   - Thank them for their time\\r\\n   - End with: \\\"That concludes our interview. Thank you for sharing your experience with me today. INTERVIEW_COMPLETE\\\"\\r\\n\\r\\n**IMPORTANT RULES:**\\r\\n- Ask ONE question at a time\\r\\n- Keep responses concise (2-3 sentences max)\\r\\n- Act like a human interviewer, not a robot\\r\\n- Don\'t list multiple questions in one turn\\r\\n- Adapt based on their answers - this is a conversation, not a quiz\\r\\n- If they struggle, help them; if they excel, challenge them\\r\\n- Maximum 10 turns total\\r\\n\\r\\n**EVALUATION CRITERIA (Track Mentally):**\\r\\n- Technical Knowledge (40%)\\r\\n- Problem-Solving Ability (30%)\\r\\n- Communication Skills (20%)\\r\\n- Cultural Fit & Enthusiasm (10%)\\r\\n\\r\\nBegin the interview now with your introduction.\"},{\"role\":\"user\",\"content\":\"i didnt got  aquestion\"},{\"role\":\"assistant\",\"content\":\"I apologize, but I\'m having technical difficulties. Please try again.\"},{\"role\":\"user\",\"content\":\"okey, ask me \"},{\"role\":\"assistant\",\"content\":\"I apologize, but I\'m having technical difficulties. Please try again.\"}]', 3, 10, 'active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-21 13:02:23', '2026-01-21 13:03:40', NULL),
+(22, 7, 'interview_697216282a2178.67505937', 'PHP Developer ', '[{\"role\":\"system\",\"content\":\"You are Sarah, an expert technical interviewer for a growing tech company.\\r\\nYou are conducting a first-round screening interview for the position: **PHP Developer **.\\r\\n\\r\\n**CANDIDATE\'S BACKGROUND:**\\r\\n- Resume Skills: \\r\\n- GitHub Languages: \\r\\n\\r\\n**YOUR INTERVIEW APPROACH:**\\r\\n\\r\\n1. **Introduction (Turn 1):**\\r\\n   - Introduce yourself warmly: \\\"Hi! I\'m Sarah, and I\'ll be conducting your technical interview today.\\\"\\r\\n   - Ask them to briefly introduce themselves and what excites them about this role.\\r\\n\\r\\n2. **Resume Deep-Dive (Turns 2-4):**\\r\\n   - Pick specific skills from their resume and ask about real experience\\r\\n   - If they mention a project, dig deeper: \\\"Tell me more about that project...\\\"\\r\\n   - Ask about challenges they faced and how they solved them\\r\\n   - Example: \\\"I see you have React on your resume. Can you walk me through a complex component you built?\\\"\\r\\n\\r\\n3. **GitHub Analysis (Turns 3-5):**\\r\\n   - Reference their GitHub languages naturally\\r\\n   - Example: \\\"I noticed you\'ve been working with Python. What\'s the most interesting thing you\'ve built with it?\\\"\\r\\n   - Ask about coding patterns, testing, or architecture decisions\\r\\n\\r\\n4. **Technical Probing (Turns 4-7):**\\r\\n   - Ask follow-up technical questions based on their answers\\r\\n   - If they give a shallow answer, probe deeper: \\\"That\'s interesting. Can you elaborate on how you handled [specific aspect]?\\\"\\r\\n   - If they seem uncertain, give hints: \\\"Let me rephrase - have you worked with [related concept]?\\\"\\r\\n   - If they answer well, ask a slightly harder question\\r\\n   - If they struggle, ask an easier question to build confidence\\r\\n\\r\\n5. **Behavioral & Communication (Throughout):**\\r\\n   - Assess clarity, confidence, and professionalism\\r\\n   - Notice if they explain things well\\r\\n   - Check if they admit when they don\'t know something (positive trait!)\\r\\n\\r\\n6. **Adaptive Questioning:**\\r\\n   - **If answer is WRONG\\/WEAK:** Don\'t immediately move on. Probe gently:\\r\\n     * \\\"Interesting perspective. Let me ask this differently...\\\"\\r\\n     * \\\"That\'s one approach. Have you considered [alternative]?\\\"\\r\\n     * \\\"I think there might be some confusion. Let me clarify...\\\"\\r\\n   - **If answer is STRONG:** Follow up with harder question:\\r\\n     * \\\"Great! Now, how would you handle [edge case]?\\\"\\r\\n     * \\\"Excellent. What if we had [constraint]?\\\"\\r\\n   - **If answer shows confusion:** Help them:\\r\\n     * \\\"No worries! Let me give you a hint...\\\"\\r\\n     * \\\"Think about it from [angle]...\\\"\\r\\n\\r\\n7. **Natural Conversation Flow:**\\r\\n   - Use transitions: \\\"That makes sense. Building on that...\\\"\\r\\n   - Show engagement: \\\"Interesting!\\\", \\\"I see what you mean.\\\"\\r\\n   - Be encouraging: \\\"Good thinking!\\\", \\\"That\'s a solid approach.\\\"\\r\\n   - Be empathetic: \\\"I know this can be challenging...\\\"\\r\\n\\r\\n8. **Closing (Turn 8-10):**\\r\\n   - Thank them for their time\\r\\n   - End with: \\\"That concludes our interview. Thank you for sharing your experience with me today. INTERVIEW_COMPLETE\\\"\\r\\n\\r\\n**IMPORTANT RULES:**\\r\\n- Ask ONE question at a time\\r\\n- Keep responses concise (2-3 sentences max)\\r\\n- Act like a human interviewer, not a robot\\r\\n- Don\'t list multiple questions in one turn\\r\\n- Adapt based on their answers - this is a conversation, not a quiz\\r\\n- If they struggle, help them; if they excel, challenge them\\r\\n- Maximum 10 turns total\\r\\n\\r\\n**EVALUATION CRITERIA (Track Mentally):**\\r\\n- Technical Knowledge (40%)\\r\\n- Problem-Solving Ability (30%)\\r\\n- Communication Skills (20%)\\r\\n- Cultural Fit & Enthusiasm (10%)\\r\\n\\r\\nBegin the interview now with your introduction.\"},{\"role\":\"assistant\",\"content\":\"I apologize, but the AI service is not authorized. Please check the API key.\"}]', 1, 10, 'active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-22 12:20:56', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -240,7 +242,9 @@ CREATE TABLE `migrations` (
 --
 
 INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`, `batch`) VALUES
-(1, '2026-01-20-082658', 'App\\Database\\Migrations\\CreateAiInterviewsTable', 'default', 'App', 1768897866, 1);
+(1, '2026-01-20-082658', 'App\\Database\\Migrations\\CreateAiInterviewsTable', 'default', 'App', 1768897866, 1),
+(2, '2026-01-21-124705', 'App\\Database\\Migrations\\CreateinterviewSessionsTable', 'default', 'App', 1768999649, 2),
+(3, '2026-01-21-125510', 'App\\Database\\Migrations\\CreateInterviewSessionsTable', 'default', 'App', 1769000373, 3);
 
 -- --------------------------------------------------------
 
@@ -314,8 +318,8 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`, `r
 (4, 'Maya', 'maya@gmail.com', '$2y$10$QsJg7TbsNy0LxIxgbfp83eZ94I8g2rvsqP5WZ1MR7mSxqjONANSiW', 'admin', '2026-01-14 17:45:50', NULL),
 (5, 'Candidate1', 'candidate1@gmail.com', '$2y$10$qJgKEvhl7b4pIwBXi/wRbOos/4uXYKx.HeyoZ.OCjzrQL.dfkGW1m', 'candidate', '2026-01-16 11:07:09', NULL),
 (6, 'Rinu George', 'abc@gmail.com', '$2y$10$WbbioV.30t4atwrgbq7xweEOUdB2F1/sGIjX.XrBvakUqU0OubSWy', 'admin', '2026-01-16 11:18:30', NULL),
-(7, 'sarayu', 'sarayu@gmail.com', '$2y$10$maFz4ZMZbvYjvCI7n1Rq6.bx2TcVvWQ3VQY3HhqYTop2fqaPjWBlq', 'candidate', '2026-01-16 11:27:28', 'uploads/resumes/mernstackdeveloper_10.docx'),
-(8, 'Jyothi', 'jyothi@gmail.com', '$2y$10$Fy2SFIQi33Ui9MbR/AjnSuXUAuyngaH75dalNv1xjGRSvjjypT9Ue', 'candidate', '2026-01-16 11:29:38', NULL),
+(7, 'sarayu', 'sarayu@gmail.com', '$2y$10$maFz4ZMZbvYjvCI7n1Rq6.bx2TcVvWQ3VQY3HhqYTop2fqaPjWBlq', 'candidate', '2026-01-16 11:27:28', 'uploads/resumes/mernstackdeveloper_12.docx'),
+(8, 'Jyothi', 'jyothi@gmail.com', '$2y$10$Fy2SFIQi33Ui9MbR/AjnSuXUAuyngaH75dalNv1xjGRSvjjypT9Ue', 'candidate', '2026-01-16 11:29:38', 'uploads/resumes/mernstackdeveloper_11.docx'),
 (9, 'bbbb', 'bb@gmail.com', '$2y$10$/ezgjOz8BzqNDaBzWjF.3ezb7AsTZDrwlHvBfmtgt9WzvTooAdteO', 'admin', '2026-01-16 11:35:50', NULL);
 
 --
@@ -352,6 +356,17 @@ ALTER TABLE `candidate_skills`
   ADD KEY `candidate_id` (`candidate_id`);
 
 --
+-- Indexes for table `interview_sessions`
+--
+ALTER TABLE `interview_sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `session_id` (`session_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `status` (`status`),
+  ADD KEY `user_id_status` (`user_id`,`status`),
+  ADD KEY `created_at` (`created_at`);
+
+--
 -- Indexes for table `jobs`
 --
 ALTER TABLE `jobs`
@@ -384,25 +399,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `ai_interviews`
 --
 ALTER TABLE `ai_interviews`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `candidate_github_stats`
 --
 ALTER TABLE `candidate_github_stats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `candidate_skills`
 --
 ALTER TABLE `candidate_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
+
+--
+-- AUTO_INCREMENT for table `interview_sessions`
+--
+ALTER TABLE `interview_sessions`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `jobs`
@@ -414,7 +435,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `skills`

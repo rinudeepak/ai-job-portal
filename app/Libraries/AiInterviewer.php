@@ -6,105 +6,321 @@ class AiInterviewer
 {
     private $apiKey;
     private $apiUrl;
-
-    // Configurable thresholds
-    private $qualifiedThreshold = 70;
-    private $questionsPerSkill = 2;
+    private $maxTurns = 10; // Maximum conversation turns
+    private $passingScore = 70; // Minimum score to qualify
 
     public function __construct()
     {
-        // Store your OpenAI API key in .env file
-        $this->apiKey = getenv('OPENAI_API_KEY') ?: '';
-        $this->apiUrl = 'https://api.openai.com/v1/chat/completions';
+        $this->apiKey = getenv('MISTRAL_API_KEY') ?: '';
+        $this->apiUrl = 'https://api.mistral.ai/v1/chat/completions';
+        log_message('debug', 'MISTRAL_API_KEY from getenv: ' . getenv('MISTRAL_API_KEY'));
+        log_message('debug', 'MISTRAL_API_KEY from env(): ' . env('MISTRAL_API_KEY'));
+
     }
 
     /**
-     * Generate interview questions based on skills and GitHub languages
+     * Start a new interview session
      */
-    public function generateQuestions(array $skills, array $githubLanguages = []): array
+    public function startInterview(array $resumeSkills, array $githubLanguages, string $position): array
+{
+    $systemPrompt = $this->buildSystemPrompt($resumeSkills, $githubLanguages, $position);
+    
+    // Initialize conversation
+    $messages = [
+        ['role' => 'system', 'content' => $systemPrompt]
+    ];
+
+    // Get AI's opening message
+    $response = $this->callAI($messages);
+    
+    // DEBUG: Check if AI responded
+    log_message('debug', 'AI first response: ' . $response);
+    
+    if (empty($response) || strpos($response, 'technical difficulties') !== false) {
+        log_message('error', 'AI failed to generate opening message');
+        // Fallback message
+        $response = "Hi! I'm Sarah, and I'll be conducting your technical interview today for the {$position} position. Let's start by having you introduce yourself briefly - what excites you about this role?";
+    }
+    
+    // Add AI's response to conversation
+    $messages[] = ['role' => 'assistant', 'content' => $response];
+    
+    return [
+        'session_id' => uniqid('interview_', true),
+        'turn' => 1,
+        'max_turns' => $this->maxTurns,
+        'ai_message' => $response,
+        'conversation_history' => $messages,
+        'status' => 'active',
+        'created_at' => date('Y-m-d H:i:s')
+    ];
+}
+
+    /**
+     * Continue the interview conversation
+     */
+    public function continueInterview(array $sessionData, string $candidateAnswer): array
     {
-        $allTopics = array_unique(array_merge(
-            array_column($skills, 'name'),
-            $githubLanguages
-        ));
+        $messages = $sessionData['conversation_history'];
+        
+        // Add candidate's response
+        $messages[] = ['role' => 'user', 'content' => $candidateAnswer];
+        
+        // Get AI's response
+        $aiResponse = $this->callAI($messages);
+        
+        // Add AI response to history
+        $messages[] = ['role' => 'assistant', 'content' => $aiResponse];
+        
+        // Check if interview is complete
+        $isComplete = $this->isInterviewComplete($aiResponse, $sessionData['turn']);
+        
+        $sessionData['turn']++;
+        $sessionData['conversation_history'] = $messages;
+        $sessionData['ai_message'] = $aiResponse;
+        $sessionData['status'] = $isComplete ? 'completed' : 'active';
+        $sessionData['updated_at'] = date('Y-m-d H:i:s');
+        
+        return $sessionData;
+    }
 
-        // Limit to top 5 topics for focused interview
-        $focusTopics = array_slice($allTopics, 0, 5);
+    /**
+     * Evaluate the complete interview
+     */
+    public function evaluateInterview(array $conversationHistory, array $resumeSkills, string $position): array
+    {
+        // Extract only user responses (exclude system and AI messages)
+        $candidateResponses = array_filter($conversationHistory, function($msg) {
+            return $msg['role'] === 'user';
+        });
 
-        $prompt = $this->buildQuestionPrompt($focusTopics);
-
+        $conversationText = $this->formatConversationForEvaluation($conversationHistory);
+        
+        $evaluationPrompt = $this->buildEvaluationPrompt($conversationText, $resumeSkills, $position);
+        
         $response = $this->callAI([
-            ['role' => 'system', 'content' => 'You are a technical interviewer. Generate precise, skill-appropriate questions.'],
-            ['role' => 'user', 'content' => $prompt]
+            ['role' => 'system', 'content' => 'You are an expert interview evaluator. Provide detailed, fair assessment.'],
+            ['role' => 'user', 'content' => $evaluationPrompt]
         ], 'json_object');
 
-        return $this->parseQuestions($response, $focusTopics);
+        $evaluation = json_decode($response, true) ?? [];
+        
+        return $this->formatEvaluationResults($evaluation, count($candidateResponses));
     }
 
     /**
-     * Evaluate all answers and generate scores
+     * Build system prompt for conversational interviewer
      */
-    public function evaluateInterview(array $questions, array $answers): array
+    private function buildSystemPrompt(array $resumeSkills, array $githubLanguages, string $position): string
     {
-        $technicalEvaluations = [];
-        $communicationEvaluations = [];
-
-        foreach ($questions as $index => $question) {
-            $answer = $answers[$index] ?? '';
-            
-            if (empty(trim($answer))) {
-                $technicalEvaluations[] = ['score' => 0, 'feedback' => 'No answer provided'];
-                $communicationEvaluations[] = $this->getEmptyCommunicationScore();
-                continue;
-            }
-
-            // Technical evaluation
-            $technicalEvaluations[] = $this->evaluateTechnicalAnswer($question, $answer);
-
-            // Communication evaluation
-            $communicationEvaluations[] = $this->evaluateCommunication($answer);
-        }
-
-        return $this->calculateFinalScores($technicalEvaluations, $communicationEvaluations);
-    }
-
-    /**
-     * Build prompt for question generation
-     */
-    private function buildQuestionPrompt(array $topics): string
-    {
-        $topicList = implode(', ', $topics);
-
+        $skillsList = implode(', ', array_column($resumeSkills, 'name'));
+        $githubList = implode(', ', $githubLanguages);
+        
         return <<<PROMPT
-Generate technical interview questions for these skills/languages: {$topicList}
+You are Sarah, an expert technical interviewer for a growing tech company.
+You are conducting a first-round screening interview for the position: **{$position}**.
 
-Requirements:
-- Generate {$this->questionsPerSkill} questions per topic
-- Mix of MCQ (with 4 options) and short-answer questions
-- Difficulty: 60% intermediate, 40% advanced
-- Each question should test practical knowledge
+**CANDIDATE'S BACKGROUND:**
+- Resume Skills: {$skillsList}
+- GitHub Languages: {$githubList}
+
+**YOUR INTERVIEW APPROACH:**
+
+1. **Introduction (Turn 1):**
+   - Introduce yourself warmly: "Hi! I'm Sarah, and I'll be conducting your technical interview today."
+   - Ask them to briefly introduce themselves and what excites them about this role.
+
+2. **Resume Deep-Dive (Turns 2-4):**
+   - Pick specific skills from their resume and ask about real experience
+   - If they mention a project, dig deeper: "Tell me more about that project..."
+   - Ask about challenges they faced and how they solved them
+   - Example: "I see you have React on your resume. Can you walk me through a complex component you built?"
+
+3. **GitHub Analysis (Turns 3-5):**
+   - Reference their GitHub languages naturally
+   - Example: "I noticed you've been working with Python. What's the most interesting thing you've built with it?"
+   - Ask about coding patterns, testing, or architecture decisions
+
+4. **Technical Probing (Turns 4-7):**
+   - Ask follow-up technical questions based on their answers
+   - If they give a shallow answer, probe deeper: "That's interesting. Can you elaborate on how you handled [specific aspect]?"
+   - If they seem uncertain, give hints: "Let me rephrase - have you worked with [related concept]?"
+   - If they answer well, ask a slightly harder question
+   - If they struggle, ask an easier question to build confidence
+
+5. **Behavioral & Communication (Throughout):**
+   - Assess clarity, confidence, and professionalism
+   - Notice if they explain things well
+   - Check if they admit when they don't know something (positive trait!)
+
+6. **Adaptive Questioning:**
+   - **If answer is WRONG/WEAK:** Don't immediately move on. Probe gently:
+     * "Interesting perspective. Let me ask this differently..."
+     * "That's one approach. Have you considered [alternative]?"
+     * "I think there might be some confusion. Let me clarify..."
+   - **If answer is STRONG:** Follow up with harder question:
+     * "Great! Now, how would you handle [edge case]?"
+     * "Excellent. What if we had [constraint]?"
+   - **If answer shows confusion:** Help them:
+     * "No worries! Let me give you a hint..."
+     * "Think about it from [angle]..."
+
+7. **Natural Conversation Flow:**
+   - Use transitions: "That makes sense. Building on that..."
+   - Show engagement: "Interesting!", "I see what you mean."
+   - Be encouraging: "Good thinking!", "That's a solid approach."
+   - Be empathetic: "I know this can be challenging..."
+
+8. **Closing (Turn 8-10):**
+   - Thank them for their time
+   - End with: "That concludes our interview. Thank you for sharing your experience with me today. INTERVIEW_COMPLETE"
+
+**IMPORTANT RULES:**
+- Ask ONE question at a time
+- Keep responses concise (2-3 sentences max)
+- Act like a human interviewer, not a robot
+- Don't list multiple questions in one turn
+- Adapt based on their answers - this is a conversation, not a quiz
+- If they struggle, help them; if they excel, challenge them
+- Maximum {$this->maxTurns} turns total
+
+**EVALUATION CRITERIA (Track Mentally):**
+- Technical Knowledge (40%)
+- Problem-Solving Ability (30%)
+- Communication Skills (20%)
+- Cultural Fit & Enthusiasm (10%)
+
+Begin the interview now with your introduction.
+PROMPT;
+    }
+
+    /**
+     * Build evaluation prompt for final assessment
+     */
+    private function buildEvaluationPrompt(string $conversation, array $skills, string $position): string
+    {
+        $skillsList = implode(', ', array_column($skills, 'name'));
+        
+        return <<<PROMPT
+You are evaluating a technical interview for the position: {$position}
+
+**CANDIDATE'S RESUME SKILLS:** {$skillsList}
+
+**FULL INTERVIEW TRANSCRIPT:**
+{$conversation}
+
+**EVALUATION TASK:**
+Analyze the entire conversation and provide a comprehensive assessment.
+
+**SCORING CRITERIA:**
+
+1. **Technical Knowledge (0-100):**
+   - Depth of understanding of resume skills
+   - Ability to explain concepts clearly
+   - Practical experience vs theoretical knowledge
+   - Accuracy of technical statements
+
+2. **Problem-Solving (0-100):**
+   - Approach to challenges
+   - Logical thinking
+   - Creativity in solutions
+   - Ability to handle follow-up questions
+
+3. **Communication Skills (0-100):**
+   - Clarity of explanations
+   - Grammar and structure
+   - Confidence (not arrogant, not overly hesitant)
+   - Professional tone
+   - Active listening (responses relevant to questions)
+
+4. **Adaptability (0-100):**
+   - Response to probing questions
+   - Ability to recover from mistakes
+   - Willingness to admit "I don't know"
+   - Learning from hints given
+
+5. **Enthusiasm & Fit (0-100):**
+   - Genuine interest in the role
+   - Passion for technology
+   - Cultural alignment
+   - Professional demeanor
+
+**RED FLAGS TO CHECK:**
+- Copy-pasted or generic answers
+- Inability to explain own resume items
+- Poor communication despite technical knowledge
+- Overconfidence without substance
+- Evasive answers
+
+**GREEN FLAGS TO CHECK:**
+- Real-world project examples
+- Admits knowledge gaps honestly
+- Asks clarifying questions
+- Shows continuous learning mindset
+- Explains trade-offs in technical decisions
 
 Return JSON format:
 {
-    "questions": [
+    "technical_knowledge": {
+        "score": 85,
+        "feedback": "Strong understanding of React and Node.js. Demonstrated practical experience.",
+        "strengths": ["Clear explanations", "Real examples"],
+        "weaknesses": ["Limited database knowledge"]
+    },
+    "problem_solving": {
+        "score": 78,
+        "feedback": "Good analytical thinking. Could improve on edge case handling.",
+        "strengths": ["Logical approach"],
+        "weaknesses": ["Missed optimization opportunities"]
+    },
+    "communication": {
+        "score": 90,
+        "feedback": "Excellent communicator. Clear, concise, professional.",
+        "strengths": ["Well-structured answers", "Professional tone"],
+        "weaknesses": ["Minor grammar issues"]
+    },
+    "adaptability": {
+        "score": 82,
+        "feedback": "Handled probing questions well. Open to feedback.",
+        "strengths": ["Recovered from initial confusion", "Asked for clarification"],
+        "weaknesses": ["Hesitated on unfamiliar topics"]
+    },
+    "enthusiasm": {
+        "score": 88,
+        "feedback": "Genuine passion for the role. Engaged throughout.",
+        "strengths": ["Clear interest in technology", "Prepared for interview"],
+        "weaknesses": ["Could research company more"]
+    },
+    "overall_assessment": {
+        "total_score": 84.6,
+        "recommendation": "STRONG HIRE / HIRE / MAYBE / NO HIRE",
+        "key_highlights": [
+            "Solid technical foundation in required skills",
+            "Excellent communication skills",
+            "Real-world project experience"
+        ],
+        "concerns": [
+            "Limited experience with advanced topics",
+            "Needs growth in system design"
+        ],
+        "decision_reasoning": "Candidate demonstrates strong fundamentals and excellent communication. Recommended for next round with senior engineer.",
+        "next_steps": "Technical deep-dive with live coding",
+        "growth_areas": [
+            "Study distributed systems",
+            "Practice whiteboard coding",
+            "Review SQL optimization"
+        ]
+    },
+    "notable_moments": [
         {
-            "id": 1,
-            "topic": "skill name",
-            "type": "mcq",
-            "difficulty": "intermediate",
-            "question": "question text",
-            "options": ["A", "B", "C", "D"],
-            "correct_answer": "A",
-            "points": 10
+            "turn": 3,
+            "what_happened": "Candidate explained complex React hook pattern clearly",
+            "impact": "Positive - shows deep understanding"
         },
         {
-            "id": 2,
-            "topic": "skill name",
-            "type": "short_answer",
-            "difficulty": "advanced",
-            "question": "question text",
-            "expected_keywords": ["keyword1", "keyword2"],
-            "points": 15
+            "turn": 5,
+            "what_happened": "Struggled with scaling question but recovered with hint",
+            "impact": "Neutral - shows learning ability"
         }
     ]
 }
@@ -112,299 +328,155 @@ PROMPT;
     }
 
     /**
-     * Evaluate a technical answer
+     * Format conversation for evaluation
      */
-    private function evaluateTechnicalAnswer(array $question, string $answer): array
+    private function formatConversationForEvaluation(array $messages): string
     {
-        if ($question['type'] === 'mcq') {
-            return $this->evaluateMCQ($question, $answer);
-        }
-
-        return $this->evaluateShortAnswer($question, $answer);
-    }
-
-    /**
-     * Evaluate MCQ answer
-     */
-    private function evaluateMCQ(array $question, string $answer): array
-    {
-        $normalizedAnswer = strtoupper(trim($answer));
-        $correctAnswer = strtoupper(trim($question['correct_answer'] ?? ''));
-
-        $isCorrect = $normalizedAnswer === $correctAnswer;
-
-        return [
-            'score' => $isCorrect ? $question['points'] : 0,
-            'max_score' => $question['points'],
-            'is_correct' => $isCorrect,
-            'feedback' => $isCorrect ? 'Correct answer' : "Incorrect. Correct answer: {$correctAnswer}"
-        ];
-    }
-
-    /**
-     * Evaluate short answer using AI
-     */
-    private function evaluateShortAnswer(array $question, string $answer): array
-    {
-        $expectedKeywords = implode(', ', $question['expected_keywords'] ?? []);
-
-        $prompt = <<<PROMPT
-Evaluate this technical answer:
-
-Question: {$question['question']}
-Expected concepts/keywords: {$expectedKeywords}
-Candidate's Answer: {$answer}
-
-Evaluate based on:
-1. Technical accuracy (0-100)
-2. Completeness (0-100)
-3. Relevance to question (0-100)
-
-Return JSON:
-{
-    "technical_accuracy": 85,
-    "completeness": 70,
-    "relevance": 90,
-    "overall_score": 82,
-    "feedback": "brief constructive feedback",
-    "missing_concepts": ["concept1", "concept2"]
-}
-PROMPT;
-
-        $response = $this->callAI([
-            ['role' => 'system', 'content' => 'You are a technical evaluator. Be fair but rigorous.'],
-            ['role' => 'user', 'content' => $prompt]
-        ], 'json_object');
-
-        $evaluation = json_decode($response, true) ?? [];
-
-        $scorePercent = $evaluation['overall_score'] ?? 50;
-        $earnedPoints = ($scorePercent / 100) * $question['points'];
-
-        return [
-            'score' => round($earnedPoints, 2),
-            'max_score' => $question['points'],
-            'percentage' => $scorePercent,
-            'feedback' => $evaluation['feedback'] ?? 'Unable to evaluate',
-            'missing_concepts' => $evaluation['missing_concepts'] ?? [],
-            'breakdown' => [
-                'accuracy' => $evaluation['technical_accuracy'] ?? 0,
-                'completeness' => $evaluation['completeness'] ?? 0,
-                'relevance' => $evaluation['relevance'] ?? 0
-            ]
-        ];
-    }
-
-    /**
-     * Evaluate communication quality
-     */
-    private function evaluateCommunication(string $answer): array
-    {
-        $prompt = <<<PROMPT
-Analyze this answer for communication quality:
-
-Answer: {$answer}
-
-Evaluate:
-1. Grammar quality (0-100): spelling, punctuation, sentence structure
-2. Clarity (0-100): easy to understand, well-organized
-3. Structure (0-100): logical flow, proper formatting
-4. Confidence indicators (0-100): assertive language, no excessive hedging
-5. Professionalism (0-100): appropriate tone, technical vocabulary usage
-
-Return JSON:
-{
-    "grammar": 85,
-    "clarity": 80,
-    "structure": 75,
-    "confidence": 70,
-    "professionalism": 85,
-    "overall_communication": 79,
-    "issues": ["issue1", "issue2"],
-    "strengths": ["strength1"]
-}
-PROMPT;
-
-        $response = $this->callAI([
-            ['role' => 'system', 'content' => 'You are a communication skills assessor.'],
-            ['role' => 'user', 'content' => $prompt]
-        ], 'json_object');
-
-        return json_decode($response, true) ?? $this->getEmptyCommunicationScore();
-    }
-
-    /**
-     * Calculate final scores and decision
-     */
-    private function calculateFinalScores(array $technicalEvals, array $commEvals): array
-    {
-        // Technical score calculation
-        $totalPoints = 0;
-        $maxPoints = 0;
-        $technicalDetails = [];
-
-        foreach ($technicalEvals as $eval) {
-            $totalPoints += $eval['score'];
-            $maxPoints += $eval['max_score'] ?? 10;
-            $technicalDetails[] = $eval;
-        }
-
-        $technicalScore = $maxPoints > 0 ? ($totalPoints / $maxPoints) * 100 : 0;
-
-        // Communication score calculation
-        $commScores = array_filter(array_column($commEvals, 'overall_communication'));
-        $communicationScore = !empty($commScores) ? array_sum($commScores) / count($commScores) : 0;
-
-        // Overall rating (60% technical, 40% communication)
-        $overallRating = ($technicalScore * 0.6) + ($communicationScore * 0.4);
-
-        // AI Decision
-        $decision = $this->makeDecision($technicalScore, $communicationScore, $overallRating);
-
-        return [
-            'technical_score' => round($technicalScore, 2),
-            'communication_score' => round($communicationScore, 2),
-            'overall_rating' => round($overallRating, 2),
-            'ai_decision' => $decision['decision'],
-            'ai_feedback' => [
-                'technical_details' => $technicalDetails,
-                'communication_details' => $commEvals,
-                'decision_reasoning' => $decision['reasoning'],
-                'recommendations' => $decision['recommendations']
-            ]
-        ];
-    }
-
-    /**
-     * Make qualification decision
-     */
-    private function makeDecision(float $technical, float $communication, float $overall): array
-    {
-        $decision = 'rejected';
-        $reasoning = '';
-        $recommendations = [];
-
-        if ($overall >= $this->qualifiedThreshold && $technical >= 60) {
-            $decision = 'qualified';
-            $reasoning = "Strong overall performance with {$overall}% rating.";
+        $formatted = "";
+        $turn = 0;
+        
+        foreach ($messages as $msg) {
+            if ($msg['role'] === 'system') continue;
             
-            if ($communication < 70) {
-                $recommendations[] = 'Consider communication skills training';
-            }
-        } else {
-            if ($technical < 60) {
-                $reasoning = "Technical skills below threshold ({$technical}%).";
-                $recommendations[] = 'Strengthen core technical concepts';
-            } elseif ($communication < 50) {
-                $reasoning = "Communication skills need improvement ({$communication}%).";
-                $recommendations[] = 'Work on written communication clarity';
-            } else {
-                $reasoning = "Overall score ({$overall}%) below qualification threshold.";
-            }
+            $turn++;
+            $speaker = $msg['role'] === 'assistant' ? 'INTERVIEWER' : 'CANDIDATE';
+            $formatted .= "\n[Turn {$turn} - {$speaker}]\n{$msg['content']}\n";
         }
+        
+        return $formatted;
+    }
 
+    /**
+     * Format evaluation results for storage/display
+     */
+    private function formatEvaluationResults(array $evaluation, int $totalResponses): array
+    {
+        $overallScore = $evaluation['overall_assessment']['total_score'] ?? 0;
+        $recommendation = $evaluation['overall_assessment']['recommendation'] ?? 'NO HIRE';
+        
+        // Map recommendation to decision
+        $decision = 'rejected';
+        if (in_array($recommendation, ['STRONG HIRE', 'HIRE'])) {
+            $decision = 'qualified';
+        } elseif ($recommendation === 'MAYBE') {
+            $decision = $overallScore >= $this->passingScore ? 'qualified' : 'rejected';
+        }
+        
         return [
-            'decision' => $decision,
-            'reasoning' => $reasoning,
-            'recommendations' => $recommendations
+            'technical_score' => $evaluation['technical_knowledge']['score'] ?? 0,
+            'communication_score' => $evaluation['communication']['score'] ?? 0,
+            'problem_solving_score' => $evaluation['problem_solving']['score'] ?? 0,
+            'adaptability_score' => $evaluation['adaptability']['score'] ?? 0,
+            'enthusiasm_score' => $evaluation['enthusiasm']['score'] ?? 0,
+            'overall_rating' => round($overallScore, 2),
+            'ai_decision' => $decision,
+            'recommendation' => $recommendation,
+            'total_responses' => $totalResponses,
+            'technical_feedback' => $evaluation['technical_knowledge']['feedback'] ?? '',
+            'communication_feedback' => $evaluation['communication']['feedback'] ?? '',
+            'key_highlights' => $evaluation['overall_assessment']['key_highlights'] ?? [],
+            'concerns' => $evaluation['overall_assessment']['concerns'] ?? [],
+            'recommendations' => $evaluation['overall_assessment']['growth_areas'] ?? [],
+            'decision_reasoning' => $evaluation['overall_assessment']['decision_reasoning'] ?? '',
+            'next_steps' => $evaluation['overall_assessment']['next_steps'] ?? '',
+            'notable_moments' => $evaluation['notable_moments'] ?? [],
+            'detailed_breakdown' => [
+                'technical' => $evaluation['technical_knowledge'] ?? [],
+                'problem_solving' => $evaluation['problem_solving'] ?? [],
+                'communication' => $evaluation['communication'] ?? [],
+                'adaptability' => $evaluation['adaptability'] ?? [],
+                'enthusiasm' => $evaluation['enthusiasm'] ?? []
+            ]
         ];
+    }
+
+    /**
+     * Check if interview is complete
+     */
+    private function isInterviewComplete(string $aiResponse, int $currentTurn): bool
+    {
+        // Check for completion phrase
+        if (stripos($aiResponse, 'INTERVIEW_COMPLETE') !== false) {
+            return true;
+        }
+        
+        // Force complete if max turns reached
+        if ($currentTurn >= $this->maxTurns) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
      * Call OpenAI API
      */
-    private function callAI(array $messages, string $responseFormat = null): string
-    {
-        if (empty($this->apiKey)) {
-            log_message('error', 'OpenAI API key not configured');
-            return json_encode(['error' => 'AI service not configured']);
-        }
+    private function callAI(array $messages): string
+{
+    if (empty($this->apiKey)) {
+        log_message('error', 'Mistral API key not configured');
+        return "I apologize, but I'm having technical difficulties. Please try again later.";
+    }
 
-        $payload = [
-            'model' => 'gpt-4o-mini',
-            'messages' => $messages,
-            'temperature' => 0.7,
-            'max_tokens' => 2000
-        ];
+    $payload = [
+        'model' => 'mistral-small-latest',
+        'messages' => $messages,
+        'temperature' => 0.7,
+        'max_tokens' => 500,
+    ];
 
-        if ($responseFormat === 'json_object') {
-            $payload['response_format'] = ['type' => 'json_object'];
-        }
 
-        $ch = curl_init($this->apiUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'Authorization: Bearer ' . $this->apiKey
-            ],
-            CURLOPT_POSTFIELDS => json_encode($payload),
-            CURLOPT_TIMEOUT => 60
-        ]);
+    $ch = curl_init($this->apiUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->apiKey
+        ],
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_TIMEOUT => 60
+    ]);
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        log_message('error', 'Mistral cURL error: ' . curl_error($ch));
         curl_close($ch);
-
-        if ($httpCode !== 200) {
-            log_message('error', "OpenAI API error: {$httpCode} - {$response}");
-            return json_encode(['error' => 'AI service error']);
-        }
-
-        $data = json_decode($response, true);
-        return $data['choices'][0]['message']['content'] ?? '';
+        return "I apologize, but I'm having technical difficulties. Please try again.";
     }
+
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        log_message('error', "Mistral API error ({$httpCode}): {$response}");
+        if ($httpCode === 401) {
+            return "I apologize, but the AI service is not authorized. Please check the API key.";
+        }
+        return "I apologize, but I'm having technical difficulties. Please try again.";
+    }
+
+
+    $data = json_decode($response, true);
+
+    return $data['choices'][0]['message']['content']
+        ?? "I apologize, but I need a moment to gather my thoughts.";
+}
+
 
     /**
-     * Parse AI-generated questions
+     * Get interview session status
      */
-    private function parseQuestions(string $response, array $topics): array
-    {
-        $data = json_decode($response, true);
-
-        if (!isset($data['questions']) || !is_array($data['questions'])) {
-            // Fallback: generate basic questions
-            return $this->generateFallbackQuestions($topics);
-        }
-
-        return $data['questions'];
-    }
-
-    /**
-     * Fallback questions if AI fails
-     */
-    private function generateFallbackQuestions(array $topics): array
-    {
-        $questions = [];
-        $id = 1;
-
-        foreach ($topics as $topic) {
-            $questions[] = [
-                'id' => $id++,
-                'topic' => $topic,
-                'type' => 'short_answer',
-                'difficulty' => 'intermediate',
-                'question' => "Explain your experience with {$topic} and provide a practical example.",
-                'expected_keywords' => [$topic],
-                'points' => 10
-            ];
-        }
-
-        return $questions;
-    }
-
-    private function getEmptyCommunicationScore(): array
+    public function getSessionStatus(array $sessionData): array
     {
         return [
-            'grammar' => 0,
-            'clarity' => 0,
-            'structure' => 0,
-            'confidence' => 0,
-            'professionalism' => 0,
-            'overall_communication' => 0,
-            'issues' => ['No answer provided'],
-            'strengths' => []
+            'session_id' => $sessionData['session_id'],
+            'status' => $sessionData['status'],
+            'turn' => $sessionData['turn'],
+            'max_turns' => $sessionData['max_turns'],
+            'progress_percentage' => round(($sessionData['turn'] / $sessionData['max_turns']) * 100, 2),
+            'is_active' => $sessionData['status'] === 'active'
         ];
     }
 }

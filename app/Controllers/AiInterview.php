@@ -2,156 +2,269 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
-use App\Models\CandidateSkillsModel;
-use App\Models\GithubAnalysisModel;
-use App\Models\AiInterviewModel;
 use App\Libraries\AiInterviewer;
 
 class AiInterview extends BaseController
 {
-    public function interview()
+    protected $interviewer;
+    protected $session;
+    
+    public function __construct()
     {
-        //return view('interview/start');
-        return redirect()->to(base_url('/ai-interview/overview'));
-
-    }
-    public function overview()
-    {
-        $candidateId = session()->get('user_id');
-
-        $skillModel = new CandidateSkillsModel();
-        $githubModel = new GithubAnalysisModel();
-
-        $resumeSkills = $skillModel
-            ->where('candidate_id', $candidateId)
-            ->findColumn('skill_name') ?? [];
-
-        $github = $githubModel
-            ->where('candidate_id', $candidateId)
-            ->first();
-
-        $githubLanguages = $github
-            ? explode(',', $github['languages_used'])
-            : [];
-
-        return view('interview/start', [
-            'resumeSkills' => $resumeSkills,
-            'githubLanguages' => $githubLanguages
-        ]);
+        $this->interviewer = new AiInterviewer();
+        $this->session = \Config\Services::session();
     }
 
-
+    /**
+     * Start interview page
+     */
     public function start()
     {
-        $candidateId = session()->get('user_id');
-
-        $skillModel = new CandidateSkillsModel();
-        $githubModel = new GithubAnalysisModel();
-
-        $skills = $skillModel
-            ->where('candidate_id', $candidateId)
-            ->findAll();
-
-        $github = $githubModel
-            ->where('candidate_id', $candidateId)
-            ->first();
-
-        $githubLanguages = $github
-            ? explode(',', $github['languages_used'])
-            : [];
-
-        $ai = new AiInterviewer();
-        $questions = $ai->generateQuestions($skills, $githubLanguages);
-
-        $sessionModel = new AiInterviewModel();
-
-        $sessionId = $sessionModel->insert([
-            'candidate_id' => $candidateId,
-            'questions' => json_encode($questions),
-            'answers' => json_encode([]),
-            'status' => 'in_progress',
-            'started_at' => date('Y-m-d H:i:s')
-        ]);
-
-        session()->set('interview_session_id', $sessionId);
-        session()->set('current_question', 0);
-
-        return redirect()->to('/ai-interview/question');
-    }
-
-    public function question()
-    {
-        $sessionId = session()->get('interview_session_id');
-        if (!$sessionId) {
-            return redirect()->to('/interview');
+        // Get candidate info from session/database
+        $userId = session()->get('user_id');
+        
+        $userModel = model('UserModel');
+        $user = $userModel->find($userId);
+        
+        if (!$user) {
+            return redirect()->to('/candidate/profile')->with('error', 'Please complete your profile first');
         }
-
-        $model = new AiInterviewModel();
-        $session = $model->find($sessionId);
-
-        $questions = json_decode($session['questions'], true);
-        $currentIndex = session()->get('current_question');
-
-        if (!isset($questions[$currentIndex])) {
-            return redirect()->to('/interview/result');
-        }
-
-        return view('interview/question', [
-            'question' => $questions[$currentIndex],
-            'current_question' => $currentIndex + 1,
-            'total_questions' => count($questions),
-            'session_id' => $sessionId
+        
+        // Get resume skills and GitHub languages
+        $skillModel = model('CandidateSkillsModel');
+        $resumeSkills = $skillModel->where('candidate_id', $userId)->findAll();
+        
+        $githubLanguages = json_decode($user['github_languages'] ?? '[]', true);
+        
+        return view('interview/start', [
+            'user' => $user,
+            'skills' => $resumeSkills,
+            'github_languages' => $githubLanguages
         ]);
     }
 
-    public function submit()
+    /**
+     * Begin the interview
+     */
+    public function begin()
+{
+    log_message('debug', 'SAPI: ' . PHP_SAPI);
+log_message('debug', 'MISTRAL getenv len: ' . strlen((string) getenv('MISTRAL_API_KEY')));
+log_message('debug', 'MISTRAL env() len: ' . strlen((string) env('MISTRAL_API_KEY')));
+log_message('debug', 'MISTRAL masked: ' . substr((string) env('MISTRAL_API_KEY'), 0, 6) . '...' . substr((string) env('MISTRAL_API_KEY'), -4));
+
+    $userId = session()->get('user_id');
+    $position = $this->request->getPost('position');
+    
+    if (empty($position)) {
+        return redirect()->back()->with('error', 'Please specify the position');
+    }
+    
+    // Get candidate data
+    $userModel = model('UserModel');
+    $skillModel = model('CandidateSkillsModel');
+    
+    $user = $userModel->find($userId);
+    $resumeSkills = $skillModel->where('candidate_id', $userId)->findAll();
+    $githubLanguages = json_decode($user['github_languages'] ?? '[]', true);
+    
+    // Start interview
+    $sessionData = $this->interviewer->startInterview($resumeSkills, $githubLanguages, $position);
+    
+    // DEBUG: Check if conversation_history has data
+    log_message('debug', 'Session data after start: ' . print_r($sessionData, true));
+    
+    if (empty($sessionData['conversation_history'])) {
+        log_message('error', 'AI failed to generate initial message');
+        return redirect()->back()->with('error', 'Failed to start interview. Please try again.');
+    }
+    
+    // Save to database
+    $interviewModel = model('InterviewSessionModel');
+    $interviewId = $interviewModel->insert([
+        'user_id' => $userId,
+        'session_id' => $sessionData['session_id'],
+        'position' => $position,
+        'conversation_history' => json_encode($sessionData['conversation_history']),
+        'turn' => $sessionData['turn'],
+        'max_turns' => $sessionData['max_turns'],
+        'status' => $sessionData['status'],
+        'created_at' => $sessionData['created_at']
+    ]);
+    
+    // DEBUG: Verify insert
+    log_message('debug', 'Inserted interview ID: ' . $interviewId);
+    
+    if (!$interviewId) {
+        log_message('error', 'Failed to insert interview into database');
+        return redirect()->back()->with('error', 'Database error. Please try again.');
+    }
+    
+    // Store session ID
+    session()->set('current_interview_id', $interviewId);
+    
+    return redirect()->to('/interview/chat');
+}
+
+    /**
+     * Chat interface
+     */
+    public function chat()
+{
+    $interviewId = session()->get('current_interview_id');
+    
+    if (!$interviewId) {
+        return redirect()->to('/interview/start')->with('error', 'No active interview found');
+    }
+    
+    $interviewModel = model('InterviewSessionModel');
+    $interview = $interviewModel->find($interviewId);
+    
+    if (!$interview) {
+        return redirect()->to('/interview/start')->with('error', 'Interview not found');
+    }
+    
+    if ($interview['status'] === 'completed') {
+        return redirect()->to('/interview/results/' . $interviewId);
+    }
+    
+    // DEBUG: Check what's in the database
+    log_message('debug', 'Interview data: ' . print_r($interview, true));
+    
+    $conversationHistory = json_decode($interview['conversation_history'], true);
+    
+    // DEBUG: Check if conversation_history is empty
+    log_message('debug', 'Conversation history: ' . print_r($conversationHistory, true));
+    
+    if (empty($conversationHistory)) {
+        log_message('error', 'Conversation history is empty for interview ID: ' . $interviewId);
+        return redirect()->to('/interview/start')->with('error', 'Interview data corrupted. Please start again.');
+    }
+    
+    $sessionData = [
+        'session_id' => $interview['session_id'],
+        'turn' => $interview['turn'],
+        'max_turns' => $interview['max_turns'],
+        'conversation_history' => $conversationHistory,
+        'status' => $interview['status']
+    ];
+    
+    return view('interview/chat', [
+        'interview' => $interview,
+        'session_data' => $sessionData
+    ]);
+}
+
+    /**
+     * Submit candidate answer
+     */
+    public function submitAnswer()
     {
-        $sessionId = session()->get('interview_session_id');
+        $interviewId = session()->get('current_interview_id');
         $answer = $this->request->getPost('answer');
-
-        $model = new AiInterviewModel();
-        $session = $model->find($sessionId);
-
-        $answers = json_decode($session['answers_json'], true);
-        $answers[] = $answer;
-
-        $model->update($sessionId, [
-            'answers_json' => json_encode($answers)
+        
+        if (empty(trim($answer))) {
+            return redirect()->back()->with('error', 'Please provide an answer');
+        }
+        
+        $interviewModel = model('InterviewSessionModel');
+        $interview = $interviewModel->find($interviewId);
+        
+        $sessionData = [
+            'session_id' => $interview['session_id'],
+            'turn' => $interview['turn'],
+            'max_turns' => $interview['max_turns'],
+            'conversation_history' => json_decode($interview['conversation_history'], true),
+            'status' => $interview['status']
+        ];
+        
+        // Continue interview
+        $updatedSession = $this->interviewer->continueInterview($sessionData, $answer);
+        
+        // Update database
+        $interviewModel->update($interviewId, [
+            'conversation_history' => json_encode($updatedSession['conversation_history']),
+            'turn' => $updatedSession['turn'],
+            'status' => $updatedSession['status'],
+            'updated_at' => $updatedSession['updated_at']
         ]);
-
-        session()->set(
-            'current_question',
-            session()->get('current_question') + 1
-        );
-
-        return redirect()->to('/interview/question');
+        
+        // If complete, redirect to evaluation
+        if ($updatedSession['status'] === 'completed') {
+            return redirect()->to('/interview/complete/' . $interviewId);
+        }
+        
+        return redirect()->to('/interview/chat');
     }
 
-    public function result()
+    /**
+     * Complete interview and evaluate
+     */
+    public function complete($interviewId)
     {
-        $sessionId = session()->get('interview_session_id');
-
-        $model = new AiInterviewModel();
-        $session = $model->find($sessionId);
-
-        $ai = new AiInterviewer();
-
-        $questions = json_decode($session['questions_json'], true);
-        $answers = json_decode($session['answers_json'], true);
-
-        $result = $ai->evaluateInterview($questions, $answers);
-
-        $model->update($sessionId, [
-            'status' => 'completed',
+        $interviewModel = model('InterviewSessionModel');
+        $interview = $interviewModel->find($interviewId);
+        
+        if (!$interview) {
+            return redirect()->to('/interview/start')->with('error', 'Interview not found');
+        }
+        
+        // Get user skills
+        $skillModel = model('CandidateSkillsModel');
+        $resumeSkills = $skillModel->where('user_id', $interview['user_id'])->findAll();
+        
+        $conversationHistory = json_decode($interview['conversation_history'], true);
+        
+        // Evaluate interview
+        $evaluation = $this->interviewer->evaluateInterview(
+            $conversationHistory,
+            $resumeSkills,
+            $interview['position']
+        );
+        
+        // Save evaluation
+        $interviewModel->update($interviewId, [
+            'evaluation_data' => json_encode($evaluation),
+            'technical_score' => $evaluation['technical_score'],
+            'communication_score' => $evaluation['communication_score'],
+            'overall_rating' => $evaluation['overall_rating'],
+            'ai_decision' => $evaluation['ai_decision'],
+            'status' => 'evaluated',
             'completed_at' => date('Y-m-d H:i:s')
         ]);
-
-        return view('interview/result', $result);
+        
+        return redirect()->to('/interview/results/' . $interviewId);
     }
 
-    public function saveDraft()
+    /**
+     * Show results
+     */
+    public function results($interviewId)
     {
-        return $this->response->setJSON(['success' => true]);
+        $interviewModel = model('InterviewSessionModel');
+        $interview = $interviewModel->find($interviewId);
+        
+        if (!$interview) {
+            return redirect()->to('/candidate/dashboard')->with('error', 'Interview not found');
+        }
+        
+        $evaluation = json_decode($interview['evaluation_data'] ?? '{}', true);
+        $conversationHistory = json_decode($interview['conversation_history'], true);
+        
+        return view('interview/conversational_results', [
+            'interview' => $interview,
+            'evaluation' => $evaluation,
+            'conversation' => $conversationHistory
+        ]);
+    }
+
+    /**
+     * Helper: Get last AI message
+     */
+    private function getLastAiMessage(array $conversationHistory): string
+    {
+        $filtered = array_filter($conversationHistory, fn($msg) => $msg['role'] === 'assistant');
+        $last = end($filtered);
+        return $last['content'] ?? '';
     }
 }

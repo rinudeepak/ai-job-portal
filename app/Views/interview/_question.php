@@ -29,10 +29,10 @@
             <div class="col-lg-12">
                 <!-- Progress Bar -->
                 <div class="progress mb-4" style="height: 25px;">
-                    <div class="progress-bar bg-success" role="progressbar" 
-                         style="width: <?= ($current_question / $total_questions) * 100 ?>%;" 
-                         aria-valuenow="<?= ($current_question / $total_questions) * 100 ?>" 
-                         aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-success" role="progressbar"
+                        style="width: <?= ($current_question / $total_questions) * 100 ?>%;"
+                        aria-valuenow="<?= ($current_question / $total_questions) * 100 ?>" aria-valuemin="0"
+                        aria-valuemax="100">
                         <?= round(($current_question / $total_questions) * 100) ?>% Complete
                     </div>
                 </div>
@@ -44,16 +44,16 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <span class="badge badge-primary">
-    <?= esc($question['topic'] ?? 'General') ?>
-</span>
+                                <?= esc($question['topic'] ?? 'General') ?>
+                            </span>
 
-<h4><?= esc($question['question']) ?></h4>
+                            <h4><?= esc($question['question']) ?></h4>
 
                             <span class="badge badge-warning" id="timer">
                                 <i class="fas fa-clock"></i> 15:00
                             </span>
                         </div>
-                        <h4><?= esc($question['question']) ?></h4>
+
                     </div>
                 </div>
 
@@ -63,11 +63,10 @@
                     </div>
                 <?php endif; ?>
 
-                <form class="form-contact contact_form" method="post" 
-                      action="<?= base_url('interview/submit_answer') ?>" 
-                      id="answerForm" novalidate="novalidate">
+                <form class="form-contact contact_form" method="post"
+                    action="<?= base_url('ai-interview/submit_answer') ?>" id="answerForm" novalidate="novalidate">
                     <?= csrf_field() ?>
-                    <input type="hidden" name="question_id" value="<?= $question['id'] ?>">
+                    <input type="hidden" name="question_index" value="<?= $question_index ?>">
                     <input type="hidden" name="session_id" value="<?= $session_id ?>">
                     <input type="hidden" name="time_taken" id="time_taken" value="0">
 
@@ -77,10 +76,9 @@
                             <?php foreach ($question['options'] as $index => $option): ?>
                                 <div class="col-12 mb-3">
                                     <div class="custom-control custom-radio">
-                                        <input type="radio" id="option<?= $index ?>" name="answer" 
-                                               class="custom-control-input" value="<?= $index ?>" required>
-                                        <label class="custom-control-label" for="option<?= $index ?>" 
-                                               style="padding: 15px; border: 2px solid #e0e0e0; border-radius: 5px; 
+                                        <input type="radio" id="option<?= $index ?>" name="answer" class="custom-control-input"
+                                            value="<?= esc($option) ?>" required>
+                                        <label class="custom-control-label" for="option<?= $index ?>" style="padding: 15px; border: 2px solid #e0e0e0; border-radius: 5px; 
                                                       display: block; cursor: pointer; transition: all 0.3s;">
                                             <?= esc($option) ?>
                                         </label>
@@ -94,11 +92,11 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label>Your Answer *</label>
-                                    <textarea class="form-control w-100" name="answer" id="answer" 
-                                              cols="30" rows="9" placeholder="Type your answer here..." 
-                                              required></textarea>
+                                    <textarea class="form-control w-100" name="answer" id="answer" cols="30" rows="9"
+                                        placeholder="Type your answer here..." required></textarea>
                                     <small class="form-text text-muted">
-                                        <i class="fas fa-robot"></i> AI will evaluate: Grammar, Relevance, Clarity, and Confidence
+                                        <i class="fas fa-robot"></i> AI will evaluate: Grammar, Relevance, Clarity, and
+                                        Confidence
                                     </small>
                                 </div>
                             </div>
@@ -109,8 +107,8 @@
                         <button type="submit" class="button button-contactForm boxed-btn mr-2">
                             <?= $current_question < $total_questions ? 'Next Question →' : 'Submit Interview' ?>
                         </button>
-                        <button type="button" class="button button-contactForm boxed-btn" 
-                                style="background: #6c757d;" onclick="saveDraft()">
+                        <button type="button" class="button button-contactForm boxed-btn" style="background: #6c757d;"
+                            onclick="saveDraft()">
                             <i class="fas fa-save"></i> Save Draft
                         </button>
                     </div>
@@ -146,7 +144,8 @@
         background: #f0f0f0 !important;
         border-color: #fb246a !important;
     }
-    input[type="radio"]:checked + label {
+
+    input[type="radio"]:checked+label {
         background: #fff3f3 !important;
         border-color: #fb246a !important;
         font-weight: 600;
@@ -154,51 +153,56 @@
 </style>
 
 <script>
-// Timer functionality
-let timeLeft = 900; // 15 minutes in seconds
-const timerElement = document.getElementById('timer');
-const timeTakenInput = document.getElementById('time_taken');
+    // Timer functionality
+    let timeLeft = 900; // 15 minutes in seconds
+    const timerElement = document.getElementById('timer');
+    const timeTakenInput = document.getElementById('time_taken');
 
-const timerInterval = setInterval(() => {
-    timeLeft--;
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    timerElement.innerHTML = `<i class="fas fa-clock"></i> ${minutes}:${seconds.toString().padStart(2, '0')}`;
-    
-    // Update time taken
-    timeTakenInput.value = 900 - timeLeft;
-    
-    if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        document.getElementById('answerForm').submit();
-    }
-}, 1000);
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.innerHTML = `<i class="fas fa-clock"></i> ${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-// Save draft function
-function saveDraft() {
-    const formData = new FormData(document.getElementById('answerForm'));
-    fetch('<?= base_url('interview/save_draft') ?>', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Draft saved successfully!');
-        } else {
-            alert('Error saving draft. Please try again.');
+        // Update time taken
+        timeTakenInput.value = 900 - timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('answerForm').submit();
         }
-    })
-    .catch(error => {
-        alert('Error saving draft. Please try again.');
-    });
-}
+    }, 1000);
 
-// Warn before leaving
-window.addEventListener('beforeunload', function (e) {
-    e.preventDefault();
-    e.returnValue = '';
-});
+    // Save draft function
+    function saveDraft() {
+        const formData = new FormData(document.getElementById('answerForm'));
+        formData.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
+
+        fetch('<?= base_url('ai-interview/save_draft') ?>', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+                    }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Draft saved successfully!');
+                } else {
+                    alert('Error saving draft. Please try again.');
+                }
+            })
+            .catch(error => {
+                alert('Error saving draft. Please try again.');
+            });
+    }
+
+    // Warn before leaving
+    window.addEventListener('beforeunload', function (e) {
+        e.preventDefault();
+        e.returnValue = '';
+    });
 </script>
 
 <?= view('layouts/candidate_footer') ?>

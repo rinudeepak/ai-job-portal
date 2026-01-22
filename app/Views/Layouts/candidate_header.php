@@ -45,7 +45,7 @@
                                             <li><a href="<?= base_url('jobs') ?>">Jobs</a></li>
                                             <li><a href="<?= base_url('candidate/profile') ?>">My Profile</a>
                                             </li>
-                                            <li><a href="<?= base_url('candidate/ai-interview') ?>">AI Interview</a>
+                                            <li><a href="<?= base_url('interview/start') ?>">AI Interview</a>
                                             </li>
                                             <!-- <li><a href="#">Page</a>
                                             <ul class="submenu">
