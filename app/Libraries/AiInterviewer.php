@@ -13,8 +13,10 @@ class AiInterviewer
     {
         $this->apiKey = getenv('MISTRAL_API_KEY') ?: '';
         $this->apiUrl = 'https://api.mistral.ai/v1/chat/completions';
-        log_message('debug', 'MISTRAL_API_KEY from getenv: ' . getenv('MISTRAL_API_KEY'));
-        log_message('debug', 'MISTRAL_API_KEY from env(): ' . env('MISTRAL_API_KEY'));
+        //     log_message('error', 'RAW getenv: ' . var_export(getenv('MISTRAL_API_KEY'), true));
+        // log_message('error', 'RAW env(): ' . var_export(env('MISTRAL_API_KEY'), true));
+        // log_message('error', 'API KEY LENGTH: ' . strlen((string) env('MISTRAL_API_KEY')));
+
 
     }
 
@@ -22,39 +24,43 @@ class AiInterviewer
      * Start a new interview session
      */
     public function startInterview(array $resumeSkills, array $githubLanguages, string $position): array
-{
-    $systemPrompt = $this->buildSystemPrompt($resumeSkills, $githubLanguages, $position);
-    
-    // Initialize conversation
-    $messages = [
-        ['role' => 'system', 'content' => $systemPrompt]
-    ];
+    {
+        $systemPrompt = $this->buildSystemPrompt($resumeSkills, $githubLanguages, $position);
 
-    // Get AI's opening message
-    $response = $this->callAI($messages);
-    
-    // DEBUG: Check if AI responded
-    log_message('debug', 'AI first response: ' . $response);
-    
-    if (empty($response) || strpos($response, 'technical difficulties') !== false) {
-        log_message('error', 'AI failed to generate opening message');
-        // Fallback message
-        $response = "Hi! I'm Sarah, and I'll be conducting your technical interview today for the {$position} position. Let's start by having you introduce yourself briefly - what excites you about this role?";
+        // Initialize conversation
+        $messages = [
+            [
+                'role' => 'system',
+                'content' => $systemPrompt
+            ]
+        ];
+
+
+        // Get AI's opening message
+        $response = $this->callAI($messages);
+
+        // DEBUG: Check if AI responded
+        log_message('debug', 'AI first response: ' . $response);
+
+        if (empty($response) || strpos($response, 'technical difficulties') !== false) {
+            log_message('error', 'AI failed to generate opening message');
+            // Fallback message
+            $response = "Hi! I'm Sarah, and I'll be conducting your technical interview today for the {$position} position. Let's start by having you introduce yourself briefly - what excites you about this role?";
+        }
+
+        // Add AI's response to conversation
+        $messages[] = ['role' => 'assistant', 'content' => $response];
+
+        return [
+            'session_id' => uniqid('interview_', true),
+            'turn' => 1,
+            'max_turns' => $this->maxTurns,
+            'ai_message' => $response,
+            'conversation_history' => $messages,
+            'status' => 'active',
+            'created_at' => date('Y-m-d H:i:s')
+        ];
     }
-    
-    // Add AI's response to conversation
-    $messages[] = ['role' => 'assistant', 'content' => $response];
-    
-    return [
-        'session_id' => uniqid('interview_', true),
-        'turn' => 1,
-        'max_turns' => $this->maxTurns,
-        'ai_message' => $response,
-        'conversation_history' => $messages,
-        'status' => 'active',
-        'created_at' => date('Y-m-d H:i:s')
-    ];
-}
 
     /**
      * Continue the interview conversation
@@ -62,25 +68,25 @@ class AiInterviewer
     public function continueInterview(array $sessionData, string $candidateAnswer): array
     {
         $messages = $sessionData['conversation_history'];
-        
+
         // Add candidate's response
         $messages[] = ['role' => 'user', 'content' => $candidateAnswer];
-        
+
         // Get AI's response
         $aiResponse = $this->callAI($messages);
-        
+
         // Add AI response to history
         $messages[] = ['role' => 'assistant', 'content' => $aiResponse];
-        
+
         // Check if interview is complete
         $isComplete = $this->isInterviewComplete($aiResponse, $sessionData['turn']);
-        
+
         $sessionData['turn']++;
         $sessionData['conversation_history'] = $messages;
         $sessionData['ai_message'] = $aiResponse;
         $sessionData['status'] = $isComplete ? 'completed' : 'active';
         $sessionData['updated_at'] = date('Y-m-d H:i:s');
-        
+
         return $sessionData;
     }
 
@@ -90,21 +96,21 @@ class AiInterviewer
     public function evaluateInterview(array $conversationHistory, array $resumeSkills, string $position): array
     {
         // Extract only user responses (exclude system and AI messages)
-        $candidateResponses = array_filter($conversationHistory, function($msg) {
+        $candidateResponses = array_filter($conversationHistory, function ($msg) {
             return $msg['role'] === 'user';
         });
 
         $conversationText = $this->formatConversationForEvaluation($conversationHistory);
-        
+
         $evaluationPrompt = $this->buildEvaluationPrompt($conversationText, $resumeSkills, $position);
-        
+
         $response = $this->callAI([
             ['role' => 'system', 'content' => 'You are an expert interview evaluator. Provide detailed, fair assessment.'],
             ['role' => 'user', 'content' => $evaluationPrompt]
-        ], 'json_object');
+        ]);
 
         $evaluation = json_decode($response, true) ?? [];
-        
+
         return $this->formatEvaluationResults($evaluation, count($candidateResponses));
     }
 
@@ -115,7 +121,7 @@ class AiInterviewer
     {
         $skillsList = implode(', ', array_column($resumeSkills, 'name'));
         $githubList = implode(', ', $githubLanguages);
-        
+
         return <<<PROMPT
 You are Sarah, an expert technical interviewer for a growing tech company.
 You are conducting a first-round screening interview for the position: **{$position}**.
@@ -176,7 +182,7 @@ You are conducting a first-round screening interview for the position: **{$posit
    - End with: "That concludes our interview. Thank you for sharing your experience with me today. INTERVIEW_COMPLETE"
 
 **IMPORTANT RULES:**
-- Ask ONE question at a time
+- Ask exactly ONE clear question per turn. Never combine multiple questions in a single response.
 - Keep responses concise (2-3 sentences max)
 - Act like a human interviewer, not a robot
 - Don't list multiple questions in one turn
@@ -200,7 +206,7 @@ PROMPT;
     private function buildEvaluationPrompt(string $conversation, array $skills, string $position): string
     {
         $skillsList = implode(', ', array_column($skills, 'name'));
-        
+
         return <<<PROMPT
 You are evaluating a technical interview for the position: {$position}
 
@@ -334,15 +340,16 @@ PROMPT;
     {
         $formatted = "";
         $turn = 0;
-        
+
         foreach ($messages as $msg) {
-            if ($msg['role'] === 'system') continue;
-            
+            if ($msg['role'] === 'system')
+                continue;
+
             $turn++;
             $speaker = $msg['role'] === 'assistant' ? 'INTERVIEWER' : 'CANDIDATE';
             $formatted .= "\n[Turn {$turn} - {$speaker}]\n{$msg['content']}\n";
         }
-        
+
         return $formatted;
     }
 
@@ -353,7 +360,7 @@ PROMPT;
     {
         $overallScore = $evaluation['overall_assessment']['total_score'] ?? 0;
         $recommendation = $evaluation['overall_assessment']['recommendation'] ?? 'NO HIRE';
-        
+
         // Map recommendation to decision
         $decision = 'rejected';
         if (in_array($recommendation, ['STRONG HIRE', 'HIRE'])) {
@@ -361,7 +368,7 @@ PROMPT;
         } elseif ($recommendation === 'MAYBE') {
             $decision = $overallScore >= $this->passingScore ? 'qualified' : 'rejected';
         }
-        
+
         return [
             'technical_score' => $evaluation['technical_knowledge']['score'] ?? 0,
             'communication_score' => $evaluation['communication']['score'] ?? 0,
@@ -399,12 +406,12 @@ PROMPT;
         if (stripos($aiResponse, 'INTERVIEW_COMPLETE') !== false) {
             return true;
         }
-        
+
         // Force complete if max turns reached
         if ($currentTurn >= $this->maxTurns) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -412,57 +419,44 @@ PROMPT;
      * Call OpenAI API
      */
     private function callAI(array $messages): string
-{
-    if (empty($this->apiKey)) {
-        log_message('error', 'Mistral API key not configured');
-        return "I apologize, but I'm having technical difficulties. Please try again later.";
-    }
+    {
+        $model = "mistral-large-latest";
 
-    $payload = [
-        'model' => 'mistral-small-latest',
-        'messages' => $messages,
-        'temperature' => 0.7,
-        'max_tokens' => 500,
-    ];
+        // Request body
+        $data = [
+            "model" => $model,
+            "messages" => $messages,
+            "temperature" => 0.7
+        ];
 
+        $ch = curl_init('https://api.mistral.ai/v1/chat/completions');
 
-    $ch = curl_init($this->apiUrl);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $this->apiKey
-        ],
-        CURLOPT_POSTFIELDS => json_encode($payload),
-        CURLOPT_TIMEOUT => 60
-    ]);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . trim($this->apiKey),
+            ],
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_TIMEOUT => 60,
+        ]);
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-    if (curl_errno($ch)) {
-        log_message('error', 'Mistral cURL error: ' . curl_error($ch));
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        return "I apologize, but I'm having technical difficulties. Please try again.";
-    }
 
-    curl_close($ch);
+        log_message('error', 'Mistral HTTP Code: ' . $httpCode);
+        log_message('error', 'Mistral RAW Response: ' . $response);
 
-    if ($httpCode !== 200) {
-        log_message('error', "Mistral API error ({$httpCode}): {$response}");
-        if ($httpCode === 401) {
-            return "I apologize, but the AI service is not authorized. Please check the API key.";
+        if ($httpCode !== 200) {
+            return 'AI service error';
         }
-        return "I apologize, but I'm having technical difficulties. Please try again.";
+
+        $data = json_decode($response, true);
+        return $data['choices'][0]['message']['content'] ?? 'No response';
     }
 
-
-    $data = json_decode($response, true);
-
-    return $data['choices'][0]['message']['content']
-        ?? "I apologize, but I need a moment to gather my thoughts.";
-}
 
 
     /**

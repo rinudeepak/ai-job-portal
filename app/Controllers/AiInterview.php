@@ -18,8 +18,11 @@ class AiInterview extends BaseController
     /**
      * Start interview page
      */
+    
     public function start()
     {
+        
+
         // Get candidate info from session/database
         $userId = session()->get('user_id');
         
@@ -48,12 +51,7 @@ class AiInterview extends BaseController
      */
     public function begin()
 {
-    log_message('debug', 'SAPI: ' . PHP_SAPI);
-log_message('debug', 'MISTRAL getenv len: ' . strlen((string) getenv('MISTRAL_API_KEY')));
-log_message('debug', 'MISTRAL env() len: ' . strlen((string) env('MISTRAL_API_KEY')));
-log_message('debug', 'MISTRAL masked: ' . substr((string) env('MISTRAL_API_KEY'), 0, 6) . '...' . substr((string) env('MISTRAL_API_KEY'), -4));
-
-    $userId = session()->get('user_id');
+     $userId = session()->get('user_id');
     $position = $this->request->getPost('position');
     
     if (empty($position)) {
@@ -71,8 +69,7 @@ log_message('debug', 'MISTRAL masked: ' . substr((string) env('MISTRAL_API_KEY')
     // Start interview
     $sessionData = $this->interviewer->startInterview($resumeSkills, $githubLanguages, $position);
     
-    // DEBUG: Check if conversation_history has data
-    log_message('debug', 'Session data after start: ' . print_r($sessionData, true));
+    
     
     if (empty($sessionData['conversation_history'])) {
         log_message('error', 'AI failed to generate initial message');
@@ -211,7 +208,7 @@ log_message('debug', 'MISTRAL masked: ' . substr((string) env('MISTRAL_API_KEY')
         
         // Get user skills
         $skillModel = model('CandidateSkillsModel');
-        $resumeSkills = $skillModel->where('user_id', $interview['user_id'])->findAll();
+        $resumeSkills = $skillModel->where('candidate_id', $interview['user_id'])->findAll();
         
         $conversationHistory = json_decode($interview['conversation_history'], true);
         
@@ -251,7 +248,7 @@ log_message('debug', 'MISTRAL masked: ' . substr((string) env('MISTRAL_API_KEY')
         $evaluation = json_decode($interview['evaluation_data'] ?? '{}', true);
         $conversationHistory = json_decode($interview['conversation_history'], true);
         
-        return view('interview/conversational_results', [
+        return view('interview/results', [
             'interview' => $interview,
             'evaluation' => $evaluation,
             'conversation' => $conversationHistory

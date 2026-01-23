@@ -35,28 +35,6 @@ $routes->post('candidate/resume_upload', 'Candidate::resumeUpload');
 $routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills');
 
 
-// $routes->group('ai-interview', function ($routes) {
-
-//     // Overview page
-//     $routes->get('overview', 'AiInterview::overview');
-//     $routes->get('/', 'AiInterview::interview');
-//     // Start interview (generate questions + session)
-//     $routes->post('start', 'AiInterview::start');
-
-//     // Question page
-//     $routes->get('question', 'AiInterview::question');
-
-//     // Submit answer
-//     $routes->post('submit_answer', 'AiInterview::submit');
-
-//     // Save draft (AJAX)
-//     $routes->post('save_draft', 'AiInterview::saveDraft');
-
-//     // Result page
-//     $routes->get('result', 'AiInterview::result');
-// });
-
-
 
 $routes->group('interview',  function($routes) {
     $routes->get('start', 'AiInterview::start');
@@ -66,3 +44,4 @@ $routes->group('interview',  function($routes) {
     $routes->get('complete/(:num)', 'AiInterview::complete/$1');
     $routes->get('results/(:num)', 'AiInterview::results/$1');
 });
+
