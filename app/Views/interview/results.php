@@ -197,13 +197,13 @@
 
             <!-- Action Buttons -->
             <div class="col-lg-12 text-center mt-4">
-                <a href="<?= base_url('candidate/dashboard') ?>" class="button button-contactForm boxed-btn mr-2">
+                <a href="<?= base_url('dashboard') ?>" class="button button-contactForm boxed-btn mr-2">
                     <i class="fas fa-home"></i> Back to Dashboard
                 </a>
-                <a href="<?= base_url('interview/transcript/' . $interview['id']) ?>" 
+                <!-- <a href="<?= base_url('interview/transcript/' . $interview['id']) ?>" 
                    class="button button-contactForm boxed-btn" style="background: #6c757d;">
                     <i class="fas fa-file-alt"></i> View Full Transcript
-                </a>
+                </a> -->
             </div>
         </div>
     </div>

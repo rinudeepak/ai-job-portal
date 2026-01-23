@@ -6,16 +6,13 @@ class AiInterviewer
 {
     private $apiKey;
     private $apiUrl;
-    private $maxTurns = 10; // Maximum conversation turns
+    private $maxTurns = 3; // Maximum conversation turns
     private $passingScore = 70; // Minimum score to qualify
 
     public function __construct()
     {
         $this->apiKey = getenv('MISTRAL_API_KEY') ?: '';
         $this->apiUrl = 'https://api.mistral.ai/v1/chat/completions';
-        //     log_message('error', 'RAW getenv: ' . var_export(getenv('MISTRAL_API_KEY'), true));
-        // log_message('error', 'RAW env(): ' . var_export(env('MISTRAL_API_KEY'), true));
-        // log_message('error', 'API KEY LENGTH: ' . strlen((string) env('MISTRAL_API_KEY')));
 
 
     }
@@ -108,8 +105,16 @@ class AiInterviewer
             ['role' => 'system', 'content' => 'You are an expert interview evaluator. Provide detailed, fair assessment.'],
             ['role' => 'user', 'content' => $evaluationPrompt]
         ]);
+        // Assume $response is the raw AI response
+        $response = trim($response);
+
+        // Remove starting ```json and ending ```
+        $response = preg_replace('/^```json\s*/', '', $response);  // remove starting ```json
+        $response = preg_replace('/\s*```$/', '', $response);      // remove ending ```
+        $response = trim($response);
 
         $evaluation = json_decode($response, true) ?? [];
+
 
         return $this->formatEvaluationResults($evaluation, count($candidateResponses));
     }
@@ -363,6 +368,9 @@ PROMPT;
 
         // Map recommendation to decision
         $decision = 'rejected';
+
+
+
         if (in_array($recommendation, ['STRONG HIRE', 'HIRE'])) {
             $decision = 'qualified';
         } elseif ($recommendation === 'MAYBE') {
@@ -442,7 +450,7 @@ PROMPT;
             CURLOPT_TIMEOUT => 60,
         ]);
 
-        $response = curl_exec($ch);
+        $response = curl_exec(handle: $ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
