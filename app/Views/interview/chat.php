@@ -80,14 +80,32 @@
                     </div>
                 </div>
 
-                <!-- Answer Form -->
-                <?php if (session()->getFlashdata('error')): ?>
-                    <div class="alert alert-danger mt-3">
-                        <?= session()->getFlashdata('error') ?>
+                <!-- Interview Complete - Show View Results Button -->
+                <?php if ($is_completed): ?>
+                    <div class="card mt-3 shadow-lg" style="border: 2px solid #28a745;">
+                        <div class="card-body text-center" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h4 class="text-success">Interview Complete!</h4>
+                            <p class="mb-4">
+                                Thank you for completing the interview. Your responses have been recorded and 
+                                our AI has finished evaluating your performance.
+                            </p>
+                            <a href="<?= base_url('interview/trigger-evaluation/'.$application) ?>" 
+                               class="button button-contactForm boxed-btn btn-lg">
+                                <i class="fas fa-chart-line"></i> View My Results
+                            </a>
+                        </div>
                     </div>
-                <?php endif; ?>
+                <?php else: ?>
+                    <!-- Answer Form - Only show if NOT completed -->
+                    <?php if (session()->getFlashdata('error')): ?>
+                        <div class="alert alert-danger mt-3">
+                            <?= session()->getFlashdata('error') ?>
+                        </div>
+                    <?php endif; ?>
 
-                <form method="post" action="<?= base_url('interview/submit') ?>" class="mt-3" id="answerForm">
+
+                <form method="post" action="<?= base_url('interview/submit/'.$application) ?>" class="mt-3" id="answerForm">
                     <?= csrf_field() ?>
 
                     <div class="form-group">
@@ -104,6 +122,7 @@
                         </button>
                         <span id="charCount" class="text-muted">0 characters</span>
                     </div>
+                    
                 </form>
 
                 <!-- Tips -->
@@ -113,6 +132,7 @@
                         <strong>Tip:</strong> Explain your thinking process. Give real examples from your experience.
                     </small>
                 </div>
+                <?php endif; ?> 
             </div>
         </div>
     </div>
@@ -139,5 +159,6 @@
         });
     });
 </script>
+
 
 <?= view('layouts/candidate_footer') ?>

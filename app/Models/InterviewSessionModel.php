@@ -8,13 +8,14 @@ class InterviewSessionModel extends Model
 {
     protected $table = 'interview_sessions';
     protected $primaryKey = 'id';
-    
+
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
-    
+
     protected $allowedFields = [
         'user_id',
+        'application_id',
         'session_id',
         'position',
         'conversation_history',
@@ -33,9 +34,9 @@ class InterviewSessionModel extends Model
         'updated_at',
         'completed_at'
     ];
-    
+
     protected $useTimestamps = false;
-    
+
     protected $validationRules = [
         'user_id' => 'required|integer',
         'session_id' => 'required|max_length[100]',
@@ -43,7 +44,7 @@ class InterviewSessionModel extends Model
         'turn' => 'integer',
         'max_turns' => 'integer'
     ];
-    
+
     protected $validationMessages = [
         'user_id' => [
             'required' => 'User ID is required'
@@ -52,28 +53,28 @@ class InterviewSessionModel extends Model
             'required' => 'Position is required'
         ]
     ];
-    
+
     /**
      * Get active interview for user
      */
     public function getActiveInterview(int $userId)
     {
         return $this->where('user_id', $userId)
-                    ->where('status', 'active')
-                    ->orderBy('created_at', 'DESC')
-                    ->first();
+            ->where('status', 'active')
+            ->orderBy('created_at', 'DESC')
+            ->first();
     }
-    
+
     /**
      * Get all interviews for a user
      */
     public function getUserInterviews(int $userId, int $limit = 10)
     {
         return $this->where('user_id', $userId)
-                    ->orderBy('created_at', 'DESC')
-                    ->findAll($limit);
+            ->orderBy('created_at', 'DESC')
+            ->findAll($limit);
     }
-    
+
     /**
      * Get interview statistics
      */
@@ -81,17 +82,17 @@ class InterviewSessionModel extends Model
     {
         $total = $this->where('user_id', $userId)->countAllResults();
         $completed = $this->where('user_id', $userId)
-                          ->where('status', 'evaluated')
-                          ->countAllResults();
+            ->where('status', 'evaluated')
+            ->countAllResults();
         $qualified = $this->where('user_id', $userId)
-                          ->where('ai_decision', 'qualified')
-                          ->countAllResults();
-        
+            ->where('ai_decision', 'qualified')
+            ->countAllResults();
+
         $avgScore = $this->selectAvg('overall_rating')
-                         ->where('user_id', $userId)
-                         ->where('overall_rating IS NOT NULL')
-                         ->first();
-        
+            ->where('user_id', $userId)
+            ->where('overall_rating IS NOT NULL')
+            ->first();
+
         return [
             'total_interviews' => $total,
             'completed_interviews' => $completed,
@@ -100,4 +101,43 @@ class InterviewSessionModel extends Model
             'success_rate' => $completed > 0 ? round(($qualified / $completed) * 100, 2) : 0
         ];
     }
+
+    /**
+     * Calculate time in stage
+     */
+    private function calculateTimeInStage($interview): string
+    {
+        $now = time();
+        $statusDate = strtotime($interview['updated_at'] ?? $interview['created_at']);
+        $diff = $now - $statusDate;
+
+        $days = floor($diff / 86400);
+        $hours = floor(($diff % 86400) / 3600);
+        $minutes = floor(($diff % 3600) / 60);
+
+        if ($days > 0) {
+            return "{$days}d {$hours}h";
+        } elseif ($hours > 0) {
+            return "{$hours}h {$minutes}m";
+        } else {
+            return "{$minutes}m";
+        }
+    }
+
+    /**
+     * Get current stage
+     */
+    private function getCurrentStage($interview): string
+    {
+        $status = $interview['status'];
+
+        $stages = [
+            'active' => 'In Interview (Turn ' . $interview['turn'] . '/' . $interview['max_turns'] . ')',
+            'completed' => 'Awaiting Evaluation',
+            'evaluated' => 'Evaluation Complete'
+        ];
+
+        return $stages[$status] ?? 'Unknown';
+    }
+
 }

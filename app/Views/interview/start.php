@@ -60,31 +60,24 @@
                 </div>
 
                 <form class="form-contact contact_form" method="post" 
-                      action="<?= base_url('interview/begin') ?>" novalidate="novalidate">
+                      action="<?= base_url('interview/begin/'.$application['id']) ?>" novalidate="novalidate">
                     <?= csrf_field() ?>
                     
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Position You're Applying For *</label>
-                                <input class="form-control valid" name="position" type="text" 
-                                       placeholder="e.g., Full Stack Developer" required>
+                                <input class="form-control valid" type="text" 
+                                       value="<?php echo $job_title ?>" disabled>
+                                       <input type="hidden" name="position" value="<?= esc($job_title) ?>">
+
                                 <small class="form-text text-muted">
                                     Sarah will tailor questions based on this role
                                 </small>
                             </div>
                         </div>
 
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="ready" required>
-                                    <label class="custom-control-label" for="ready">
-                                        I'm ready to begin the interview (8-10 turns, ~15 minutes)
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                      
                     </div>
 
                     <div class="form-group mt-3">

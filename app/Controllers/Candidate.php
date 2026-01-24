@@ -119,6 +119,24 @@ class Candidate extends BaseController
 
         return redirect()->back()->with('success', 'GitHub profile analyzed successfully');
     }
+    public function appliedJobs()
+    {
+        $candidateId = session()->get('user_id');
+
+        $db = \Config\Database::connect();
+
+        $jobs = $db->table('applications a')
+        ->select('a.id as application_id, j.title, a.status, j.id as job_id')
+        ->join('jobs j', 'j.id = a.job_id')
+        ->where('a.candidate_id', $candidateId)
+        ->get()
+        ->getResultArray();
+
+        return view('candidate/applied_jobs', [
+            'jobs' => $jobs
+        ]);
+    }
+
 
 
 

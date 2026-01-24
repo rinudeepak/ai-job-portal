@@ -9,11 +9,12 @@ class AiInterviewer
     private $maxTurns = 3; // Maximum conversation turns
     private $passingScore = 70; // Minimum score to qualify
 
-    public function __construct()
+    public function __construct($passingScore)
     {
         $this->apiKey = getenv('MISTRAL_API_KEY') ?: '';
         $this->apiUrl = 'https://api.mistral.ai/v1/chat/completions';
-
+$this->passingScore = $passingScore;
+        
 
     }
 

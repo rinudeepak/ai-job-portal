@@ -11,7 +11,6 @@ class AiInterview extends BaseController
 
     public function __construct()
     {
-        $this->interviewer = new AiInterviewer();
         $this->session = \Config\Services::session();
     }
 
@@ -19,11 +18,18 @@ class AiInterview extends BaseController
      * Start interview page
      */
 
-    public function start()
+    public function start($applicationId)
     {
 
+        $applicationModel = model('ApplicationModel');
+        $application = $applicationModel->find($applicationId);
+        $jobModel = model('JobModel');
+        $job = $jobModel->find($application['job_id']);
+        $job_title = $job['title'];   // Get candidate info from session/database
+        // $this->interviewer = new AiInterviewer($job['min_ai_cutoff_score']);
+session()->set('ai_cutoff_score', $job['min_ai_cutoff_score']);
 
-        // Get candidate info from session/database
+
         $userId = session()->get('user_id');
 
         $userModel = model('UserModel');
@@ -40,16 +46,18 @@ class AiInterview extends BaseController
         $githubLanguages = json_decode($user['github_languages'] ?? '[]', true);
 
         return view('interview/start', [
+            'application' => $application,
             'user' => $user,
             'skills' => $resumeSkills,
-            'github_languages' => $githubLanguages
+            'github_languages' => $githubLanguages,
+            'job_title' => $job_title
         ]);
     }
 
     /**
      * Begin the interview
      */
-    public function begin()
+    public function begin($applicationId)
     {
         $userId = session()->get('user_id');
         $position = $this->request->getPost('position');
@@ -65,7 +73,7 @@ class AiInterview extends BaseController
         $user = $userModel->find($userId);
         $resumeSkills = $skillModel->where('candidate_id', $userId)->findAll();
         $githubLanguages = json_decode($user['github_languages'] ?? '[]', true);
-
+$this->interviewer = $this->getInterviewer();
         // Start interview
         $sessionData = $this->interviewer->startInterview($resumeSkills, $githubLanguages, $position);
 
@@ -100,13 +108,13 @@ class AiInterview extends BaseController
         // Store session ID
         session()->set('current_interview_id', $interviewId);
 
-        return redirect()->to('/interview/chat');
+        return redirect()->to('/interview/chat/' . $applicationId);
     }
 
     /**
      * Chat interface
      */
-    public function chat()
+    public function chat($applicationId)
     {
         $interviewId = session()->get('current_interview_id');
 
@@ -121,9 +129,9 @@ class AiInterview extends BaseController
             return redirect()->to('/interview/start')->with('error', 'Interview not found');
         }
 
-        if ($interview['status'] === 'completed') {
-            return redirect()->to('/interview/results/' . $interviewId);
-        }
+        // if ($interview['status'] === 'completed') {
+        //     return redirect()->to('/interview/results/' . $interviewId);
+        // }
 
         // DEBUG: Check what's in the database
         log_message('debug', 'Interview data: ' . print_r($interview, true));
@@ -145,17 +153,27 @@ class AiInterview extends BaseController
             'conversation_history' => $conversationHistory,
             'status' => $interview['status']
         ];
+        // Check if interview is completed - show with "View Results" button
+        $isCompleted = ($interview['status'] === 'completed');
+        if ($isCompleted) {
+            $applicationModel = model('ApplicationModel');
+            $applicationModel->update($applicationId, [
+                'status' => 'ai_interview_completed'
+            ]);
+        }
 
         return view('interview/chat', [
             'interview' => $interview,
-            'session_data' => $sessionData
+            'session_data' => $sessionData,
+            'is_completed' => $isCompleted,
+            'application' => $applicationId
         ]);
     }
 
     /**
      * Submit candidate answer
      */
-    public function submitAnswer()
+    public function submitAnswer($applicationId)
     {
         $interviewId = session()->get('current_interview_id');
         $answer = $this->request->getPost('answer');
@@ -174,7 +192,7 @@ class AiInterview extends BaseController
             'conversation_history' => json_decode($interview['conversation_history'], true),
             'status' => $interview['status']
         ];
-
+$this->interviewer = $this->getInterviewer();
         // Continue interview
         $updatedSession = $this->interviewer->continueInterview($sessionData, $answer);
 
@@ -186,19 +204,22 @@ class AiInterview extends BaseController
             'updated_at' => $updatedSession['updated_at']
         ]);
 
-        // If complete, redirect to evaluation
-        if ($updatedSession['status'] === 'completed') {
-            return redirect()->to('/interview/complete/' . $interviewId);
-        }
-
-        return redirect()->to('/interview/chat');
+        // Always redirect back to chat page
+        // The chat page will show "View Results" button if completed
+        return redirect()->to('/interview/chat/' . $applicationId);
     }
 
     /**
-     * Complete interview and evaluate
+     * Trigger evaluation (called when user clicks "View Results")
      */
-    public function complete($interviewId)
+    public function triggerEvaluation($applicationId)
     {
+        $interviewId = session()->get('current_interview_id');
+
+        if (!$interviewId) {
+            return redirect()->to('/interview/start')->with('error', 'No interview found');
+        }
+
         $interviewModel = model('InterviewSessionModel');
         $interview = $interviewModel->find($interviewId);
 
@@ -206,12 +227,17 @@ class AiInterview extends BaseController
             return redirect()->to('/interview/start')->with('error', 'Interview not found');
         }
 
+        // Check if already evaluated
+        if ($interview['status'] === 'evaluated') {
+            return redirect()->to('/interview/results/' . $interviewId);
+        }
+
         // Get user skills
         $skillModel = model('CandidateSkillsModel');
         $resumeSkills = $skillModel->where('candidate_id', $interview['user_id'])->findAll();
 
         $conversationHistory = json_decode($interview['conversation_history'], true);
-
+$this->interviewer = $this->getInterviewer();
         // Evaluate interview
         $evaluation = $this->interviewer->evaluateInterview(
             $conversationHistory,
@@ -224,17 +250,23 @@ class AiInterview extends BaseController
             'evaluation_data' => json_encode($evaluation),
             'technical_score' => $evaluation['technical_score'],
             'communication_score' => $evaluation['communication_score'],
+            'problem_solving_score' => $evaluation['problem_solving_score'] ?? 0,
+            'adaptability_score' => $evaluation['adaptability_score'] ?? 0,
+            'enthusiasm_score' => $evaluation['enthusiasm_score'] ?? 0,
             'overall_rating' => $evaluation['overall_rating'],
             'ai_decision' => $evaluation['ai_decision'],
             'status' => 'evaluated',
+            'application_id' => $applicationId,
             'completed_at' => date('Y-m-d H:i:s')
         ]);
-
-
-
+        $applicationModel = model('ApplicationModel');
+        $applicationModel->update($applicationId, [
+            'status' => 'ai_evaluated'
+        ]);
 
         return redirect()->to('/interview/results/' . $interviewId);
     }
+
 
     /**
      * Show results
@@ -257,14 +289,17 @@ class AiInterview extends BaseController
             'conversation' => $conversationHistory
         ]);
     }
+private function getInterviewer(): AiInterviewer
+{
+    $cutoff = session()->get('ai_cutoff_score');
 
-    /**
-     * Helper: Get last AI message
-     */
-    private function getLastAiMessage(array $conversationHistory): string
-    {
-        $filtered = array_filter($conversationHistory, fn($msg) => $msg['role'] === 'assistant');
-        $last = end($filtered);
-        return $last['content'] ?? '';
+    if (!$cutoff) {
+        throw new \Exception('AI cutoff score not found in session');
     }
+
+    return new AiInterviewer($cutoff);
+}
+
+    
+    
 }
