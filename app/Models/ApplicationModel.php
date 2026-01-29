@@ -13,6 +13,9 @@ class ApplicationModel extends Model
         'job_id',
         'candidate_id',
         'status',
+        'interview_slot',
+        'ai_interview_id',
+        'booking_id',
         'applied_at'
     ];
 }

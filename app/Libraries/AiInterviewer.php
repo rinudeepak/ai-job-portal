@@ -7,14 +7,14 @@ class AiInterviewer
     private $apiKey;
     private $apiUrl;
     private $maxTurns = 3; // Maximum conversation turns
-    private $passingScore = 70; // Minimum score to qualify
+    private $passingScore; // Minimum score to qualify
 
     public function __construct($passingScore)
     {
         $this->apiKey = getenv('MISTRAL_API_KEY') ?: '';
         $this->apiUrl = 'https://api.mistral.ai/v1/chat/completions';
-$this->passingScore = $passingScore;
-        
+        $this->passingScore = $passingScore;
+
 
     }
 
@@ -367,16 +367,7 @@ PROMPT;
         $overallScore = $evaluation['overall_assessment']['total_score'] ?? 0;
         $recommendation = $evaluation['overall_assessment']['recommendation'] ?? 'NO HIRE';
 
-        // Map recommendation to decision
-        $decision = 'rejected';
-
-
-
-        if (in_array($recommendation, ['STRONG HIRE', 'HIRE'])) {
-            $decision = 'qualified';
-        } elseif ($recommendation === 'MAYBE') {
-            $decision = $overallScore >= $this->passingScore ? 'qualified' : 'rejected';
-        }
+        $decision = ($overallScore >= $this->passingScore) ? 'shortlisted' : 'rejected';
 
         return [
             'technical_score' => $evaluation['technical_knowledge']['score'] ?? 0,

@@ -45,9 +45,8 @@
                                         <?php
                                         $statusLabels = [
                                             'applied' => 'Applied',
-                                            'ai_pending' => 'AI Interview Pending',
-                                            'ai_started' => 'AI Interview In Progress',
-                                            'ai_completed' => 'AI Interview Completed',
+                                            'ai_interview_started' => 'AI Interview In Progress',
+                                            'ai_interview_completed' => 'AI Interview Completed',
                                             'ai_evaluated' => 'AI Evaluated',
                                             'shortlisted' => 'Shortlisted',
                                             'rejected' => 'Rejected',
@@ -64,20 +63,18 @@
                                             </a>
 
                                         <?php elseif ($job['status'] == 'ai_interview_started'): ?>
-                                            <a href="<?= base_url('interview/resume/'.$job['id']) ?>" class="btn btn-warning btn-sm">
+                                            <!-- <a href="<?= base_url('interview/chat/'.$job['application_id']) ?>" class="btn btn-warning btn-sm">
                                                 Resume Interview
-                                            </a>
+                                            </a> -->
 
                                         <?php elseif ($job['status'] == 'ai_interview_completed'): ?>
                                             <span class="badge badge-info">Waiting for Evaluation</span>
 
                                         <?php elseif ($job['status'] == 'ai_evaluated'): ?>
-                                            <a href="<?= base_url('interview/result/'.$job['id']) ?>" class="btn btn-primary btn-sm">
-                                                View Result
-                                            </a>
+                                            
 
                                         <?php elseif ($job['status'] == 'shortlisted'): ?>
-                                            <a href="<?= base_url('slot/book/'.$job['id']) ?>" class="btn btn-success btn-sm">
+                                            <a href="<?= base_url('candidate/book-slot/'.$job['application_id']) ?>" class="btn btn-success btn-sm">
                                                 Book Slot
                                             </a>
 
@@ -85,7 +82,7 @@
                                             <span class="badge badge-danger">Rejected</span>
 
                                         <?php elseif ($job['status'] == 'interview_slot_booked'): ?>
-                                            <a href="<?= base_url('slot/reschedule/'.$job['id']) ?>" class="btn btn-secondary btn-sm">
+                                            <a href="<?= base_url('candidate/reschedule-slot/'.$job['application_id']) ?>" class="btn btn-secondary btn-sm">
                                                 Reschedule Slot
                                             </a>
                                         <?php endif; ?>

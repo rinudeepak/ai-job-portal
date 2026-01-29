@@ -38,7 +38,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <input class="form-control valid" name="github_username" id="github_username" value="<?= esc($user['github_username'] ?? '') ?>"
+                                <input class="form-control valid" name="github_username" id="github_username" value="<?= esc($github['github_username'] ?? '') ?>"
                                     type="text" onfocus="this.placeholder = ''"
                                     onblur="this.placeholder = 'GiHub Username'" placeholder="GiHub Username">
                             </div>
@@ -77,6 +77,10 @@
                             </div>
                         </div>
                     </div>
+                    <?php if (!empty($user['resume_path'])): ?>
+    <p>Uploaded Resume: <?= esc($user['resume_path']) ?></p>
+<?php endif; ?>
+
                     <div class="form-group mt-3">
                         <button type="submit" class="button button-contactForm boxed-btn">Save</button>
                     </div>

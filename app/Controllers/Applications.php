@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Controllers;
 
@@ -15,10 +15,13 @@ class Applications extends BaseController
             return redirect()->to(base_url('login'));
         }
 
-        
+
         $candidateId = $session->get('user_id');
 
         $model = new ApplicationModel();
+        // $notificationModel = model('NotificationModel');
+        // $userModel = model('UserModel');
+
 
         // 3️⃣ Prevent duplicate application
         $alreadyApplied = $model
@@ -37,6 +40,16 @@ class Applications extends BaseController
             'status' => 'applied',
             'applied_at' => date('Y-m-d H:i:s')
         ]);
+        // Get inserted application id
+        $applicationId = $model->getInsertID();
+
+        // Track stage
+
+        $stageModel = model('StageHistoryModel');
+        $stageModel->moveToStage($applicationId, 'Applied');
+
+        
+
 
         return redirect()->back()->with('success', 'Job applied successfully');
     }

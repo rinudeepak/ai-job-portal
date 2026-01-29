@@ -43,7 +43,7 @@
                                         <ul id="navigation">
                                             <li><a href="<?= base_url('recruiter/dashboard') ?>">Home</a></li>
                                             <li><a href="<?= base_url('recruiter/post_job') ?>">Post Jobs</a></li>
-                                            
+                                            <li><a href="<?= base_url('recruiter/slots') ?>">Interview Slots</a></li>
                                             <!-- <li><a href="#">Page</a>
                                             <ul class="submenu">
                                                 <li><a href="blog.html">Jobs</a></li>

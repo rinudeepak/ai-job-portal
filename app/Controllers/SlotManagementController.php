@@ -1,0 +1,419 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Controllers\BaseController;
+
+class SlotManagementController extends BaseController
+{
+    /**
+     * View all interview slots
+     */
+    public function index()
+    {
+        $slotModel = model('InterviewSlotModel');
+        $jobModel = model('JobModel');
+        
+        // Get filter parameters
+        $jobId = $this->request->getGet('job_id');
+        $date = $this->request->getGet('date');
+        $status = $this->request->getGet('status');
+        
+        $builder = $slotModel
+            ->select('interview_slots.*, jobs.title as job_title, users.name as created_by_name')
+            ->join('jobs', 'jobs.id = interview_slots.job_id', 'left')
+            ->join('users', 'users.id = interview_slots.created_by', 'left')
+            ->orderBy('interview_slots.slot_datetime', 'ASC');
+        
+        // Apply filters
+        if ($jobId) {
+            $builder->where('interview_slots.job_id', $jobId);
+        }
+        
+        if ($date) {
+            $builder->where('interview_slots.slot_date', $date);
+        }
+        
+        if ($status === 'available') {
+            $builder->where('interview_slots.is_available', 1)
+                    ->where('interview_slots.booked_count < interview_slots.capacity');
+        } elseif ($status === 'full') {
+            $builder->where('interview_slots.is_available', 0);
+        } elseif ($status === 'past') {
+            $builder->where('interview_slots.slot_datetime <', date('Y-m-d H:i:s'));
+        }
+        
+        $slots = $builder->paginate(20);
+        $pager = $slotModel->pager;
+        
+        // Get all jobs for filter
+        $jobs = $jobModel->findAll();
+        
+        // Statistics
+        $stats = [
+            'total_slots' => $slotModel->countAll(),
+            'available_slots' => $slotModel->where('is_available', 1)
+                                          ->where('slot_datetime >', date('Y-m-d H:i:s'))
+                                          ->countAllResults(),
+            'fully_booked' => $slotModel->where('is_available', 0)->countAllResults(),
+            'total_bookings' => model('InterviewBookingModel')->countAll()
+        ];
+        
+        return view('recruiter/slots/index', [
+            'slots' => $slots,
+            'pager' => $pager,
+            'jobs' => $jobs,
+            'stats' => $stats,
+            'filters' => [
+                'job_id' => $jobId,
+                'date' => $date,
+                'status' => $status
+            ]
+        ]);
+    }
+    
+    /**
+     * Create slots form
+     */
+    public function create()
+    {
+        $jobModel = model('JobModel');
+        $jobs = $jobModel->findAll();
+        
+        return view('recruiter/slots/create', [
+            'jobs' => $jobs
+        ]);
+    }
+    
+    /**
+     * Save new slots
+     */
+    public function store()
+    {
+        $slotModel = model('InterviewSlotModel');
+        
+        $jobId = $this->request->getPost('job_id');
+        $startDate = $this->request->getPost('start_date');
+        $endDate = $this->request->getPost('end_date');
+        $times = $this->request->getPost('times');
+        $capacity = $this->request->getPost('capacity');
+        $excludeWeekends = $this->request->getPost('exclude_weekends');
+        
+        // Validation
+        if (empty($jobId) || empty($startDate) || empty($times)) {
+            return redirect()->back()->with('error', 'Please fill all required fields');
+        }
+        
+        // Generate date range
+        $dates = [];
+        $current = strtotime($startDate);
+        $end = $endDate ? strtotime($endDate) : $current;
+        
+        while ($current <= $end) {
+            $dayOfWeek = date('N', $current);
+            
+            // Skip weekends if option is checked
+            if ($excludeWeekends && ($dayOfWeek == 6 || $dayOfWeek == 7)) {
+                $current = strtotime('+1 day', $current);
+                continue;
+            }
+            
+            $dates[] = date('Y-m-d', $current);
+            $current = strtotime('+1 day', $current);
+        }
+        
+        // Create slots
+        $totalCreated = 0;
+        foreach ($dates as $date) {
+            $created = $slotModel->createBulkSlots(
+                $jobId,
+                $date,
+                $times,
+                $capacity,
+                session()->get('user_id')
+            );
+            $totalCreated += $created;
+        }
+        
+        return redirect()->to('/recruiter/slots')->with('success', "Successfully created {$totalCreated} interview slots");
+    }
+    
+    /**
+     * Edit slot
+     */
+    public function edit($id)
+    {
+        $slotModel = model('InterviewSlotModel');
+        $jobModel = model('JobModel');
+        
+        $slot = $slotModel->find($id);
+        
+        if (!$slot) {
+            return redirect()->to('/recruiter/slots')->with('error', 'Slot not found');
+        }
+        
+        $jobs = $jobModel->findAll();
+        
+        return view('recruiter/slots/edit', [
+            'slot' => $slot,
+            'jobs' => $jobs
+        ]);
+    }
+    
+    /**
+     * Update slot
+     */
+    public function update($id)
+    {
+        $slotModel = model('InterviewSlotModel');
+        
+        $slot = $slotModel->find($id);
+        
+        if (!$slot) {
+            return redirect()->back()->with('error', 'Slot not found');
+        }
+        
+        // Don't allow editing if already booked
+        if ($slot['booked_count'] > 0) {
+            return redirect()->back()->with('error', 'Cannot edit slot with existing bookings');
+        }
+        
+        $date = $this->request->getPost('slot_date');
+        $time = $this->request->getPost('slot_time');
+        $capacity = $this->request->getPost('capacity');
+        
+        $slotModel->update($id, [
+            'slot_date' => $date,
+            'slot_time' => $time,
+            'slot_datetime' => $date . ' ' . $time,
+            'capacity' => $capacity
+        ]);
+        
+        return redirect()->to('/recruiter/slots')->with('success', 'Slot updated successfully');
+    }
+    
+    /**
+     * Delete slot
+     */
+    public function delete($id)
+    {
+        $slotModel = model('InterviewSlotModel');
+        
+        $slot = $slotModel->find($id);
+        
+        if (!$slot) {
+            return redirect()->back()->with('error', 'Slot not found');
+        }
+        
+        // Don't allow deletion if already booked
+        if ($slot['booked_count'] > 0) {
+            return redirect()->back()->with('error', 'Cannot delete slot with existing bookings');
+        }
+        
+        $slotModel->delete($id);
+        
+        return redirect()->to('/recruiter/slots')->with('success', 'Slot deleted successfully');
+    }
+    
+    /**
+     * View all bookings
+     */
+    public function bookings()
+    {
+        $bookingModel = model('InterviewBookingModel');
+        
+        // Get filters
+        $status = $this->request->getGet('status');
+        $jobId = $this->request->getGet('job_id');
+        
+        $builder = $bookingModel
+            ->select('interview_bookings.*, users.name as candidate_name, users.email, jobs.title as job_title, interview_slots.slot_date, interview_slots.slot_time')
+            ->join('users', 'users.id = interview_bookings.user_id', 'left')
+            ->join('jobs', 'jobs.id = interview_bookings.job_id', 'left')
+            ->join('interview_slots', 'interview_slots.id = interview_bookings.slot_id', 'left')
+            ->orderBy('interview_bookings.slot_datetime', 'ASC');
+        
+        if ($status) {
+            $builder->where('interview_bookings.booking_status', $status);
+        }
+        
+        if ($jobId) {
+            $builder->where('interview_bookings.job_id', $jobId);
+        }
+        
+        $bookings = $builder->paginate(20);
+        $pager = $bookingModel->pager;
+        
+        // Get jobs for filter
+        $jobs = model('JobModel')->findAll();
+        
+        // Statistics
+        $stats = [
+            'total_bookings' => $bookingModel->countAll(),
+            'upcoming' => $bookingModel->where('slot_datetime >', date('Y-m-d H:i:s'))->countAllResults(),
+            'completed' => $bookingModel->where('booking_status', 'completed')->countAllResults(),
+            'rescheduled' => $bookingModel->where('booking_status', 'rescheduled')->countAllResults()
+        ];
+        
+        return view('recruiter/slots/bookings', [
+            'bookings' => $bookings,
+            'pager' => $pager,
+            'jobs' => $jobs,
+            'stats' => $stats,
+            'filters' => [
+                'status' => $status,
+                'job_id' => $jobId
+            ]
+        ]);
+    }
+    
+    /**
+     * Admin reschedule booking
+     */
+    public function adminReschedule($bookingId)
+    {
+        $bookingModel = model('InterviewBookingModel');
+        $slotModel = model('InterviewSlotModel');
+        
+        $booking = $bookingModel->find($bookingId);
+        
+        if (!$booking) {
+            return redirect()->back()->with('error', 'Booking not found');
+        }
+        
+        $availableSlots = $slotModel->getAvailableSlotsGrouped($booking['job_id']);
+        
+        return view('recruiter/slots/reschedule', [
+            'booking' => $booking,
+            'available_slots' => $availableSlots
+        ]);
+    }
+    
+    /**
+     * Process admin reschedule
+     */
+    public function processAdminReschedule()
+    {
+        $bookingId = $this->request->getPost('booking_id');
+        $newSlotId = $this->request->getPost('slot_id');
+        $reason = $this->request->getPost('reason');
+        
+        $bookingModel = model('InterviewBookingModel');
+        $slotModel = model('InterviewSlotModel');
+        $rescheduleHistoryModel = model('RescheduleHistoryModel');
+        $notificationModel = model('NotificationModel');
+        
+        $booking = $bookingModel->find($bookingId);
+        
+        if (!$booking) {
+            return redirect()->back()->with('error', 'Booking not found');
+        }
+        
+        // Check if new slot is available
+        if (!$slotModel->isSlotAvailable($newSlotId)) {
+            return redirect()->back()->with('error', 'Selected slot is not available');
+        }
+        
+        $newSlot = $slotModel->find($newSlotId);
+        
+        // Start transaction
+        $db = \Config\Database::connect();
+        $db->transStart();
+        
+        // Decrement old slot count
+        $slotModel->decrementBookedCount($booking['slot_id']);
+        
+        // Increment new slot count
+        $slotModel->incrementBookedCount($newSlotId);
+        
+        // Update booking (don't increment reschedule_count for admin)
+        $bookingModel->update($bookingId, [
+            'slot_id' => $newSlotId,
+            'slot_datetime' => $newSlot['slot_datetime'],
+            'last_rescheduled_at' => date('Y-m-d H:i:s')
+        ]);
+        
+        // Save reschedule history
+        $rescheduleHistoryModel->insert([
+            'booking_id' => $bookingId,
+            'old_slot_id' => $booking['slot_id'],
+            'new_slot_id' => $newSlotId,
+            'old_slot_datetime' => $booking['slot_datetime'],
+            'new_slot_datetime' => $newSlot['slot_datetime'],
+            'reason' => $reason,
+            'rescheduled_by' => 'admin',
+            'rescheduled_at' => date('Y-m-d H:i:s')
+        ]);
+        
+        // Update application
+        model('ApplicationModel')->update($booking['application_id'], [
+            'interview_slot' => $newSlot['slot_datetime'],
+            'status' => 'reschedule_required'
+        ]);
+        
+        // Notify candidate
+        $notificationModel->createNotification(
+            $booking['user_id'],
+            $booking['application_id'],
+            'reschedule_required',
+            'Your interview has been rescheduled by the admin.',
+            base_url('candidate/my-bookings')
+        );
+        
+        $db->transComplete();
+        
+        if ($db->transStatus()) {
+            return redirect()->to('/recruiter/slots/bookings')->with('success', 'Booking rescheduled successfully');
+        } else {
+            return redirect()->back()->with('error', 'Failed to reschedule booking');
+        }
+    }
+    
+    /**
+     * Mark interview as completed
+     */
+    public function markCompleted($bookingId)
+    {
+        $bookingModel = model('InterviewBookingModel');
+        
+        $bookingModel->update($bookingId, [
+            'booking_status' => 'completed'
+        ]);
+        
+        return redirect()->back()->with('success', 'Interview marked as completed');
+    }
+    
+    /**
+     * Shortlist candidates (bulk action)
+     */
+    public function bulkShortlist()
+    {
+        $applicationIds = $this->request->getPost('application_ids');
+        
+        if (empty($applicationIds)) {
+            return redirect()->back()->with('error', 'No applications selected');
+        }
+        
+        $applicationModel = model('ApplicationModel');
+        $notificationModel = model('NotificationModel');
+        
+        foreach ($applicationIds as $appId) {
+            $application = $applicationModel->find($appId);
+            
+            if ($application && $application['status'] === 'ai_interview_completed') {
+                // Update to shortlisted
+                $applicationModel->update($appId, [
+                    'status' => 'shortlisted'
+                ]);
+                
+                // Trigger notification
+                $notificationModel->triggerApplicationNotifications(
+                    $application['candidate_id'],
+                    $applicationModel->find($appId)
+                );
+            }
+        }
+        
+        return redirect()->back()->with('success', count($applicationIds) . ' candidates shortlisted');
+    }
+}

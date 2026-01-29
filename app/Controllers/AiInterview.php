@@ -27,7 +27,7 @@ class AiInterview extends BaseController
         $job = $jobModel->find($application['job_id']);
         $job_title = $job['title'];   // Get candidate info from session/database
         // $this->interviewer = new AiInterviewer($job['min_ai_cutoff_score']);
-session()->set('ai_cutoff_score', $job['min_ai_cutoff_score']);
+        session()->set('ai_cutoff_score', $job['min_ai_cutoff_score']);
 
 
         $userId = session()->get('user_id');
@@ -73,7 +73,7 @@ session()->set('ai_cutoff_score', $job['min_ai_cutoff_score']);
         $user = $userModel->find($userId);
         $resumeSkills = $skillModel->where('candidate_id', $userId)->findAll();
         $githubLanguages = json_decode($user['github_languages'] ?? '[]', true);
-$this->interviewer = $this->getInterviewer();
+        $this->interviewer = $this->getInterviewer();
         // Start interview
         $sessionData = $this->interviewer->startInterview($resumeSkills, $githubLanguages, $position);
 
@@ -96,6 +96,15 @@ $this->interviewer = $this->getInterviewer();
             'status' => $sessionData['status'],
             'created_at' => $sessionData['created_at']
         ]);
+
+        $applicationModel = model('ApplicationModel');
+        $applicationModel->update($applicationId, [
+            'status' => 'ai_interview_started'
+        ]);
+        // Track stage
+
+        $stageModel = model('StageHistoryModel');
+        $stageModel->moveToStage($applicationId, 'AI Interview Started');
 
         // DEBUG: Verify insert
         log_message('debug', 'Inserted interview ID: ' . $interviewId);
@@ -129,10 +138,7 @@ $this->interviewer = $this->getInterviewer();
             return redirect()->to('/interview/start')->with('error', 'Interview not found');
         }
 
-        // if ($interview['status'] === 'completed') {
-        //     return redirect()->to('/interview/results/' . $interviewId);
-        // }
-
+        
         // DEBUG: Check what's in the database
         log_message('debug', 'Interview data: ' . print_r($interview, true));
 
@@ -160,6 +166,11 @@ $this->interviewer = $this->getInterviewer();
             $applicationModel->update($applicationId, [
                 'status' => 'ai_interview_completed'
             ]);
+            // Track stage
+
+            $stageModel = model('StageHistoryModel');
+            $stageModel->moveToStage($applicationId, 'AI Interview Completed');
+
         }
 
         return view('interview/chat', [
@@ -192,7 +203,7 @@ $this->interviewer = $this->getInterviewer();
             'conversation_history' => json_decode($interview['conversation_history'], true),
             'status' => $interview['status']
         ];
-$this->interviewer = $this->getInterviewer();
+        $this->interviewer = $this->getInterviewer();
         // Continue interview
         $updatedSession = $this->interviewer->continueInterview($sessionData, $answer);
 
@@ -237,7 +248,7 @@ $this->interviewer = $this->getInterviewer();
         $resumeSkills = $skillModel->where('candidate_id', $interview['user_id'])->findAll();
 
         $conversationHistory = json_decode($interview['conversation_history'], true);
-$this->interviewer = $this->getInterviewer();
+        $this->interviewer = $this->getInterviewer();
         // Evaluate interview
         $evaluation = $this->interviewer->evaluateInterview(
             $conversationHistory,
@@ -261,8 +272,13 @@ $this->interviewer = $this->getInterviewer();
         ]);
         $applicationModel = model('ApplicationModel');
         $applicationModel->update($applicationId, [
-            'status' => 'ai_evaluated'
+            'status' => $evaluation['ai_decision'],
+            'ai_interview_id' => $interviewId
         ]);
+        // Track stage
+
+        $stageModel = model('StageHistoryModel');
+        $stageModel->moveToStage($applicationId, 'AI Interview Evaluated');
 
         return redirect()->to('/interview/results/' . $interviewId);
     }
@@ -282,24 +298,43 @@ $this->interviewer = $this->getInterviewer();
 
         $evaluation = json_decode($interview['evaluation_data'] ?? '{}', true);
         $conversationHistory = json_decode($interview['conversation_history'], true);
+        $applicationId = json_decode($interview['application_id'], true);
+        $result = json_decode($interview['ai_decision'], true);
+        // Normalize status (safety)
+        if ($result === 'shortlisted') {
+            $status = 'shortlisted';
+        } elseif ($result === 'rejected') {
+            $status = 'rejected';
+        } else {
+            $status = 'rejected'; // fallback
+        }
 
+        $applicationModel = model('ApplicationModel');
+        $applicationModel->update($applicationId, [
+            'status' => $status
+        ]);
+        // Track stage
+
+        $stageModel = model('StageHistoryModel');
+        $stageModel->moveToStage($applicationId, $status);
         return view('interview/results', [
             'interview' => $interview,
             'evaluation' => $evaluation,
             'conversation' => $conversationHistory
         ]);
+
     }
-private function getInterviewer(): AiInterviewer
-{
-    $cutoff = session()->get('ai_cutoff_score');
+    private function getInterviewer(): AiInterviewer
+    {
+        $cutoff = session()->get('ai_cutoff_score');
 
-    if (!$cutoff) {
-        throw new \Exception('AI cutoff score not found in session');
+        if (!$cutoff) {
+            throw new \Exception('AI cutoff score not found in session');
+        }
+
+        return new AiInterviewer($cutoff);
     }
 
-    return new AiInterviewer($cutoff);
-}
 
-    
-    
+
 }

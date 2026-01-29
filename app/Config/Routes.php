@@ -49,9 +49,61 @@ $routes->group('interview',  function($routes) {
 
 // Admin Evaluation Routes
 //$routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
-    $routes->group('admin', function($routes) {
-    $routes->get('evaluations', 'Admin\EvaluationController::index');
-    $routes->get('evaluations/view/(:num)', 'Admin\EvaluationController::view/$1');
-    $routes->get('evaluations/export-excel', 'Admin\EvaluationController::exportExcel');
-    $routes->post('evaluations/update-status/(:num)', 'Admin\EvaluationController::updateStatus/$1');
+//     $routes->group('admin', function($routes) {
+//     $routes->get('evaluations', 'Admin\EvaluationController::index');
+//     $routes->get('evaluations/view/(:num)', 'Admin\EvaluationController::view/$1');
+//     $routes->get('evaluations/export-excel', 'Admin\EvaluationController::exportExcel');
+//     $routes->post('evaluations/update-status/(:num)', 'Admin\EvaluationController::updateStatus/$1');
+// });
+
+// Notification Routes
+$routes->group('notifications', ['filter' => 'auth'], function($routes) {
+    $routes->get('/', 'NotificationController::index');
+    $routes->get('mark-read/(:num)', 'NotificationController::markAsRead/$1');
+    $routes->get('mark-all-read', 'NotificationController::markAllAsRead');
+    $routes->get('delete/(:num)', 'NotificationController::delete/$1');
 });
+
+// Interview Slot Booking Routes
+$routes->group('candidate', ['filter' => 'auth'], function($routes) {
+    $routes->get('book-slot/(:num)', 'SlotBookingController::bookSlot/$1');
+    $routes->post('process-booking', 'SlotBookingController::processBooking');
+    $routes->get('reschedule-slot/(:num)', 'SlotBookingController::rescheduleSlot/$1');
+    $routes->post('process-reschedule', 'SlotBookingController::processReschedule');
+    $routes->get('my-bookings', 'SlotBookingController::myBookings');
+});
+
+// Interview Slot Management Routes (Admin)
+$routes->group('recruiter', ['filter' => 'auth'], function($routes) {
+    
+    // Slot Management
+    $routes->get('slots', 'SlotManagementController::index');
+    $routes->get('slots/create', 'SlotManagementController::create');
+    $routes->post('slots/store', 'SlotManagementController::store');
+    $routes->get('slots/edit/(:num)', 'SlotManagementController::edit/$1');
+    $routes->post('slots/update/(:num)', 'SlotManagementController::update/$1');
+    $routes->get('slots/delete/(:num)', 'SlotManagementController::delete/$1');
+    
+    // Booking Management
+    $routes->get('slots/bookings', 'SlotManagementController::bookings');
+    $routes->get('slots/reschedule/(:num)', 'SlotManagementController::adminReschedule/$1');
+    $routes->post('slots/process-reschedule', 'SlotManagementController::processAdminReschedule');
+    $routes->post('slots/mark-completed/(:num)', 'SlotManagementController::markCompleted/$1');
+    
+    // Bulk Actions
+    $routes->post('slots/bulk-shortlist', 'SlotManagementController::bulkShortlist');
+});
+
+// Dashboard Routes (Admin)
+// $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
+    
+//     // Main Dashboard
+//     $routes->get('dashboard', 'DashboardController::index');
+    
+//     // Leaderboard
+//     $routes->get('dashboard/leaderboard', 'DashboardController::leaderboard');
+    
+//     // Excel Exports
+//     $routes->get('dashboard/export-excel', 'DashboardController::exportExcel');
+// });
+

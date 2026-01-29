@@ -200,10 +200,7 @@
                 <a href="<?= base_url('dashboard') ?>" class="button button-contactForm boxed-btn mr-2">
                     <i class="fas fa-home"></i> Back to Dashboard
                 </a>
-                <!-- <a href="<?= base_url('interview/transcript/' . $interview['id']) ?>" 
-                   class="button button-contactForm boxed-btn" style="background: #6c757d;">
-                    <i class="fas fa-file-alt"></i> View Full Transcript
-                </a> -->
+                
             </div>
         </div>
     </div>

@@ -11,9 +11,27 @@ use App\Libraries\GithubAnalyzer;
 
 class Candidate extends BaseController
 {
+    public function markNotificationRead($id)
+    {
+        $notificationModel = model('NotificationModel');
+        $notificationModel->markAsRead($id);
+        return redirect()->back();
+    }
+
+
     public function profile()
     {
-        return view('candidate/profile');
+        $userId = session()->get('user_id'); // or candidate_id
+        $userModel = model('UserModel');
+        $user = $userModel->find($userId);
+        $githubModel = model('GithubAnalysisModel');
+        $github = $githubModel->where('candidate_id', $userId)->first();
+
+        return view('candidate/profile', [
+            'user' => $user,
+            'github' => $github
+
+        ]);
     }
 
 
@@ -126,11 +144,11 @@ class Candidate extends BaseController
         $db = \Config\Database::connect();
 
         $jobs = $db->table('applications a')
-        ->select('a.id as application_id, j.title, a.status, j.id as job_id')
-        ->join('jobs j', 'j.id = a.job_id')
-        ->where('a.candidate_id', $candidateId)
-        ->get()
-        ->getResultArray();
+            ->select('a.id as application_id, j.title, a.status, j.id as job_id')
+            ->join('jobs j', 'j.id = a.job_id')
+            ->where('a.candidate_id', $candidateId)
+            ->get()
+            ->getResultArray();
 
         return view('candidate/applied_jobs', [
             'jobs' => $jobs

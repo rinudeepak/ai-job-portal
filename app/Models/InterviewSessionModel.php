@@ -102,42 +102,6 @@ class InterviewSessionModel extends Model
         ];
     }
 
-    /**
-     * Calculate time in stage
-     */
-    private function calculateTimeInStage($interview): string
-    {
-        $now = time();
-        $statusDate = strtotime($interview['updated_at'] ?? $interview['created_at']);
-        $diff = $now - $statusDate;
-
-        $days = floor($diff / 86400);
-        $hours = floor(($diff % 86400) / 3600);
-        $minutes = floor(($diff % 3600) / 60);
-
-        if ($days > 0) {
-            return "{$days}d {$hours}h";
-        } elseif ($hours > 0) {
-            return "{$hours}h {$minutes}m";
-        } else {
-            return "{$minutes}m";
-        }
-    }
-
-    /**
-     * Get current stage
-     */
-    private function getCurrentStage($interview): string
-    {
-        $status = $interview['status'];
-
-        $stages = [
-            'active' => 'In Interview (Turn ' . $interview['turn'] . '/' . $interview['max_turns'] . ')',
-            'completed' => 'Awaiting Evaluation',
-            'evaluated' => 'Evaluation Complete'
-        ];
-
-        return $stages[$status] ?? 'Unknown';
-    }
+    
 
 }

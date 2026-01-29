@@ -1,0 +1,310 @@
+<?php
+
+namespace App\Models;
+
+use CodeIgniter\Model;
+
+class NotificationModel extends Model
+{
+    protected $table = 'notifications';
+    protected $primaryKey = 'id';
+    protected $useAutoIncrement = true;
+    protected $returnType = 'array';
+    protected $useSoftDeletes = false;
+    
+    protected $allowedFields = [
+        'user_id',
+        'application_id',
+        'type',
+        'title',
+        'message',
+        'action_link',
+        'is_read',
+        'created_at',
+        'read_at'
+    ];
+    
+    protected $useTimestamps = false;
+    
+    /**
+     * Notification type configurations
+     */
+    private $notificationConfig = [
+        'resume_not_uploaded' => [
+            'title' => 'Resume Upload Required',
+            'icon' => 'fas fa-file-upload',
+            'color' => 'warning',
+            'priority' => 1
+        ],
+        'ai_not_started' => [
+            'title' => 'AI Interview Pending',
+            'icon' => 'fas fa-robot',
+            'color' => 'info',
+            'priority' => 2
+        ],
+        'ai_incomplete' => [
+            'title' => 'Complete Your AI Interview',
+            'icon' => 'fas fa-exclamation-circle',
+            'color' => 'warning',
+            'priority' => 3
+        ],
+        'slot_not_booked' => [
+            'title' => 'Book Interview Slot',
+            'icon' => 'fas fa-calendar-plus',
+            'color' => 'info',
+            'priority' => 4
+        ],
+        'reschedule_required' => [
+            'title' => 'Interview Reschedule Needed',
+            'icon' => 'fas fa-calendar-times',
+            'color' => 'danger',
+            'priority' => 5
+        ],
+        'interview_scheduled' => [
+            'title' => 'Interview Scheduled',
+            'icon' => 'fas fa-calendar-check',
+            'color' => 'success',
+            'priority' => 6
+        ],
+        'result_published' => [
+            'title' => 'Interview Result Available',
+            'icon' => 'fas fa-check-circle',
+            'color' => 'success',
+            'priority' => 7
+        ]
+    ];
+    
+    /**
+     * Create a notification
+     */
+    public function createNotification(int $userId, ?int $applicationId, string $type, string $message, ?string $actionLink = null): bool
+    {
+        // Build query for duplicate check
+        $builder = $this->where('user_id', $userId)
+                        ->where('type', $type)
+                        ->where('is_read', 0);
+        
+        // Only check application_id if it's provided
+        if ($applicationId !== null) {
+            $builder->where('application_id', $applicationId);
+        } else {
+            $builder->where('application_id IS NULL');
+        }
+        
+        $exists = $builder->first();
+        
+        if ($exists) {
+            return false; // Don't create duplicate
+        }
+        
+        $config = $this->notificationConfig[$type] ?? [
+            'title' => 'Notification',
+            'icon' => 'fas fa-bell'
+        ];
+        
+        return $this->insert([
+            'user_id' => $userId,
+            'application_id' => $applicationId,
+            'type' => $type,
+            'title' => $config['title'],
+            'message' => $message,
+            'action_link' => $actionLink,
+            'is_read' => 0,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    
+    /**
+     * Get unread notifications for user
+     */
+    public function getUnreadNotifications(int $userId, int $limit = 10): array
+    {
+        return $this->where('user_id', $userId)
+                    ->where('is_read', 0)
+                    ->orderBy('created_at', 'DESC')
+                    ->limit($limit)
+                    ->findAll();
+    }
+    
+    /**
+     * Get all notifications for user
+     */
+    public function getUserNotifications(int $userId, int $limit = 50): array
+    {
+        return $this->where('user_id', $userId)
+                    ->orderBy('is_read', 'ASC')
+                    ->orderBy('created_at', 'DESC')
+                    ->limit($limit)
+                    ->findAll();
+    }
+    
+    /**
+     * Mark notification as read
+     */
+    public function markAsRead(int $notificationId): bool
+    {
+        return $this->update($notificationId, [
+            'is_read' => 1,
+            'read_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+    
+    /**
+     * Mark all notifications as read for user
+     */
+    public function markAllAsRead(int $userId): bool
+    {
+        return $this->where('user_id', $userId)
+                    ->where('is_read', 0)
+                    ->set(['is_read' => 1, 'read_at' => date('Y-m-d H:i:s')])
+                    ->update();
+    }
+    
+    /**
+     * Get unread count
+     */
+    public function getUnreadCount(int $userId): int
+    {
+        return $this->where('user_id', $userId)
+                    ->where('is_read', 0)
+                    ->countAllResults();
+    }
+    
+    /**
+     * Delete old notifications
+     */
+    public function deleteOldNotifications(int $days = 30): int
+    {
+        $cutoffDate = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+        
+        return $this->where('is_read', 1)
+                    ->where('created_at <', $cutoffDate)
+                    ->delete();
+    }
+    
+    /**
+     * Get notification config
+     */
+    public function getNotificationConfig(string $type): array
+    {
+        return $this->notificationConfig[$type] ?? [
+            'title' => 'Notification',
+            'icon' => 'fas fa-bell',
+            'color' => 'info',
+            'priority' => 99
+        ];
+    }
+    public function getNotificationByApplicationStatus(int $userId, int $applicationId, string $status): ?array
+    {
+        // Map status to notification type
+        $statusToType = [
+            'applied' => 'ai_not_started',
+            'ai_interview_started' => 'ai_incomplete',
+            'shortlisted' => 'slot_not_booked',
+            'reschedule_required' => 'reschedule_required',
+            'interview_scheduled' => 'interview_scheduled'
+        ];
+        
+        $type = $statusToType[$status] ?? null;
+        
+        if (!$type) {
+            return null;
+        }
+        
+        return $this->where('user_id', $userId)
+                    ->where('application_id', $applicationId)
+                    ->where('type', $type)
+                    ->where('is_read', 0)
+                    ->first();
+    }
+
+    /**
+     * Trigger notifications based on application status
+     */
+   public function triggerApplicationNotifications(int $userId, array $application): void
+    {
+        $applicationId = $application['id'];
+        $status = $application['status'];
+
+        // Map status to notification type
+        $statusToType = [
+            'applied' => 'ai_not_started',
+            'ai_interview_started' => 'ai_incomplete',
+            'shortlisted' => 'slot_not_booked',
+            'reschedule_required' => 'reschedule_required',
+            'interview_scheduled' => 'interview_scheduled'
+        ];
+
+        $currentType = $statusToType[$status] ?? null;
+
+        if (!$currentType) {
+            return; // No notification for this status
+        }
+
+        $this->where('user_id', $userId)
+             ->where('application_id', $applicationId)
+             ->where('type !=', $currentType)
+             ->whereIn('type', array_values($statusToType))
+             ->delete();
+
+        // Now create notification based on status
+        switch ($status) {
+            case 'applied':
+                $this->createNotification(
+                    $userId,
+                    $applicationId,
+                    'ai_not_started',
+                    'Start your AI technical interview to move forward.',
+                    base_url('interview/start/'.$applicationId)
+                );
+                break;
+
+            case 'ai_interview_started':
+                $this->createNotification(
+                    $userId,
+                    $applicationId,
+                    'ai_incomplete',
+                    'Your AI interview is incomplete.',
+                    base_url('interview/chat/'.$applicationId)
+                );
+                break;
+
+            case 'shortlisted':
+                if (empty($application['interview_slot'])) {
+                    $this->createNotification(
+                        $userId,
+                        $applicationId,
+                        'slot_not_booked',
+                        'Congratulations! You are shortlisted. Please book your interview slot.',
+                        base_url('candidate/book-slot/' . $applicationId)
+                    );
+                }
+                break;
+
+            case 'reschedule_required':
+                $this->createNotification(
+                    $userId,
+                    $applicationId,
+                    'reschedule_required',
+                    'Your interview needs to be rescheduled. Please select a new slot.',
+                    base_url('candidate/reschedule-slot/' . $applicationId)
+                );
+                break;
+
+            case 'interview_scheduled':
+                $slotDate = date('M d, Y h:i A', strtotime($application['interview_slot']));
+                $this->createNotification(
+                    $userId,
+                    $applicationId,
+                    'interview_scheduled',
+                    "Your interview is scheduled for {$slotDate}. Be prepared!",
+                    base_url('candidate/interview-details/' . $applicationId)
+                );
+                break;
+        }
+    }
+
+
+}
+?>
