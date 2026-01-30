@@ -80,7 +80,7 @@
                                 Selected
                             </div>
                             <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                <?= $funnel['selected'] ?>
+                                <?= $funnel['shortlisted'] ?>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -152,10 +152,10 @@
                             </div>
                         </div>
                         
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['screening'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['screening'] ?>">
+                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['ai_interview_started'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['ai_interview_started'] ?>">
                             <div class="funnel-label">
-                                <span class="stage-name">Screening</span>
-                                <span class="stage-count"><?= $funnel['screening'] ?></span>
+                                <span class="stage-name">AI Interview Started</span>
+                                <span class="stage-count"><?= $funnel['ai_interview_started'] ?></span>
                             </div>
                         </div>
                         
@@ -173,17 +173,17 @@
                             </div>
                         </div>
                         
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['hr_interview_completed'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['hr_interview_completed'] ?>">
+                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['rejected'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['rejected'] ?>">
                             <div class="funnel-label">
-                                <span class="stage-name">HR Interview Completed</span>
-                                <span class="stage-count"><?= $funnel['hr_interview_completed'] ?></span>
+                                <span class="stage-name">Rejected</span>
+                                <span class="stage-count"><?= $funnel['rejected'] ?></span>
                             </div>
                         </div>
                         
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['selected'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['selected'] ?>">
+                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['interview_slot_booked'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['interview_slot_booked'] ?>">
                             <div class="funnel-label">
-                                <span class="stage-name">Selected</span>
-                                <span class="stage-count"><?= $funnel['selected'] ?></span>
+                                <span class="stage-name">Interview Slot Booked</span>
+                                <span class="stage-count"><?= $funnel['interview_slot_booked'] ?></span>
                             </div>
                         </div>
                     </div>
@@ -332,7 +332,7 @@
                                     <th>Job</th>
                                     <th>Status</th>
                                     <th>Applied</th>
-                                    <th>Actions</th>
+                                    <!-- <th>Actions</th> -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -358,13 +358,13 @@
                                                     <?= ucwords(str_replace('_', ' ', $app['status'])) ?>
                                                 </span>
                                             </td>
-                                            <td><?= date('M d, Y', strtotime($app['created_at'])) ?></td>
-                                            <td>
+                                            <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
+                                            <!-- <td>
                                                 <a href="<?= base_url('recruiter/applications/view/' . $app['id']) ?>" 
                                                    class="btn btn-sm btn-primary">
                                                     <i class="fas fa-eye"></i> View
                                                 </a>
-                                            </td>
+                                            </td> -->
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>

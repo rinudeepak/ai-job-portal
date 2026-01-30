@@ -94,12 +94,22 @@ class Candidate extends BaseController
         $skillModel->where('candidate_id', $candidateId)->delete();
 
         foreach ($result['skills'] as $skill) {
+            $skillName = trim($skill['name']);
+
+
+
+            // Collect skill names for comma-separated row
+            $skillNames[] = $skillName;
+
+        }
+        // Insert one row with comma-separated skills
+        if (!empty($skillNames)) {
             $skillModel->insert([
                 'candidate_id' => $candidateId,
-                'skill_name' => $skill['name']
-
+                'skill_name' => implode(', ', $skillNames)
             ]);
         }
+
         return redirect()->back()->with('upload_success', 'Resume Uploaded Successfully');
 
     }

@@ -21,7 +21,18 @@ $routes->get('recruiter/register', 'Auth::registerAdmin');
 $routes->post('recruiter/register', 'Auth::saveAdmin');
 
 $routes->get('dashboard', 'Auth::dashboard');
-$routes->get('recruiter/dashboard', 'Auth::dashboard');
+// Dashboard Routes (Admin)
+$routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
+    
+    // Main Dashboard
+    $routes->get('dashboard', 'DashboardController::index');
+    
+    // Leaderboard
+    $routes->get('dashboard/leaderboard', 'DashboardController::leaderboard');
+    
+    // Excel Exports
+    $routes->get('dashboard/export-excel', 'DashboardController::exportExcel');
+});
 
 $routes->get('jobs', 'Jobs::index');
 $routes->get('job/(:num)', 'Jobs::jobDetail/$1');
@@ -45,16 +56,6 @@ $routes->group('interview',  function($routes) {
     $routes->get('trigger-evaluation/(:num)', 'AiInterview::triggerEvaluation/$1');
     $routes->get('results/(:num)', 'AiInterview::results/$1');
 });
-
-
-// Admin Evaluation Routes
-//$routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
-//     $routes->group('admin', function($routes) {
-//     $routes->get('evaluations', 'Admin\EvaluationController::index');
-//     $routes->get('evaluations/view/(:num)', 'Admin\EvaluationController::view/$1');
-//     $routes->get('evaluations/export-excel', 'Admin\EvaluationController::exportExcel');
-//     $routes->post('evaluations/update-status/(:num)', 'Admin\EvaluationController::updateStatus/$1');
-// });
 
 // Notification Routes
 $routes->group('notifications', ['filter' => 'auth'], function($routes) {
@@ -94,16 +95,5 @@ $routes->group('recruiter', ['filter' => 'auth'], function($routes) {
     $routes->post('slots/bulk-shortlist', 'SlotManagementController::bulkShortlist');
 });
 
-// Dashboard Routes (Admin)
-// $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
-    
-//     // Main Dashboard
-//     $routes->get('dashboard', 'DashboardController::index');
-    
-//     // Leaderboard
-//     $routes->get('dashboard/leaderboard', 'DashboardController::leaderboard');
-    
-//     // Excel Exports
-//     $routes->get('dashboard/export-excel', 'DashboardController::exportExcel');
-// });
+
 

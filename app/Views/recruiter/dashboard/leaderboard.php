@@ -8,10 +8,10 @@
             <p class="text-muted">Rank candidates by technical and overall performance</p>
         </div>
         <div>
-            <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-secondary">
+            <a href="<?= base_url('recruiter/dashboard') ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
-            <a href="<?= base_url('admin/dashboard/export-excel?type=leaderboard') ?>" class="btn btn-success">
+            <a href="<?= base_url('recruiter/dashboard/export-excel?type=leaderboard') ?>" class="btn btn-success">
                 <i class="fas fa-file-excel"></i> Export to Excel
             </a>
         </div>
@@ -23,7 +23,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filters & Sorting</h6>
         </div>
         <div class="card-body">
-            <form method="get" action="<?= base_url('admin/dashboard/leaderboard') ?>" id="filterForm">
+            <form method="get" action="<?= base_url('recruiter/dashboard/leaderboard') ?>" id="filterForm">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
@@ -96,7 +96,7 @@
             <?php if (!empty($filters['job_id'])): ?>
                 <span class="badge badge-info">Job Selected</span>
             <?php endif; ?>
-            <a href="<?= base_url('admin/dashboard/leaderboard') ?>" class="btn btn-sm btn-outline-secondary ml-2">
+            <a href="<?= base_url('recruiter/dashboard/leaderboard') ?>" class="btn btn-sm btn-outline-secondary ml-2">
                 Clear All
             </a>
         </div>
@@ -124,11 +124,12 @@
                                 <th width="60">Rank</th>
                                 <th>Candidate</th>
                                 <th>Job Position</th>
+                                <th>Skills</th>
                                 <th class="text-center">Technical</th>
                                 <th class="text-center">Communication</th>
                                 <th class="text-center">Overall Rating</th>
                                 <th class="text-center">Status</th>
-                                <th>Actions</th>
+                                <!-- <th>Actions</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -159,6 +160,47 @@
                                         </div>
                                     </td>
                                     <td><?= esc($candidate['job_title']) ?></td>
+                                    <td>
+                                        <div class="skills-display">
+                                            <?php if (!empty($candidate['required_skills'])): ?>
+                                                <!-- Skill Match Percentage -->
+                                                <div class="skill-match-badge mb-2">
+                                                    <span class="badge badge-<?= $candidate['skill_match'] >= 80 ? 'success' : ($candidate['skill_match'] >= 60 ? 'warning' : 'danger') ?>">
+                                                        <?= $candidate['skill_match'] ?>% Match
+                                                    </span>
+                                                    <small class="text-muted">
+                                                        (<?php 
+                                                            $candidateSkillsLower = array_map('strtolower', $candidate['candidate_skills'] ?? []);
+                                                            $requiredSkillsLower = array_map('strtolower', $candidate['required_skills']);
+                                                            $matchedCount = count(array_intersect($candidateSkillsLower, $requiredSkillsLower));
+                                                            echo $matchedCount . '/' . count($candidate['required_skills']);
+                                                        ?>)
+                                                    </small>
+                                                </div>
+                                                
+                                                <!-- Required Skills - Show which ones candidate has -->
+                                                <div class="required-skills">
+                                                    <?php 
+                                                    $candidateSkillsLower = array_map('strtolower', $candidate['candidate_skills'] ?? []);
+                                                    foreach ($candidate['required_skills'] as $requiredSkill): 
+                                                        $hasSkill = in_array(strtolower($requiredSkill), $candidateSkillsLower);
+                                                    ?>
+                                                        <span class="skill-badge <?= $hasSkill ? 'skill-has' : 'skill-missing' ?>" 
+                                                              title="<?= $hasSkill ? 'Candidate has this skill' : 'Candidate does not have this skill' ?>">
+                                                            <?= esc($requiredSkill) ?>
+                                                            <?php if ($hasSkill): ?>
+                                                                <i class="fas fa-check-circle text-success"></i>
+                                                            <?php else: ?>
+                                                                <i class="fas fa-times-circle text-danger"></i>
+                                                            <?php endif; ?>
+                                                        </span>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <span class="text-muted">No required skills specified</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
                                     <td class="text-center">
                                         <div class="score-display">
                                             <span class="score-value <?= $candidate['technical_score'] >= 80 ? 'text-success' : ($candidate['technical_score'] >= 60 ? 'text-warning' : 'text-danger') ?>">
@@ -181,12 +223,12 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="overall-rating">
-                                            <span class="rating-badge <?= $candidate['ai_interview_score'] >= 80 ? 'badge-success' : ($candidate['ai_interview_score'] >= 60 ? 'badge-warning' : 'badge-danger') ?>">
-                                                <?= number_format($candidate['ai_interview_score'] ?? 0, 1) ?>
+                                            <span class="rating-badge <?= $candidate['overall_rating'] >= 80 ? 'badge-success' : ($candidate['overall_rating'] >= 60 ? 'badge-warning' : 'badge-danger') ?>">
+                                                <?= number_format($candidate['overall_rating'] ?? 0, 1) ?>
                                             </span>
                                             <div class="rating-stars">
                                                 <?php 
-                                                $stars = round(($candidate['ai_interview_score'] ?? 0) / 20);
+                                                $stars = round(($candidate['overall_rating'] ?? 0) / 20);
                                                 for ($i = 1; $i <= 5; $i++): 
                                                 ?>
                                                     <i class="fas fa-star <?= $i <= $stars ? 'text-warning' : 'text-muted' ?>"></i>
@@ -209,30 +251,78 @@
                                             <?= ucwords(str_replace('_', ' ', $candidate['status'])) ?>
                                         </span>
                                     </td>
-                                    <td>
+                                    <!-- <td>
                                         <div class="btn-group" role="group">
-                                            <a href="<?= base_url('admin/applications/view/' . $candidate['id']) ?>" 
+                                            <a href="<?= base_url('recruiter/applications/view/' . $candidate['id']) ?>" 
                                                class="btn btn-sm btn-primary" title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <?php if ($candidate['status'] === 'ai_interview_completed'): ?>
-                                                <a href="<?= base_url('admin/applications/shortlist/' . $candidate['id']) ?>" 
+                                                <a href="<?= base_url('recruiter/applications/shortlist/' . $candidate['id']) ?>" 
                                                    class="btn btn-sm btn-success" title="Shortlist">
                                                     <i class="fas fa-check"></i>
                                                 </a>
                                             <?php endif; ?>
                                         </div>
-                                    </td>
+                                    </td> -->
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Pagination -->
-                <div class="mt-3">
-                    <?= $pager->links() ?>
+<!-- Pagination -->
+                <div class="mt-4">
+                    <?php if ($pager->getPageCount() > 1): ?>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <!-- Results Info -->
+                            <div class="pagination-info mb-2 mb-md-0">
+                                <span class="text-muted">
+                                    Showing 
+                                    <strong><?= (($pager->getCurrentPage() - 1) * $pager->getPerPage()) + 1 ?></strong>
+                                    to 
+                                    <strong><?= min($pager->getCurrentPage() * $pager->getPerPage(), $pager->getTotal()) ?></strong>
+                                    of 
+                                    <strong><?= number_format($pager->getTotal()) ?></strong> 
+                                    candidates
+                                </span>
+                            </div>
+                            
+                            <!-- Pagination Links -->
+                            <div>
+                                <?php
+                                // Preserve filters in pagination
+                                $queryParams = [];
+                                if (!empty($filters['skill'])) $queryParams['skill'] = $filters['skill'];
+                                if (!empty($filters['sort_by'])) $queryParams['sort_by'] = $filters['sort_by'];
+                                if (!empty($filters['job_id'])) $queryParams['job_id'] = $filters['job_id'];
+                                
+                                $queryString = http_build_query($queryParams);
+                                $pagerLinks = $pager->links();
+                                
+                                // Add query string to pagination links
+                                if (!empty($queryString)) {
+                                    $pagerLinks = preg_replace(
+                                        '/href="([^"]+leaderboard)(\?page=\d+)?"/',
+                                        'href="$1?' . $queryString . '$2"',
+                                        $pagerLinks
+                                    );
+                                    $pagerLinks = str_replace('?page=', '&page=', $pagerLinks);
+                                }
+                                
+                                echo $pagerLinks;
+                                ?>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center text-muted py-2">
+                            <small>
+                                <i class="fas fa-info-circle"></i> 
+                                Showing all <?= count($candidates) ?> candidate<?= count($candidates) != 1 ? 's' : '' ?>
+                            </small>
+                        </div>
+                    <?php endif; ?>
                 </div>
+
 
                 <!-- Statistics Summary -->
                 <div class="row mt-4">
@@ -333,6 +423,62 @@
     line-height: 1.4;
 }
 
+/* Skills Display Styles */
+.skills-display {
+    max-width: 300px;
+}
+
+.skill-match-badge {
+    margin-bottom: 8px;
+}
+
+.skill-match-badge .badge {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+}
+
+.required-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.skill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+/* Candidate HAS this required skill - Green */
+.skill-has {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    font-weight: 500;
+}
+
+/* Candidate is MISSING this required skill - Red/Gray */
+.skill-missing {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    opacity: 0.7;
+}
+
+.skill-has i {
+    font-size: 0.7rem;
+    color: #28a745;
+}
+
+.skill-missing i {
+    font-size: 0.7rem;
+    color: #dc3545;
+}
+
 .score-display {
     min-width: 80px;
 }
@@ -384,6 +530,61 @@
 .btn-group .btn {
     margin-right: 2px;
 }
+/* Pagination Styles */
+.pagination-wrapper {
+    background-color: #f8f9fc;
+    padding: 15px;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+}
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    color: #4e73df !important;
+    background-color: #fff !important;
+    border: 1px solid #dee2e6 !important;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #4e73df !important;
+    border-color: #4e73df !important;
+    color: #fff !important;
+    font-weight: bold;
+}
+
+.pagination .page-link:hover {
+    color: #224abe !important;
+    background-color: #e9ecef !important;
+    border-color: #dee2e6 !important;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d !important;
+    background-color: #fff !important;
+    border-color: #dee2e6 !important;
+    cursor: not-allowed;
+}
+
+/* Override any conflicting styles */
+.pagination a {
+    color: #4e73df !important;
+}
+
+.pagination .active a {
+    color: #224abe !important;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

@@ -6,7 +6,7 @@ class AiInterviewer
 {
     private $apiKey;
     private $apiUrl;
-    private $maxTurns = 3; // Maximum conversation turns
+    private $maxTurns = 10; // Maximum conversation turns
     private $passingScore; // Minimum score to qualify
 
     public function __construct($passingScore)
