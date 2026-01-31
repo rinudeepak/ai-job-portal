@@ -20,7 +20,13 @@ $routes->post('register', 'Auth::saveCandidate');
 $routes->get('recruiter/register', 'Auth::registerAdmin');
 $routes->post('recruiter/register', 'Auth::saveAdmin');
 
-$routes->get('dashboard', 'Auth::dashboard');
+// $routes->get('dashboard', 'Auth::dashboard');
+// Candidate Dashboard Routes
+$routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
+    $routes->get('dashboard', 'CandidateDashboardController::index');
+    $routes->get('/', 'CandidateDashboardController::index'); // Default route
+});
+
 // Dashboard Routes (Admin)
 $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
     

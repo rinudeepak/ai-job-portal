@@ -41,7 +41,7 @@
                                 <div class="main-menu">
                                     <nav class="d-none d-lg-block">
                                         <ul id="navigation">
-                                            <li><a href="<?= base_url('dashboard') ?>">Home</a></li>
+                                            <li><a href="<?= base_url('candidate/dashboard') ?>">Home</a></li>
                                             <li><a href="<?= base_url('jobs') ?>">Jobs</a></li>
                                             <li><a href="<?= base_url('candidate/profile') ?>">My Profile</a>
                                             </li>

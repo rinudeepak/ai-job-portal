@@ -35,8 +35,9 @@ class Auth extends BaseController
         ]);
 
         return ($user['role'] === 'admin')
-            ? view('recruiter/dashboard')
-            : view('candidate/dashboard');
+            ? redirect()->to(base_url('recruiter/dashboard'))
+            : redirect()->to(base_url('candidate/dashboard'));
+
     }
 
     public function logout()

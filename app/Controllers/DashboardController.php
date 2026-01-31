@@ -17,46 +17,100 @@ class DashboardController extends BaseController
         $slotModel = model('InterviewSlotModel');
         $interviewModel = model('InterviewSessionModel');
 
+        // Get current recruiter/admin ID
+        $currentUserId = session()->get('user_id');
+        $jobIds = [];
+        // Get jobs posted by this recruiter
+        $recruiterJobs = $jobModel->where('recruiter_id', $currentUserId)->findAll();
+        $jobIds = array_column($recruiterJobs, 'id');
+
+        // If no jobs posted, show empty dashboard
+        if (empty($jobIds)) {
+            return view('recruiter/dashboard/index', [
+                'funnel' => [
+                    'total_applications' => 0,
+                    'ai_interview_started' => 0,
+                    'ai_interview_completed' => 0,
+                    'shortlisted' => 0,
+                    'rejected' => 0,
+                    'interview_slot_booked' => 0
+
+                ],
+                'pendingActions' => [
+                    'pending_screening' => 0,
+                    'ai_interviews_to_review' => 0,
+                    'hr_interviews_today' => 0,
+                    'pending_offers' => 0
+                ],
+                'recentApplications' => [],
+                'stageTimeAnalytics' => [],
+                'jobStats' => [
+                    'active_jobs' => 0,
+                    'total_positions' => 0,
+                    'available_slots' => 0
+                ],
+                'topJobs' => [],
+                'conversionMetrics' => [],
+                'monthlyTrends' => [],
+                'noJobs' => true
+            ]);
+        }
+        // Build base query for applications
+        $applicationBuilder = $applicationModel;
+        if (!empty($jobIds)) {
+            $applicationBuilder = $applicationBuilder->whereIn('job_id', $jobIds);
+        }
+
+
         // Candidate Funnel Overview
         $funnel = [
-            'total_applications' => $applicationModel->countAll(),
-            'ai_interview_started' => $applicationModel->where('status', 'ai_interview_started')->countAllResults(),
-            'ai_interview_completed' => $applicationModel->where('status', 'ai_interview_completed')->countAllResults(),
-            'shortlisted' => $applicationModel->where('status', 'shortlisted')->countAllResults(),
-            'rejected' => $applicationModel->where('status', 'rejected')->countAllResults(),
-            'interview_slot_booked' => $applicationModel->where('status', 'interview_slot_booked')->countAllResults()
-            
+            'total_applications' => $applicationBuilder->countAllResults(false),
+            'ai_interview_started' => $applicationBuilder->where('status', 'ai_interview_started')->countAllResults(false),
+            'ai_interview_completed' => $applicationBuilder->where('status', 'ai_interview_completed')->countAllResults(false),
+            'shortlisted' => $applicationBuilder->where('status', 'shortlisted')->countAllResults(false),
+            'rejected' => $applicationBuilder->where('status', 'rejected')->countAllResults(false),
+            'interview_slot_booked' => $applicationBuilder->where('status', 'interview_slot_booked')->countAllResults(false)
+
         ];
 
         // Pending Actions Count
         $pendingActions = [
-            'pending_screening' => $applicationModel->where('status', 'pending')->countAllResults(),
+            'pending_screening' => $applicationModel->where('status', 'pending')
+                ->whereIn('job_id', $jobIds ?: [0])
+                ->countAllResults(),
             'ai_interviews_to_review' => $interviewModel
                 ->join('applications', 'applications.id = interview_sessions.application_id')
                 ->where('applications.status', 'ai_interview_completed')
                 ->where('interview_sessions.overall_rating >', 0)
+                ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults(),
 
             'hr_interviews_today' => model('InterviewBookingModel')
                 ->where('slot_datetime', date('Y-m-d'))
                 ->where('booking_status', 'confirmed')
+                ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults()
             // 'pending_offers' => $applicationModel->where('status', 'selected')
             //                                      ->where('offer_status', 'pending')
+            // ->whereIn('job_id', $jobIds ?: [0])
             //                                      ->countAllResults()
         ];
 
         // Recent Activity
-        $recentApplications = $applicationModel
+        $recentApplicationsBuilder = $applicationModel
             ->select('applications.*, users.name as candidate_name, jobs.title as job_title')
             ->join('users', 'users.id = applications.candidate_id', 'left')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left');
+        if (!empty($jobIds)) {
+            $recentApplicationsBuilder->whereIn('applications.job_id', $jobIds);
+        }
+        $recentApplications = $recentApplicationsBuilder
             ->orderBy('applications.applied_at', 'DESC')
             ->limit(10)
             ->find();
 
         // Stage Time Analytics (Average days in each stage)
-        $stageTimeAnalytics = $this->calculateStageTimeAnalytics();
+        $stageTimeAnalytics = $this->calculateStageTimeAnalytics($jobIds);
 
         // Job Statistics
         $jobStats = [
@@ -64,18 +118,27 @@ class DashboardController extends BaseController
             'total_positions' => $jobModel->selectSum('openings')->where('status', 'active')->get()->getRow()->openings ?? 0,
             'available_slots' => $slotModel->where('is_available', 1)
                 ->where('slot_datetime >', date('Y-m-d H:i:s'))
+                ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults()
         ];
 
-        // Top Jobs by Applications
-        $topJobs = $applicationModel
+        // Top Jobs by Applications - Only recruiter's jobs
+        $topJobsBuilder = $applicationModel
             ->select('jobs.title, jobs.id, COUNT(applications.id) as application_count')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left');
+
+        if (!empty($jobIds)) {
+            $topJobsBuilder->whereIn('applications.job_id', $jobIds);
+        }
+
+        // Top Jobs by Applications
+        $topJobs = $topJobsBuilder
             ->groupBy('applications.job_id')
             ->orderBy('application_count', 'DESC')
             ->limit(5)
             ->get()
             ->getResultArray();
+
 
         // Conversion Metrics
         $conversionMetrics = $this->calculateConversionMetrics();
@@ -103,7 +166,28 @@ class DashboardController extends BaseController
         $applicationModel = model('ApplicationModel');
         $jobModel = model('JobModel');
 
+        // Get current recruiter/admin ID
+        $currentUserId = session()->get('user_id');
+        $jobIds = [];
+        // Get jobs posted by this recruiter
+        $recruiterJobs = $jobModel->where('recruiter_id', $currentUserId)->findAll();
+        $jobIds = array_column($recruiterJobs, 'id');
 
+        // If no jobs posted, show empty dashboard
+        if (empty($jobIds)) {
+            return view('recruiter/dashboard/leaderboard', [
+                'candidates' => [],
+                'pager' => $applicationModel->pager,
+                'skills' => [],
+                'jobs' => [],
+                'filters' => [
+                    'skill' => null,
+                    'sort_by' => 'technical_score',
+                    'job_id' => null
+                ],
+                'noJobs' => true
+            ]);
+        }
         // Get filters
         $skill = $this->request->getGet('skill');
         $sortBy = $this->request->getGet('sort_by') ?? 'technical_score';
@@ -119,6 +203,10 @@ class DashboardController extends BaseController
             ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
             ->where('interview_sessions.overall_rating IS NOT NULL')
             ->where('interview_sessions.overall_rating >', 0);
+        // Filter by recruiter's jobs only
+        if (!empty($jobIds)) {
+            $builder->whereIn('applications.job_id', $jobIds);
+        }
 
         // Apply job filter
         if ($jobId) {
@@ -186,27 +274,41 @@ class DashboardController extends BaseController
     public function exportExcel()
     {
         $type = $this->request->getGet('type') ?? 'overview';
+        // Get current recruiter/admin ID and role
+        $currentUserId = session()->get('user_id');
+        // Get job IDs for recruiter filtering
+        $jobIds = [];
+        $jobModel = model('JobModel');
+        $recruiterJobs = $jobModel->where('recruiter_id', $currentUserId)->findAll();
+        $jobIds = array_column($recruiterJobs, 'id');
 
-        $applicationModel = model('ApplicationModel');
+        // If no jobs, return error
+        if (empty($jobIds)) {
+            return redirect()->back()->with('error', 'You have no jobs to export data from.');
+        }
+
+
+        // try {
+
 
         switch ($type) {
             case 'overview':
-                $data = $this->getOverviewExportData();
+                $data = $this->getOverviewExportData($jobIds);
                 $filename = 'recruitment_overview_' . date('Y-m-d');
                 break;
 
             case 'leaderboard':
-                $data = $this->getLeaderboardExportData();
+                $data = $this->getLeaderboardExportData($jobIds);
                 $filename = 'candidate_leaderboard_' . date('Y-m-d');
                 break;
 
             case 'funnel':
-                $data = $this->getFunnelExportData();
+                $data = $this->getFunnelExportData($jobIds);
                 $filename = 'recruitment_funnel_' . date('Y-m-d');
                 break;
 
             case 'detailed':
-                $data = $this->getDetailedExportData();
+                $data = $this->getDetailedExportData($jobIds);
                 $filename = 'recruitment_detailed_' . date('Y-m-d');
                 break;
 
@@ -214,18 +316,42 @@ class DashboardController extends BaseController
                 return redirect()->back()->with('error', 'Invalid export type');
         }
 
+        // Check if PhpSpreadsheet is available
+        // if (!class_exists('\PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+        //     log_message('warning', 'PhpSpreadsheet not found, falling back to CSV export');
+        //     return $this->exportAsCSV($data, $filename);
+        // }
+
         // Generate Excel file
         $excelPath = $this->generateExcelReport($data, $filename);
 
         return $this->response->download($excelPath, null)->setFileName($filename . '.xlsx');
+
+        // } catch (\Exception $e) {
+        //     log_message('error', 'Export failed: ' . $e->getMessage());
+
+        //     // Try CSV fallback on any error
+        //     try {
+        //         return $this->exportAsCSV($data, $filename);
+        //     } catch (\Exception $csvError) {
+        //         return redirect()->back()->with('error', 'Export failed. Please contact administrator.');
+        //     }
+        // }
+
     }
 
     /**
      * Calculate Stage Time Analytics
      */
-    private function calculateStageTimeAnalytics()
+    private function calculateStageTimeAnalytics($jobIds = [])
     {
         $db = \Config\Database::connect();
+        $whereClause = '';
+        if (!empty($jobIds)) {
+            $jobIdsStr = implode(',', $jobIds);
+            $whereClause = "AND job_id IN ($jobIdsStr)";
+        }
+
 
         // This is a simplified version - you might want to track stage transitions in a separate table
         $query = "
@@ -233,7 +359,8 @@ class DashboardController extends BaseController
                 status,
                 AVG(DATEDIFF(NOW(), applied_at)) as avg_days
             FROM applications
-            WHERE status IN ('pending', 'ai_interview_scheduled', 'ai_interview_completed', 'shortlisted', 'hr_interview_scheduled')
+            WHERE status IN ('applied', 'ai_interview_started', 'ai_interview_completed', 'shortlisted', 'interview_slot_booked')
+            $whereClause
             GROUP BY status
         ";
 
@@ -250,56 +377,77 @@ class DashboardController extends BaseController
     /**
      * Calculate Conversion Metrics
      */
-    private function calculateConversionMetrics()
+    private function calculateConversionMetrics($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
+        // Apply job filter if provided
+        $builder = $applicationModel;
+        if (!empty($jobIds)) {
+            $builder = $builder->whereIn('job_id', $jobIds);
+        }
 
-        $total = $applicationModel->countAll();
+        $total = $builder->countAllResults(false);
         if ($total == 0)
             return [];
 
+
+        // Reset and reapply filter for each query
+        $aiCompleted = $applicationModel->where('status', 'ai_interview_completed');
+        if (!empty($jobIds))
+            $aiCompleted->whereIn('job_id', $jobIds);
+        $aiCompletedCount = $aiCompleted->countAllResults();
+
+        $shortlisted = $applicationModel->where('status', 'shortlisted');
+        if (!empty($jobIds))
+            $shortlisted->whereIn('job_id', $jobIds);
+        $shortlistedCount = $shortlisted->countAllResults();
+
+        $hrScheduled = $applicationModel->where('status', 'interview_slot_booked');
+        if (!empty($jobIds))
+            $hrScheduled->whereIn('job_id', $jobIds);
+        $hrScheduledCount = $hrScheduled->countAllResults();
+
+        $hrCompleted = $applicationModel->where('status', 'hr_interview_completed');
+        if (!empty($jobIds))
+            $hrCompleted->whereIn('job_id', $jobIds);
+        $hrCompletedCount = $hrCompleted->countAllResults();
+
+        $selected = $applicationModel->where('status', 'selected');
+        if (!empty($jobIds))
+            $selected->whereIn('job_id', $jobIds);
+        $selectedCount = $selected->countAllResults();
+
         return [
-            'application_to_ai_interview' => round(
-                ($applicationModel->where('status', 'ai_interview_completed')->countAllResults() / $total) * 100,
-                1
-            ),
-            'ai_interview_to_shortlist' => round(
-                ($applicationModel->where('status', 'shortlisted')->countAllResults() /
-                    max(1, $applicationModel->where('status', 'ai_interview_completed')->countAllResults())) * 100,
-                1
-            ),
-            'shortlist_to_hr_interview' => round(
-                ($applicationModel->where('status', 'hr_interview_scheduled')->countAllResults() /
-                    max(1, $applicationModel->where('status', 'shortlisted')->countAllResults())) * 100,
-                1
-            ),
-            'hr_interview_to_selection' => round(
-                ($applicationModel->where('status', 'selected')->countAllResults() /
-                    max(1, $applicationModel->where('status', 'hr_interview_completed')->countAllResults())) * 100,
-                1
-            ),
-            'overall_conversion' => round(
-                ($applicationModel->where('status', 'selected')->countAllResults() / $total) * 100,
-                1
-            )
+            'application_to_ai_interview' => round(($aiCompletedCount / $total) * 100, 1),
+            'ai_interview_to_shortlist' => round(($shortlistedCount / max(1, $aiCompletedCount)) * 100, 1),
+            'shortlist_to_hr_interview' => round(($hrScheduledCount / max(1, $shortlistedCount)) * 100, 1),
+            'hr_interview_to_selection' => round(($selectedCount / max(1, $hrCompletedCount)) * 100, 1),
+            'overall_conversion' => round(($selectedCount / $total) * 100, 1)
         ];
+
     }
 
     /**
      * Get Monthly Trends
      */
-    private function getMonthlyTrends()
+    private function getMonthlyTrends($jobIds = [])
     {
         $db = \Config\Database::connect();
+        $whereClause = '';
+        if (!empty($jobIds)) {
+            $jobIdsStr = implode(',', $jobIds);
+            $whereClause = "AND job_id IN ($jobIdsStr)";
+        }
 
         $query = "
             SELECT 
                 DATE_FORMAT(applied_at, '%Y-%m') as month,
                 COUNT(*) as total_applications,
-                SUM(CASE WHEN status = 'selected' THEN 1 ELSE 0 END) as selected,
+                SUM(CASE WHEN status = 'shortlisted' THEN 1 ELSE 0 END) as shortlisted,
                 SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
             FROM applications
             WHERE applied_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+            $whereClause
             GROUP BY DATE_FORMAT(applied_at, '%Y-%m')
             ORDER BY month ASC
         ";
@@ -392,25 +540,24 @@ class DashboardController extends BaseController
     /**
      * Get Overview Export Data
      */
-    private function getOverviewExportData()
+    private function getOverviewExportData($jobIds = [])
     {
-        $applicationModel = model('ApplicationModel');
 
         return [
-            'Summary' => $this->getSummarySheet(),
-            'Applications' => $this->getApplicationsSheet(),
-            'Job Statistics' => $this->getJobStatsSheet()
+            'Summary' => $this->getSummarySheet($jobIds),
+            'Applications' => $this->getApplicationsSheet($jobIds),
+            'Job Statistics' => $this->getJobStatsSheet($jobIds)
         ];
     }
 
     /**
      * Get Leaderboard Export Data
      */
-    private function getLeaderboardExportData()
+    private function getLeaderboardExportData($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
 
-        $candidates = $applicationModel
+        $builder = $applicationModel
             ->select('applications.*, users.name, users.email, jobs.title as job_title, jobs.required_skills as required_skills,
                     interview_sessions.technical_score,
                     interview_sessions.communication_score,
@@ -418,7 +565,13 @@ class DashboardController extends BaseController
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->join('jobs', 'jobs.id = applications.job_id', 'left')
             ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
-            ->where('interview_sessions.overall_rating IS NOT NULL')
+            ->where('interview_sessions.overall_rating IS NOT NULL');
+        // Filter by job IDs if provided (for recruiters)
+        if (!empty($jobIds)) {
+            $builder->whereIn('applications.job_id', $jobIds);
+        }
+
+        $candidates = $builder
             ->orderBy('interview_sessions.overall_rating', 'DESC')
             ->findAll();
 
@@ -450,7 +603,7 @@ class DashboardController extends BaseController
     /**
      * Get Funnel Export Data
      */
-    private function getFunnelExportData()
+    private function getFunnelExportData($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
 
@@ -461,14 +614,20 @@ class DashboardController extends BaseController
             'Shortlisted',
             'Rejected',
             'Interview Slot Booked',
-            
+
         ];
 
         $data = [
             ['Stage', 'Count', 'Percentage']
         ];
 
-        $total = $applicationModel->countAll();
+        // Get total with job filter
+        if (!empty($jobIds)) {
+            $total = $applicationModel->whereIn('job_id', $jobIds)->countAllResults();
+        } else {
+            $total = $applicationModel->countAll();
+        }
+
 
         foreach ($stages as $stage) {
             $count = $this->getStageCount($stage);
@@ -482,16 +641,22 @@ class DashboardController extends BaseController
     /**
      * Get Detailed Export Data
      */
-    private function getDetailedExportData()
+    private function getDetailedExportData($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
 
-        $applications = $applicationModel
+        $builder = $applicationModel
             ->select('applications.*, users.name, users.email, jobs.title as job_title,
             interview_sessions.overall_rating')
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->join('jobs', 'jobs.id = applications.job_id', 'left')
-            ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
+            ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left');
+        // Filter by job IDs if provided (for recruiters)
+        if (!empty($jobIds)) {
+            $builder->whereIn('applications.job_id', $jobIds);
+        }
+
+        $applications = $builder
             ->orderBy('applications.applied_at', 'DESC')
             ->findAll();
 
@@ -506,7 +671,7 @@ class DashboardController extends BaseController
                 'Communication Score',
                 'Overall Rating',
                 'Applied Date'
-                
+
             ]
         ];
 
@@ -521,7 +686,7 @@ class DashboardController extends BaseController
                 $app['communication_score'] ?? 0,
                 $app['overall_rating'] ?? 0,
                 date('Y-m-d', strtotime($app['applied_at']))
-                
+
             ];
         }
 
@@ -569,31 +734,91 @@ class DashboardController extends BaseController
     }
 
     /**
+     * CSV Export Fallback
+     */
+    private function exportAsCSV($data, $filename)
+    {
+        // Flatten multi-sheet data into single CSV
+        $csvData = [];
+
+        foreach ($data as $sheetName => $sheetData) {
+            $csvData[] = ['=== ' . $sheetName . ' ==='];
+            $csvData = array_merge($csvData, $sheetData);
+            $csvData[] = [''];  // Empty row between sheets
+        }
+
+        // Ensure directory exists
+        $uploadDir = WRITEPATH . 'uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        // Generate CSV
+        $filepath = $uploadDir . $filename . '.csv';
+
+        $fp = fopen($filepath, 'w');
+
+        foreach ($csvData as $row) {
+            fputcsv($fp, $row);
+        }
+
+        fclose($fp);
+
+        return $this->response->download($filepath, null)->setFileName($filename . '.csv');
+    }
+
+
+    /**
      * Helper Methods
      */
-    private function getSummarySheet()
+    private function getSummarySheet($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
+
+        $builder = $applicationModel;
+        if (!empty($jobIds)) {
+            $builder = $builder->whereIn('job_id', $jobIds);
+        }
+
+        $total = $builder->countAllResults(false);
+
+        $activeBuilder = clone $builder;
+        $active = $activeBuilder->whereIn('status', 'ai_interview_started')->countAllResults();
+
+        $completedBuilder = clone $builder;
+        $completed = $completedBuilder->where('status', 'ai_interview_completed')->countAllResults();
+
+        $selectedBuilder = clone $builder;
+        $selected = $selectedBuilder->where('status', 'shortlisted')->countAllResults();
+
+        $rejectedBuilder = clone $builder;
+        $rejected = $rejectedBuilder->where('status', 'rejected')->countAllResults();
 
         return [
             ['Metric', 'Value'],
-            ['Total Applications', $applicationModel->countAll()],
-            ['Active Applications', $applicationModel->whereIn('status', ['pending', 'ai_interview_scheduled', 'shortlisted'])->countAllResults()],
-            ['Completed Interviews', $applicationModel->where('status', 'ai_interview_completed')->countAllResults()],
-            ['Selected Candidates', $applicationModel->where('status', 'selected')->countAllResults()],
-            ['Rejected Candidates', $applicationModel->where('status', 'rejected')->countAllResults()],
+            ['Total Applications', $total],
+            ['Active Applications', $active],
+            ['Completed Interviews', $completed],
+            ['Shortlisted Candidates', $selected],
+            ['Rejected Candidates', $rejected],
             ['Generated On', date('Y-m-d H:i:s')]
         ];
+
     }
 
-    private function getApplicationsSheet()
+    private function getApplicationsSheet($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
 
-        $apps = $applicationModel
+        $builder = $applicationModel
             ->select('applications.id, users.name, jobs.title as job, applications.status, applications.applied_at')
             ->join('users', 'users.id = applications.candidate_id', 'left')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left');
+        if (!empty($jobIds)) {
+            $builder->whereIn('applications.job_id', $jobIds);
+        }
+
+        $apps = $builder
             ->orderBy('applications.applied_at', 'DESC')
             ->limit(1000)
             ->findAll();
@@ -613,9 +838,14 @@ class DashboardController extends BaseController
         return $data;
     }
 
-    private function getJobStatsSheet()
+    private function getJobStatsSheet($jobIds = [])
     {
         $db = \Config\Database::connect();
+        $whereClause = '';
+        if (!empty($jobIds)) {
+            $jobIdsStr = implode(',', $jobIds);
+            $whereClause = "WHERE jobs.id IN ($jobIdsStr)";
+        }
 
         $query = "
             SELECT 
@@ -625,6 +855,7 @@ class DashboardController extends BaseController
                 SUM(CASE WHEN applications.status = 'rejected' THEN 1 ELSE 0 END) as rejected
             FROM jobs
             LEFT JOIN applications ON applications.job_id = jobs.id
+            $whereClause
             GROUP BY jobs.id
             ORDER BY total_applications DESC
         ";
@@ -645,7 +876,7 @@ class DashboardController extends BaseController
         return $data;
     }
 
-    private function getStageCount($stage)
+    private function getStageCount($stage, $jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
 
@@ -656,16 +887,21 @@ class DashboardController extends BaseController
             'Shortlisted' => 'shortlisted',
             'Rejected' => 'rejected',
             'Interview Slot Booked' => 'interview_slot_booked'
-            
+
         ];
+        $builder = $applicationModel;
+
+        if (!empty($jobIds)) {
+            $builder = $builder->whereIn('job_id', $jobIds);
+        }
 
         if ($stage === 'Total Applications') {
-            return $applicationModel->countAll();
+            return $builder->countAllResults();
         }
 
         $status = $statusMap[$stage] ?? null;
         if ($status) {
-            return $applicationModel->where('status', $status)->countAllResults();
+            return $builder->where('status', $status)->countAllResults();
         }
 
         return 0;
