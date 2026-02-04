@@ -34,7 +34,7 @@ class Auth extends BaseController
             'logged_in' => true
         ]);
 
-        return ($user['role'] === 'admin')
+        return ($user['role'] === 'recruiter')
             ? redirect()->to(base_url('recruiter/dashboard'))
             : redirect()->to(base_url('candidate/dashboard'));
 
@@ -141,6 +141,7 @@ class Auth extends BaseController
         $model->insert([
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
+            'phone' => $this->request->getPost('phone'),
             'password' => password_hash(
                 $this->request->getPost('password'),
                 PASSWORD_DEFAULT
@@ -172,7 +173,7 @@ class Auth extends BaseController
                 $this->request->getPost('password'),
                 PASSWORD_DEFAULT
             ),
-            'role' => 'admin'
+            'role' => 'recruiter'
         ]);
 
         return redirect()->to(base_url('login'));

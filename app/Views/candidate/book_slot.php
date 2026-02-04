@@ -98,36 +98,6 @@
     </div>
 </section>
 
-<style>
-.slot-radio {
-    display: none;
-}
 
-.slot-label {
-    display: block;
-    padding: 15px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    background: white;
-}
-
-.slot-label:hover {
-    border-color: #667eea;
-    background: #f0f4ff;
-}
-
-.slot-radio:checked + .slot-label {
-    border-color: #667eea;
-    background: #667eea;
-    color: white;
-}
-
-.slot-radio:checked + .slot-label .text-muted {
-    color: rgba(255,255,255,0.8) !important;
-}
-</style>
 
 <?= view('layouts/candidate_footer') ?>

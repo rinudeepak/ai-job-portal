@@ -18,6 +18,7 @@ class JobModel extends Model
         'required_skills',
         'experience_level',
         'min_ai_cutoff_score',
+        'openings',
         'status'
     ];
     // Count open jobs

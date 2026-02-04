@@ -1,11 +1,11 @@
-<?= view('admin/layouts/header', ['title' => 'Reschedule Booking']) ?>
+<?= view('layouts/recruiter_header', ['title' => 'Reschedule Booking']) ?>
 
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2><i class="fas fa-sync-alt"></i> Reschedule Interview</h2>
-                <a href="<?= base_url('admin/slots/bookings') ?>" class="btn btn-secondary">
+                <a href="<?= base_url('recruiter/slots/bookings') ?>" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Back to Bookings
                 </a>
             </div>
@@ -95,7 +95,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Select New Slot</h6>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="<?= base_url('admin/slots/process-reschedule') ?>" id="rescheduleForm">
+                    <form method="post" action="<?= base_url('recruiter/slots/process-reschedule') ?>" id="rescheduleForm">
                         <?= csrf_field() ?>
                         <input type="hidden" name="booking_id" value="<?= $booking['id'] ?>">
 
@@ -115,7 +115,7 @@
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     No available slots found for this job position. 
-                                    <a href="<?= base_url('admin/slots/create') ?>" class="alert-link">Create new slots</a>
+                                    <a href="<?= base_url('recruiter/slots/create') ?>" class="alert-link">Create new slots</a>
                                 </div>
                             <?php else: ?>
                                 <div class="slot-selection">
@@ -186,103 +186,6 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('rescheduleForm');
-    
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const selectedSlot = document.querySelector('input[name="slot_id"]:checked');
-            const reason = document.getElementById('reason').value.trim();
-            const confirm = document.getElementById('confirm_reschedule').checked;
 
-            if (!selectedSlot) {
-                e.preventDefault();
-                alert('Please select a new time slot');
-                return false;
-            }
 
-            if (!reason) {
-                e.preventDefault();
-                alert('Please provide a reason for rescheduling');
-                return false;
-            }
-
-            if (!confirm) {
-                e.preventDefault();
-                alert('Please confirm that you want to reschedule this interview');
-                return false;
-            }
-
-            if (!window.confirm('Are you sure you want to reschedule this interview? The candidate will be notified automatically.')) {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Highlight selected slot
-        const radioButtons = document.querySelectorAll('input[name="slot_id"]');
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', function() {
-                document.querySelectorAll('.slot-label').forEach(label => {
-                    label.classList.remove('selected-slot');
-                });
-                if (this.checked) {
-                    this.closest('.custom-radio').querySelector('.slot-label').classList.add('selected-slot');
-                }
-            });
-        });
-    }
-});
-</script>
-
-<style>
-.card {
-    border: none;
-    border-radius: 0.5rem;
-}
-
-.slot-label {
-    cursor: pointer;
-    padding: 1rem;
-    border: 2px solid #e3e6f0;
-    border-radius: 0.5rem;
-    display: block;
-    transition: all 0.3s;
-}
-
-.slot-label:hover {
-    border-color: #4e73df;
-    background-color: #f8f9fc;
-}
-
-.selected-slot {
-    border-color: #4e73df !important;
-    background-color: #e7f0ff !important;
-}
-
-.custom-control-input:checked ~ .custom-control-label::before {
-    background-color: #4e73df;
-    border-color: #4e73df;
-}
-
-.date-group {
-    margin-bottom: 1.5rem;
-}
-
-.border-left-primary {
-    border-left-width: 4px !important;
-}
-
-.btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-}
-
-.form-control:focus {
-    border-color: #4e73df;
-    box-shadow: 0 0 0 0.2rem rgba(78,115,223,.25);
-}
-</style>
-
-<?= view('admin/layouts/footer') ?>
+<?= view('layouts/recruiter_footer') ?>

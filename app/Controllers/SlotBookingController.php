@@ -104,7 +104,12 @@ class SlotBookingController extends BaseController
         
         // Create notification
         $notificationModel->triggerApplicationNotifications($userId, $applicationModel->find($applicationId));
-        
+                    // Schedule reminders
+            // $this->scheduleReminders($bookingId, $application, $slot);
+            
+            // Send immediate confirmation
+            // $this->sendBookingConfirmation($application, $slot);
+
         $db->transComplete();
         
         if ($db->transStatus()) {
@@ -113,6 +118,105 @@ class SlotBookingController extends BaseController
             return redirect()->back()->with('error', 'Failed to book slot. Please try again.');
         }
     }
+
+        /**
+     * Schedule all reminders for a booking
+     */
+    private function scheduleReminders($bookingId, $application, $slot)
+    {
+        $reminderModel = model('ReminderModel');
+        
+        $interviewDateTime = strtotime($slot['slot_datetime']);
+        
+        // Schedule reminders at different intervals
+        $reminderIntervals = [
+            '24_hours' => $interviewDateTime - (24 * 60 * 60),  // 24 hours before
+            '2_hours' => $interviewDateTime - (2 * 60 * 60),    // 2 hours before
+            '30_minutes' => $interviewDateTime - (30 * 60)      // 30 minutes before
+        ];
+        
+        foreach ($reminderIntervals as $type => $sendTime) {
+            // Only schedule if time is in the future
+            if ($sendTime > time()) {
+                // Email reminder
+                $reminderModel->insert([
+                    'booking_id' => $bookingId,
+                    'user_id' => $application['candidate_id'],
+                    'reminder_type' => 'email',
+                    'reminder_interval' => $type,
+                    'scheduled_time' => date('Y-m-d H:i:s', $sendTime),
+                    'status' => 'scheduled',
+                    'message_data' => json_encode([
+                        'candidate_name' => $application['name'],
+                        'job_title' => $application['job_title'],
+                        'interview_date' => date('l, F d, Y', $interviewDateTime),
+                        'interview_time' => date('h:i A', $interviewDateTime),
+                        'email' => $application['email']
+                    ])
+                ]);
+                
+                // WhatsApp reminder (if phone number exists)
+                if (!empty($application['phone'])) {
+                    $reminderModel->insert([
+                        'booking_id' => $bookingId,
+                        'user_id' => $application['candidate_id'],
+                        'reminder_type' => 'whatsapp',
+                        'reminder_interval' => $type,
+                        'scheduled_time' => date('Y-m-d H:i:s', $sendTime),
+                        'status' => 'scheduled',
+                        'message_data' => json_encode([
+                            'candidate_name' => $application['name'],
+                            'job_title' => $application['job_title'],
+                            'interview_date' => date('l, F d, Y', $interviewDateTime),
+                            'interview_time' => date('h:i A', $interviewDateTime),
+                            'phone' => $application['phone']
+                        ])
+                    ]);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Send immediate booking confirmation
+     */
+    private function sendBookingConfirmation($application, $slot)
+    {
+        $emailService = service('email');
+        $whatsappService = service('whatsapp');
+        
+        $interviewDateTime = strtotime($slot['slot_datetime']);
+        
+        // Email confirmation
+        $emailData = [
+            'to' => $application['email'],
+            'subject' => 'Interview Confirmed - ' . $application['job_title'],
+            'template' => 'booking_confirmation',
+            'data' => [
+                'candidate_name' => $application['name'],
+                'job_title' => $application['job_title'],
+                'interview_date' => date('l, F d, Y', $interviewDateTime),
+                'interview_time' => date('h:i A', $interviewDateTime),
+                'booking_link' => base_url('candidate/my-bookings')
+            ]
+        ];
+        
+        $emailService->send($emailData);
+        
+        // WhatsApp confirmation
+        if (!empty($application['phone'])) {
+            $message = "🎉 Interview Confirmed!\n\n";
+            $message .= "Hi {$application['name']},\n\n";
+            $message .= "Your interview for *{$application['job_title']}* has been scheduled.\n\n";
+            $message .= "📅 Date: " . date('l, F d, Y', $interviewDateTime) . "\n";
+            $message .= "🕒 Time: " . date('h:i A', $interviewDateTime) . "\n\n";
+            $message .= "You will receive reminders before your interview.\n\n";
+            $message .= "Good luck! 🍀";
+            
+            $whatsappService->send($application['phone'], $message);
+        }
+    }
+
     
     /**
      * Show reschedule page
@@ -170,6 +274,11 @@ class SlotBookingController extends BaseController
         $applicationId = $this->request->getPost('application_id');
         $newSlotId = $this->request->getPost('slot_id');
         $reason = $this->request->getPost('reason');
+        
+        // Validate slot selection
+        if (empty($newSlotId)) {
+            return redirect()->back()->with('error', 'Please select a new time slot to reschedule your interview.');
+        }
         
         $applicationModel = model('ApplicationModel');
         $bookingModel = model('InterviewBookingModel');

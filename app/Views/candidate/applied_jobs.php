@@ -50,7 +50,7 @@
                                             'ai_evaluated' => 'AI Evaluated',
                                             'shortlisted' => 'Shortlisted',
                                             'rejected' => 'Rejected',
-                                            'slot_booked' => 'Interview Slot Booked',
+                                            'interview_slot_booked' => 'Interview Slot Booked',
                                         ];
                                         echo $statusLabels[$job['status']] ?? 'Unknown';
                                         ?>

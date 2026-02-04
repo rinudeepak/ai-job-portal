@@ -57,12 +57,12 @@ class Candidate extends BaseController
         }
 
         // Allow PDF, DOCX, TXT
-        $allowedTypes = ['pdf', 'docx', 'txt'];
+        $allowedTypes = ['pdf', 'docx', 'doc'];
 
         if (!in_array(strtolower($file->getExtension()), $allowedTypes)) {
             return $this->response->setJSON([
                 'success' => false,
-                'error' => 'Only PDF, DOCX or TXT files allowed'
+                'error' => 'Only PDF, DOCX or DOC files allowed'
             ]);
         }
 

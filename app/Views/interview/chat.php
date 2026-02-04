@@ -138,27 +138,5 @@
     </div>
 </section>
 
-<script>
-    // Auto-scroll to bottom
-    document.addEventListener('DOMContentLoaded', function () {
-        const chatContainer = document.getElementById('chatContainer');
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-
-        // Character counter
-        const textarea = document.getElementById('answer');
-        const charCount = document.getElementById('charCount');
-
-        textarea.addEventListener('input', function () {
-            charCount.textContent = this.value.length + ' characters';
-        });
-
-        // Prevent accidental page leave
-        window.addEventListener('beforeunload', function (e) {
-            e.preventDefault();
-            e.returnValue = '';
-        });
-    });
-</script>
-
 
 <?= view('layouts/candidate_footer') ?>

@@ -1,26 +1,8 @@
 <?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
 
 
-
 <!-- Online CV Area Start -->
-<!-- <div class="online-cv cv-bg section-overly pt-90 pb-120" data-background="assets/img/gallery/cv_bg.jpg">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-10">
-                <div class="cv-caption text-center">
-                    <p class="pera2">Welcome, <?= session('user_name') ?></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div> -->
-<!-- Online CV Area End-->
- <!-- Notification Alerts Section -->
-
-
-
-<!-- Online CV Area Start -->
-<div class="online-cv cv-bg section-overly pt-90 pb-120" data-background="assets/img/gallery/cv_bg.jpg">
+<div class="online-cv cv-bg section-overly pt-90 pb-120" data-background="<?= base_url('assets/img/gallery/cv_bg.jpg') ?>">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-xl-10">
@@ -208,11 +190,11 @@
                                 <div class="progress-steps">
                                     <?php
                                     $stages = [
-                                        'pending' => 'Screening',
-                                        'ai_interview_scheduled' => 'AI Interview',
-                                        'ai_interview_completed' => 'Reviewed',
+                                        'applied' => 'Applied',
+                                        'ai_interview_started' => 'AI Interview',
+                                        'ai_interview_completed' => 'AI Evaluated',
                                         'shortlisted' => 'Shortlisted',
-                                        'hr_interview_scheduled' => 'HR Interview',
+                                        'interview_slot_booked' => 'HR Interview',
                                         'selected' => 'Selected'
                                     ];
                                     
@@ -296,11 +278,11 @@
                                     <i class="fas fa-eye"></i> View Details
                                 </a>
                                 
-                                <?php if ($application['status'] === 'ai_interview_scheduled'): ?>
-                                    <a href="<?= base_url('candidate/ai-interview/' . $application['id']) ?>" class="btn btn-sm btn-success">
+                                <?php if ($application['status'] === 'applied'): ?>
+                                    <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-sm btn-success">
                                         <i class="fas fa-video"></i> Start AI Interview
                                     </a>
-                                <?php elseif ($application['status'] === 'hr_interview_scheduled'): ?>
+                                <?php elseif ($application['status'] === 'interview_slot_booked'): ?>
                                     <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-sm btn-warning">
                                         <i class="fas fa-calendar"></i> View Interview
                                     </a>
@@ -347,215 +329,20 @@
 </div>
 <!-- Dashboard Content End -->
 
-<style>
-/* Stats Cards */
-.stats-card {
-    border: none;
-    border-radius: 0.5rem;
-}
 
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-/* Application Cards */
-.application-card {
-    border: none;
-    border-radius: 0.5rem;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.application-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
-}
-
-/* Progress Steps */
-.step-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    position: relative;
-    padding: 20px 0;
-}
-
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    position: relative;
-}
-
-.step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 50%;
-    width: 100%;
-    height: 2px;
-    background: #e0e0e0;
-    z-index: -1;
-}
-
-.step.completed:not(:last-child)::after {
-    background: #1cc88a;
-}
-
-.step-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: #e0e0e0;
-    color: #999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.step.completed .step-icon {
-    background: #1cc88a;
-    color: white;
-}
-
-.step.current .step-icon {
-    background: #4e73df;
-    color: white;
-    box-shadow: 0 0 0 4px rgba(78, 115, 223, 0.2);
-}
-
-.step-label {
-    font-size: 11px;
-    text-align: center;
-    color: #666;
-    font-weight: 500;
-}
-
-.step.current .step-label {
-    color: #4e73df;
-    font-weight: bold;
-}
-
-/* AI Scores */
-.score-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.score-item label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #666;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.score-bar {
-    height: 24px;
-    background: #e9ecef;
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-}
-
-.score-fill {
-    height: 100%;
-    background: linear-gradient(to right, #4e73df, #224abe);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 8px;
-    color: white;
-    font-size: 11px;
-    font-weight: bold;
-    transition: width 0.5s ease;
-}
-
-.overall-score {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.score-badge {
-    font-size: 18px;
-    padding: 6px 12px;
-}
-
-.badge-success { background: #1cc88a; }
-.badge-warning { background: #f6c23e; color: #333; }
-.badge-danger { background: #e74a3b; }
-.badge-info { background: #36b9cc; }
-
-.stars {
-    display: flex;
-    gap: 2px;
-}
-
-/* Quick Links */
-.quick-link-card {
-    display: block;
-    padding: 30px 20px;
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
-    text-align: center;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.3s;
-}
-
-.quick-link-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-    text-decoration: none;
-}
-
-.border-left-warning {
-    border-left: 4px solid #f6c23e;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .step-label {
-        font-size: 9px;
-    }
-    
-    .step-icon {
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
-    }
-}
-</style>
 
 <?php
 // Helper function for status badge colors
 function getStatusBadgeColor($status) {
     $colors = [
-        'pending' => 'warning',
-        'ai_interview_scheduled' => 'info',
+        'applied' => 'warning',
+        'ai_interview_started' => 'info',
         'ai_interview_completed' => 'primary',
         'shortlisted' => 'success',
-        'hr_interview_scheduled' => 'warning',
-        'hr_interview_completed' => 'primary',
-        'selected' => 'success',
-        'rejected' => 'danger'
+        'rejected' => 'danger',
+        'interview_slot_booked' => 'warning',
+        'selected' => 'success'
+        
     ];
     return $colors[$status] ?? 'secondary';
 }

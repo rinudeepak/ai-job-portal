@@ -64,6 +64,11 @@
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group">
+                                        <input class="form-control valid" name="openings" id="openings" type="number" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Number of Openings'" placeholder="Number of Openings">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
                                         <input class="form-control" name="required_skills" id="required_skills" type="text" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Required Skills'" placeholder="Required Skills">
                                     </div>
                                 </div>

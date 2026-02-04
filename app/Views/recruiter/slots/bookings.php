@@ -85,7 +85,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
         </div>
         <div class="card-body">
-            <form method="get" action="<?= base_url('admin/slots/bookings') ?>">
+            <form method="get" action="<?= base_url('recruiter/slots/bookings') ?>">
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
@@ -230,43 +230,6 @@
     </div>
 </div>
 
-<style>
-.card {
-    border: none;
-    border-radius: 0.5rem;
-}
 
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df!important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a!important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc!important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e!important;
-}
-
-.text-gray-300 {
-    color: #dddfeb!important;
-}
-
-.text-gray-800 {
-    color: #5a5c69!important;
-}
-
-.table-hover tbody tr:hover {
-    background-color: rgba(0,0,0,.075);
-}
-
-.btn-group .btn {
-    margin-right: 2px;
-}
-</style>
 
 <?= view('layouts/recruiter_footer') ?>

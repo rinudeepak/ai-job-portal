@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/slick.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/nice-select.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/custom.css') ?>">
+
 </head>
 
 <body class="bg-light">

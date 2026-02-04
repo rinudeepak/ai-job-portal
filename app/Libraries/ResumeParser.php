@@ -54,9 +54,7 @@ class ResumeParser
                 $text = '';
                 foreach ($phpWord->getSections() as $section) {
                     foreach ($section->getElements() as $element) {
-                        if (method_exists($element, 'getText')) {
-                            $text .= ' ' . $element->getText();
-                        }
+                        $text .= $this->extractElementText($element);
                     }
                 }
                 return $text;
@@ -71,6 +69,33 @@ class ResumeParser
         }
 
         return '';
+    }
+
+    private function extractElementText($element)
+    {
+        $text = '';
+        
+        try {
+            if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                foreach ($element->getElements() as $childElement) {
+                    if (method_exists($childElement, 'getText')) {
+                        $textValue = $childElement->getText();
+                        if (is_string($textValue)) {
+                            $text .= ' ' . $textValue;
+                        }
+                    }
+                }
+            } elseif (method_exists($element, 'getText')) {
+                $textValue = $element->getText();
+                if (is_string($textValue)) {
+                    $text .= ' ' . $textValue;
+                }
+            }
+        } catch (\Exception $e) {
+            // Skip problematic elements
+        }
+        
+        return $text;
     }
 
     private function cleanText($text)

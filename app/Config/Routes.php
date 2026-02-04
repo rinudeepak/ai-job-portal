@@ -40,21 +40,21 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
     $routes->get('dashboard/export-excel', 'DashboardController::exportExcel');
 });
 
-$routes->get('jobs', 'Jobs::index');
-$routes->get('job/(:num)', 'Jobs::jobDetail/$1');
-$routes->post('job/apply/(:num)', 'Applications::apply/$1');
+$routes->get('jobs', 'Jobs::index', ['filter' => 'auth']);
+$routes->get('job/(:num)', 'Jobs::jobDetail/$1', ['filter' => 'auth']);
+$routes->post('job/apply/(:num)', 'Applications::apply/$1', ['filter' => 'auth']);
 
-$routes->get('recruiter/post_job', 'Recruiter::postJob');
-$routes->post('recruiter/post_job', 'Recruiter::saveJob');
+$routes->get('recruiter/post_job', 'Recruiter::postJob', ['filter' => 'auth']);
+$routes->post('recruiter/post_job', 'Recruiter::saveJob', ['filter' => 'auth']);
 
-$routes->get('candidate/profile', 'Candidate::profile');
-$routes->get('candidate/applied_jobs', 'Candidate::appliedJobs');
-$routes->post('candidate/resume_upload', 'Candidate::resumeUpload');
-$routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills');
+$routes->get('candidate/profile', 'Candidate::profile', ['filter' => 'auth']);
+$routes->get('candidate/applied_jobs', 'Candidate::appliedJobs', ['filter' => 'auth']);
+$routes->post('candidate/resume_upload', 'Candidate::resumeUpload', ['filter' => 'auth']);
+$routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills', ['filter' => 'auth']);
 
 
 // AI Interview Routes
-$routes->group('interview',  function($routes) {
+$routes->group('interview', ['filter' => 'auth'], function($routes) {
     $routes->get('start/(:num)', 'AiInterview::start/$1');
     $routes->post('begin/(:num)', 'AiInterview::begin/$1');
     $routes->get('chat/(:num)', 'AiInterview::chat/$1');

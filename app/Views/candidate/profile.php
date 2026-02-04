@@ -32,25 +32,20 @@
                     </p>
                 <?php endif; ?>
 
-                <form class="form-contact contact_form" method="post" action="<?= base_url('candidate/analyze_github') ?>"
-                    novalidate="novalidate">
+                <form class="form-contact contact_form" method="post"
+                    action="<?= base_url('candidate/analyze_github') ?>" novalidate="novalidate">
                     <?= csrf_field() ?>
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <input class="form-control valid" name="github_username" id="github_username" value="<?= esc($github['github_username'] ?? '') ?>"
-                                    type="text" onfocus="this.placeholder = ''"
-                                    onblur="this.placeholder = 'GiHub Username'" placeholder="GiHub Username">
+                                <input class="form-control valid" name="github_username" id="github_username"
+                                    value="<?= esc($github['github_username'] ?? '') ?>" type="text"
+                                    onfocus="this.placeholder = ''" onblur="this.placeholder = 'GiHub Username'"
+                                    placeholder="GiHub Username">
                             </div>
                         </div>
-                        <!-- <div class="col-sm-12">
-                            <div class="form-group">
-                                <input class="form-control valid" name="linkedin_link" id="linkedin_link" type="text" value="<?= esc($user['linkedin_link'] ?? '') ?>"
-                                    onfocus="this.placeholder = ''" onblur="this.placeholder = 'LinkedIn Link'"
-                                    placeholder="LinkedIn Link">
-                            </div>
-                        </div> -->
-                        
+
+
                     </div>
                     <div class="form-group mt-3">
                         <button type="submit" class="button button-contactForm boxed-btn">Save</button>
@@ -66,8 +61,9 @@
                     </p>
                 <?php endif; ?>
 
-                <form class="form-contact contact_form" method="post" action="<?= base_url('candidate/resume_upload') ?>"
-                    novalidate="novalidate" enctype="multipart/form-data">
+                <form class="form-contact contact_form" method="post"
+                    action="<?= base_url('candidate/resume_upload') ?>" novalidate="novalidate"
+                    enctype="multipart/form-data">
                     <?= csrf_field() ?>
                     <div class="row">
                         <div class="col-sm-12">
@@ -78,8 +74,8 @@
                         </div>
                     </div>
                     <?php if (!empty($user['resume_path'])): ?>
-    <p>Uploaded Resume: <?= esc($user['resume_path']) ?></p>
-<?php endif; ?>
+                        <p>Uploaded Resume: <?= esc($user['resume_path']) ?></p>
+                    <?php endif; ?>
 
                     <div class="form-group mt-3">
                         <button type="submit" class="button button-contactForm boxed-btn">Save</button>

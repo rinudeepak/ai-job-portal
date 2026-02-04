@@ -15,10 +15,6 @@ class Recruiter extends BaseController
     {
         $session = session();
 
-        if (!$session->get('logged_in')) {
-            return redirect()->to('login');
-        }
-
         $model = new JobModel();
 
         $model->insert([
@@ -29,6 +25,7 @@ class Recruiter extends BaseController
             'required_skills' => $this->request->getPost('required_skills'),
             'experience_level' => $this->request->getPost('experience_level'),
             'min_ai_cutoff_score' => $this->request->getPost('min_ai_cutoff_score'),
+            'openings' => $this->request->getPost('openings'),
             'recruiter_id' => $session->get('user_id'),
             'created_at' => date('Y-m-d H:i:s')
         ]);
