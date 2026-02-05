@@ -1,23 +1,7 @@
 <?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
 
-
-<!-- Online CV Area Start -->
-<div class="online-cv cv-bg section-overly pt-90 pb-120" data-background="<?= base_url('assets/img/gallery/cv_bg.jpg') ?>">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-10">
-                <div class="cv-caption text-center">
-                    <h2 class="text-white mb-3">Welcome Back, <?= session('user_name') ?></h2>
-                    <p class="pera2">Track your application progress and complete pending actions</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Online CV Area End-->
-
 <!-- Dashboard Content Start -->
-<div class="featured-job-area feature-padding">
+<div class="featured-job-area feature-padding pt-5">
     <div class="container">
         <!-- Notification Alerts Section -->
        

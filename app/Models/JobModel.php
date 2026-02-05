@@ -19,7 +19,8 @@ class JobModel extends Model
         'experience_level',
         'min_ai_cutoff_score',
         'openings',
-        'status'
+        'status',
+        'employment_type'
     ];
     // Count open jobs
     public function getTotalOpenJobs()

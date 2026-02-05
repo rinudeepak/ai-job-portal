@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 04, 2026 at 05:07 AM
+-- Generation Time: Feb 05, 2026 at 09:50 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -44,7 +44,8 @@ CREATE TABLE `applications` (
 
 INSERT INTO `applications` (`id`, `candidate_id`, `job_id`, `status`, `interview_slot`, `ai_interview_id`, `booking_id`, `applied_at`) VALUES
 (27, 20, 13, 'applied', NULL, NULL, NULL, '2026-02-03 11:36:32'),
-(28, 20, 11, 'interview_slot_booked', '2026-02-12 15:00:00', 1, 2, '2026-02-03 11:37:02');
+(28, 20, 11, 'interview_slot_booked', '2026-02-12 15:00:00', 1, 2, '2026-02-03 11:37:02'),
+(29, 20, 15, 'applied', NULL, NULL, NULL, '2026-02-05 08:49:21');
 
 -- --------------------------------------------------------
 
@@ -68,7 +69,7 @@ CREATE TABLE `candidate_github_stats` (
 --
 
 INSERT INTO `candidate_github_stats` (`id`, `candidate_id`, `github_username`, `repo_count`, `commit_count`, `languages_used`, `github_score`, `created_at`) VALUES
-(1, 20, 'rinudeepak', 3, 30, 'PHP,JavaScript,SCSS,CSS,HTML,Hack', 2, '2026-02-03 11:11:58');
+(3, 20, 'younisyousaf', 31, 278, 'JavaScript,EJS,CSS,HTML,Vue,PHP,Blade,TypeScript,C#,Dart,C++,CMake,Swift,C,Dockerfile,Shell,Kotlin,Objective-C,Python,SCSS', 10, '2026-02-05 08:47:47');
 
 -- --------------------------------------------------------
 
@@ -88,7 +89,7 @@ CREATE TABLE `candidate_skills` (
 --
 
 INSERT INTO `candidate_skills` (`id`, `candidate_id`, `skill_name`, `created_at`) VALUES
-(3, 20, 'React, Python, Selenium, JavaScript, HTML, CSS, MySQL', '2026-02-04 04:02:53');
+(5, 20, 'React, Python, Selenium, JavaScript, HTML, CSS, MySQL, WordPress', '2026-02-05 08:46:28');
 
 -- --------------------------------------------------------
 
@@ -198,16 +199,30 @@ CREATE TABLE `jobs` (
   `openings` int(11) DEFAULT 1,
   `min_ai_cutoff_score` int(11) DEFAULT 0,
   `status` enum('open','closed') DEFAULT 'open',
-  `created_at` datetime DEFAULT current_timestamp()
+  `created_at` datetime DEFAULT current_timestamp(),
+  `employment_type` varchar(50) DEFAULT 'Full-time'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `jobs`
 --
 
-INSERT INTO `jobs` (`id`, `recruiter_id`, `title`, `company`, `location`, `description`, `required_skills`, `experience_level`, `openings`, `min_ai_cutoff_score`, `status`, `created_at`) VALUES
-(11, 21, 'PHP Developer', 'PHP Developer', 'Kochi, Kerala', 'Develop and maintain web applications using PHP and MySQL', 'PHP, MySQL, HTML, CSS, JavaScript', 'junior', 2, 65, 'open', '2026-02-03 16:33:05'),
-(13, 22, 'Laravel Developer', 'CodeCraft Technologies', 'Thrissur, Kerala', 'Work on REST APIs and backend modules using Laravel framework', 'Laravel, PHP, REST API, MySQL', 'mid', 1, 75, 'open', '2026-02-03 16:38:16');
+INSERT INTO `jobs` (`id`, `recruiter_id`, `title`, `company`, `location`, `description`, `required_skills`, `experience_level`, `openings`, `min_ai_cutoff_score`, `status`, `created_at`, `employment_type`) VALUES
+(11, 21, 'PHP Developer', 'PHP Developer', 'Kochi, Kerala', 'Develop and maintain web applications using PHP and MySQL', 'PHP, MySQL, HTML, CSS, JavaScript', 'junior', 2, 65, 'open', '2026-02-03 16:33:05', 'Full-time'),
+(13, 22, 'Laravel Developer', 'CodeCraft Technologies', 'Thrissur, Kerala', 'Work on REST APIs and backend modules using Laravel framework', 'Laravel, PHP, REST API, MySQL', 'mid', 1, 75, 'open', '2026-02-03 16:38:16', 'Full-time'),
+(15, 22, 'Front End Developer', 'PixelSoft Pvt Ltd', 'Bangalore, Karnataka', 'Build responsive UI components using modern frontend technologies.', 'HTML, CSS, Bootstrap, JavaScript, React', 'mid', 3, 70, 'open', '2026-02-02 00:00:00', 'Full-time'),
+(16, 21, 'Software Tester', 'Innova Systems', 'Chennai, Tamil Nadu', 'Test web applications and report bugs and performance issues.', 'Manual Testing, Selenium, Test Cases', 'junior', 2, 60, 'open', '2026-01-30 00:00:00', 'Full-time'),
+(17, 22, 'Full Stack Developer', 'NextGen IT Services', 'Hyderabad, Telangana', 'Develop complete web solutions from frontend to backend.', 'PHP, Laravel, JavaScript, MySQL, API Integration', 'senior', 1, 80, 'open', '2026-02-03 00:00:00', 'Full-time'),
+(28, 21, 'Java Developer', 'BlueSky Technologies', 'Pune, Maharashtra', 'Develop backend services and APIs using Java and Spring Boot.', 'Java, Spring Boot, REST API, MySQL', 'mid', 2, 72, 'open', '2026-02-03 00:00:00', 'Full-time'),
+(29, 21, 'Node.js Developer', 'CloudNova Pvt Ltd', 'Noida, Uttar Pradesh', 'Build scalable APIs and microservices using Node.js.', 'Node.js, Express, MongoDB, REST API', 'junior', 3, 68, 'open', '2026-02-02 00:00:00', 'Full-time'),
+(30, 22, 'UI/UX Designer', 'DesignHub Studio', 'Mumbai, Maharashtra', 'Design user-friendly interfaces and improve user experience.', 'Figma, Adobe XD, UI Design, UX Research', 'mid', 1, 60, 'open', '2026-02-01 00:00:00', 'Full-time'),
+(31, 21, 'DevOps Engineer', 'InfraTech Solutions', 'Bangalore, Karnataka', 'Manage CI/CD pipelines and cloud infrastructure.', 'AWS, Docker, Kubernetes, Linux, CI/CD', 'senior', 1, 85, 'open', '2026-02-03 00:00:00', 'Full-time'),
+(32, 22, 'Data Analyst', 'Insight Analytics', 'Kolkata, West Bengal', 'Analyze business data and prepare reports and dashboards.', 'Python, SQL, Power BI, Excel', 'junior', 2, 65, 'open', '2026-01-29 00:00:00', 'Full-time'),
+(33, 22, 'Python Developer', 'AlgoSoft Systems', 'Trivandrum, Kerala', 'Develop backend logic and data processing modules.', 'Python, Django, REST API, PostgreSQL', 'mid', 2, 70, 'open', '2026-02-01 00:00:00', 'Full-time'),
+(34, 22, 'React Developer', 'WebSpark IT Services', 'Ahmedabad, Gujarat', 'Build SPA applications using React.js.', 'React.js, JavaScript, HTML, CSS', 'junior', 2, 67, 'open', '2026-02-02 00:00:00', 'Full-time'),
+(35, 21, 'HR Recruiter', 'TalentBridge HR', 'Coimbatore, Tamil Nadu', 'Handle end-to-end recruitment and candidate screening.', 'Recruitment, Communication, ATS Tools', 'junior', 1, 55, 'open', '2026-02-03 00:00:00', 'Full-time'),
+(36, 21, 'QA Automation Engineer', 'TestPro Labs', 'Bangalore, Karnataka', 'Automate test cases and perform regression testing.', 'Selenium, Java, TestNG, Automation Testing', 'mid', 1, 75, 'open', '2026-02-01 00:00:00', 'Full-time'),
+(37, 22, 'Business Analyst', 'MarketScope Consulting', 'Delhi, India', 'Gather requirements and coordinate between business and tech teams.', 'Requirement Analysis, SQL, Documentation, Communication', 'senior', 1, 78, 'open', '2026-02-02 00:00:00', 'Full-time');
 
 -- --------------------------------------------------------
 
@@ -341,7 +356,8 @@ INSERT INTO `stage_history` (`id`, `application_id`, `stage_name`, `start_time`,
 (3, 28, 'AI Interview Started', '2026-02-03 18:13:49', '2026-02-03 18:18:23'),
 (4, 28, 'AI Interview Completed', '2026-02-03 18:18:23', '2026-02-03 18:18:52'),
 (5, 28, 'AI Interview Evaluated', '2026-02-03 18:18:52', '2026-02-03 18:18:52'),
-(6, 28, 'rejected', '2026-02-03 18:18:52', NULL);
+(6, 28, 'rejected', '2026-02-03 18:18:52', NULL),
+(7, 29, 'Applied', '2026-02-05 08:49:21', NULL);
 
 -- --------------------------------------------------------
 
@@ -357,17 +373,20 @@ CREATE TABLE `users` (
   `role` enum('candidate','recruiter','','') NOT NULL,
   `password` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
-  `resume_path` varchar(255) DEFAULT NULL
+  `resume_path` varchar(255) DEFAULT NULL,
+  `profile_photo` varchar(255) DEFAULT NULL,
+  `location` varchar(150) DEFAULT NULL,
+  `bio` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `phone`, `role`, `password`, `created_at`, `resume_path`) VALUES
-(20, 'Rinu George', 'rinugeorgep@gmail.com', '09747751235', 'candidate', '$2y$10$Rr.HAa/OGmBZ8oEaZNbEN.pZFV1wvuIK2w7Rv9mkWA6goQ0yXwkem', '2026-02-03 16:20:20', 'uploads/resumes/Vinay_Resume_6.pdf'),
-(21, 'recruiter1', 'recruiter1@gmail.com', NULL, 'recruiter', '$2y$10$yYQoY.Q5LO5Zt7Uppgole.0f8QRkECBzPxFCOwrSpHD9CLi20dxPC', '2026-02-03 16:23:07', NULL),
-(22, 'recruiter2', 'recruiter2@gmail.com', NULL, 'recruiter', '$2y$10$e4aQ8RI/bTPancHiKcARG.9AWuCT6QoopPCn3YGIBhnb6tY2yUwAm', '2026-02-03 16:36:32', NULL);
+INSERT INTO `users` (`id`, `name`, `email`, `phone`, `role`, `password`, `created_at`, `resume_path`, `profile_photo`, `location`, `bio`) VALUES
+(20, 'Rinu George', 'rinugeorgep@gmail.com', '09747751235', 'candidate', '$2y$10$Rr.HAa/OGmBZ8oEaZNbEN.pZFV1wvuIK2w7Rv9mkWA6goQ0yXwkem', '2026-02-03 16:20:20', 'uploads/resumes/Vinay_Resume_7.pdf', 'uploads/profiles/20_1770186261.jpg', 'Bangalore', 'Dedicated software Developer with over 3years of  experience in web development, specializing in PHP and  MySQL. Skilled in building dynamic, scalable applications  and solving complex technical problems. Currently seeking to restart my career with a focus on continuous learning, adapting to new technologies, and contributing to impactful projects'),
+(21, 'recruiter1', 'recruiter1@gmail.com', NULL, 'recruiter', '$2y$10$yYQoY.Q5LO5Zt7Uppgole.0f8QRkECBzPxFCOwrSpHD9CLi20dxPC', '2026-02-03 16:23:07', NULL, NULL, '', NULL),
+(22, 'recruiter2', 'recruiter2@gmail.com', NULL, 'recruiter', '$2y$10$e4aQ8RI/bTPancHiKcARG.9AWuCT6QoopPCn3YGIBhnb6tY2yUwAm', '2026-02-03 16:36:32', NULL, NULL, '', NULL);
 
 --
 -- Indexes for dumped tables
@@ -484,19 +503,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `candidate_github_stats`
 --
 ALTER TABLE `candidate_github_stats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `candidate_skills`
 --
 ALTER TABLE `candidate_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `interview_bookings`
@@ -520,7 +539,7 @@ ALTER TABLE `interview_slots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `migrations`
@@ -550,7 +569,7 @@ ALTER TABLE `skills`
 -- AUTO_INCREMENT for table `stage_history`
 --
 ALTER TABLE `stage_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`

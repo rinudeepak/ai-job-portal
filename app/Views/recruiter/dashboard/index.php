@@ -1,6 +1,6 @@
 <?= view('layouts/recruiter_header', ['title' => 'Admin Dashboard']) ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-5">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>

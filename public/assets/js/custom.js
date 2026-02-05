@@ -253,3 +253,86 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+// ----------------------Profile Page JavaScript Functions----------------------------------------
+
+// Tab functionality for older Bootstrap versions
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('#profileTabs button');
+    const tabContents = document.querySelectorAll('.tab-pane');
+    
+    if (tabs.length > 0) {
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => {
+                    content.classList.remove('show', 'active');
+                });
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Show corresponding content
+                const target = this.getAttribute('data-bs-target');
+                const targetContent = document.querySelector(target);
+                if (targetContent) {
+                    targetContent.classList.add('show', 'active');
+                }
+            });
+        });
+    }
+});
+
+// Resume preview function
+function previewResume() {
+    const baseUrl = document.querySelector('meta[name="base-url"]')?.getAttribute('content') || window.location.origin;
+    
+    fetch(baseUrl + '/candidate/preview-resume')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else if (data.url) {
+                window.open(data.url, '_blank');
+            } else {
+                alert('Error previewing resume');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error previewing resume: ' + error.message);
+        });
+}
+
+// Share profile function
+function shareProfile() {
+    const profileUrl = window.location.href;
+    const userName = document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'User';
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Profile - ' + userName,
+            text: 'Check out my professional profile',
+            url: profileUrl
+        });
+    } else {
+        // Fallback - copy to clipboard
+        navigator.clipboard.writeText(profileUrl).then(() => {
+            alert('Profile link copied to clipboard!');
+        }).catch(() => {
+            // Manual copy fallback
+            const textArea = document.createElement('textarea');
+            textArea.value = profileUrl;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Profile link copied to clipboard!');
+        });
+    }
+}

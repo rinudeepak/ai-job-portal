@@ -1,22 +1,7 @@
 <?= view('Layouts/candidate_header', ['title' => 'Job Details']) ?>
-<!-- Hero Area Start-->
-<div class="slider-area ">
-    <div class="single-slider section-overly slider-height2 d-flex align-items-center"
-        data-background="<?= base_url('assets/img/hero/about.jpg') ?>">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-12">
-                    <div class="hero-cap text-center">
-                        <h2><?= esc($job['title']) ?></h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Hero Area End -->
+
 <!-- job post company Start -->
-<div class="job-post-company pt-120 pb-120">
+<div class="job-post-company pt-5 pb-120">
     <div class="container">
         <div class="row justify-content-between">
             <!-- Left Content -->

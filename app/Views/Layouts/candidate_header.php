@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="base-url" content="<?= base_url() ?>">
     <title><?= $title  ?> </title>
 
     <!-- CSS here -->

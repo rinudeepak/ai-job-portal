@@ -51,6 +51,12 @@ $routes->get('candidate/profile', 'Candidate::profile', ['filter' => 'auth']);
 $routes->get('candidate/applied_jobs', 'Candidate::appliedJobs', ['filter' => 'auth']);
 $routes->post('candidate/resume_upload', 'Candidate::resumeUpload', ['filter' => 'auth']);
 $routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills', ['filter' => 'auth']);
+$routes->get('candidate/download-resume', 'Candidate::downloadResume', ['filter' => 'auth']);
+$routes->get('candidate/preview-resume', 'Candidate::previewResume', ['filter' => 'auth']);
+$routes->get('candidate/serve-resume', 'Candidate::serveResume', ['filter' => 'auth']);
+$routes->post('candidate/add-skill', 'Candidate::addSkill', ['filter' => 'auth']);
+$routes->post('candidate/update_personal', 'Candidate::updatePersonal', ['filter' => 'auth']);
+$routes->post('candidate/upload-photo', 'Candidate::uploadPhoto', ['filter' => 'auth']);
 
 
 // AI Interview Routes

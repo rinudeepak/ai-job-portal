@@ -18,33 +18,66 @@ class Candidate extends BaseController
         return redirect()->back();
     }
 
-
     public function profile()
     {
-        $userId = session()->get('user_id'); // or candidate_id
+        $userId = session()->get('user_id');
         $userModel = model('UserModel');
         $user = $userModel->find($userId);
         $githubModel = model('GithubAnalysisModel');
         $github = $githubModel->where('candidate_id', $userId)->first();
+        $skillsModel = model('CandidateSkillsModel');
+        $skills = $skillsModel->where('candidate_id', $userId)->first();
+        
+        // Get application stats
+        $applicationModel = model('ApplicationModel');
+        $bookingModel = model('InterviewBookingModel');
+        
+        $totalApplications = $applicationModel->where('candidate_id', $userId)->countAllResults();
+        $totalInterviews = $bookingModel->where('user_id', $userId)->countAllResults();
+        $totalOffers = $applicationModel->where('candidate_id', $userId)
+                                      ->whereIn('status', ['selected', 'hired'])
+                                      ->countAllResults();
+
+        // Calculate profile completion percentage
+        $completionFields = [
+            'name' => !empty($user['name']),
+            'email' => !empty($user['email']),
+            'phone' => !empty($user['phone']),
+            'profile_photo' => !empty($user['profile_photo']),
+            'resume' => !empty($user['resume_path']),
+            'github' => !empty($github['github_username']),
+            'skills' => !empty($skills['skill_name']),
+            'location' => !empty($user['location']),
+            'bio' => !empty($user['bio'])
+        ];
+        
+        $completedFields = array_sum($completionFields);
+        $totalFields = count($completionFields);
+        $completionPercentage = round(($completedFields / $totalFields) * 100);
 
         return view('candidate/profile', [
             'user' => $user,
-            'github' => $github
-
+            'github' => $github,
+            'skills' => $skills,
+            'stats' => [
+                'applications' => $totalApplications,
+                'interviews' => $totalInterviews,
+                'offers' => $totalOffers
+            ],
+            'completion' => [
+                'percentage' => $completionPercentage,
+                'fields' => $completionFields
+            ]
         ]);
     }
-
-
 
     public function resumeUpload()
     {
         $session = session();
 
-        // 1️⃣ Check login
         if (!$session->get('logged_in')) {
             return redirect()->to(base_url('login'));
         }
-
 
         $candidateId = $session->get('user_id');
         $file = $this->request->getFile('resume');
@@ -56,7 +89,6 @@ class Candidate extends BaseController
             ]);
         }
 
-        // Allow PDF, DOCX, TXT
         $allowedTypes = ['pdf', 'docx', 'doc'];
 
         if (!in_array(strtolower($file->getExtension()), $allowedTypes)) {
@@ -66,7 +98,6 @@ class Candidate extends BaseController
             ]);
         }
 
-        // Move file to writable/uploads/resumes
         $uploadPath = WRITEPATH . 'uploads/resumes/';
 
         if (!$file->move($uploadPath)) {
@@ -78,31 +109,23 @@ class Candidate extends BaseController
 
         $filePath = $uploadPath . $file->getName();
 
-        // Save resume file path in DB
         $candidateModel = new UserModel();
         $candidateModel->update($candidateId, [
             'resume_path' => 'uploads/resumes/' . $file->getName()
         ]);
 
-        // Parse resume
         $parser = new ResumeParser();
         $result = $parser->parse($filePath);
         $skillModel = new CandidateSkillsModel();
 
-
-        //if user uploads the same resume twice, skills will be inserted again.delete the previous one
         $skillModel->where('candidate_id', $candidateId)->delete();
 
+        $skillNames = [];
         foreach ($result['skills'] as $skill) {
             $skillName = trim($skill['name']);
-
-
-
-            // Collect skill names for comma-separated row
             $skillNames[] = $skillName;
-
         }
-        // Insert one row with comma-separated skills
+
         if (!empty($skillNames)) {
             $skillModel->insert([
                 'candidate_id' => $candidateId,
@@ -111,8 +134,8 @@ class Candidate extends BaseController
         }
 
         return redirect()->back()->with('upload_success', 'Resume Uploaded Successfully');
-
     }
+
     public function analyzeGithubSkills()
     {
         $session = session();
@@ -130,10 +153,7 @@ class Candidate extends BaseController
             return redirect()->back()->with('error', 'GitHub profile not found or API blocked');
         }
 
-        $db = \Config\Database::connect();
-        //if user update the github username, deleting previous entries
         $githubModel = new GithubAnalysisModel();
-
         $githubModel->where('candidate_id', $candidateId)->delete();
 
         $githubModel->insert([
@@ -147,6 +167,7 @@ class Candidate extends BaseController
 
         return redirect()->back()->with('success', 'GitHub profile analyzed successfully');
     }
+
     public function appliedJobs()
     {
         $candidateId = session()->get('user_id');
@@ -165,7 +186,147 @@ class Candidate extends BaseController
         ]);
     }
 
+    public function downloadResume()
+    {
+        $userId = session()->get('user_id');
+        $userModel = model('UserModel');
+        $user = $userModel->find($userId);
+        
+        if (!$user || empty($user['resume_path'])) {
+            return redirect()->back()->with('error', 'No resume found');
+        }
+        
+        $filePath = WRITEPATH . $user['resume_path'];
+        
+        if (!file_exists($filePath)) {
+            return redirect()->back()->with('error', 'Resume file not found');
+        }
+        
+        return $this->response->download($filePath, null);
+    }
 
+    public function previewResume()
+    {
+        $userId = session()->get('user_id');
+        $userModel = model('UserModel');
+        $user = $userModel->find($userId);
+        
+        if (!$user || empty($user['resume_path'])) {
+            return $this->response->setJSON(['error' => 'No resume found']);
+        }
+        
+        $filePath = WRITEPATH . $user['resume_path'];
+        
+        if (!file_exists($filePath)) {
+            return $this->response->setJSON(['error' => 'Resume file not found']);
+        }
+        
+        $fileUrl = base_url('candidate/serve-resume');
+        return $this->response->setJSON(['url' => $fileUrl]);
+    }
 
+    public function serveResume()
+    {
+        $userId = session()->get('user_id');
+        $userModel = model('UserModel');
+        $user = $userModel->find($userId);
+        
+        if (!$user || empty($user['resume_path'])) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Resume not found');
+        }
+        
+        $filePath = WRITEPATH . $user['resume_path'];
+        
+        if (!file_exists($filePath)) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Resume file not found');
+        }
+        
+        $mimeType = mime_content_type($filePath);
+        
+        return $this->response
+            ->setHeader('Content-Type', $mimeType)
+            ->setHeader('Content-Disposition', 'inline')
+            ->setBody(file_get_contents($filePath));
+    }
 
+    public function updatePersonal()
+    {
+        $userId = session()->get('user_id');
+        $userModel = model('UserModel');
+        
+        $data = [
+            'name' => $this->request->getPost('name'),
+            'email' => $this->request->getPost('email'),
+            'phone' => $this->request->getPost('phone'),
+            'location' => $this->request->getPost('location'),
+            'bio' => $this->request->getPost('bio')
+        ];
+        
+        $userModel->update($userId, $data);
+        session()->set('user_name', $data['name']);
+        
+        return redirect()->back()->with('personal_success', 'Personal information updated successfully');
+    }
+
+    public function uploadPhoto()
+    {
+        $userId = session()->get('user_id');
+        $file = $this->request->getFile('profile_photo');
+        
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'No file uploaded or invalid file');
+        }
+        
+        $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
+        
+        if (!in_array(strtolower($file->getExtension()), $allowedTypes)) {
+            return redirect()->back()->with('error', 'Only JPG, PNG, GIF files allowed');
+        }
+        
+        $uploadPath = FCPATH . 'uploads/profiles/';
+        
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+        
+        $newName = $userId . '_' . time() . '.' . $file->getExtension();
+        
+        if (!$file->move($uploadPath, $newName)) {
+            return redirect()->back()->with('error', 'File upload failed');
+        }
+        
+        $userModel = model('UserModel');
+        $userModel->update($userId, ['profile_photo' => 'uploads/profiles/' . $newName]);
+        
+        return redirect()->back()->with('success', 'Profile photo updated successfully');
+    }
+
+    public function addSkill()
+    {
+        $userId = session()->get('user_id');
+        $skillName = $this->request->getPost('skill_name');
+        
+        if (empty($skillName)) {
+            return redirect()->back()->with('error', 'Skill name is required');
+        }
+        
+        $skillsModel = model('CandidateSkillsModel');
+        $existingSkills = $skillsModel->where('candidate_id', $userId)->first();
+        
+        if ($existingSkills) {
+            $currentSkills = $existingSkills['skill_name'];
+            $updatedSkills = $currentSkills . ', ' . trim($skillName);
+            
+            $skillsModel->update($existingSkills['id'], [
+                'skill_name' => $updatedSkills
+            ]);
+        } else {
+            $skillsModel->insert([
+                'candidate_id' => $userId,
+                'skill_name' => trim($skillName)
+            ]);
+        }
+        
+        return redirect()->back()->with('success', 'Skill added successfully');
+    }
 }
