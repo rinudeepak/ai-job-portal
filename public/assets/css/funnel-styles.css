@@ -1,0 +1,71 @@
+/* Pipeline Stats */
+.pipeline-stat {
+    padding: 20px;
+    transition: transform 0.2s;
+}
+
+.pipeline-stat:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.pipeline-stat h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 10px 0 5px;
+}
+
+.pipeline-stat p {
+    font-size: 0.9rem;
+}
+
+.pipeline-stat small {
+    display: block;
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+/* Stage Time Analytics */
+.stage-time-item {
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.stage-time-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.stage-name-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.stage-time-item .progress {
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.stage-time-item .progress-bar {
+    transition: width 1s ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .pipeline-stat {
+        margin-bottom: 20px;
+    }
+}

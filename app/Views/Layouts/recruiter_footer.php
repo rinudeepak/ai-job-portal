@@ -59,6 +59,14 @@
 <script src="<?= base_url('assets/js/main.js') ?>"></script>
 <script src="<?= base_url('assets/js/custom.js') ?>"></script>
 
+<!-- AOS Animation Library -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<!-- Funnel Animation -->
+<link href="<?= base_url('assets/css/funnel-styles.css') ?>" rel="stylesheet">
+<script src="<?= base_url('assets/js/funnel-animation.js') ?>"></script>
+
 </body>
 
 </html>

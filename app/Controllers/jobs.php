@@ -13,6 +13,7 @@ class Jobs extends BaseController
         // Get filter parameters
         $filters = [
             'location' => $this->request->getGet('location'),
+            'category' => $this->request->getGet('category'),
             'experience_level' => $this->request->getGet('experience_level'),
             'employment_type' => $this->request->getGet('employment_type'),
             'remote' => $this->request->getGet('remote'),
@@ -27,6 +28,10 @@ class Jobs extends BaseController
         // Apply filters
         if (!empty($filters['location'])) {
             $builder->like('location', $filters['location']);
+        }
+
+        if (!empty($filters['category'])) {
+            $builder->like("TRIM(category)", trim($filters['category']));
         }
         
         if (!empty($filters['experience_level'])) {
@@ -71,13 +76,15 @@ class Jobs extends BaseController
                 break;
         }
         
-        $jobs = $builder->paginate(10);
+        $jobs = $builder->paginate(perPage: 10);
         $pager = $jobModel->pager;
         $totalJobs = $pager->getTotal();
         
         // Get unique locations and experience levels for filter options
         $locations = $jobModel->select('location')
                              ->where('status', 'open')
+                             ->where('location IS NOT NULL')
+                             ->where('location !=', '')
                              ->groupBy('location')
                              ->findAll();
         
@@ -93,6 +100,14 @@ class Jobs extends BaseController
                                    ->groupBy('employment_type')
                                    ->findAll();
         
+        $categories = $jobModel->select('category')
+                              ->where('status', 'open')
+                              ->where('category IS NOT NULL')
+                              ->where('category !=', '')
+                              ->groupBy('category')
+                              ->findAll();
+        
+        
         return view('candidate/job_listing', [
             'jobs' => $jobs,
             'totalJobs' => $totalJobs,
@@ -100,9 +115,12 @@ class Jobs extends BaseController
             'locations' => $locations,
             'experienceLevels' => $experienceLevels,
             'employmentTypes' => $employmentTypes,
+            'categories' => $categories,
             'pager' => $pager
         ]);
     }
+    
+
     
     private function getPostedWithinDays($period)
     {

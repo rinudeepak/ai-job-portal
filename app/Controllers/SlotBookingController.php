@@ -101,6 +101,9 @@ class SlotBookingController extends BaseController
             'interview_slot' => $slot['slot_datetime'],
             'booking_id' => $bookingId
         ]);
+
+        $stageModel = model('StageHistoryModel');
+            $stageModel->moveToStage($applicationId, 'Interview Slot Booked');
         
         // Create notification
         $notificationModel->triggerApplicationNotifications($userId, $applicationModel->find($applicationId));

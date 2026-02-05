@@ -64,13 +64,12 @@ class DashboardController extends BaseController
 
         // Candidate Funnel Overview
         $funnel = [
-            'total_applications' => $applicationBuilder->countAllResults(false),
-            'ai_interview_started' => $applicationBuilder->where('status', 'ai_interview_started')->countAllResults(false),
-            'ai_interview_completed' => $applicationBuilder->where('status', 'ai_interview_completed')->countAllResults(false),
-            'shortlisted' => $applicationBuilder->where('status', 'shortlisted')->countAllResults(false),
-            'rejected' => $applicationBuilder->where('status', 'rejected')->countAllResults(false),
-            'interview_slot_booked' => $applicationBuilder->where('status', 'interview_slot_booked')->countAllResults(false)
-
+            'total_applications' => $applicationModel->whereIn('job_id', $jobIds)->countAllResults(),
+            'ai_interview_started' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'ai_interview_started')->countAllResults(),
+            'ai_interview_completed' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'ai_interview_completed')->countAllResults(),
+            'shortlisted' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'shortlisted')->countAllResults(),
+            'rejected' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'rejected')->countAllResults(),
+            'interview_slot_booked' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'interview_slot_booked')->countAllResults()
         ];
 
         // Pending Actions Count
@@ -349,26 +348,32 @@ class DashboardController extends BaseController
         $whereClause = '';
         if (!empty($jobIds)) {
             $jobIdsStr = implode(',', $jobIds);
-            $whereClause = "AND job_id IN ($jobIdsStr)";
+            $whereClause = "AND a.job_id IN ($jobIdsStr)";
         }
 
-
-        // This is a simplified version - you might want to track stage transitions in a separate table
         $query = "
             SELECT 
-                status,
-                AVG(DATEDIFF(NOW(), applied_at)) as avg_days
-            FROM applications
-            WHERE status IN ('applied', 'ai_interview_started', 'ai_interview_completed', 'shortlisted', 'interview_slot_booked')
-            $whereClause
-            GROUP BY status
+                sh.stage_name,
+                AVG(TIMESTAMPDIFF(HOUR, sh.start_time, COALESCE(sh.end_time, NOW()))) as avg_hours,
+                COUNT(DISTINCT sh.application_id) as candidate_count
+            FROM stage_history sh
+            JOIN applications a ON a.id = sh.application_id
+            WHERE 1=1 $whereClause
+            GROUP BY sh.stage_name
+            ORDER BY avg_hours DESC
         ";
 
         $results = $db->query($query)->getResultArray();
 
         $analytics = [];
         foreach ($results as $row) {
-            $analytics[$row['status']] = round($row['avg_days'], 1);
+            $hours = round($row['avg_hours'], 1);
+            $analytics[] = [
+                'stage' => $row['stage_name'],
+                'hours' => $hours,
+                'days' => round($hours / 24, 1),
+                'count' => $row['candidate_count']
+            ];
         }
 
         return $analytics;

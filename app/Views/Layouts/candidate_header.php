@@ -56,23 +56,14 @@
         'unread_count' => model('NotificationModel')->getUnreadCount(session()->get('user_id'))
     ]) ?>
 </li>
-                                            <!-- <li><a href="#">Page</a>
-                                            <ul class="submenu">
-                                                <li><a href="blog.html">Jobs</a></li>
-                                                <li><a href="single-blog.html">Upload Resume</a></li>
-                                                <li><a href="elements.html">AI Interview</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="contact.html">Contact</a></li> -->
+                                            
                                         </ul>
                                     </nav>
                                 </div>
 
                                 <!-- Header-btn -->
                                 <div class="header-btn f-right">
-                                    <!-- <span class="me-3">
-                                        Welcome, <?= session('user_name') ?>
-                                    </span> -->
+                                    
                                     <a href="<?= base_url('logout') ?>" class="genric-btn danger circle">
                                         Logout
                                     </a>

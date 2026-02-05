@@ -193,7 +193,7 @@ class CandidateDashboardController extends BaseController
         $userModel = model('UserModel');
         $user = $userModel->find($candidateId);
         
-        if (empty($user['resume']) || empty($user['phone']) || empty($user['address'])) {
+        if (empty($user['resume_path']) || empty($user['phone']) || empty($user['bio']) || empty($user['email'])) {
             $actions[] = [
                 'title' => 'Complete Your Profile',
                 'description' => 'Add missing information to improve your chances',

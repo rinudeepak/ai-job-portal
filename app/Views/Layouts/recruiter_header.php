@@ -42,17 +42,12 @@
                                 <div class="main-menu">
                                     <nav class="d-none d-lg-block">
                                         <ul id="navigation">
-                                            <li><a href="<?= base_url('recruiter/dashboard') ?>">Home</a></li>
-                                            <li><a href="<?= base_url('recruiter/post_job') ?>">Post Jobs</a></li>
+                                            <li><a href="<?= base_url('recruiter/dashboard') ?>">Dashboard</a></li>
+                                            <li><a href="<?= base_url('recruiter/jobs') ?>">My Jobs</a></li>
+                                            <li><a href="<?= base_url('recruiter/applications') ?>">Applications</a></li>
+                                            <li><a href="<?= base_url('recruiter/post_job') ?>">Post Job</a></li>
                                             <li><a href="<?= base_url('recruiter/slots') ?>">Interview Slots</a></li>
-                                            <!-- <li><a href="#">Page</a>
-                                            <ul class="submenu">
-                                                <li><a href="blog.html">Jobs</a></li>
-                                                <li><a href="single-blog.html">Upload Resume</a></li>
-                                                <li><a href="elements.html">AI Interview</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="contact.html">Contact</a></li> -->
+                                            <li><a href="<?= base_url('recruiter/dashboard/leaderboard') ?>">Leaderboard</a></li>
                                         </ul>
                                     </nav>
                                 </div>

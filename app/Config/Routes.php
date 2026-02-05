@@ -38,6 +38,17 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
     
     // Excel Exports
     $routes->get('dashboard/export-excel', 'DashboardController::exportExcel');
+    
+    // Applications by Job
+    $routes->get('applications', 'RecruiterApplications::index');
+    $routes->get('applications/job/(:num)', 'RecruiterApplications::viewByJob/$1');
+    
+    // Job Management
+    $routes->get('jobs', 'RecruiterJobs::index');
+    $routes->get('jobs/edit/(:num)', 'RecruiterJobs::edit/$1');
+    $routes->post('jobs/update/(:num)', 'RecruiterJobs::update/$1');
+    $routes->get('jobs/close/(:num)', 'RecruiterJobs::close/$1');
+    $routes->get('jobs/reopen/(:num)', 'RecruiterJobs::reopen/$1');
 });
 
 $routes->get('jobs', 'Jobs::index', ['filter' => 'auth']);

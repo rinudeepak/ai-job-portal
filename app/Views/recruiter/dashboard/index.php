@@ -134,58 +134,56 @@
 
     <!-- Main Content Row -->
     <div class="row">
-        <!-- Candidate Funnel -->
+        <!-- Recruitment Pipeline -->
         <div class="col-xl-8 mb-4">
             <div class="card shadow">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Candidate Funnel Overview</h6>
-                    <a href="<?= base_url('recruiter/dashboard/export-excel?type=funnel') ?>" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-download"></i> Export
-                    </a>
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar"></i> Recruitment Pipeline</h6>
                 </div>
                 <div class="card-body">
-                    <div class="funnel-chart">
-                        <div class="funnel-stage" style="width: 100%;" data-count="<?= $funnel['total_applications'] ?>">
-                            <div class="funnel-label">
-                                <span class="stage-name">Total Applications</span>
-                                <span class="stage-count"><?= $funnel['total_applications'] ?></span>
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-primary">
+                                    <i class="fas fa-inbox"></i>
+                                </div>
+                                <h3><?= number_format($funnel['total_applications']) ?></h3>
+                                <p class="text-muted mb-0">Applications</p>
                             </div>
                         </div>
-                        
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['ai_interview_started'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['ai_interview_started'] ?>">
-                            <div class="funnel-label">
-                                <span class="stage-name">AI Interview Started</span>
-                                <span class="stage-count"><?= $funnel['ai_interview_started'] ?></span>
+                        <div class="col-3">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-info">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <h3><?= number_format($funnel['ai_interview_completed']) ?></h3>
+                                <p class="text-muted mb-0">AI Screened</p>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($funnel['ai_interview_completed'] / $funnel['total_applications']) * 100, 1) : 0 ?>%</small>
                             </div>
                         </div>
-                        
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['ai_interview_completed'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['ai_interview_completed'] ?>">
-                            <div class="funnel-label">
-                                <span class="stage-name">AI Interview Completed</span>
-                                <span class="stage-count"><?= $funnel['ai_interview_completed'] ?></span>
+                        <div class="col-3">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-success">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h3><?= number_format($funnel['shortlisted']) ?></h3>
+                                <p class="text-muted mb-0">Shortlisted</p>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['ai_interview_completed'] > 0 ? round(($funnel['shortlisted'] / $funnel['ai_interview_completed']) * 100, 1) : 0 ?>%</small>
                             </div>
                         </div>
-                        
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['shortlisted'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['shortlisted'] ?>">
-                            <div class="funnel-label">
-                                <span class="stage-name">Shortlisted</span>
-                                <span class="stage-count"><?= $funnel['shortlisted'] ?></span>
+                        <div class="col-3">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-warning">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <h3><?= number_format($funnel['interview_slot_booked']) ?></h3>
+                                <p class="text-muted mb-0">HR Interviews</p>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['shortlisted'] > 0 ? round(($funnel['interview_slot_booked'] / $funnel['shortlisted']) * 100, 1) : 0 ?>%</small>
                             </div>
                         </div>
-                        
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['rejected'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['rejected'] ?>">
-                            <div class="funnel-label">
-                                <span class="stage-name">Rejected</span>
-                                <span class="stage-count"><?= $funnel['rejected'] ?></span>
-                            </div>
-                        </div>
-                        
-                        <div class="funnel-stage" style="width: <?= $funnel['total_applications'] > 0 ? ($funnel['interview_slot_booked'] / $funnel['total_applications'] * 100) : 0 ?>%;" data-count="<?= $funnel['interview_slot_booked'] ?>">
-                            <div class="funnel-label">
-                                <span class="stage-name">Interview Slot Booked</span>
-                                <span class="stage-count"><?= $funnel['interview_slot_booked'] ?></span>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="alert alert-light mt-3 mb-0">
+                        <small class="text-muted"><i class="fas fa-info-circle"></i> Each stage shows conversion rate from previous stage</small>
                     </div>
                 </div>
             </div>
@@ -195,24 +193,54 @@
         <div class="col-xl-4 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Average Time in Stage</h6>
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-clock"></i> Stage Time Analytics</h6>
                 </div>
                 <div class="card-body">
-                    <?php foreach ($stageTimeAnalytics as $stage => $days): ?>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-sm"><?= ucwords(str_replace('_', ' ', $stage)) ?></span>
-                                <span class="text-sm font-weight-bold"><?= $days ?> days</span>
+                    <?php if (!empty($stageTimeAnalytics)): ?>
+                        <?php 
+                        $maxHours = max(array_column($stageTimeAnalytics, 'hours'));
+                        foreach ($stageTimeAnalytics as $stage): 
+                            $isBottleneck = $stage['hours'] > ($maxHours * 0.7);
+                        ?>
+                            <div class="stage-time-item mb-3" data-aos="fade-left">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span class="stage-name-label"><?= ucwords(str_replace('_', ' ', $stage['stage'])) ?></span>
+                                        <?php if ($isBottleneck): ?>
+                                            <span class="badge badge-danger ml-1" title="Potential bottleneck">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="text-right">
+                                        <strong class="text-primary"><?= $stage['days'] ?> days</strong>
+                                        <small class="text-muted d-block"><?= $stage['hours'] ?>h</small>
+                                    </div>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar <?= $stage['days'] > 7 ? 'bg-danger' : ($stage['days'] > 3 ? 'bg-warning' : 'bg-success') ?>" 
+                                         style="width: <?= min(($stage['hours'] / $maxHours) * 100, 100) ?>%"
+                                         data-toggle="tooltip" 
+                                         title="<?= $stage['count'] ?> candidates">
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-users"></i> <?= $stage['count'] ?> candidates
+                                </small>
                             </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar <?= $days > 7 ? 'bg-danger' : ($days > 3 ? 'bg-warning' : 'bg-success') ?>" 
-                                     style="width: <?= min($days / 14 * 100, 100) ?>%"></div>
-                            </div>
+                        <?php endforeach; ?>
+                        
+                        <div class="alert alert-info mt-3 mb-0">
+                            <small>
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>Tip:</strong> Stages over 7 days may indicate bottlenecks
+                            </small>
                         </div>
-                    <?php endforeach; ?>
-                    
-                    <?php if (empty($stageTimeAnalytics)): ?>
-                        <p class="text-muted text-center">No data available</p>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No stage data available yet</p>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>

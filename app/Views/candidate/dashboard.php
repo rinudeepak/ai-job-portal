@@ -175,10 +175,9 @@
                                     <?php
                                     $stages = [
                                         'applied' => 'Applied',
-                                        'ai_interview_started' => 'AI Interview',
-                                        'ai_interview_completed' => 'AI Evaluated',
+                                        'ai_interview_completed' => 'AI Interviewed',
                                         'shortlisted' => 'Shortlisted',
-                                        'interview_slot_booked' => 'HR Interview',
+                                        'interview_slot_booked' => 'Interview Slot Booked',
                                         'selected' => 'Selected'
                                     ];
                                     
@@ -257,11 +256,7 @@
                         </div>
 
                         <div class="card-footer bg-white border-top">
-                            <div class="d-flex justify-content-between">
-                                <a href="<?= base_url('candidate/applications/view/' . $application['id']) ?>" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-eye"></i> View Details
-                                </a>
-                                
+                            <div class="d-flex justify-content-end">
                                 <?php if ($application['status'] === 'applied'): ?>
                                     <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-sm btn-success">
                                         <i class="fas fa-video"></i> Start AI Interview
