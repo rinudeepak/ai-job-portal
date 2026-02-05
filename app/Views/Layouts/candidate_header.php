@@ -51,10 +51,11 @@
                                             <li><a href="<?= base_url('candidate/applied_jobs') ?>">My Jobs</a>
                                             </li>
                                             <li class="nav-item">
-    <?= view('candidate/components/notification_bell', [
+   <?php /*
+ <?= view('candidate/components/notification_bell', [
         'notifications' => model('NotificationModel')->getUnreadNotifications(session()->get('user_id'), 5),
         'unread_count' => model('NotificationModel')->getUnreadCount(session()->get('user_id'))
-    ]) ?>
+    ]) ?>*/?>
 </li>
                                             
                                         </ul>
