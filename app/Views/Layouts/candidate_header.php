@@ -48,7 +48,7 @@
                                             <li><a href="<?= base_url('jobs') ?>">Jobs</a></li>
                                             <li><a href="<?= base_url('candidate/profile') ?>">My Profile</a>
                                             </li>
-                                            <li><a href="<?= base_url('candidate/applied_jobs') ?>">My Jobs</a>
+                                            <li><a href="<?= base_url('candidate/applications') ?>">My Applications</a>
                                             </li>
                                             <li class="nav-item">
    <?php /*

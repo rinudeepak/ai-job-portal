@@ -126,8 +126,11 @@
         <!-- Applications Overview -->
         <div class="row">
             <div class="col-12">
-                <div class="section-tittle mb-3">
-                    <h3>My Applications</h3>
+                <div class="section-tittle mb-3 d-flex justify-content-between align-items-center">
+                    <h3>Recent Applications</h3>
+                    <a href="<?= base_url('candidate/applications') ?>" class="btn btn-primary">
+                        <i class="fas fa-list"></i> View All Applications
+                    </a>
                 </div>
             </div>
         </div>
@@ -147,130 +150,48 @@
                     </div>
                 </div>
             <?php else: ?>
-                <?php foreach ($applications as $application): ?>
-                <div class="col-lg-6 col-md-12 mb-4">
-                    <div class="card application-card shadow h-100">
-                        <div class="card-header bg-white border-bottom">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">
-                                    <a href="<?= base_url('jobs/view/' . $application['job_id']) ?>" class="text-dark">
-                                        <?= esc($application['job_title']) ?>
-                                    </a>
-                                </h5>
-                                <span class="badge badge-<?= getStatusBadgeColor($application['status']) ?>">
-                                    <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
-                                </span>
-                            </div>
-                            <small class="text-muted">
-                                <i class="fas fa-building"></i> <?= esc($application['company_name'] ?? 'Company') ?> | 
-                                <i class="fas fa-clock"></i> Applied <?= timeAgo($application['applied_at']) ?>
-                            </small>
-                        </div>
-
+                <div class="col-12">
+                    <div class="card shadow">
                         <div class="card-body">
-                            <!-- Current Stage Progress -->
-                            <div class="stage-progress mb-3">
-                                <h6 class="mb-2"><i class="fas fa-route"></i> Application Progress</h6>
-                                <div class="progress-steps">
-                                    <?php
-                                    $stages = [
-                                        'applied' => 'Applied',
-                                        'ai_interview_completed' => 'AI Interviewed',
-                                        'shortlisted' => 'Shortlisted',
-                                        'interview_slot_booked' => 'Interview Slot Booked',
-                                        'selected' => 'Selected'
-                                    ];
-                                    
-                                    $currentStageIndex = array_search($application['status'], array_keys($stages));
-                                    ?>
-                                    
-                                    <div class="step-container">
-                                        <?php foreach ($stages as $stageKey => $stageName): 
-                                            $stageIndex = array_search($stageKey, array_keys($stages));
-                                            $isCompleted = $stageIndex <= $currentStageIndex;
-                                            $isCurrent = $stageKey === $application['status'];
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Job Title</th>
+                                            <th>Applied Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php 
+                                        $recentApps = array_slice($applications, 0, 5);
+                                        foreach ($recentApps as $application): 
                                         ?>
-                                            <div class="step <?= $isCompleted ? 'completed' : '' ?> <?= $isCurrent ? 'current' : '' ?>">
-                                                <div class="step-icon">
-                                                    <?php if ($isCompleted): ?>
-                                                        <i class="fas fa-check"></i>
-                                                    <?php else: ?>
-                                                        <i class="fas fa-circle"></i>
-                                                    <?php endif; ?>
-                                                </div>
-                                                <div class="step-label"><?= $stageName ?></div>
-                                            </div>
+                                        <tr>
+                                            <td>
+                                                <strong><?= esc($application['job_title']) ?></strong>
+                                            </td>
+                                            <td><?= date('M d, Y', strtotime($application['applied_at'])) ?></td>
+                                            <td>
+                                                <span class="badge badge-<?= getStatusBadgeColor($application['status']) ?>">
+                                                    <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
+                                                </span>
+                                            </td>
+                                        </tr>
                                         <?php endforeach; ?>
-                                    </div>
-                                </div>
+                                    </tbody>
+                                </table>
                             </div>
-
-                            <!-- AI Interview Scores -->
-                            <?php if (!empty($application['ai_interview_completed'])): ?>
-                            <div class="ai-scores mb-3">
-                                <h6 class="mb-2"><i class="fas fa-chart-bar"></i> AI Interview Performance</h6>
-                                <div class="score-grid">
-                                    <div class="score-item">
-                                        <label>Technical</label>
-                                        <div class="score-bar">
-                                            <div class="score-fill" style="width: <?= $application['technical_score'] ?? 0 ?>%">
-                                                <?= number_format($application['technical_score'] ?? 0, 1) ?>%
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="score-item">
-                                        <label>Communication</label>
-                                        <div class="score-bar">
-                                            <div class="score-fill" style="width: <?= $application['communication_score'] ?? 0 ?>%">
-                                                <?= number_format($application['communication_score'] ?? 0, 1) ?>%
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="score-item">
-                                        <label>Overall Rating</label>
-                                        <div class="overall-score">
-                                            <span class="score-badge badge-<?= getScoreBadgeColor($application['overall_rating'] ?? 0) ?>">
-                                                <?= number_format($application['overall_rating'] ?? 0, 1) ?>%
-                                            </span>
-                                            <div class="stars">
-                                                <?php 
-                                                $stars = round(($application['overall_rating'] ?? 0) / 20);
-                                                for ($i = 1; $i <= 5; $i++): 
-                                                ?>
-                                                    <i class="fas fa-star <?= $i <= $stars ? 'text-warning' : 'text-muted' ?>"></i>
-                                                <?php endfor; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-
-                            <!-- Next Actions -->
-                            <?php if (!empty($application['next_action'])): ?>
-                            <div class="next-action alert alert-info">
-                                <strong><i class="fas fa-info-circle"></i> Next Step:</strong> 
-                                <?= $application['next_action'] ?>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="card-footer bg-white border-top">
-                            <div class="d-flex justify-content-end">
-                                <?php if ($application['status'] === 'applied'): ?>
-                                    <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-sm btn-success">
-                                        <i class="fas fa-video"></i> Start AI Interview
+                            <?php if (count($applications) > 5): ?>
+                                <div class="text-center mt-3">
+                                    <a href="<?= base_url('candidate/applications') ?>" class="btn btn-outline-primary">
+                                        View All <?= count($applications) ?> Applications
                                     </a>
-                                <?php elseif ($application['status'] === 'interview_slot_booked'): ?>
-                                    <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-sm btn-warning">
-                                        <i class="fas fa-calendar"></i> View Interview
-                                    </a>
-                                <?php endif; ?>
-                            </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
-                <?php endforeach; ?>
             <?php endif; ?>
         </div>
 

@@ -257,4 +257,22 @@ class CandidateDashboardController extends BaseController
                 return 'Application in progress.';
         }
     }
+
+    /**
+     * View all applications
+     */
+    public function applications()
+    {
+        $candidateId = session()->get('user_id');
+        
+        if (!$candidateId) {
+            return redirect()->to('/login')->with('error', 'Please login to continue');
+        }
+        
+        $applications = $this->getApplicationsWithDetails($candidateId);
+        
+        return view('candidate/applications', [
+            'applications' => $applications
+        ]);
+    }
 }

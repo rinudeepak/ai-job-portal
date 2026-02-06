@@ -25,6 +25,7 @@ $routes->post('recruiter/register', 'Auth::saveAdmin');
 $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
     $routes->get('dashboard', 'CandidateDashboardController::index');
     $routes->get('/', 'CandidateDashboardController::index'); // Default route
+    $routes->get('applications', 'CandidateDashboardController::applications');
 });
 
 // Dashboard Routes (Admin)
