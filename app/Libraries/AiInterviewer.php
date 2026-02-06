@@ -106,16 +106,16 @@ class AiInterviewer
             ['role' => 'system', 'content' => 'You are an expert interview evaluator. Provide detailed, fair assessment.'],
             ['role' => 'user', 'content' => $evaluationPrompt]
         ]);
-        // Assume $response is the raw AI response
+
         $response = trim($response);
 
-        // Remove starting ```json and ending ```
-        $response = preg_replace('/^```json\s*/', '', $response);  // remove starting ```json
-        $response = preg_replace('/\s*```$/', '', $response);      // remove ending ```
-        $response = trim($response);
+        // Extract JSON from markdown code blocks
+        if (preg_match('/```json\s*(.+?)\s*```/s', $response, $matches)) {
+            $response = $matches[1];
+        }
 
+        $response = trim($response);
         $evaluation = json_decode($response, true) ?? [];
-
 
         return $this->formatEvaluationResults($evaluation, count($candidateResponses));
     }

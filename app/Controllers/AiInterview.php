@@ -259,13 +259,13 @@ class AiInterview extends BaseController
         // Save evaluation
         $interviewModel->update($interviewId, [
             'evaluation_data' => json_encode($evaluation),
-            'technical_score' => $evaluation['technical_score'],
-            'communication_score' => $evaluation['communication_score'],
+            'technical_score' => $evaluation['technical_score'] ?? 0,
+            'communication_score' => $evaluation['communication_score'] ?? 0,
             'problem_solving_score' => $evaluation['problem_solving_score'] ?? 0,
             'adaptability_score' => $evaluation['adaptability_score'] ?? 0,
             'enthusiasm_score' => $evaluation['enthusiasm_score'] ?? 0,
-            'overall_rating' => $evaluation['overall_rating'],
-            'ai_decision' => $evaluation['ai_decision'],
+            'overall_rating' => $evaluation['overall_rating'] ?? 'Poor',
+            'ai_decision' => $evaluation['ai_decision'] ?? 'rejected',
             'status' => 'evaluated',
             'application_id' => $applicationId,
             'completed_at' => date('Y-m-d H:i:s')
@@ -298,25 +298,25 @@ class AiInterview extends BaseController
 
         $evaluation = json_decode($interview['evaluation_data'] ?? '{}', true);
         $conversationHistory = json_decode($interview['conversation_history'], true);
-        $applicationId = json_decode($interview['application_id'], true);
-        $result = json_decode($interview['ai_decision'], true);
+        $applicationId = $interview['application_id'];
+        $result = $interview['ai_decision'];
         // Normalize status (safety)
-        if ($result === 'shortlisted') {
-            $status = 'shortlisted';
-        } elseif ($result === 'rejected') {
-            $status = 'rejected';
-        } else {
-            $status = 'rejected'; // fallback
-        }
+        // if ($result === 'shortlisted') {
+        //     $status = 'shortlisted';
+        // } elseif ($result === 'rejected') {
+        //     $status = 'rejected';
+        // } else {
+        //     $status = 'rejected'; // fallback
+        // }
 
-        $applicationModel = model('ApplicationModel');
-        $applicationModel->update($applicationId, [
-            'status' => $status
-        ]);
+        // $applicationModel = model('ApplicationModel');
+        // $applicationModel->update($applicationId, [
+        //     'status' => $status
+        // ]);
         // Track stage
 
         $stageModel = model('StageHistoryModel');
-        $stageModel->moveToStage($applicationId, $status);
+        $stageModel->moveToStage($applicationId, $result);
         return view('interview/results', [
             'interview' => $interview,
             'evaluation' => $evaluation,
