@@ -54,12 +54,19 @@
                                     'selected' => 'Selected'
                                 ];
                                 $currentIndex = array_search($application['status'], array_keys($stages));
+                                $isRejected = $application['status'] === 'rejected';
                                 ?>
-                                <div class="progress" style="height: 25px;">
-                                    <div class="progress-bar bg-success" style="width: <?= (($currentIndex + 1) / count($stages)) * 100 ?>%">
-                                        <?= $stages[$application['status']] ?? 'In Progress' ?>
+                                <?php if ($isRejected): ?>
+                                    <div class="alert alert-danger mb-0">
+                                        <i class="fas fa-times-circle"></i> Application Rejected
                                     </div>
-                                </div>
+                                <?php else: ?>
+                                    <div class="progress" style="height: 25px;">
+                                        <div class="progress-bar bg-success" style="width: <?= (($currentIndex + 1) / count($stages)) * 100 ?>%">
+                                            <?= $stages[$application['status']] ?? 'In Progress' ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
                             <!-- AI Scores -->
