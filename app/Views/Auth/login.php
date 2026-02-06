@@ -27,6 +27,7 @@
                     <!-- ERROR MESSAGE End-->
                     <!-- Login Form -->
                     <form method="post" action="<?= base_url('login') ?>">
+                        <?= csrf_field() ?>
 
                         <div class="mb-3">
                             <label>Email</label>
@@ -35,7 +36,12 @@
 
                         <div class="mb-3">
                             <label>Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <div class="input-group">
+                                <input type="password" name="password" id="password" class="form-control" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                    <span id="eyeIcon">👁️</span>
+                                </button>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">
@@ -56,5 +62,18 @@
     </div>
 </div>
 
+<script>
+function togglePassword() {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.textContent = '🙈';
+    } else {
+        pwd.type = 'password';
+        icon.textContent = '👁️';
+    }
+}
+</script>
 </body>
 </html>

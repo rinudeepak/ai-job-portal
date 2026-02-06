@@ -28,30 +28,53 @@
                      
                     <!-- Registration Form -->
                     <form method="post" action="<?= base_url('recruiter/register') ?>">
+                        <?= csrf_field() ?>
 
                         <div class="mb-3">
                             <label>Company Name</label>
-                            <input type="text" name="company_name" class="form-control" required>
+                            <input type="text" name="company_name" class="form-control" value="<?= old('company_name') ?>" required>
                         </div>
 
                         <div class="mb-3">
                             <label>Recruiter Name</label>
-                            <input type="text" name="name" class="form-control" required>
+                            <input type="text" name="name" class="form-control" value="<?= old('name') ?>" required>
+                            <?php if(session('validation') && session('validation')->hasError('name')): ?>
+                                <small class="text-danger"><?= session('validation')->getError('name') ?></small>
+                            <?php endif; ?>
                         </div>
 
                         <div class="mb-3">
                             <label>Email Address</label>
-                            <input type="email" name="email" class="form-control" required>
+                            <input type="email" name="email" class="form-control" value="<?= old('email') ?>" required>
+                            <?php if(session('validation') && session('validation')->hasError('email')): ?>
+                                <small class="text-danger"><?= session('validation')->getError('email') ?></small>
+                            <?php endif; ?>
                         </div>
 
                         <div class="mb-3">
                             <label>Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <div class="input-group">
+                                <input type="password" name="password" id="password" class="form-control" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                    <span id="eyeIcon">👁️</span>
+                                </button>
+                            </div>
+                            <?php if(session('validation') && session('validation')->hasError('password')): ?>
+                                <small class="text-danger"><?= session('validation')->getError('password') ?></small>
+                            <?php endif; ?>
                         </div>
 
                         <div class="mb-3">
                             <label>Confirm Password</label>
-                            <input type="password" name="confirm_password" class="form-control" required>
+                            <div class="input-group">
+                                <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="toggleConfirmPassword()">
+                                    <span id="eyeIcon2">👁️</span>
+                                </button>
+                            </div>
+                            <?php if(session('validation') && session('validation')->hasError('confirm_password')): ?>
+                                <small class="text-danger"><?= session('validation')->getError('confirm_password') ?></small>
+                            <?php endif; ?>
                         </div>
 
 
@@ -73,5 +96,19 @@
     </div>
 </div>
 
+<script>
+function togglePassword() {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    icon.textContent = pwd.type === 'password' ? '👁️' : '🙈';
+}
+function toggleConfirmPassword() {
+    const pwd = document.getElementById('confirm_password');
+    const icon = document.getElementById('eyeIcon2');
+    pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    icon.textContent = pwd.type === 'password' ? '👁️' : '🙈';
+}
+</script>
 </body>
 </html>

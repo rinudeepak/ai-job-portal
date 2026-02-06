@@ -15,6 +15,14 @@ class Auth extends BaseController
 
     public function authenticate()
     {
+        // Validate input
+        if (!$this->validate([
+            'email' => 'required|valid_email',
+            'password' => 'required|min_length[6]'
+        ])) {
+            return redirect()->back()->with('error', 'Invalid input');
+        }
+
         $model = new UserModel();
         $session = session();
 
@@ -23,9 +31,13 @@ class Auth extends BaseController
 
         $user = $model->where('email', $email)->first();
 
+        // Constant-time comparison to prevent timing attacks
         if (!$user || !password_verify($password, $user['password'])) {
             return redirect()->back()->with('error', 'Invalid email or password');
         }
+
+        // Regenerate session to prevent fixation
+        $session->regenerate();
 
         $session->set([
             'user_id' => $user['id'],
@@ -133,11 +145,18 @@ class Auth extends BaseController
 
     public function saveCandidate()
     {
-        $model = new UserModel();
-        if ($this->request->getPost('password') !== $this->request->getPost('confirm_password')) {
-            return redirect()->back()->with('error', 'Passwords do not match');
+        // Validate input
+        if (!$this->validate([
+            'name' => 'required|min_length[3]',
+            'email' => 'required|valid_email|is_unique[users.email]',
+            'phone' => 'required|numeric|min_length[10]',
+            'password' => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[password]'
+        ])) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
         }
 
+        $model = new UserModel();
         $model->insert([
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
@@ -161,11 +180,17 @@ class Auth extends BaseController
 
     public function saveAdmin()
     {
+        // Validate input
+        if (!$this->validate([
+            'name' => 'required|min_length[3]',
+            'email' => 'required|valid_email|is_unique[users.email]',
+            'password' => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[password]'
+        ])) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
+        }
 
         $model = new UserModel();
-        if ($this->request->getPost('password') !== $this->request->getPost('confirm_password')) {
-            return redirect()->back()->with('error', 'Passwords do not match');
-        }
         $model->insert([
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),

@@ -221,6 +221,16 @@ class Candidate extends BaseController
             return $this->response->setJSON(['error' => 'Resume file not found']);
         }
         
+        $ext = pathinfo($filePath, PATHINFO_EXTENSION);
+        
+        // For DOCX/DOC, trigger download instead
+        if (in_array(strtolower($ext), ['docx', 'doc'])) {
+            return $this->response->setJSON([
+                'error' => 'Preview not available for Word documents. Click Download to view the file.'
+            ]);
+        }
+        
+        // For PDF, serve directly
         $fileUrl = base_url('candidate/serve-resume');
         return $this->response->setJSON(['url' => $fileUrl]);
     }
