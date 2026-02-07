@@ -35,11 +35,19 @@ class Jobs extends BaseController
         }
         
         if (!empty($filters['experience_level'])) {
-            $builder->where('experience_level', $filters['experience_level']);
+            if (is_array($filters['experience_level'])) {
+                $builder->whereIn('experience_level', $filters['experience_level']);
+            } else {
+                $builder->where('experience_level', $filters['experience_level']);
+            }
         }
         
         if (!empty($filters['employment_type'])) {
-            $builder->where('employment_type', $filters['employment_type']);
+            if (is_array($filters['employment_type'])) {
+                $builder->whereIn('employment_type', $filters['employment_type']);
+            } else {
+                $builder->where('employment_type', $filters['employment_type']);
+            }
         }
         
         if (!empty($filters['remote'])) {
@@ -47,7 +55,7 @@ class Jobs extends BaseController
         }
         
         if (!empty($filters['posted_within'])) {
-            $days = $this->getPostedWithinDays($filters['posted_within']);
+            $days = (int)$filters['posted_within'];
             $builder->where('created_at >=', date('Y-m-d H:i:s', strtotime("-{$days} days")));
         }
         
@@ -121,16 +129,6 @@ class Jobs extends BaseController
     }
     
 
-    
-    private function getPostedWithinDays($period)
-    {
-        switch ($period) {
-            case '24h': return 1;
-            case '7d': return 7;
-            case '30d': return 30;
-            default: return 30;
-        }
-    }
     
     private function getUserSkills($userId)
     {
