@@ -50,6 +50,8 @@
                                             </li>
                                             <li><a href="<?= base_url('candidate/applications') ?>">My Applications</a>
                                             </li>
+                                            <li><a href="<?= base_url('career-transition') ?>">Career Transition AI</a>
+                                            </li>
                                             <li class="nav-item">
    <?php /*
  <?= view('candidate/components/notification_bell', [

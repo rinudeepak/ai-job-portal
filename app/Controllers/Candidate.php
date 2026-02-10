@@ -7,6 +7,9 @@ use App\Libraries\ResumeParser;
 use App\Models\CandidateSkillsModel;
 use App\Models\GithubAnalysisModel;
 use App\Libraries\GithubAnalyzer;
+use App\Models\WorkExperienceModel;
+use App\Models\EducationModel;
+use App\Models\CertificationModel;
 
 
 class Candidate extends BaseController
@@ -27,6 +30,14 @@ class Candidate extends BaseController
         $github = $githubModel->where('candidate_id', $userId)->first();
         $skillsModel = model('CandidateSkillsModel');
         $skills = $skillsModel->where('candidate_id', $userId)->first();
+        
+        $workExpModel = new WorkExperienceModel();
+        $educationModel = new EducationModel();
+        $certificationModel = new CertificationModel();
+        
+        $workExperiences = $workExpModel->getByUser($userId);
+        $education = $educationModel->getByUser($userId);
+        $certifications = $certificationModel->getByUser($userId);
         
         // Get application stats
         $applicationModel = model('ApplicationModel');
@@ -59,6 +70,9 @@ class Candidate extends BaseController
             'user' => $user,
             'github' => $github,
             'skills' => $skills,
+            'workExperiences' => $workExperiences,
+            'education' => $education,
+            'certifications' => $certifications,
             'stats' => [
                 'applications' => $totalApplications,
                 'interviews' => $totalInterviews,
@@ -269,7 +283,8 @@ class Candidate extends BaseController
             'email' => $this->request->getPost('email'),
             'phone' => $this->request->getPost('phone'),
             'location' => $this->request->getPost('location'),
-            'bio' => $this->request->getPost('bio')
+            'bio' => $this->request->getPost('bio'),
+            'work_experience' => $this->request->getPost('work_experience')
         ];
         
         $userModel->update($userId, $data);
@@ -338,5 +353,133 @@ class Candidate extends BaseController
         }
         
         return redirect()->back()->with('success', 'Skill added successfully');
+    }
+
+    public function addWorkExperience()
+    {
+        $userId = session()->get('user_id');
+        $workExpModel = new WorkExperienceModel();
+        
+        $data = [
+            'user_id' => $userId,
+            'job_title' => $this->request->getPost('job_title'),
+            'company_name' => $this->request->getPost('company_name'),
+            'employment_type' => $this->request->getPost('employment_type') ?: 'Full-time',
+            'location' => $this->request->getPost('location'),
+            'start_date' => $this->request->getPost('start_date'),
+            'end_date' => $this->request->getPost('end_date'),
+            'is_current' => $this->request->getPost('is_current') ? 1 : 0,
+            'description' => $this->request->getPost('description')
+        ];
+        
+        try {
+            $id = $this->request->getPost('id');
+            if ($id) {
+                $workExpModel->update($id, $data);
+            } else {
+                $workExpModel->insert($data);
+            }
+            return redirect()->back()->with('success', 'Work experience saved successfully');
+        } catch (\Exception $e) {
+            log_message('error', 'Work experience save error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to save work experience: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteWorkExperience($id)
+    {
+        $userId = session()->get('user_id');
+        $workExpModel = new WorkExperienceModel();
+        
+        $exp = $workExpModel->find($id);
+        if ($exp && $exp['user_id'] == $userId) {
+            $workExpModel->delete($id);
+        }
+        
+        return redirect()->back()->with('success', 'Work experience deleted');
+    }
+
+    public function addEducation()
+    {
+        $userId = session()->get('user_id');
+        $educationModel = new EducationModel();
+        
+        $data = [
+            'user_id' => $userId,
+            'degree' => $this->request->getPost('degree'),
+            'field_of_study' => $this->request->getPost('field_of_study'),
+            'institution' => $this->request->getPost('institution'),
+            'start_year' => $this->request->getPost('start_year'),
+            'end_year' => $this->request->getPost('end_year'),
+            'grade' => $this->request->getPost('grade')
+        ];
+        
+        try {
+            $id = $this->request->getPost('id');
+            if ($id) {
+                $educationModel->update($id, $data);
+            } else {
+                $educationModel->insert($data);
+            }
+            return redirect()->back()->with('success', 'Education saved successfully');
+        } catch (\Exception $e) {
+            log_message('error', 'Education save error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to save education: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteEducation($id)
+    {
+        $userId = session()->get('user_id');
+        $educationModel = new EducationModel();
+        
+        $edu = $educationModel->find($id);
+        if ($edu && $edu['user_id'] == $userId) {
+            $educationModel->delete($id);
+        }
+        
+        return redirect()->back()->with('success', 'Education deleted');
+    }
+
+    public function addCertification()
+    {
+        $userId = session()->get('user_id');
+        $certificationModel = new CertificationModel();
+        
+        $data = [
+            'user_id' => $userId,
+            'certification_name' => $this->request->getPost('certification_name'),
+            'issuing_organization' => $this->request->getPost('issuing_organization'),
+            'issue_date' => $this->request->getPost('issue_date'),
+            'expiry_date' => $this->request->getPost('expiry_date'),
+            'credential_id' => $this->request->getPost('credential_id'),
+            'credential_url' => $this->request->getPost('credential_url')
+        ];
+        
+        try {
+            $id = $this->request->getPost('id');
+            if ($id) {
+                $certificationModel->update($id, $data);
+            } else {
+                $certificationModel->insert($data);
+            }
+            return redirect()->back()->with('success', 'Certification saved successfully');
+        } catch (\Exception $e) {
+            log_message('error', 'Certification save error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to save certification: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteCertification($id)
+    {
+        $userId = session()->get('user_id');
+        $certificationModel = new CertificationModel();
+        
+        $cert = $certificationModel->find($id);
+        if ($cert && $cert['user_id'] == $userId) {
+            $certificationModel->delete($id);
+        }
+        
+        return redirect()->back()->with('success', 'Certification deleted');
     }
 }

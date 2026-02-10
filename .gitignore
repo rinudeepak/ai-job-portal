@@ -126,3 +126,8 @@ nb-configuration.xml
 /phpunit*.xml
 /.phpunit.*.cache
 
+    public string $baseURL = 'http://localhost/ai-job-portal/public/';
+
+
+once i set  career transition then i cant change , include changing option also
+

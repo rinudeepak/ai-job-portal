@@ -28,6 +28,16 @@ $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'auth
     $routes->get('applications', 'CandidateDashboardController::applications');
 });
 
+// Career Transition AI Routes
+$routes->group('career-transition', ['filter' => 'auth'], function($routes) {
+    $routes->get('/', 'CareerTransition::index');
+    $routes->post('create', 'CareerTransition::create');
+    $routes->post('complete/(:num)', 'CareerTransition::completeTask/$1');
+    $routes->get('course', 'CareerTransition::course');
+    $routes->post('dismiss-suggestion', 'CareerTransition::dismissSuggestion');
+    $routes->get('reset', 'CareerTransition::reset');
+});
+
 // Dashboard Routes (Admin)
 $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
     
@@ -69,6 +79,17 @@ $routes->get('candidate/serve-resume', 'Candidate::serveResume', ['filter' => 'a
 $routes->post('candidate/add-skill', 'Candidate::addSkill', ['filter' => 'auth']);
 $routes->post('candidate/update_personal', 'Candidate::updatePersonal', ['filter' => 'auth']);
 $routes->post('candidate/upload-photo', 'Candidate::uploadPhoto', ['filter' => 'auth']);
+$routes->post('candidate/add-work-experience', 'Candidate::addWorkExperience', ['filter' => 'auth']);
+$routes->get('candidate/delete-work-experience/(:num)', 'Candidate::deleteWorkExperience/$1', ['filter' => 'auth']);
+$routes->post('candidate/add-education', 'Candidate::addEducation', ['filter' => 'auth']);
+$routes->get('candidate/delete-education/(:num)', 'Candidate::deleteEducation/$1', ['filter' => 'auth']);
+$routes->post('candidate/add-certification', 'Candidate::addCertification', ['filter' => 'auth']);
+$routes->get('candidate/delete-certification/(:num)', 'Candidate::deleteCertification/$1', ['filter' => 'auth']);
+
+$routes->get('recruiter/candidate/(:num)', 'RecruiterCandidates::viewProfile/$1', ['filter' => 'auth']);
+
+// Test route - remove after testing
+$routes->get('test-profile', 'TestProfile::checkTables');
 
 
 // AI Interview Routes

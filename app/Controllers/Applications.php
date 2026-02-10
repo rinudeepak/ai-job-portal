@@ -10,20 +10,22 @@ class Applications extends BaseController
     {
         $session = session();
 
-        // 1️⃣ Check login
         if (!$session->get('logged_in')) {
             return redirect()->to(base_url('login'));
         }
 
-
         $candidateId = $session->get('user_id');
-
+        
+        // Check if resume is uploaded
+        $userModel = model('UserModel');
+        $user = $userModel->find($candidateId);
+        
+        if (empty($user['resume_path'])) {
+            return redirect()->back()->with('error', 'Please upload your resume before applying for jobs. Go to Profile > Resume tab.');
+        }
+        
         $model = new ApplicationModel();
-        // $notificationModel = model('NotificationModel');
-        // $userModel = model('UserModel');
 
-
-        // 3️⃣ Prevent duplicate application
         $alreadyApplied = $model
             ->where('job_id', $jobId)
             ->where('candidate_id', $candidateId)
@@ -33,23 +35,76 @@ class Applications extends BaseController
             return redirect()->back()->with('error', 'You have already applied for this job');
         }
 
-        // 4️⃣ Save application
+        // Check skill mismatch - compare with resume AND github skills
+        $jobModel = model('JobModel');
+        $skillsModel = model('CandidateSkillsModel');
+        $githubModel = model('GithubAnalysisModel');
+        
+        $job = $jobModel->find($jobId);
+        $candidateSkills = $skillsModel->where('candidate_id', $candidateId)->first();
+        $githubStats = $githubModel->where('candidate_id', $candidateId)->first();
+        
+        $jobTitle = strtolower($job['title'] ?? '');
+        $jobSkills = strtolower($job['required_skills'] ?? '');
+        $resumeSkills = strtolower($candidateSkills['skill_name'] ?? '');
+        $githubLanguages = strtolower($githubStats['languages_used'] ?? '');
+        
+        // Combine resume and github skills
+        $allCandidateSkills = $resumeSkills . ' ' . $githubLanguages;
+        
+        // Detect mismatch: job requires skills candidate doesn't have
+        $hasJobTitleSkill = stripos($allCandidateSkills, $jobTitle) !== false;
+        $hasRequiredSkills = false;
+        
+        // Check if candidate has any of the required skills
+        $requiredSkillsList = explode(',', $jobSkills);
+        foreach ($requiredSkillsList as $skill) {
+            $skill = trim($skill);
+            if (!empty($skill) && stripos($allCandidateSkills, $skill) !== false) {
+                $hasRequiredSkills = true;
+                break;
+            }
+        }
+        
+        $mismatch = !empty($jobTitle) && !empty($allCandidateSkills) && 
+                    (!$hasJobTitleSkill && !$hasRequiredSkills);
+
         $model->insert([
             'job_id' => $jobId,
             'candidate_id' => $candidateId,
             'status' => 'applied',
             'applied_at' => date('Y-m-d H:i:s')
         ]);
-        // Get inserted application id
+        
         $applicationId = $model->getInsertID();
-
-        // Track stage
-
         $stageModel = model('StageHistoryModel');
         $stageModel->moveToStage($applicationId, 'Applied');
 
-        
-
+        if ($mismatch) {
+            // Store multiple suggestions as array
+            $suggestions = $session->get('career_suggestions') ?? [];
+            
+            // Check if this job title already suggested
+            $alreadySuggested = false;
+            foreach ($suggestions as $existing) {
+                if ($existing['job_title'] === $job['title']) {
+                    $alreadySuggested = true;
+                    break;
+                }
+            }
+            
+            // Add new suggestion if not already present
+            if (!$alreadySuggested) {
+                $suggestions[] = [
+                    'job_title' => $job['title'],
+                    'created_at' => time(),
+                    'expires_at' => time() + (2 * 24 * 60 * 60)
+                ];
+                $session->set('career_suggestions', $suggestions);
+            }
+            
+            return redirect()->to('candidate/dashboard')->with('success', 'Job applied successfully');
+        }
 
         return redirect()->back()->with('success', 'Job applied successfully');
     }

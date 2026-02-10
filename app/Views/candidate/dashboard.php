@@ -3,6 +3,40 @@
 <!-- Dashboard Content Start -->
 <div class="featured-job-area feature-padding pt-5">
     <div class="container">
+        <!-- Career Transition Suggestions -->
+        <?php 
+        $suggestions = session()->get('career_suggestions') ?? [];
+        $activeSuggestions = array_filter($suggestions, function($s) {
+            return isset($s['expires_at']) && time() < $s['expires_at'];
+        });
+        
+        if (!empty($activeSuggestions)): ?>
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <h5><i class="fas fa-lightbulb"></i> Career Growth Suggestions</h5>
+            <p>We noticed you're exploring roles that may require additional skills. Consider these career paths:</p>
+            
+            <div class="row">
+            <?php foreach ($activeSuggestions as $suggestion): ?>
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-primary"><i class="fas fa-arrow-right"></i> <?= esc($suggestion['job_title']) ?></h6>
+                            <p class="small text-muted mb-2">Skills may not match your current profile</p>
+                            <a href="<?= base_url('career-transition') ?>?target=<?= urlencode($suggestion['job_title']) ?>" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-route"></i> Explore Learning Path
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+            </div>
+            
+            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="dismissAllSuggestions()">
+                <i class="fas fa-times"></i> Dismiss All
+            </button>
+        </div>
+        <?php endif; ?>
+        
         <!-- Notification Alerts Section -->
        
 
@@ -160,6 +194,7 @@
                                             <th>Job Title</th>
                                             <th>Applied Date</th>
                                             <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -176,6 +211,11 @@
                                                 <span class="badge badge-<?= getStatusBadgeColor($application['status']) ?>">
                                                     <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
                                                 </span>
+                                            </td>
+                                            <td>
+                                                <a href="<?= base_url('job/'.$application['job_id']) ?>" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                    <i class="fas fa-eye"></i> View Job
+                                                </a>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -223,6 +263,13 @@
                     <p class="text-muted">Update your information</p>
                 </a>
             </div>
+            <div class="col-md-4 mb-4">
+                <a href="<?= base_url('career-transition') ?>" class="quick-link-card">
+                    <i class="fas fa-rocket fa-3x mb-3 text-warning"></i>
+                    <h5>Career Transition AI</h5>
+                    <p class="text-muted">Plan your career growth</p>
+                </a>
+            </div>
             
         </div>
     </div>
@@ -268,6 +315,17 @@ function timeAgo($datetime) {
 }
 ?>
 
-
+<script>
+function dismissAllSuggestions() {
+    fetch('<?= base_url('career-transition/dismiss-suggestion') ?>', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).then(() => {
+        location.reload();
+    });
+}
+</script>
 
 <?= view('layouts/candidate_footer') ?>

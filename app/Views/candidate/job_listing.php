@@ -150,6 +150,19 @@
 
             <!-- Job Results -->
             <div class="col-xl-9 col-lg-9 col-md-8">
+                <!-- Career Transition Suggestion -->
+                <?php if (session()->getFlashdata('career_suggestion')): 
+                    $suggestion = session()->getFlashdata('career_suggestion'); ?>
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <h5><i class="fas fa-rocket"></i> Career Transition Opportunity!</h5>
+                    <p><?= $suggestion['message'] ?></p>
+                    <a href="<?= base_url('career-transition') ?>" class="btn btn-sm btn-primary">
+                        <i class="fas fa-graduation-cap"></i> Get Learning Roadmap
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php endif; ?>
+                
                 <!-- Featured_job_start -->
                 <section class="featured-job-area">
                     <div class="container">

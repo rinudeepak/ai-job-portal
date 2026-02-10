@@ -53,6 +53,19 @@
             </div>
             <!-- Right Content -->
             <div class="col-xl-4 col-lg-4">
+                <!-- Career Transition Suggestion -->
+                <?php if (session()->getFlashdata('career_suggestion')): 
+                    $suggestion = session()->getFlashdata('career_suggestion'); ?>
+                <div class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+                    <h6><i class="fas fa-rocket"></i> Career Transition Opportunity!</h6>
+                    <p class="small mb-2"><?= $suggestion['message'] ?></p>
+                    <a href="<?= base_url('career-transition') ?>" class="btn btn-sm btn-primary w-100">
+                        <i class="fas fa-graduation-cap"></i> Get Learning Roadmap
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php endif; ?>
+                
                 <div class="post-details3  mb-50">
                     <!-- Small Section Tittle -->
                     <div class="small-section-tittle">

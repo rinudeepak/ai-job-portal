@@ -9,6 +9,7 @@ class Jobs extends BaseController
     public function index()
     {
         $jobModel = new JobModel();
+        $candidateId = session()->get('user_id');
         
         // Get filter parameters
         $filters = [
@@ -24,6 +25,15 @@ class Jobs extends BaseController
         
         // Build query with filters
         $builder = $jobModel->where('status', 'open');
+        
+        // Exclude already applied jobs
+        if ($candidateId) {
+            $builder->whereNotIn('id', function($builder) use ($candidateId) {
+                return $builder->select('job_id')
+                              ->from('applications')
+                              ->where('candidate_id', $candidateId);
+            });
+        }
         
         // Apply filters
         if (!empty($filters['location'])) {

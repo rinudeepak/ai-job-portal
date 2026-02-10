@@ -35,6 +35,7 @@
                                 <th>Status</th>
                                 <th>AI Rating</th>
                                 <th>Applied Date</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,6 +68,11 @@
                                         <?php endif; ?>
                                     </td>
                                     <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
+                                    <td>
+                                        <a href="<?= base_url('recruiter/candidate/'.$app['candidate_id']) ?>" class="btn btn-sm btn-primary" target="_blank">
+                                            <i class="fas fa-user"></i> View Profile
+                                        </a>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

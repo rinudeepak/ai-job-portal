@@ -1,68 +1,289 @@
-# CodeIgniter 4 Application Starter
+# AI Job Portal
 
-## What is CodeIgniter?
+An intelligent job portal built with CodeIgniter 4 featuring AI-powered interviews, career transition guidance, and comprehensive candidate-recruiter matching.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## 🚀 Features
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+### For Candidates
+- **Smart Profile Management**: Naukri-style detailed profiles with work experience, education, and certifications
+- **Resume Parsing**: Automatic skill extraction from uploaded resumes
+- **GitHub Integration**: Analyze GitHub repositories to extract programming languages and skills
+- **AI Interview System**: Automated technical interviews with AI evaluation
+- **Career Transition AI**: 
+  - Skill gap analysis
+  - Personalized learning roadmaps
+  - Daily micro-tasks (5-10 minutes)
+  - Offline-ready course content
+- **Interview Slot Booking**: Book and manage interview schedules
+- **Application Tracking**: Track job applications and interview status
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+### For Recruiters
+- **Job Posting**: Create and manage job listings
+- **Application Management**: View and filter candidate applications
+- **Candidate Profiles**: Access detailed candidate profiles with complete work history
+- **AI Interview Results**: Review AI-generated interview evaluations
+- **Interview Scheduling**: Manage interview slots and bookings
+- **Dashboard Analytics**: Track applications, interviews, and hiring metrics
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+## 📋 Requirements
 
-## Installation & updates
+- PHP 7.4 or higher
+- MySQL 5.7 or higher
+- Apache/Nginx with mod_rewrite enabled
+- Composer
+- XAMPP/WAMP/LAMP (for local development)
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+## 🛠️ Installation
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+### 1. Clone Repository
+```bash
+git clone https://github.com/yourusername/ai-job-portal.git
+cd ai-job-portal
+```
 
-## Setup
+### 2. Install Dependencies
+```bash
+composer install
+```
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+### 3. Environment Configuration
+```bash
+# Copy example environment file
+cp .env.example .env
 
-## Important Change with index.php
+# Edit .env file and update:
+# - app.baseURL (your project URL)
+# - database credentials
+# - API keys (OpenAI, Mistral, GitHub)
+```
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+### 4. Generate Encryption Key
+```bash
+php spark key:generate
+```
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+### 5. Database Setup
+```sql
+-- Create database
+CREATE DATABASE ai_job_portal;
 
-**Please** read the user guide for a better explanation of how CI4 works!
+-- Import schema
+mysql -u root -p ai_job_portal < database/schema.sql
 
-## Repository Management
+-- Import additional tables
+mysql -u root -p ai_job_portal < database/career_transition.sql
+mysql -u root -p ai_job_portal < database/course_content.sql
+mysql -u root -p ai_job_portal < database/naukri_style_profile.sql
+```
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+### 6. Configure Base URL
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+**⚠️ IMPORTANT: Update the base URL in `.env` file to match your setup**
 
-## Server Requirements
+**Option A: XAMPP (Quick Setup)**
+```env
+app.baseURL=http://localhost/ai-job-portal/public/
+```
+**Note:** Replace `ai-job-portal` with your actual folder name if different.
 
-PHP version 7.4 or higher is required, with the following extensions installed:
+Access: `http://localhost/ai-job-portal/public/`
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+**Option B: Virtual Host (Recommended)**
 
-> [!WARNING]
-> The end of life date for PHP 7.4 was November 28, 2022.
-> The end of life date for PHP 8.0 was November 26, 2023.
-> If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> The end of life date for PHP 8.1 will be November 25, 2024.
+1. Edit `C:\xampp\apache\conf\extra\httpd-vhosts.conf`:
+```apache
+<VirtualHost *:80>
+    ServerName jobportal.local
+    DocumentRoot "C:/xampp/htdocs/ai-job-portal/public"
+    <Directory "C:/xampp/htdocs/ai-job-portal/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+**Note:** Update the path if your project is in a different location.
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+2. Edit `C:\Windows\System32\drivers\etc\hosts` (Run as Administrator):
+```
+127.0.0.1 jobportal.local
+```
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+3. Update `.env`:
+```env
+app.baseURL=http://jobportal.local/
+```
+
+4. Restart Apache and access: `http://jobportal.local`
+
+**Option C: Production/Custom Domain**
+```env
+app.baseURL=https://yourdomain.com/
+app.forceGlobalSecureRequests=true
+```
+
+### 7. Set Permissions
+```bash
+# Linux/Mac
+chmod -R 755 writable/
+chmod -R 755 public/uploads/
+
+# Windows - ensure writable/ folder has write permissions
+```
+
+## 🔑 API Keys Setup
+
+### OpenAI API Key
+1. Visit https://platform.openai.com/api-keys
+2. Create new API key
+3. Add to `.env`: `OPENAI_API_KEY=sk-...`
+
+### Mistral API Key
+1. Visit https://console.mistral.ai/
+2. Create API key
+3. Add to `.env`: `MISTRAL_API_KEY=...`
+
+### GitHub Token
+1. Visit https://github.com/settings/tokens
+2. Generate new token with `repo` scope
+3. Add to `.env`: `GITHUB_TOKEN=ghp_...`
+
+## 📁 Project Structure
+
+```
+ai-job-portal/
+├── app/
+│   ├── Controllers/       # Application controllers
+│   ├── Models/           # Database models
+│   ├── Views/            # View templates
+│   ├── Libraries/        # Custom libraries (AI, Resume Parser)
+│   └── Config/           # Configuration files
+├── public/               # Public assets (CSS, JS, images)
+├── writable/            # Logs, cache, uploads
+├── database/            # SQL schema files
+└── .env                 # Environment configuration
+```
+
+## 🎯 Usage
+
+### Default Login Credentials
+
+**Recruiter:**
+- Email: `recruiter1@gmail.com`
+- Password: `recruiter1`
+
+**Candidate:**
+- Email: `manju@gmail.com`
+- Password: `manjupswd`
+
+### Creating New Users
+
+**Register as Candidate:**
+- Visit: `/register`
+- Fill registration form
+- Upload resume for automatic skill extraction
+
+**Register as Recruiter:**
+- Visit: `/recruiter/register`
+- Note: This route may be restricted in production
+
+## 🔧 Configuration
+
+### Database
+Edit `.env`:
+```env
+database.default.hostname=localhost
+database.default.database=ai_job_portal
+database.default.username=root
+database.default.password=your_password
+```
+
+### Email (Optional)
+Configure SMTP in `app/Config/Email.php` for notifications.
+
+### File Uploads
+- Resumes: `writable/uploads/resumes/`
+- Profile Photos: `public/uploads/profiles/`
+- Max upload size: 5MB (configurable in `php.ini`)
+
+## 🚨 Troubleshooting
+
+### Modals Not Opening
+- Ensure jQuery and Bootstrap JS are loaded
+- Check browser console for errors
+- Clear browser cache (Ctrl+F5)
+
+### Database Connection Failed
+- Verify MySQL is running
+- Check database credentials in `.env`
+- Ensure database exists
+
+### 404 Errors
+- Enable `mod_rewrite` in Apache
+- Check `.htaccess` exists in `public/` folder
+- Verify `app.baseURL` in `.env`
+
+### CSRF Token Mismatch
+- Clear browser cookies
+- Check `security.csrfProtection` in `.env`
+- Ensure forms include `<?= csrf_field() ?>`
+
+## 📚 Key Features Documentation
+
+### Career Transition AI
+- Detects skill mismatches when applying to jobs
+- Compares job requirements with resume + GitHub skills
+- Generates personalized learning roadmaps
+- Provides daily 5-10 minute tasks
+- Offline-ready course content
+
+### Naukri-Style Profiles
+- Multiple work experiences with full details
+- Education history with grades
+- Professional certifications with verification links
+- Recruiter-friendly profile view
+
+### AI Interview System
+- Automated technical interviews
+- Real-time question generation
+- AI-powered evaluation
+- Detailed feedback and scoring
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+## 📝 License
+
+This project is open-source and available under the MIT License.
+
+## 🐛 Known Issues
+
+- Bootstrap 4 compatibility (modals use `data-toggle` instead of `data-bs-toggle`)
+- Year input type may not work in older browsers (use number input)
+
+## 📧 Support
+
+For issues and questions:
+- Open an issue on GitHub
+- Check existing issues for solutions
+- Review troubleshooting section above
+
+## 🔄 Updates
+
+Check the [CHANGELOG.md](CHANGELOG.md) for version history and updates.
+
+## 🙏 Acknowledgments
+
+- CodeIgniter 4 Framework
+- OpenAI API for AI features
+- Mistral AI for alternative AI processing
+- Bootstrap 4 for UI components
+- Font Awesome for icons
+
+---
+
+**Built with ❤️ using CodeIgniter 4**
