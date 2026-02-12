@@ -1,4 +1,4 @@
-<?= view('layouts/recruiter_header', ['title' => 'Reschedule Booking']) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Reschedule Booking']) ?>
 
 <div class="container-fluid py-4">
     <div class="row">
@@ -188,4 +188,4 @@
 
 
 
-<?= view('layouts/recruiter_footer') ?>
+<?= view('Layouts/recruiter_footer') ?>

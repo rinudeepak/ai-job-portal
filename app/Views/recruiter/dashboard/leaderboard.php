@@ -1,4 +1,4 @@
-<?= view('layouts/recruiter_header', ['title' => 'Skill Leaderboard']) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Skill Leaderboard']) ?>
 
 <div class="container-fluid py-4">
     <!-- Page Header -->
@@ -375,4 +375,4 @@
 
 
 
-<?= view('layouts/recruiter_footer') ?>
+<?= view('Layouts/recruiter_footer') ?>

@@ -1,4 +1,4 @@
-<?= view('layouts/recruiter_header', ['title' => 'Applications - ' . $job['title']]) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Applications - ' . $job['title']]) ?>
 
 <div class="container-fluid py-5">
     <div class="mb-4">
@@ -89,4 +89,4 @@
     </div>
 </div>
 
-<?= view('layouts/recruiter_footer') ?>
+<?= view('Layouts/recruiter_footer') ?>

@@ -123,4 +123,4 @@
     </div>
 </div>
 <!-- job post company End -->
-<?= view('layouts/candidate_footer') ?>
+<?= view('Layouts/candidate_footer') ?>

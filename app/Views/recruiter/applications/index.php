@@ -1,4 +1,4 @@
-<?= view('layouts/recruiter_header', ['title' => 'Job Applications']) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Job Applications']) ?>
 
 <div class="container-fluid py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -53,4 +53,4 @@
     </div>
 </div>
 
-<?= view('layouts/recruiter_footer') ?>
+<?= view('Layouts/recruiter_footer') ?>

@@ -34,6 +34,7 @@ $routes->group('career-transition', ['filter' => 'auth'], function($routes) {
     $routes->post('create', 'CareerTransition::create');
     $routes->post('complete/(:num)', 'CareerTransition::completeTask/$1');
     $routes->get('course', 'CareerTransition::course');
+    $routes->get('module/(:num)', 'CareerTransition::module/$1');
     $routes->post('dismiss-suggestion', 'CareerTransition::dismissSuggestion');
     $routes->get('reset', 'CareerTransition::reset');
 });

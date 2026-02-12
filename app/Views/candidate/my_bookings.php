@@ -148,4 +148,4 @@
     </div>
 </section>
 
-<?= view('layouts/candidate_footer') ?>
+<?= view('Layouts/candidate_footer') ?>

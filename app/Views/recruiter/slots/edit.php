@@ -1,4 +1,4 @@
-<?= view('layouts/recruiter_header', ['title' => 'Edit Interview Slot']) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Edit Interview Slot']) ?>
 
 <div class="container-fluid py-4">
     <div class="row">
@@ -174,4 +174,4 @@
 </div>
 
 
-<?= view('layouts/recruiter_footer') ?>
+<?= view('Layouts/recruiter_footer') ?>

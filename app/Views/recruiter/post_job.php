@@ -68,4 +68,4 @@
             </div>
         </section>
 
-        <?= view('layouts/recruiter_footer') ?>
+        <?= view('Layouts/recruiter_footer') ?>

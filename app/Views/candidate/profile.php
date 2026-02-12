@@ -681,4 +681,4 @@ $('#addCertificationModal').on('hidden.bs.modal', function () {
 });
 </script>
 
-<?= view('layouts/candidate_footer') ?>
+<?= view('Layouts/candidate_footer') ?>

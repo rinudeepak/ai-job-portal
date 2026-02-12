@@ -1,4 +1,4 @@
-<?= view('layouts/recruiter_header', ['title' => 'Admin Dashboard']) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard']) ?>
 
 <div class="container-fluid py-5">
     <!-- Page Header -->
@@ -8,22 +8,6 @@
             <p class="text-muted">Overview of recruitment metrics and analytics</p>
         </div>
         <div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown">
-                    <i class="fas fa-download"></i> Export
-                </button>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" href="<?= base_url('recruiter/dashboard/export-excel?type=overview') ?>">
-                        <i class="fas fa-file-excel"></i> Overview Report
-                    </a>
-                    <a class="dropdown-item" href="<?= base_url('recruiter/dashboard/export-excel?type=funnel') ?>">
-                        <i class="fas fa-filter"></i> Funnel Analysis
-                    </a>
-                    <a class="dropdown-item" href="<?= base_url('recruiter/dashboard/export-excel?type=detailed') ?>">
-                        <i class="fas fa-list"></i> Detailed Report
-                    </a>
-                </div>
-            </div>
             <a href="<?= base_url('recruiter/dashboard/leaderboard') ?>" class="btn btn-primary">
                 <i class="fas fa-trophy"></i> View Leaderboard
             </a>
@@ -411,4 +395,4 @@
 
 
 
-<?= view('layouts/recruiter_footer') ?>
+<?= view('Layouts/recruiter_footer') ?>

@@ -1062,24 +1062,7 @@ header {
     border-bottom: 1px solid #f1f3f4;
 }
 /* Simple Footer Fix */
-main {
-    min-height: calc(100vh - 150px);
-    padding-bottom: 50px;
-}
-
 footer {
     margin-top: 50px;
     clear: both;
-    position: static;
-}
-
-/* Reset conflicting styles */
-body {
-    display: block !important;
-    flex-direction: unset !important;
-    min-height: auto !important;
-}
-
-html {
-    height: auto !important;
 }

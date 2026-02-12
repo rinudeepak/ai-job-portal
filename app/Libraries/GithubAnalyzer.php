@@ -8,7 +8,7 @@ class GithubAnalyzer
 
     public function __construct()
     {
-        $this->token = getenv('GITHUB_TOKEN');
+        $this->token = env('GITHUB_TOKEN');
 
         if (!$this->token) {
             log_message('error', 'GitHub token missing in .env');

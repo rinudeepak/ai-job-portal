@@ -443,9 +443,13 @@ PROMPT;
         ]);
 
         $response = curl_exec(handle: $ch);
+        $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-
+        if ($response === false || !empty($curlError)) {
+            log_message('error', 'Mistral cURL error: ' . $curlError);
+            return '{}';
+        }
         log_message('error', 'Mistral HTTP Code: ' . $httpCode);
         log_message('error', 'Mistral RAW Response: ' . $response);
 

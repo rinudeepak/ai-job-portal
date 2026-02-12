@@ -22,7 +22,7 @@
                         <div class="card-body">
                             <h6 class="text-primary"><i class="fas fa-arrow-right"></i> <?= esc($suggestion['job_title']) ?></h6>
                             <p class="small text-muted mb-2">Skills may not match your current profile</p>
-                            <a href="<?= base_url('career-transition') ?>?target=<?= urlencode($suggestion['job_title']) ?>" class="btn btn-sm btn-outline-primary">
+                            <a href="#" onclick="confirmCareerReset(event, '<?= urlencode($suggestion['job_title']) ?>')" class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-route"></i> Explore Learning Path
                             </a>
                         </div>
@@ -326,6 +326,29 @@ function dismissAllSuggestions() {
         location.reload();
     });
 }
+
+function confirmCareerReset(event, targetRole = null) {
+    event.preventDefault();
+    fetch('<?= base_url('career-transition') ?>')
+        .then(response => response.text())
+        .then(html => {
+            if (html.includes('Change Career Path')) {
+                if (confirm('You have an existing career path. Do you want to reset it and start a new one? Your current progress will be lost.')) {
+                    if (targetRole) {
+                        window.location.href = '<?= base_url('career-transition?reset=1&target=') ?>' + targetRole;
+                    } else {
+                        window.location.href = '<?= base_url('career-transition?reset=1') ?>';
+                    }
+                }
+            } else {
+                if (targetRole) {
+                    window.location.href = '<?= base_url('career-transition?target=') ?>' + targetRole;
+                } else {
+                    window.location.href = '<?= base_url('career-transition') ?>';
+                }
+            }
+        });
+}
 </script>
 
-<?= view('layouts/candidate_footer') ?>
+<?= view('Layouts/candidate_footer') ?>

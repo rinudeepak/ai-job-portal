@@ -4,11 +4,9 @@ namespace App\Libraries;
 
 class CareerTransitionAI
 {
-    private $apiKey;
-
     public function __construct()
     {
-        $this->apiKey = getenv('OPENAI_API_KEY');
+        // API keys loaded from environment in each method
     }
 
     public function analyzeTransition($currentRole, $targetRole)
@@ -18,7 +16,10 @@ class CareerTransitionAI
   \"skill_gaps\": [\"skill1\", \"skill2\", \"skill3\"],
   \"timeline\": \"X weeks\",
   \"roadmap\": [{\"phase\": \"Phase 1\", \"duration\": \"2 weeks\", \"focus\": \"description\"}],
-  \"daily_tasks\": [{\"day\": 1, \"title\": \"task title\", \"description\": \"task description\", \"duration\": 10}]
+  \"daily_tasks\": [
+    {\"day\": 1, \"title\": \"Module 1 - Lesson 1\", \"description\": \"Start with first lesson\", \"duration\": 10, \"module\": 1, \"lesson\": 1},
+    {\"day\": 2, \"title\": \"Module 1 - Lesson 2\", \"description\": \"Continue learning\", \"duration\": 10, \"module\": 1, \"lesson\": 2}
+  ]
 }";
 
         $response = $this->callOpenAI($prompt);
@@ -33,227 +34,308 @@ class CareerTransitionAI
 
     public function generateCourseContent($currentRole, $targetRole, $skillGaps)
     {
-        $skills = implode(', ', $skillGaps);
-        $prompt = "Create detailed offline course for {$currentRole} to {$targetRole}. Skills: {$skills}. Provide JSON:
+        set_time_limit(300);
+        
+        $skills = is_array($skillGaps) ? implode(', ', array_slice($skillGaps, 0, 3)) : $skillGaps;
+        
+        $prompt = "Create a professional career transition course: {$currentRole} → {$targetRole}. Skill gaps: {$skills}.
+
+Generate 3 modules, 2 lessons each. Each lesson: 400+ words with practical steps and examples.
+
+JSON format:
 {
   \"modules\": [
     {
       \"number\": 1,
-      \"title\": \"Module Title\",
-      \"description\": \"Overview\",
+      \"title\": \"[Specific topic for {$targetRole}]\",
+      \"description\": \"[What you'll learn]\",
       \"weeks\": 2,
       \"lessons\": [
         {
           \"number\": 1,
-          \"title\": \"Lesson Title\",
-          \"content\": \"Detailed lesson content with examples\",
-          \"resources\": [\"Resource 1\", \"Resource 2\"],
-          \"exercises\": [\"Exercise 1\", \"Exercise 2\"]
+          \"title\": \"[Specific skill]\",
+          \"content\": \"## Overview\n[What and why]\n\n## Step-by-Step Guide\n### Step 1\n[Instructions with examples]\n### Step 2\n[More steps]\n\n## Real-World Application\n[How it's used]\n\n## Common Challenges\n[Issues and solutions]\n\n## Key Takeaways\n[Summary]\",
+          \"resources\": [\"[URL1]\", \"[URL2]\"],
+          \"exercises\": [\"[Task1]\", \"[Task2]\"]
         }
       ]
     }
-  ]
-}";
+  ],
+  \"daily_tasks\": [{\"day\": 1, \"title\": \"Module 1 - Lesson 1\", \"description\": \"Complete lesson\", \"duration\": 10, \"module\": 1, \"lesson\": 1}]
+}
+
+Make content practical and specific to {$targetRole}. Assume learner has {$currentRole} experience.";
 
         $response = $this->callOpenAI($prompt);
         $data = json_decode($response, true);
         
-        if (!$data || !isset($data['modules'])) {
-            return $this->getFallbackCourse($currentRole, $targetRole);
+        if (!$data || !isset($data['modules']) || empty($data['modules'])) {
+            log_message('error', 'AI generation failed - using fallback. Response: ' . substr($response, 0, 500));
+            log_message('error', 'JSON decode error: ' . json_last_error_msg());
+            return $this->getFallbackCourse($currentRole, $targetRole, $skillGaps);
         }
         
+        log_message('info', 'AI course generated successfully');
         return $data;
     }
 
-    private function getFallbackData($currentRole, $targetRole)
+    private function getFallbackCourse($currentRole, $targetRole, $skillGaps)
     {
-        $lowerCurrent = strtolower($currentRole);
-        $lowerTarget = strtolower($targetRole);
+        $skills = is_array($skillGaps) ? implode(', ', $skillGaps) : $skillGaps;
         
-        // PHP to Next.js/React transition
-        if (strpos($lowerCurrent, 'php') !== false && (strpos($lowerTarget, 'next') !== false || strpos($lowerTarget, 'react') !== false)) {
-            return [
-                'skill_gaps' => ['JavaScript ES6+', 'React Components', 'JSX', 'Hooks', 'Next.js Routing', 'API Routes'],
-                'timeline' => '8-12 weeks',
-                'roadmap' => [
-                    ['phase' => 'JavaScript Mastery', 'duration' => '3 weeks', 'focus' => 'Learn modern JavaScript and async programming'],
-                    ['phase' => 'React Fundamentals', 'duration' => '4 weeks', 'focus' => 'Master components, state, and hooks'],
-                    ['phase' => 'Next.js Framework', 'duration' => '4 weeks', 'focus' => 'Build full-stack apps with Next.js']
-                ],
-                'daily_tasks' => [
-                    ['day' => 1, 'title' => 'Learn JavaScript arrow functions', 'description' => 'Practice converting PHP functions to JS arrow functions', 'duration' => 10],
-                    ['day' => 2, 'title' => 'Master async/await', 'description' => 'Build a simple API fetcher using fetch() and async/await', 'duration' => 10],
-                    ['day' => 3, 'title' => 'Practice array methods', 'description' => 'Use map(), filter(), reduce() instead of PHP foreach', 'duration' => 10],
-                    ['day' => 4, 'title' => 'Learn destructuring', 'description' => 'Practice object and array destructuring syntax', 'duration' => 10],
-                    ['day' => 5, 'title' => 'Understand promises', 'description' => 'Create and chain promises for sequential operations', 'duration' => 10],
-                    ['day' => 6, 'title' => 'Build first React component', 'description' => 'Create a simple UserCard component with props', 'duration' => 10],
-                    ['day' => 7, 'title' => 'Practice JSX syntax', 'description' => 'Convert PHP templates to JSX components', 'duration' => 10],
-                    ['day' => 8, 'title' => 'Learn useState hook', 'description' => 'Build a counter app using useState', 'duration' => 10],
-                    ['day' => 9, 'title' => 'Master useEffect', 'description' => 'Fetch data from API using useEffect hook', 'duration' => 10],
-                    ['day' => 10, 'title' => 'Build Todo List', 'description' => 'Create a todo app with add/delete functionality', 'duration' => 10],
-                    ['day' => 11, 'title' => 'Learn Next.js routing', 'description' => 'Create 3 pages using Next.js file-based routing', 'duration' => 10],
-                    ['day' => 12, 'title' => 'Build dynamic routes', 'description' => 'Create [id].js dynamic route for user profiles', 'duration' => 10],
-                    ['day' => 13, 'title' => 'Create API route', 'description' => 'Build /api/users endpoint in Next.js', 'duration' => 10],
-                    ['day' => 14, 'title' => 'Practice getServerSideProps', 'description' => 'Fetch data server-side like PHP', 'duration' => 10],
-                    ['day' => 15, 'title' => 'Build full CRUD app', 'description' => 'Create a simple blog with Next.js', 'duration' => 10]
-                ]
-            ];
-        }
-        
-        // Generic fallback
-        return [
-            'skill_gaps' => ['Core Skills', 'Best Practices', 'Industry Tools', 'Advanced Concepts'],
-            'timeline' => '12-16 weeks',
-            'roadmap' => [
-                ['phase' => 'Foundation', 'duration' => '4 weeks', 'focus' => 'Learn fundamentals'],
-                ['phase' => 'Advanced', 'duration' => '8 weeks', 'focus' => 'Master advanced topics']
-            ],
-            'daily_tasks' => [
-                ['day' => 1, 'title' => 'Research target role', 'description' => 'Study job descriptions and requirements', 'duration' => 10],
-                ['day' => 2, 'title' => 'Identify skill gaps', 'description' => 'List skills you need to learn', 'duration' => 10],
-                ['day' => 3, 'title' => 'Create learning plan', 'description' => 'Organize topics by priority', 'duration' => 10],
-                ['day' => 4, 'title' => 'Start first tutorial', 'description' => 'Complete beginner tutorial', 'duration' => 10],
-                ['day' => 5, 'title' => 'Practice daily', 'description' => 'Code for 10 minutes', 'duration' => 10]
-            ]
-        ];
-    }
-
-    private function getFallbackCourse($currentRole, $targetRole)
-    {
-        $lowerCurrent = strtolower($currentRole);
-        $lowerTarget = strtolower($targetRole);
-        
-        if (strpos($lowerCurrent, 'php') !== false && (strpos($lowerTarget, 'next') !== false || strpos($lowerTarget, 'react') !== false)) {
-            return [
-                'modules' => [
+        $modules = [
+            [
+                'number' => 1,
+                'title' => 'Foundation Skills for ' . $targetRole,
+                'description' => 'Master the fundamental concepts required for transitioning to ' . $targetRole,
+                'weeks' => 4,
+                'lessons' => [
                     [
                         'number' => 1,
-                        'title' => 'JavaScript Fundamentals for PHP Developers',
-                        'description' => 'Master modern JavaScript coming from PHP',
-                        'weeks' => 3,
-                        'lessons' => [
-                            [
-                                'number' => 1,
-                                'title' => 'JavaScript vs PHP: Key Differences',
-                                'content' => "WEEK 1: Understanding JavaScript Mindset\n\n=== Core Differences ===\n\n1. ASYNCHRONOUS PROGRAMMING\nPHP (Blocking):\n  file_get_contents() waits for response\n  Everything runs line by line\n\nJavaScript (Non-blocking):\n  fetch() returns immediately\n  Use async/await or .then()\n\nReal Example:\n// PHP\ndata = file_get_contents('api/users');\nusers = json_decode(data);\necho users[0]['name'];\n\n// JavaScript\nconst response = await fetch('/api/users');\nconst users = await response.json();\nconsole.log(users[0].name);\n\n2. TYPE SYSTEM\nPHP: Can declare types (string, int, array)\nJS: Everything is var/let/const, types are dynamic\n\n3. ARRAY vs OBJECT\nPHP arrays = JS arrays + objects combined\nPHP: array('key' => 'value')\nJS: {key: 'value'} or ['item1', 'item2']\n\n4. EXECUTION\nPHP: Server-side only (Apache/Nginx)\nJS: Browser + Server (Node.js)\n\n=== Practice Exercise ===\nConvert this PHP to JavaScript:\n\nPHP Code:\nfunction getUsers() {\n  users = ['Alice', 'Bob', 'Charlie'];\n  foreach(users as user) {\n    echo user . ' ';\n  }\n}\n\nJavaScript Solution:\nfunction getUsers() {\n  const users = ['Alice', 'Bob', 'Charlie'];\n  users.forEach(user => {\n    console.log(user);\n  });\n}\n\n=== Key Takeaway ===\nThink ASYNC first in JavaScript!\nPHP waits, JavaScript continues.",
-                                'resources' => json_encode([
-                                    'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide',
-                                    'https://javascript.info/',
-                                    'https://www.youtube.com/watch?v=W6NZfCO5SIk (JavaScript Crash Course)',
-                                    'https://eloquentjavascript.net/ (Free Book)'
-                                ]),
-                                'exercises' => json_encode([
-                                    'Convert 5 PHP functions to JavaScript on CodePen',
-                                    'Build async data fetcher using fetch() API',
-                                    'Create promise chain for sequential API calls',
-                                    'Practice on https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/'
-                                ])
-                            ],
-                            [
-                                'number' => 2,
-                                'title' => 'ES6+ Modern JavaScript Features',
-                                'content' => "WEEK 2-3: Modern JavaScript You Must Know\n\n=== 1. ARROW FUNCTIONS ===\nOld Way:\nfunction add(a, b) {\n  return a + b;\n}\n\nModern Way:\nconst add = (a, b) => a + b;\n\nWith PHP Comparison:\nPHP: function(a, b) { return a + b; }\nJS:  (a, b) => a + b\n\n=== 2. DESTRUCTURING ===\nExtract values easily:\n\nArray Destructuring:\nconst [first, second] = ['Alice', 'Bob'];\n// first = 'Alice', second = 'Bob'\n\nObject Destructuring:\nconst user = {name: 'Alice', age: 25};\nconst {name, age} = user;\n// name = 'Alice', age = 25\n\nPHP Equivalent:\nlist(first, second) = ['Alice', 'Bob'];\n\n=== 3. SPREAD OPERATOR ===\nCopy and merge arrays/objects:\n\nconst arr1 = [1, 2, 3];\nconst arr2 = [...arr1, 4, 5];\n// [1, 2, 3, 4, 5]\n\nconst user = {name: 'Alice'};\nconst fullUser = {...user, age: 25};\n// {name: 'Alice', age: 25}\n\nPHP: array_merge()\n\n=== 4. TEMPLATE LITERALS ===\nString interpolation (like PHP):\n\nPHP: echo \"Hello name, you are age\";\nJS:  console.log('Hello name, you are age');\n\n=== 5. MODULES (Import/Export) ===\nOrganize code like PHP includes:\n\n// utils.js\nexport const add = (a, b) => a + b;\nexport default function multiply(a, b) {\n  return a * b;\n}\n\n// app.js\nimport multiply, { add } from './utils.js';\n\nPHP Equivalent:\nrequire_once 'utils.php';\n\n=== REAL PROJECT ===\nBuild a User Manager:\n- Fetch users from API\n- Use destructuring to extract data\n- Use arrow functions for callbacks\n- Use spread to add new users\n\nCode Example:\nconst fetchUsers = async () => {\n  const response = await fetch('/api/users');\n  const users = await response.json();\n  return users.map(({id, name, email}) => ({\n    id,\n    displayName: name,\n    contact: email\n  }));\n};\n\nconst addUser = (users, newUser) => [...users, newUser];",
-                                'resources' => json_encode([
-                                    'https://es6.io/ (Wes Bos ES6 Course)',
-                                    'https://github.com/lukehoban/es6features',
-                                    'https://www.youtube.com/watch?v=nZ1DMMsyVyI (ES6 Tutorial)',
-                                    'https://babeljs.io/docs/en/learn (ES6 Features)'
-                                ]),
-                                'exercises' => json_encode([
-                                    'Refactor 10 old JS functions to ES6 arrow functions',
-                                    'Build a shopping cart using spread operator',
-                                    'Create module system for calculator app',
-                                    'Practice destructuring on https://www.jschallenger.com/'
-                                ])
-                            ],
-                            [
-                                'number' => 3,
-                                'title' => 'Promises and Async/Await Deep Dive',
-                                'content' => "WEEK 3: Master Asynchronous JavaScript\n\n=== WHY ASYNC MATTERS ===\nPHP: Wait for database, then continue\nJS: Start database call, do other things, handle result later\n\n=== PROMISES ===\nA promise is like a receipt for future data\n\nBasic Promise:\nconst promise = new Promise((resolve, reject) => {\n  setTimeout(() => {\n    resolve('Data loaded!');\n  }, 2000);\n});\n\npromise.then(data => console.log(data));\n\n=== ASYNC/AWAIT (Cleaner) ===\nMakes async code look synchronous:\n\nOld Way (Callbacks):\nfetch('/api/users')\n  .then(res => res.json())\n  .then(users => console.log(users))\n  .catch(err => console.error(err));\n\nModern Way (Async/Await):\nasync function getUsers() {\n  try {\n    const res = await fetch('/api/users');\n    const users = await res.json();\n    console.log(users);\n  } catch(err) {\n    console.error(err);\n  }\n}\n\n=== REAL WORLD EXAMPLE ===\nFetch user, then their posts, then comments:\n\nasync function getUserData(userId) {\n  const user = await fetch('/api/users/' + userId).then(r => r.json());\n  const posts = await fetch('/api/posts?user=' + userId).then(r => r.json());\n  const comments = await fetch('/api/comments?user=' + userId).then(r => r.json());\n  \n  return { user, posts, comments };\n}\n\n=== PARALLEL REQUESTS ===\nDon't wait unnecessarily:\n\n// Sequential (slow)\nconst users = await fetch('/api/users');\nconst posts = await fetch('/api/posts');\n\n// Parallel (fast)\nconst [users, posts] = await Promise.all([\n  fetch('/api/users'),\n  fetch('/api/posts')\n]);\n\n=== ERROR HANDLING ===\ntry {\n  const data = await riskyOperation();\n} catch(error) {\n  console.error('Failed:', error.message);\n} finally {\n  console.log('Cleanup');\n}",
-                                'resources' => json_encode([
-                                    'https://javascript.info/async',
-                                    'https://www.youtube.com/watch?v=V_Kr9OSfDeU (Async JS Crash Course)',
-                                    'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise',
-                                    'https://www.promisejs.org/'
-                                ]),
-                                'exercises' => json_encode([
-                                    'Build weather app using async/await with OpenWeather API',
-                                    'Create promise-based delay function',
-                                    'Fetch multiple APIs in parallel using Promise.all()',
-                                    'Handle errors gracefully in async functions'
-                                ])
-                            ]
+                        'title' => 'Understanding Core Concepts',
+                        'content' => "Begin your journey by understanding the fundamental principles that define {$targetRole}. This role requires a solid grasp of {$skills}.\n\nKey Concepts:\n\nFirst, research industry standards and best practices. Understanding the landscape is crucial - study what makes professionals successful in this role. Read official documentation, follow industry leaders on social media, and join relevant online communities.\n\nSecond, understand how these skills interconnect. No skill exists in isolation - they work together to solve real-world problems. For example, if you're learning a new programming language, understand how it integrates with databases, APIs, and frontend frameworks.\n\nThird, build a strong theoretical foundation before diving into practical applications. While hands-on practice is important, understanding the 'why' behind concepts will make you a better problem-solver. Study design patterns, architectural principles, and the reasoning behind best practices.\n\nPractical Approach:\n\nCreate a personal knowledge base documenting key concepts, terminologies, and best practices. Use tools like Notion, Obsidian, or even a simple markdown file in GitHub. This becomes your reference throughout the learning journey.\n\nStudy real-world use cases and analyze how professionals approach problem-solving. Look at open-source projects, read technical blogs, and watch conference talks. Pay attention to how experienced developers structure their code and make decisions.\n\nFinally, practice explaining concepts in simple terms. If you can teach something, you truly understand it. Write blog posts, create tutorials, or explain concepts to friends. This reinforces your learning and builds your personal brand.",
+                        'resources' => [
+                            'https://www.coursera.org/courses?query=' . urlencode($targetRole),
+                            'https://www.udemy.com/courses/search/?q=' . urlencode($targetRole),
+                            'https://roadmap.sh/'
+                        ],
+                        'exercises' => [
+                            'Create a comprehensive mind map of key concepts in ' . $targetRole,
+                            'Write a 500-word summary explaining the role requirements to a beginner',
+                            'List 10 companies hiring for this role and analyze their common requirements'
                         ]
                     ],
                     [
                         'number' => 2,
-                        'title' => 'React Fundamentals',
-                        'description' => 'Learn React from a backend perspective',
-                        'weeks' => 4,
-                        'lessons' => [
-                            [
-                                'number' => 1,
-                                'title' => 'React Components and JSX',
-                                'content' => "WEEK 4-5: Building UI with React\n\n=== WHAT IS REACT? ===\nReact = JavaScript library for building UIs\nThink of it as: PHP templates + automatic re-rendering\n\n=== COMPONENTS (Like PHP Functions) ===\n\nPHP Template:\nfunction userCard(name, email) {\n  echo '<div class=\"card\">';\n  echo '<h3>' . name . '</h3>';\n  echo '<p>' . email . '</p>';\n  echo '</div>';\n}\n\nReact Component:\nfunction UserCard({name, email}) {\n  return (\n    <div className=\"card\">\n      <h3>{name}</h3>\n      <p>{email}</p>\n    </div>\n  );\n}\n\nUsage:\n<UserCard name=\"Alice\" email=\"alice@example.com\" />\n\n=== JSX = HTML + JavaScript ===\nJSX looks like HTML but it's JavaScript:\n\nconst element = <h1>Hello World</h1>;\nconst dynamic = <h1>Hello {userName}</h1>;\nconst conditional = <div>{isLoggedIn ? 'Welcome' : 'Login'}</div>;\n\n=== PROPS (Like Function Parameters) ===\nPass data to components:\n\nfunction Greeting({name, age}) {\n  return <p>Hello {name}, you are {age} years old</p>;\n}\n\n<Greeting name=\"Alice\" age={25} />\n\n=== LISTS (Like PHP foreach) ===\n\nPHP:\nforeach(users as user) {\n  echo '<li>' . user['name'] . '</li>';\n}\n\nReact:\nusers.map(user => (\n  <li key={user.id}>{user.name}</li>\n))\n\n=== REAL PROJECT ===\nBuild a Product List:\n\nfunction ProductList({products}) {\n  return (\n    <div className=\"products\">\n      {products.map(product => (\n        <div key={product.id} className=\"product-card\">\n          <img src={product.image} alt={product.name} />\n          <h3>{product.name}</h3>\n          <p>Price: {product.price}</p>\n          <button>Add to Cart</button>\n        </div>\n      ))}\n    </div>\n  );\n}\n\n=== KEY DIFFERENCE FROM PHP ===\nPHP: Generate HTML once, send to browser\nReact: Generate HTML, update automatically when data changes!",
-                                'resources' => json_encode([
-                                    'https://react.dev/learn (Official React Docs)',
-                                    'https://www.youtube.com/watch?v=SqcY0GlETPk (React Course)',
-                                    'https://scrimba.com/learn/learnreact (Interactive Tutorial)',
-                                    'https://react.dev/learn/tutorial-tic-tac-toe (Build Tic-Tac-Toe)'
-                                ]),
-                                'exercises' => json_encode([
-                                    'Build 10 simple components (Button, Card, Header, etc)',
-                                    'Create a Todo List with add/delete functionality',
-                                    'Build a user profile card with props',
-                                    'Practice on https://codesandbox.io/s/new (React Sandbox)'
-                                ])
-                            ]
+                        'title' => 'Hands-on Practice',
+                        'content' => "Theory alone is insufficient - practical application is crucial for mastering {$targetRole}.\n\nSetting Up Your Environment:\n\nStart by setting up a proper development environment. Install necessary tools, configure your IDE, and familiarize yourself with the ecosystem. Don't skip this step - a well-configured environment saves hours of frustration later.\n\nUse version control (Git) from day one. Even for small projects, commit regularly with meaningful messages. This builds good habits and creates a portfolio of your progress. Push your code to GitHub to make it accessible and shareable.\n\nBuilding Projects:\n\nBegin with tutorials but don't just copy-paste code. Type everything manually and experiment with modifications. Ask yourself: 'What happens if I change this?' Breaking things and fixing them is how you truly learn.\n\nGradually increase project complexity. Start with a simple 'Hello World', then build a calculator, then a todo app, then something more complex. Each project should challenge you slightly beyond your current comfort zone.\n\nFocus on writing clean, maintainable code following industry best practices. Use meaningful variable names, write comments for complex logic, and structure your code logically. Bad habits formed early are hard to break.\n\nLearning from Others:\n\nJoin online communities like Stack Overflow, Reddit, or Discord servers related to your target role. Don't just ask questions - answer them too. Teaching others reinforces your own understanding.\n\nParticipate in code reviews. Share your projects and ask for feedback. Be open to criticism - every critique is an opportunity to improve. Similarly, review others' code to learn different approaches.\n\nBuild at least 3-5 small projects that demonstrate your understanding. Document each project thoroughly with README files explaining your approach, challenges faced, and solutions implemented. This becomes your portfolio.",
+                        'resources' => [
+                            'https://github.com/topics/' . urlencode(strtolower($targetRole)),
+                            'https://stackoverflow.com/',
+                            'https://www.freecodecamp.org/'
+                        ],
+                        'exercises' => [
+                            'Complete 10 beginner-level coding challenges on LeetCode or HackerRank',
+                            'Build a simple project using your new skills and deploy it online',
+                            'Contribute to an open-source project on GitHub (even fixing typos counts!)'
                         ]
                     ]
                 ]
-            ];
+            ],
+            [
+                'number' => 2,
+                'title' => 'Advanced Techniques',
+                'description' => 'Deepen your expertise with advanced concepts',
+                'weeks' => 4,
+                'lessons' => [
+                    [
+                        'number' => 1,
+                        'title' => 'Advanced Technical Skills',
+                        'content' => "Now that you have a foundation, it's time to dive deeper into advanced topics that separate beginners from professionals in {$targetRole}.\n\nDesign Patterns and Architecture:\n\nStudy common design patterns like Singleton, Factory, Observer, and Strategy. These aren't just academic concepts - they're proven solutions to recurring problems. Understanding when and how to apply them is crucial.\n\nLearn about architectural principles like SOLID, DRY (Don't Repeat Yourself), and KISS (Keep It Simple, Stupid). These principles guide you in writing maintainable, scalable code that other developers can understand and extend.\n\nUnderstand different architectural styles: MVC, microservices, serverless, event-driven architecture. Each has its use cases, advantages, and trade-offs. Know when to use which approach.\n\nPerformance and Optimization:\n\nLearn about performance optimization techniques. Understand time and space complexity (Big O notation). Profile your applications to identify bottlenecks. Remember: premature optimization is the root of all evil, but knowing how to optimize when needed is essential.\n\nStudy caching strategies, database indexing, and query optimization. Many performance issues stem from inefficient database operations. Learn to write efficient queries and use appropriate indexes.\n\nTesting and Quality:\n\nMaster testing methodologies: unit tests, integration tests, end-to-end tests. Write tests before or alongside your code (TDD/BDD). Tests are documentation that never goes out of date and give you confidence to refactor.\n\nUnderstand debugging techniques. Learn to use debuggers effectively, read stack traces, and systematically isolate issues. Good debugging skills save countless hours.\n\nContinuous Learning:\n\nRead source code of popular libraries and frameworks. This exposes you to professional coding standards and advanced techniques. Don't just use libraries - understand how they work internally.\n\nAttend webinars, watch conference talks, and follow industry experts. Technology evolves rapidly - staying current is part of the job. Subscribe to newsletters, podcasts, and blogs in your field.",
+                        'resources' => [
+                            'https://refactoring.guru/design-patterns',
+                            'https://www.patterns.dev/',
+                            'https://martinfowler.com/'
+                        ],
+                        'exercises' => [
+                            'Refactor an existing project using at least 3 design patterns',
+                            'Write comprehensive unit tests achieving 80%+ code coverage',
+                            'Optimize a slow application and document the improvements with benchmarks'
+                        ]
+                    ],
+                    [
+                        'number' => 2,
+                        'title' => 'Production-Ready Applications',
+                        'content' => "Professional developers build applications that are maintainable, scalable, and production-ready. This lesson covers what it takes to deploy and maintain real-world applications.\n\nCI/CD and DevOps:\n\nLearn about Continuous Integration and Continuous Deployment. Set up automated pipelines that run tests, check code quality, and deploy automatically. Tools like GitHub Actions, Jenkins, or GitLab CI make this accessible.\n\nUnderstand containerization with Docker. Containers ensure your application runs consistently across different environments. Learn to write Dockerfiles and use docker-compose for multi-container applications.\n\nExplore orchestration with Kubernetes if working with microservices. While complex, Kubernetes is industry-standard for managing containerized applications at scale.\n\nCloud Platforms:\n\nStudy major cloud platforms: AWS, Azure, or Google Cloud. You don't need to master all services, but understand core offerings: compute (EC2, Lambda), storage (S3), databases (RDS), and networking (VPC).\n\nLearn Infrastructure as Code (IaC) using tools like Terraform or CloudFormation. Managing infrastructure through code makes it reproducible, version-controlled, and easier to maintain.\n\nMonitoring and Observability:\n\nImplement logging using structured logging libraries. Good logs are invaluable for debugging production issues. Log meaningful information but avoid logging sensitive data.\n\nSet up error tracking with tools like Sentry or Rollbar. Know when things break in production before users complain. Configure alerts for critical errors.\n\nImplement performance monitoring and APM (Application Performance Monitoring). Tools like New Relic or DataDog help identify performance bottlenecks in production.\n\nSecurity Best Practices:\n\nUnderstand common security vulnerabilities (OWASP Top 10): SQL injection, XSS, CSRF, etc. Learn how to prevent them. Security isn't optional - it's fundamental.\n\nImplement proper authentication and authorization. Use established libraries and frameworks rather than rolling your own. Understand OAuth, JWT, and session management.\n\nPractice defense in depth: validate all inputs, sanitize outputs, use HTTPS, keep dependencies updated, and follow the principle of least privilege.",
+                        'resources' => [
+                            'https://12factor.net/',
+                            'https://aws.amazon.com/getting-started/',
+                            'https://owasp.org/www-project-top-ten/'
+                        ],
+                        'exercises' => [
+                            'Deploy an application to a cloud platform with proper CI/CD pipeline',
+                            'Set up monitoring, logging, and alerting for a production application',
+                            'Implement authentication and authorization with proper security measures'
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'number' => 3,
+                'title' => 'Career Preparation',
+                'description' => 'Prepare for job interviews and build portfolio',
+                'weeks' => 4,
+                'lessons' => [
+                    [
+                        'number' => 1,
+                        'title' => 'Building Your Portfolio',
+                        'content' => "Your portfolio is your professional showcase - it's often more important than your resume for technical roles.\n\nCreating Your Portfolio Website:\n\nBuild a personal website that highlights your projects, skills, and achievements. Keep it simple, fast, and mobile-responsive. Your portfolio itself demonstrates your technical skills.\n\nInclude an 'About Me' section that tells your story. Why are you transitioning to {$targetRole}? What drives you? Make it personal and authentic.\n\nShowcase 3-5 of your best projects. Quality over quantity - it's better to have three polished projects than ten half-finished ones.\n\nProject Case Studies:\n\nFor each project, write a detailed case study explaining:\n- The problem you were solving\n- Your approach and technical decisions\n- Challenges faced and how you overcame them\n- The impact or results\n- Technologies used and why\n\nInclude screenshots, diagrams, and code snippets. Make it easy for recruiters to understand your work even if they're not technical.\n\nProvide links to live demos and GitHub repositories. Ensure your code is clean, well-documented, and includes a comprehensive README.\n\nGitHub Profile Optimization:\n\nYour GitHub profile is your technical resume. Ensure it's polished:\n- Complete profile with photo and bio\n- Pinned repositories showcasing your best work\n- Consistent commit history (shows you code regularly)\n- Well-documented repositories with clear README files\n- Meaningful commit messages\n\nContribute to open-source projects. Even small contributions (documentation, bug fixes) demonstrate collaboration skills and initiative.\n\nContent Creation:\n\nWrite technical blog posts about your learning journey. Share insights, tutorials, or solutions to problems you've solved. This demonstrates communication skills and helps others.\n\nCreate video demos of your projects. A 2-3 minute walkthrough showing functionality and explaining technical decisions is powerful.\n\nBe active on LinkedIn. Share your projects, write posts about what you're learning, and engage with the community. Networking is crucial for career transitions.",
+                        'resources' => [
+                            'https://github.com/topics/portfolio-website',
+                            'https://dev.to/',
+                            'https://www.linkedin.com/'
+                        ],
+                        'exercises' => [
+                            'Create a professional portfolio website and deploy it',
+                            'Write 3 technical blog posts about your learning journey',
+                            'Record a 5-minute video demo of your best project'
+                        ]
+                    ],
+                    [
+                        'number' => 2,
+                        'title' => 'Interview Preparation',
+                        'content' => "Preparing systematically for technical interviews is crucial for successfully transitioning to {$targetRole}.\n\nTechnical Interview Preparation:\n\nPractice coding challenges daily on platforms like LeetCode, HackerRank, or CodeSignal. Start with easy problems and gradually increase difficulty. Aim to solve at least 100-150 problems.\n\nFocus on data structures and algorithms: arrays, linked lists, trees, graphs, sorting, searching, dynamic programming. These form the foundation of technical interviews.\n\nUnderstand time and space complexity (Big O notation). You'll be asked to analyze the efficiency of your solutions. Practice explaining your thought process clearly.\n\nSystem Design Interviews:\n\nFor senior roles, study system design. Learn to design scalable systems: load balancers, caching, databases, microservices, message queues.\n\nPractice explaining trade-offs. There's rarely one 'correct' answer in system design - it's about understanding pros and cons of different approaches.\n\nStudy real-world architectures: how does Twitter handle millions of tweets? How does Netflix stream video globally? Learn from these examples.\n\nBehavioral Interviews:\n\nPrepare stories using the STAR method (Situation, Task, Action, Result). Have examples ready for:\n- Challenging projects you've worked on\n- Times you've failed and what you learned\n- Conflicts with team members and how you resolved them\n- Leadership and initiative\n\nBe honest about your career transition. Frame it positively - you're not running from something, you're running toward something. Explain what excites you about the new role.\n\nJob Search Strategy:\n\nResearch companies thoroughly before applying. Tailor your resume and cover letter for each position. Generic applications rarely succeed.\n\nNetwork actively. Many jobs are filled through referrals before they're even posted. Attend meetups, conferences, and online events. Connect with people in your target role.\n\nPrepare thoughtful questions to ask interviewers. This shows genuine interest and helps you evaluate if the company is right for you.\n\nMock Interviews:\n\nPractice mock interviews with peers or use platforms like Pramp. Getting comfortable with the interview format is crucial.\n\nRecord yourself explaining technical concepts. Watch the recordings to improve your communication.\n\nStay Positive:\n\nRejections are part of the process. Each interview is practice for the next one. Learn from feedback and keep improving.\n\nKeep track of applications in a spreadsheet. Follow up professionally after interviews. Persistence pays off.",
+                        'resources' => [
+                            'https://leetcode.com/',
+                            'https://www.pramp.com/',
+                            'https://www.glassdoor.com/Interview/'
+                        ],
+                        'exercises' => [
+                            'Solve 50 coding problems on LeetCode (mix of easy, medium, hard)',
+                            'Complete 5 mock interviews with peers or online platforms',
+                            'Apply to 20 relevant job positions with tailored resumes'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $dailyTasks = [];
+        $day = 1;
+        foreach ($modules as $module) {
+            foreach ($module['lessons'] as $lesson) {
+                $dailyTasks[] = [
+                    'day' => $day++,
+                    'title' => 'Module ' . $module['number'] . ' - ' . $lesson['title'],
+                    'description' => 'Complete lesson: ' . $lesson['title'],
+                    'duration' => 10,
+                    'module' => $module['number'],
+                    'lesson' => $lesson['number']
+                ];
+            }
         }
-        
+
         return [
-            'modules' => [
-                [
-                    'number' => 1,
-                    'title' => 'Career Transition Fundamentals',
-                    'description' => 'Core concepts for your transition',
-                    'weeks' => 3,
-                    'lessons' => [
-                        [
-                            'number' => 1,
-                            'title' => 'Understanding ' . $targetRole,
-                            'content' => "Key skills and concepts for {$targetRole}:\n\n1. Core Technologies\n2. Best Practices\n3. Industry Standards\n4. Common Patterns\n\nTransition Strategy:\n- Build on existing {$currentRole} knowledge\n- Focus on transferable skills\n- Practice daily\n- Build portfolio projects",
-                            'resources' => json_encode(['Official Documentation', 'Online Courses', 'Community Forums']),
-                            'exercises' => json_encode(['Research role requirements', 'Identify skill gaps', 'Create learning plan'])
-                        ]
-                    ]
-                ]
+            'modules' => $modules,
+            'daily_tasks' => $dailyTasks
+        ];
+    }
+
+    private function getFallbackData($currentRole, $targetRole)
+    {
+        return [
+            'skill_gaps' => ['Core Skills', 'Best Practices', 'Industry Tools'],
+            'timeline' => '12 weeks',
+            'roadmap' => [
+                ['phase' => 'Foundation', 'duration' => '4 weeks', 'focus' => 'Learn fundamentals'],
+                ['phase' => 'Advanced', 'duration' => '4 weeks', 'focus' => 'Master advanced topics'],
+                ['phase' => 'Career Prep', 'duration' => '4 weeks', 'focus' => 'Build portfolio']
+            ],
+            'daily_tasks' => [
+                ['day' => 1, 'title' => 'Module 1 - Understanding Core Concepts', 'description' => 'Complete first lesson', 'duration' => 10, 'module' => 1, 'lesson' => 1],
+                ['day' => 2, 'title' => 'Module 1 - Hands-on Practice', 'description' => 'Complete second lesson', 'duration' => 10, 'module' => 1, 'lesson' => 2],
+                ['day' => 3, 'title' => 'Module 2 - Advanced Technical Skills', 'description' => 'Complete third lesson', 'duration' => 10, 'module' => 2, 'lesson' => 1]
             ]
         ];
     }
 
     private function callOpenAI($prompt)
     {
+        $apiKey = getenv('OPENAI_API_KEY');
+        if (empty($apiKey)) {
+            log_message('error', 'OpenAI API key missing from .env');
+            return '{}';
+        }
+        
+        $data = [
+            'model' => 'gpt-4o-mini',
+            'messages' => [[
+                'role' => 'system',
+                'content' => 'You are a career transition expert who creates practical, actionable learning content for any profession.'
+            ], [
+                'role' => 'user',
+                'content' => $prompt
+            ]],
+            'temperature' => 0.7,
+            'max_tokens' => 16000,
+            'stream' => false
+        ];
+
         $ch = curl_init('https://api.openai.com/v1/chat/completions');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $this->apiKey
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . trim($apiKey),
+            ],
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_TIMEOUT => 90
         ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-            'model' => 'gpt-4',
-            'messages' => [['role' => 'user', 'content' => $prompt]],
-            'temperature' => 0.7
-        ]));
 
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
+        if ($response === false || !empty($curlError)) {
+            log_message('error', 'OpenAI cURL error: ' . $curlError);
+            return '{}';
+        }
+
+        if ($httpCode !== 200) {
+            log_message('error', 'OpenAI API Error: HTTP ' . $httpCode . ' - ' . substr($response, 0, 500));
+            return '{}';
+        }
+
         $data = json_decode($response, true);
-        return $data['choices'][0]['message']['content'] ?? '{}';
+        
+        if (!isset($data['choices'][0]['message']['content'])) {
+            log_message('error', 'OpenAI response missing content. Response: ' . substr($response, 0, 500));
+            return '{}';
+        }
+        
+        // Check if response was truncated
+        $finishReason = $data['choices'][0]['finish_reason'] ?? 'unknown';
+        if ($finishReason === 'length') {
+            log_message('error', 'OpenAI response truncated due to max_tokens limit');
+            return '{}';
+        }
+        
+        $content = $data['choices'][0]['message']['content'];
+        $extracted = $this->extractJSON($content);
+        
+        log_message('info', 'OpenAI response extracted. Length: ' . strlen($extracted) . ', Finish reason: ' . $finishReason);
+        
+        return $extracted;
+    }
+    
+    private function extractJSON($content)
+    {
+        // Remove markdown code blocks if present
+        $content = preg_replace('/```(?:json)?\s*/', '', $content);
+        $content = preg_replace('/```\s*$/', '', $content);
+        $content = trim($content);
+        
+        // Find the first { and last } to extract complete JSON
+        $firstBrace = strpos($content, '{');
+        $lastBrace = strrpos($content, '}');
+        
+        if ($firstBrace !== false && $lastBrace !== false && $lastBrace > $firstBrace) {
+            $json = substr($content, $firstBrace, $lastBrace - $firstBrace + 1);
+            
+            // Validate it's proper JSON
+            $test = json_decode($json, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                log_message('info', 'Valid JSON extracted, length: ' . strlen($json));
+                return $json;
+            } else {
+                log_message('error', 'Extracted JSON is invalid: ' . json_last_error_msg());
+            }
+        }
+        
+        log_message('error', 'No valid JSON found. Content preview: ' . substr($content, 0, 300));
+        return '{}';
     }
 }

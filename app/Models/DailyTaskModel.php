@@ -8,7 +8,7 @@ class DailyTaskModel extends Model
 {
     protected $table = 'daily_tasks';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['transition_id', 'task_title', 'task_description', 'duration_minutes', 'day_number', 'is_completed', 'completed_at'];
+    protected $allowedFields = ['transition_id', 'task_title', 'task_description', 'duration_minutes', 'day_number', 'module_number', 'lesson_number', 'is_completed', 'completed_at'];
     protected $useTimestamps = false;
 
     public function getTasksByTransition($transitionId)
