@@ -59,6 +59,15 @@
 <script src="<?= base_url('assets/js/main.js') ?>"></script>
 <script src="<?= base_url('assets/js/custom.js') ?>"></script>
 
+<!-- Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('<?= base_url('sw.js') ?>')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed:', err));
+}
+</script>
+
 </body>
 
 </html>
