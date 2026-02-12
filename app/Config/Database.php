@@ -45,6 +45,8 @@ class Database extends Config
         'failover'     => [],
         'port'         => 3306,
         'numberNative' => false,
+        'connectTimeout' => 10,
+        'DBDebug'      => ENVIRONMENT !== 'production',
     ];
 
     /**

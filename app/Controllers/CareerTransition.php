@@ -74,10 +74,16 @@ class CareerTransition extends BaseController
         });
         session()->set('career_suggestions', array_values($suggestions));
 
-        $ai = new CareerTransitionAI();
+        // Close DB connection before slow AI calls
+        $db = \Config\Database::connect();
+        $db->close();
         
-        // Quick analysis first
+        $ai = new CareerTransitionAI();
         $analysis = $ai->analyzeTransition($currentRole, $targetRole);
+        $courseData = $ai->generateCourseContent($currentRole, $targetRole, $analysis['skill_gaps'] ?? []);
+        
+        // Reconnect DB after AI calls
+        $db->reconnect();
 
         $transitionModel = new CareerTransitionModel();
         $transitionId = $transitionModel->insert([
@@ -88,9 +94,6 @@ class CareerTransition extends BaseController
             'learning_roadmap' => json_encode($analysis['roadmap'] ?? []),
             'status' => 'active'
         ]);
-
-        // Generate course content (this takes time)
-        $courseData = $ai->generateCourseContent($currentRole, $targetRole, $analysis['skill_gaps'] ?? []);
         
         $moduleModel = new CourseModuleModel();
         $lessonModel = new CourseLessonModel();
