@@ -1,4 +1,8 @@
 <?= view('Layouts/candidate_header', ['title' => 'Career Transition AI']) ?>
+<?php
+$langHelper = new \App\Libraries\LanguageHelper();
+$langHelper->loadTranslations('common');
+?>
 
 <div class="career-transition-wrapper">
 <div class="container mt-5 mb-5">
@@ -50,6 +54,8 @@
                     </datalist>
                     <small class="text-muted">Select from suggestions or type your own</small>
                 </div>
+                <h2><?= $langHelper->t('career_transition_title') ?></h2>
+
                 <button type="submit" class="btn btn-primary" id="submitBtn">
                     <span id="btnText">🚀 Generate Personalized Roadmap</span>
                     <span id="btnLoading" style="display:none;">
@@ -57,6 +63,7 @@
                         Generating AI course... (60-90 seconds)
                     </span>
                 </button>
+                <button><?= $langHelper->t('generate_roadmap') ?></button>
             </form>
             <script>
             document.getElementById('transitionForm').addEventListener('submit', function() {
@@ -79,6 +86,9 @@
                     <div style="font-size: 24px; margin: 10px 0;">↓</div>
                     <h5 class="text-success"><?= $transition['target_role'] ?></h5>
                     <a href="<?= base_url('career-transition/course') ?>" class="btn btn-success btn-sm mt-3 d-block">📖 View Full Course</a>
+                    <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-info btn-sm mt-2 d-block">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
                     <button class="btn btn-warning btn-sm mt-2 d-block" onclick="if(confirm('Are you sure you want to change your career path? Your current progress will be lost.')) window.location.href='<?= base_url('career-transition/reset') ?>'">🔄 Change Career Path</button>
                 </div>
             </div>
@@ -158,6 +168,8 @@
         text-decoration: line-through;
     }
 </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <script>
     function completeTask(taskId) {

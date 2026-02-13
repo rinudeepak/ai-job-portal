@@ -38,7 +38,8 @@ $routes->group('career-transition', ['filter' => 'auth'], function($routes) {
     $routes->post('dismiss-suggestion', 'CareerTransition::dismissSuggestion');
     $routes->get('reset', 'CareerTransition::reset');
 });
-
+// NEW: PDF Download Route
+$routes->get('career-transition/download-pdf', 'CareerTransitionPDF_TCPDF::downloadCoursePDF');
 // Dashboard Routes (Admin)
 $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
     
@@ -139,6 +140,17 @@ $routes->group('recruiter', ['filter' => 'auth'], function($routes) {
     
     // Bulk Actions
     $routes->post('slots/bulk-shortlist', 'SlotManagementController::bulkShortlist');
+});
+
+
+// Language Routes
+$routes->group('language', function($routes) {
+    $routes->get('switch/(:segment)', 'Language::switch/$1');
+    $routes->post('switch/(:segment)', 'Language::switch/$1');
+    $routes->get('current', 'Language::current');
+    $routes->get('supported', 'Language::supported');
+    $routes->post('translate', 'Language::translateText');
+    $routes->get('regional-market', 'Language::regionalMarket');
 });
 
 

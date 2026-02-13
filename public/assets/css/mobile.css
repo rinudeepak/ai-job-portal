@@ -1,0 +1,59 @@
+/* Mobile Responsive Fixes */
+
+/* Mobile Menu */
+.mobile_menu { display: none; }
+@media (max-width: 991px) {
+    .mobile_menu { display: block !important; }
+    .main-menu { display: none; }
+    .slicknav_menu { background: #fff; margin-top: 15px; }
+    .slicknav_nav { clear: both; }
+    .slicknav_nav a { padding: 10px 15px; margin: 0; }
+}
+
+/* Base Mobile Styles */
+@media (max-width: 767px) {
+    body { font-size: 14px; }
+    
+    /* Header */
+    .header-area .logo img { max-width: 120px; }
+    .header-btn .btn { padding: 10px 15px; font-size: 12px; }
+    
+    /* Forms */
+    form.search-box { flex-direction: column; }
+    form.search-box .input-form,
+    form.search-box .select-form,
+    form.search-box .search-form { width: 100% !important; margin-bottom: 10px; }
+    
+    /* Job Cards */
+    .single-job-items { padding: 15px; flex-direction: column; }
+    .company-img img { margin-bottom: 15px; }
+    .job-tittle ul li { display: block; margin-bottom: 5px; }
+    
+    /* Tables */
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 600px; }
+    
+    /* Buttons */
+    .btn, .genric-btn { padding: 12px 20px; font-size: 14px; white-space: nowrap; }
+    
+    /* Modals */
+    .modal-dialog { margin: 10px; max-width: calc(100% - 20px); }
+    
+    /* Cards */
+    .card { margin-bottom: 15px; }
+    
+    /* Spacing */
+    .section-padding { padding: 40px 0; }
+    .mb-90 { margin-bottom: 30px; }
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) and (max-width: 991px) {
+    .single-job-items { padding: 20px; }
+    .section-padding { padding: 60px 0; }
+}
+
+/* Touch-friendly */
+@media (hover: none) and (pointer: coarse) {
+    a, button, .btn { min-height: 44px; min-width: 44px; }
+}

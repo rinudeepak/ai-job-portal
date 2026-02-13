@@ -67,6 +67,12 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.log('Service Worker registration failed:', err));
 }
 </script>
+<!-- Language Switcher (in navbar) -->
+<div class="navbar-nav ml-auto">
+    <?= view('components/language_switcher') ?>
+</div>
+
+
 
 </body>
 

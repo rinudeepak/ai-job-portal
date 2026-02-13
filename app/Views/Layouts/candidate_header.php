@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="base-url" content="<?= base_url() ?>">
     <title><?= $title  ?> </title>
 
@@ -20,6 +21,7 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/nice-select.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/custom.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/mobile.css') ?>">
 
 </head>
 
@@ -42,7 +44,7 @@
                             <div class="menu-wrapper">
                                 <!-- Main-menu -->
                                 <div class="main-menu">
-                                    <nav class="d-none d-lg-block">
+                                    <nav>
                                         <ul id="navigation">
                                             <li><a href="<?= base_url('candidate/dashboard') ?>">Home</a></li>
                                             <li><a href="<?= base_url('jobs') ?>">Jobs</a></li>
@@ -65,13 +67,17 @@
                                 </div>
 
                                 <!-- Header-btn -->
-                                <div class="header-btn f-right">
+                                <div class="header-btn d-none d-lg-block f-right">
                                     
                                     <a href="<?= base_url('logout') ?>" class="genric-btn danger circle">
                                         Logout
                                     </a>
                                 </div>
                             </div>
+                        </div>
+                        <!-- Mobile Menu -->
+                        <div class="col-12">
+                            <div class="mobile_menu d-block d-lg-none"></div>
                         </div>
                     </div>
                 </div>

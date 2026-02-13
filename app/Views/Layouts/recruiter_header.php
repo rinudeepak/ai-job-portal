@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title><?= $title  ?> </title>
 
     <!-- CSS here -->
@@ -19,6 +20,7 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/nice-select.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/custom.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/mobile.css') ?>">
 </head>
 
 <body class="bg-light">
@@ -40,7 +42,7 @@
                             <div class="menu-wrapper">
                                 <!-- Main-menu -->
                                 <div class="main-menu">
-                                    <nav class="d-none d-lg-block">
+                                    <nav>
                                         <ul id="navigation">
                                             <li><a href="<?= base_url('recruiter/dashboard') ?>">Dashboard</a></li>
                                             <li><a href="<?= base_url('recruiter/jobs') ?>">My Jobs</a></li>
@@ -52,7 +54,7 @@
                                     </nav>
                                 </div>
                                 <!-- Header-btn -->
-                                <div class="header-btn f-right">
+                                <div class="header-btn d-none d-lg-block f-right">
                                     <!-- <span class="me-3">
                                         Welcome, <?= session('user_name') ?>
                                     </span> -->
@@ -61,6 +63,10 @@
                                     </a>
                                 </div>
                             </div>
+                        </div>
+                        <!-- Mobile Menu -->
+                        <div class="col-12">
+                            <div class="mobile_menu d-block d-lg-none"></div>
                         </div>
                     </div>
                 </div>
