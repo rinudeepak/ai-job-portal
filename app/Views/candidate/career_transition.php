@@ -1,12 +1,9 @@
-<?= view('Layouts/candidate_header', ['title' => 'Career Transition AI']) ?>
-<?php
-$langHelper = new \App\Libraries\LanguageHelper();
-$langHelper->loadTranslations('common');
-?>
+<?php helper('language'); ?>
+<?= view('Layouts/candidate_header', ['title' => lang_text('career_transition_title')]) ?>
 
 <div class="career-transition-wrapper">
 <div class="container mt-5 mb-5">
-    <h2>🚀 Career Transition AI</h2>
+    <h2>🚀 <?= lang_text('career_transition_title') ?></h2>
     
     <?php if (!$transition): ?>
     <?php if (session()->getFlashdata('error')): ?>
@@ -25,16 +22,16 @@ $langHelper->loadTranslations('common');
     
     <div class="card mt-4">
         <div class="card-body">
-            <h5>Start Your Career Transition Journey</h5>
-            <p class="text-muted">We'll analyze the gap between your current skills and target role, then create a personalized learning path.</p>
+            <h5><?= lang_text('start_journey') ?></h5>
+            <p class="text-muted"><?= lang_text('career_transition_subtitle') ?></p>
             <form action="<?= base_url('career-transition/create') ?>" method="post" id="transitionForm">
                 <div class="mb-3">
-                    <label>Current Role</label>
+                    <label><?= lang_text('current_role') ?></label>
                     <input type="text" name="current_role" class="form-control" value="<?= $currentRole ?? '' ?>" placeholder="e.g., PHP Developer" required>
                     <small class="text-muted">Auto-detected from your profile</small>
                 </div>
                 <div class="mb-3">
-                    <label>Target Role (Job you want to transition to)</label>
+                    <label><?= lang_text('target_role') ?></label>
                     <input list="role-suggestions" type="text" name="target_role" class="form-control" value="<?= $targetRole ?? '' ?>" placeholder="e.g., Next.js Developer" required>
                     <datalist id="role-suggestions">
                         <option value="Next.js Developer">
@@ -54,16 +51,13 @@ $langHelper->loadTranslations('common');
                     </datalist>
                     <small class="text-muted">Select from suggestions or type your own</small>
                 </div>
-                <h2><?= $langHelper->t('career_transition_title') ?></h2>
-
                 <button type="submit" class="btn btn-primary" id="submitBtn">
-                    <span id="btnText">🚀 Generate Personalized Roadmap</span>
+                    <span id="btnText">🚀 <?= lang_text('generate_roadmap') ?></span>
                     <span id="btnLoading" style="display:none;">
                         <span class="spinner-border spinner-border-sm" role="status"></span>
-                        Generating AI course... (60-90 seconds)
+                        <?= lang_text('loading') ?>
                     </span>
                 </button>
-                <button><?= $langHelper->t('generate_roadmap') ?></button>
             </form>
             <script>
             document.getElementById('transitionForm').addEventListener('submit', function() {
@@ -81,20 +75,24 @@ $langHelper->loadTranslations('common');
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body text-center">
-                    <h6>Career Path</h6>
+                    <h6><?= lang_text('current_role') ?> → <?= lang_text('target_role') ?></h6>
                     <h5><?= $transition['current_role'] ?></h5>
                     <div style="font-size: 24px; margin: 10px 0;">↓</div>
                     <h5 class="text-success"><?= $transition['target_role'] ?></h5>
-                    <a href="<?= base_url('career-transition/course') ?>" class="btn btn-success btn-sm mt-3 d-block">📖 View Full Course</a>
-                    <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-info btn-sm mt-2 d-block">
-                        <i class="fas fa-file-pdf"></i> Download PDF
+                    <a href="<?= base_url('career-transition/course') ?>" class="btn btn-success btn-sm mt-3 d-block">
+                        📖 <?= lang_text('view_course') ?>
                     </a>
-                    <button class="btn btn-warning btn-sm mt-2 d-block" onclick="if(confirm('Are you sure you want to change your career path? Your current progress will be lost.')) window.location.href='<?= base_url('career-transition/reset') ?>'">🔄 Change Career Path</button>
+                    <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-info btn-sm mt-2 d-block">
+                        <i class="fas fa-file-pdf"></i> <?= lang_text('download_pdf') ?>
+                    </a>
+                    <button class="btn btn-warning btn-sm mt-2 d-block" onclick="if(confirm('<?= lang_text('confirm_action') ?>')) window.location.href='<?= base_url('career-transition/reset') ?>'">
+                        🔄 <?= lang_text('change_path') ?>
+                    </button>
                 </div>
             </div>
             <div class="card mt-3">
                 <div class="card-body">
-                    <h6>Skill Gaps</h6>
+                    <h6><?= lang_text('skill_gaps') ?></h6>
                     <ul>
                         <?php 
                         $skillGaps = json_decode($transition['skill_gaps'], true);
@@ -103,14 +101,14 @@ $langHelper->loadTranslations('common');
                             <li><?= $skill ?></li>
                         <?php endforeach;
                         else: ?>
-                            <li class="text-muted">Analyzing skills...</li>
+                            <li class="text-muted"><?= lang_text('loading') ?></li>
                         <?php endif; ?>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="col-md-8">
-            <h5>Daily Learning Tasks (5-10 min each)</h5>
+            <h5><?= lang_text('daily_tasks') ?> (5-10 min each)</h5>
             <p class="text-muted">Each task corresponds to a specific module and lesson in your course.</p>
             <?php if (count($tasks) > 0): ?>
                 <?php foreach ($tasks as $task): ?>
@@ -122,14 +120,19 @@ $langHelper->loadTranslations('common');
                                 <p class="mb-1"><?= $task['task_description'] ?></p>
                                 <small class="text-muted">⏱️ <?= $task['duration_minutes'] ?> minutes</small>
                                 <?php if (!empty($task['module_number'])): ?>
-                                    <span class="badge badge-info ml-2">Module <?= $task['module_number'] ?><?= !empty($task['lesson_number']) ? ' - Lesson ' . $task['lesson_number'] : '' ?></span>
+                                    <span class="badge badge-info ml-2">
+                                        <?= lang_text('module') ?> <?= $task['module_number'] ?>
+                                        <?= !empty($task['lesson_number']) ? ' - ' . lang_text('lesson') . ' ' . $task['lesson_number'] : '' ?>
+                                    </span>
                                 <?php endif; ?>
                             </div>
                             <div>
                                 <?php if (!$task['is_completed']): ?>
-                                <button class="btn btn-sm btn-success" onclick="completeTask(<?= $task['id'] ?>)">✓ Complete</button>
+                                <button class="btn btn-sm btn-success" onclick="completeTask(<?= $task['id'] ?>)">
+                                    ✓ <?= lang_text('complete_task') ?>
+                                </button>
                                 <?php else: ?>
-                                <span class="badge badge-success">✓ Done</span>
+                                <span class="badge badge-success">✓ <?= lang_text('task_completed') ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -138,7 +141,7 @@ $langHelper->loadTranslations('common');
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="alert alert-info">
-                    <p class="mb-0">🔄 Tasks are being generated. Please refresh the page in a moment.</p>
+                    <p class="mb-0">🔄 <?= lang_text('loading') ?></p>
                 </div>
                 <script>
                 // Auto-refresh if no tasks yet

@@ -121,7 +121,7 @@ function switchLanguage(lang) {
         console.log('Response data:', data);
         if (data.success) {
             // Success - reload page to apply new language
-           // window.location.reload();
+            window.location.reload();
         } else {
             // Error
             alert('Failed to change language: ' + (data.message || 'Unknown error'));

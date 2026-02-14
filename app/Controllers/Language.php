@@ -36,10 +36,8 @@ class Language extends BaseController
                     $fields = $db->getFieldNames('users');
                     
                     if (in_array('preferred_language', $fields)) {
-                        $db->table('users')
-   ->where('id', $userId)
-   ->update(['preferred_language' => $langCode]);
-// Direct SQL update, no validation errors
+                        $userModel->update($userId, ['preferred_language' => $langCode]);
+// CodeIgniter checks if data changed, throws error if not
 
                     }
                 } catch (\Exception $e) {
