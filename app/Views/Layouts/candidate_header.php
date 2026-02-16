@@ -55,11 +55,7 @@
                                             <li><a href="<?= base_url('career-transition') ?>">Career Transition AI</a>
                                             </li>
                                             <li class="nav-item">
-   <?php /*
- <?= view('candidate/components/notification_bell', [
-        'notifications' => model('NotificationModel')->getUnreadNotifications(session()->get('user_id'), 5),
-        'unread_count' => model('NotificationModel')->getUnreadCount(session()->get('user_id'))
-    ]) ?>*/?>
+   
 </li>
                                             
                                         </ul>

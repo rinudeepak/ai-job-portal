@@ -20,9 +20,11 @@ class CareerTransition extends BaseController
 
         // Check if reset parameter is present
         if ($this->request->getGet('reset') === '1') {
+            // Instead of deleting, just mark as inactive
             $transitionModel->where('candidate_id', $candidateId)
                            ->where('status', 'active')
-                           ->delete();
+                           ->set(['status' => 'inactive', 'deactivated_at' => date('Y-m-d H:i:s')])
+                           ->update();
             
             session()->remove('career_suggestions');
             
@@ -74,6 +76,50 @@ class CareerTransition extends BaseController
         });
         session()->set('career_suggestions', array_values($suggestions));
 
+        $transitionModel = new CareerTransitionModel();
+        
+        // Check if this exact transition path already exists in history
+        $existingTransition = $transitionModel
+            ->where('candidate_id', $candidateId)
+            ->where('LOWER(current_role)', strtolower($currentRole))
+            ->where('LOWER(target_role)', strtolower($targetRole))
+            ->orderBy('created_at', 'DESC')
+            ->first();
+        
+        if ($existingTransition) {
+            // Reuse existing transition - just mark as active and reset progress
+            
+            // First, deactivate current active transition
+            $transitionModel->where('candidate_id', $candidateId)
+                           ->where('status', 'active')
+                           ->set(['status' => 'inactive', 'deactivated_at' => date('Y-m-d H:i:s')])
+                           ->update();
+            
+            // Activate the historical transition
+            $transitionModel->update($existingTransition['id'], [
+                'status' => 'active',
+                'reactivated_at' => date('Y-m-d H:i:s'),
+                'reactivation_count' => ($existingTransition['reactivation_count'] ?? 0) + 1
+            ]);
+            
+            // Reset all task completion status for fresh start
+            $taskModel = new DailyTaskModel();
+            $taskModel->where('transition_id', $existingTransition['id'])
+                     ->set(['is_completed' => 0, 'completed_at' => null])
+                     ->update();
+            
+            return redirect()->to('career-transition')
+                ->with('success', 'Welcome back! Your previous learning path has been restored. All progress has been reset for a fresh start.');
+        }
+        
+        // No existing transition found - create new one with AI
+        
+        // First, deactivate any current active transition
+        $transitionModel->where('candidate_id', $candidateId)
+                       ->where('status', 'active')
+                       ->set(['status' => 'inactive', 'deactivated_at' => date('Y-m-d H:i:s')])
+                       ->update();
+
         // Close DB connection before slow AI calls
         $db = \Config\Database::connect();
         $db->close();
@@ -85,14 +131,14 @@ class CareerTransition extends BaseController
         // Reconnect DB after AI calls
         $db->reconnect();
 
-        $transitionModel = new CareerTransitionModel();
         $transitionId = $transitionModel->insert([
             'candidate_id' => $candidateId,
             'current_role' => $currentRole,
             'target_role' => $targetRole,
             'skill_gaps' => json_encode($analysis['skill_gaps'] ?? []),
             'learning_roadmap' => json_encode($analysis['roadmap'] ?? []),
-            'status' => 'active'
+            'status' => 'active',
+            'reactivation_count' => 0
         ]);
         
         $moduleModel = new CourseModuleModel();
@@ -151,7 +197,8 @@ class CareerTransition extends BaseController
             }
         }
 
-        return redirect()->to('career-transition')->with('success', 'Career transition plan created! AI-powered course content is ready.');
+        return redirect()->to('career-transition')
+            ->with('success', 'Career transition plan created! AI-powered course content is ready.');
     }
 
     public function course()
@@ -210,10 +257,71 @@ class CareerTransition extends BaseController
         $candidateId = session()->get('user_id');
         $transitionModel = new CareerTransitionModel();
         
+        // Mark as inactive instead of deleting
         $transitionModel->where('candidate_id', $candidateId)
                        ->where('status', 'active')
-                       ->delete();
+                       ->set(['status' => 'inactive', 'deactivated_at' => date('Y-m-d H:i:s')])
+                       ->update();
         
-        return redirect()->to('career-transition')->with('success', 'Career path reset. You can now start a new journey!');
+        return redirect()->to('career-transition')
+            ->with('success', 'Career path saved to history. You can now start a new journey!');
+    }
+    
+    /**
+     * View all historical career transitions
+     */
+    public function history()
+    {
+        $candidateId = session()->get('user_id');
+        $transitionModel = new CareerTransitionModel();
+        
+        // Get all transitions for this candidate
+        $transitions = $transitionModel
+            ->where('candidate_id', $candidateId)
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+        
+        return view('candidate/career_history', [
+            'transitions' => $transitions
+        ]);
+    }
+    
+    /**
+     * Reactivate a historical transition
+     */
+    public function reactivate($transitionId)
+    {
+        $candidateId = session()->get('user_id');
+        $transitionModel = new CareerTransitionModel();
+        
+        // Verify this transition belongs to the current user
+        $transition = $transitionModel->find($transitionId);
+        
+        if (!$transition || $transition['candidate_id'] != $candidateId) {
+            return redirect()->to('career-transition')
+                ->with('error', 'Invalid transition selected.');
+        }
+        
+        // Deactivate current active transition
+        $transitionModel->where('candidate_id', $candidateId)
+                       ->where('status', 'active')
+                       ->set(['status' => 'inactive', 'deactivated_at' => date('Y-m-d H:i:s')])
+                       ->update();
+        
+        // Activate the selected transition
+        $transitionModel->update($transitionId, [
+            'status' => 'active',
+            'reactivated_at' => date('Y-m-d H:i:s'),
+            'reactivation_count' => ($transition['reactivation_count'] ?? 0) + 1
+        ]);
+        
+        // Reset all task completion status
+        $taskModel = new DailyTaskModel();
+        $taskModel->where('transition_id', $transitionId)
+                 ->set(['is_completed' => 0, 'completed_at' => null])
+                 ->update();
+        
+        return redirect()->to('career-transition')
+            ->with('success', 'Career path reactivated! Progress has been reset for a fresh start.');
     }
 }

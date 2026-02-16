@@ -40,6 +40,9 @@ $routes->group('career-transition', ['filter' => 'auth'], function($routes) {
 });
 // NEW: PDF Download Route
 $routes->get('career-transition/download-pdf', 'CareerTransitionPDF_TCPDF::downloadCoursePDF');
+// Career Transition History Routes
+$routes->get('career-transition/history', 'CareerTransition::history');
+$routes->get('career-transition/reactivate/(:num)', 'CareerTransition::reactivate/$1');
 // Dashboard Routes (Admin)
 $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
     
@@ -143,15 +146,7 @@ $routes->group('recruiter', ['filter' => 'auth'], function($routes) {
 });
 
 
-// Language Routes
-$routes->group('language', function($routes) {
-    $routes->get('switch/(:segment)', 'Language::switch/$1');
-    $routes->post('switch/(:segment)', 'Language::switch/$1');
-    $routes->get('current', 'Language::current');
-    $routes->get('supported', 'Language::supported');
-    $routes->post('translate', 'Language::translateText');
-    $routes->get('regional-market', 'Language::regionalMarket');
-});
+
 
 
 
