@@ -119,7 +119,7 @@ class InterviewSlotModel extends Model
     /**
      * Create bulk slots
      */
-    public function createBulkSlots(int $jobId, string $date, array $times, int $capacity = 1, int $createdBy): int
+    public function createBulkSlots(int $jobId, string $date, array $times, int $createdBy, int $capacity = 1): int
     {
         $count = 0;
         

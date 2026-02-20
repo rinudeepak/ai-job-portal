@@ -233,8 +233,8 @@ class SlotManagementController extends BaseController
                 $jobId,
                 $date,
                 $times,
-                $capacity,
-                session()->get('user_id')
+                session()->get('user_id'),
+                $capacity
             );
             $totalCreated += $created;
         }
