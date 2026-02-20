@@ -3,10 +3,10 @@ const OFFLINE_CACHE = 'offline-course-v1';
 
 const STATIC_ASSETS = [
     '/ai-job-portal/public/',
-    '/ai-job-portal/public/assets/css/bootstrap.min.css',
-    '/ai-job-portal/public/assets/css/style.css',
-    '/ai-job-portal/public/assets/js/vendor/jquery-1.12.4.min.js',
-    '/ai-job-portal/public/assets/js/bootstrap.min.js'
+    '/ai-job-portal/public/jobboard/css/custom-bs.css',
+    '/ai-job-portal/public/jobboard/css/style.css',
+    '/ai-job-portal/public/jobboard/js/jquery.min.js',
+    '/ai-job-portal/public/jobboard/js/bootstrap.bundle.min.js'
 ];
 
 // Install event - cache static assets
@@ -69,3 +69,8 @@ self.addEventListener('fetch', (event) => {
         })
     );
 });
+
+
+
+
+

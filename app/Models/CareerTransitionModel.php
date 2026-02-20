@@ -17,7 +17,11 @@ class CareerTransitionModel extends Model
         'status',           // Using existing: enum('active', 'completed', 'paused')
         'course_status',    // Using existing: enum('pending', 'processing', 'completed', 'failed')
         'created_at',
-        'updated_at'
+        'deactivated_at',
+        'reactivated_at',
+        'reactivation_count',
+        'updated_at',
+        'course_status'
     ];
     
     protected $useTimestamps = true;

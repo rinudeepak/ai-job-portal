@@ -1,23 +1,35 @@
 <?= view('Layouts/candidate_header', ['title' => 'Reschedule Interview']) ?>
 
-<section class="contact-section pt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <h2 class="contact-title">Select New Interview Slot</h2>
+<div class="reschedule-slot-jobboard">
+    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <h1 class="text-white font-weight-bold">Reschedule Interview</h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
+                        <span class="mx-2 slash">/</span>
+                        <a href="<?= base_url('candidate/my-bookings') ?>">My Bookings</a>
+                        <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong>Reschedule</strong></span>
+                    </div>
+                </div>
             </div>
+        </div>
+    </section>
 
-            <div class="col-lg-8 offset-lg-2">
-                <!-- Current Booking Info -->
-                <div class="card mb-4" style="border-left: 4px solid #dc3545;">
+    <section class="site-section pt-0 content-wrap">
+        <div class="container">
+            <div class="col-lg-10 offset-lg-1 px-0">
+                <div class="card mb-4 current-booking-card">
                     <div class="card-body">
-                        <h5><i class="fas fa-calendar-check"></i> Current Interview</h5>
+                        <h5><i class="fas fa-calendar-check mr-2"></i>Current Interview</h5>
                         <p class="mb-2">
                             <strong>Date:</strong> <?= date('l, F j, Y', strtotime($booking['slot_datetime'])) ?><br>
                             <strong>Time:</strong> <?= date('h:i A', strtotime($booking['slot_datetime'])) ?>
                         </p>
-                        <div class="alert alert-warning mb-0">
-                            <strong>Reschedules Remaining:</strong> 
+                        <div class="alert alert-warning mb-0 booking-alert">
+                            <strong>Reschedules Remaining:</strong>
                             <?= $can_reschedule_info['remaining_reschedules'] ?> out of <?= $booking['max_reschedules'] ?>
                         </div>
                     </div>
@@ -35,16 +47,16 @@
                         <p>Please contact HR for assistance.</p>
                     </div>
                 <?php else: ?>
-                    <form method="post" action="<?= base_url('candidate/process-reschedule') ?>">
+                    <form method="post" action="<?= base_url('candidate/process-reschedule') ?>" class="slot-form-card">
                         <?= csrf_field() ?>
                         <input type="hidden" name="application_id" value="<?= $application['id'] ?>">
 
                         <div class="slot-selection">
                             <?php foreach ($available_slots as $date => $slots): ?>
-                                <div class="card mb-4">
-                                    <div class="card-header" style="background: #f5576c; color: white;">
+                                <div class="card mb-4 slot-day-card">
+                                    <div class="card-header slot-day-head danger">
                                         <h5 class="mb-0">
-                                            <i class="fas fa-calendar-day"></i>
+                                            <i class="fas fa-calendar-day mr-2"></i>
                                             <?= date('l, F j, Y', strtotime($date)) ?>
                                         </h5>
                                     </div>
@@ -56,14 +68,12 @@
                                                 if ($slot['id'] == $booking['slot_id']) continue;
                                                 ?>
                                                 <div class="col-md-4 mb-3">
-                                                    <input type="radio" name="slot_id" id="slot_<?= $slot['id'] ?>" 
+                                                    <input type="radio" name="slot_id" id="slot_<?= $slot['id'] ?>"
                                                            value="<?= $slot['id'] ?>" class="slot-radio" required>
                                                     <label for="slot_<?= $slot['id'] ?>" class="slot-label">
-                                                        <i class="fas fa-clock"></i>
-                                                        <?= date('h:i A', strtotime($slot['slot_time'])) ?>
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            <?= $slot['capacity'] - $slot['booked_count'] ?> spot(s) left
+                                                        <span class="slot-time"><i class="fas fa-clock mr-2"></i><?= date('h:i A', strtotime($slot['slot_time'])) ?></span>
+                                                        <small class="slot-spots">
+                                                            <?= (int) $slot['capacity'] - (int) $slot['booked_count'] ?> spot(s) left
                                                         </small>
                                                     </label>
                                                 </div>
@@ -76,12 +86,12 @@
 
                         <div class="form-group">
                             <label>Reason for Rescheduling (Optional)</label>
-                            <textarea class="form-control" name="reason" rows="3" 
+                            <textarea class="form-control" name="reason" rows="3"
                                       placeholder="Please provide a brief reason..."></textarea>
                         </div>
 
-                        <div class="alert alert-danger">
-                            <strong><i class="fas fa-exclamation-triangle"></i> Warning:</strong>
+                        <div class="alert alert-danger booking-alert">
+                            <strong><i class="fas fa-exclamation-triangle mr-1"></i>Warning:</strong>
                             <ul class="mb-0">
                                 <li>You have <strong><?= $can_reschedule_info['remaining_reschedules'] ?></strong> reschedule(s) remaining</li>
                                 <li>After reaching the limit, you won't be able to reschedule again</li>
@@ -91,29 +101,26 @@
 
                         <div class="text-center mt-4">
                             <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-secondary mr-2">
-                                <i class="fas fa-times"></i> Cancel
+                                <i class="fas fa-times mr-1"></i> Cancel
                             </a>
-                            <button type="submit" class="button button-contactForm boxed-btn">
-                                <i class="fas fa-sync"></i> Confirm Reschedule
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sync mr-1"></i> Confirm Reschedule
                             </button>
                         </div>
                     </form>
                 <?php endif; ?>
 
-                <!-- Reschedule History -->
                 <?php if (!empty($history)): ?>
-                    <div class="card mt-4">
+                    <div class="card mt-4 reschedule-history-card">
                         <div class="card-header">
-                            <h5 class="mb-0"><i class="fas fa-history"></i> Reschedule History</h5>
+                            <h5 class="mb-0"><i class="fas fa-history mr-2"></i>Reschedule History</h5>
                         </div>
                         <div class="card-body">
-                            <div class="timeline">
+                            <div class="timeline-list">
                                 <?php foreach ($history as $item): ?>
-                                    <div class="timeline-item">
-                                        <div class="timeline-badge">
-                                            <i class="fas fa-sync"></i>
-                                        </div>
-                                        <div class="timeline-content">
+                                    <div class="timeline-item-row">
+                                        <div class="timeline-badge"><i class="fas fa-sync"></i></div>
+                                        <div class="timeline-content flex-grow-1">
                                             <p class="mb-1">
                                                 <strong>From:</strong> <?= date('M j, Y h:i A', strtotime($item['old_slot_datetime'])) ?><br>
                                                 <strong>To:</strong> <?= date('M j, Y h:i A', strtotime($item['new_slot_datetime'])) ?>
@@ -133,9 +140,7 @@
                 <?php endif; ?>
             </div>
         </div>
-    </div>
-</section>
-
-
+    </section>
+</div>
 
 <?= view('Layouts/candidate_footer') ?>

@@ -1,63 +1,66 @@
 </main>
-<footer>
-    <!-- footer-bottom area -->
-    <div class="footer-bottom-area footer-bg">
+<footer class="site-footer">
+    <a href="#top" class="smoothscroll scroll-top">
+        <span class="icon-keyboard_arrow_up"></span>
+    </a>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-6 col-md-3 mb-4 mb-md-0">
+                <h3>Candidate</h3>
+                <ul class="list-unstyled">
+                    <li><a href="<?= base_url('candidate/dashboard') ?>">Dashboard</a></li>
+                    <li><a href="<?= base_url('candidate/profile') ?>">Profile</a></li>
+                    <li><a href="<?= base_url('candidate/applications') ?>">Applications</a></li>
+                    <li><a href="<?= base_url('candidate/my-bookings') ?>">Interviews</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-md-3 mb-4 mb-md-0">
+                <h3>Jobs</h3>
+                <ul class="list-unstyled">
+                    <li><a href="<?= base_url('jobs') ?>">Browse Jobs</a></li>
+                    <li><a href="<?= base_url('career-transition') ?>">Career Transition AI</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-md-3 mb-4 mb-md-0">
+                <h3>Account</h3>
+                <ul class="list-unstyled">
+                    <li><a href="<?= base_url('candidate/profile') ?>">Settings</a></li>
+                    <li><a href="<?= base_url('logout') ?>">Logout</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-md-3 mb-4 mb-md-0">
+                <h3>Tools</h3>
+                <div class="translate-widget-wrap mb-3">
+                    <?= view('components/google_translate_widget') ?>
+                </div>
+            </div>
+        </div>
+
         <div class="container">
-            <div class="footer-border">
-                <div class="row d-flex justify-content-between align-items-center">
-                    <div class="col-xl-10 col-lg-10 ">
-                        <div class="footer-copy-right">
-                            <p>
-                                Copyright &copy;
-                                <script>document.write(new Date().getFullYear());</script> All rights reserved
-
-                            </p>
-                        </div>
-                    </div>
-
+            <div class="row text-center">
+                <div class="col-12">
+                    <p class="copyright">
+                        <small>Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved</small>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Footer End-->
 </footer>
 
-<!-- JS here -->
-
-<!-- All JS Custom Plugins Link Here here -->
-<script src="<?= base_url('assets/js/vendor/modernizr-3.5.0.min.js') ?>"></script>
-<!-- Jquery, Popper, Bootstrap -->
-<script src="<?= base_url('assets/js/vendor/jquery-1.12.4.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/popper.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/bootstrap.min.js') ?>"></script>
-<!-- Jquery Mobile Menu -->
-<script src="<?= base_url('assets/js/jquery.slicknav.min.js') ?>"></script>
-
-<!-- Jquery Slick , Owl-Carousel Range -->
-<script src="<?= base_url('assets/js/owl.carousel.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/slick.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/price_rangs.js') ?>"></script>
-<!-- One Page, Animated-HeadLin -->
-<script src="<?= base_url('assets/js/wow.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/animated.headline.js') ?>"></script>
-<script src="<?= base_url('assets/js/jquery.magnific-popup.js') ?>"></script>
-
-<!-- Scrollup, nice-select, sticky -->
-<script src="<?= base_url('assets/js/jquery.scrollUp.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/jquery.nice-select.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/jquery.sticky.js') ?>"></script>
-
-<!-- contact js -->
-<script src="<?= base_url('assets/js/contact.js') ?>"></script>
-<script src="<?= base_url('assets/js/jquery.form.js') ?>"></script>
-<script src="<?= base_url('assets/js/jquery.validate.min.js') ?>"></script>
-<script src="<?= base_url('assets/js/mail-script.js') ?>"></script>
-<script src="<?= base_url('assets/js/jquery.ajaxchimp.min.js') ?>"></script>
-
-<!-- Jquery Plugins, main Jquery -->
-<script src="<?= base_url('assets/js/plugins.js') ?>"></script>
-<script src="<?= base_url('assets/js/main.js') ?>"></script>
-<script src="<?= base_url('assets/js/custom.js') ?>"></script>
+<!-- SCRIPTS -->
+<script src="<?= base_url('jobboard/js/jquery.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/isotope.pkgd.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/stickyfill.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/jquery.fancybox.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/jquery.easing.1.3.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/jquery.waypoints.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/jquery.animateNumber.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/custom.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/candidate-pages.js') ?>"></script>
 
 <!-- Service Worker Registration -->
 <script>
@@ -68,11 +71,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-
-<div class="navbar-nav ml-auto">
-    <?= view('components/google_translate_widget') ?>
-</div>
-
+ </div>
 
 </body>
 

@@ -1,51 +1,51 @@
-<div id="google_translate_element"></div>
+<div class="google-translate-widget">
+    <div id="google_translate_element"></div>
+</div>
 
 <style>
-/* Style the Google Translate widget */
-#google_translate_element {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    background: white;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+.google-translate-widget {
+    max-width: 240px;
 }
 
-/* Hide Google Translate branding (optional) */
-.goog-te-banner-frame {
-    display: none !important;
+#google_translate_element {
+    background: #ffffff;
+    padding: 10px 12px;
+    border: 1px solid #dbe3f1;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(20, 40, 80, 0.08);
 }
 
 body {
     top: 0 !important;
 }
 
-/* Style the dropdown */
-.goog-te-gadget {
-    font-family: Arial, sans-serif;
+#google_translate_element .goog-te-gadget {
+    font-family: Arial, sans-serif !important;
+    color: #26324b !important;
+    font-size: 13px !important;
+    line-height: 1.3;
 }
 
-.goog-te-gadget-simple {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-size: 14px;
-    cursor: pointer;
+#google_translate_element .goog-te-combo {
+    width: 100%;
+    min-width: 180px;
+    height: 36px;
+    border: 1px solid #ced8ea;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #fff;
+    color: #26324b;
+    font-size: 13px !important;
 }
 
-.goog-te-gadget-simple:hover {
-    background-color: #f8f9fa;
+#google_translate_element a {
+    color: #26324b !important;
+    text-decoration: none !important;
 }
 
-/* Mobile responsive */
 @media (max-width: 768px) {
-    #google_translate_element {
-        top: 10px;
-        right: 10px;
-        padding: 5px;
+    .google-translate-widget {
+        max-width: 100%;
     }
 }
 </style>
@@ -55,7 +55,6 @@ function googleTranslateElementInit() {
     new google.translate.TranslateElement({
         pageLanguage: 'en',
         includedLanguages: 'en,hi,ta,te,kn,ml,mr,gu,bn,pa', // Indian languages
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
         autoDisplay: false
     }, 'google_translate_element');
 }

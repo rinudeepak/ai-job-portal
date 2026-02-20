@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use App\Libraries\ResumeParser;
 use App\Models\CandidateSkillsModel;
+use App\Models\CandidateInterestsModel;
 use App\Models\GithubAnalysisModel;
 use App\Libraries\GithubAnalyzer;
 use App\Models\WorkExperienceModel;
@@ -30,6 +31,13 @@ class Candidate extends BaseController
         $github = $githubModel->where('candidate_id', $userId)->first();
         $skillsModel = model('CandidateSkillsModel');
         $skills = $skillsModel->where('candidate_id', $userId)->first();
+        $interestsModel = new CandidateInterestsModel();
+        $interestRow    = $interestsModel->where('candidate_id', $userId)->first();
+        // Convert comma-separated string → flat array for the view
+        $interests = [];
+        if ($interestRow && !empty($interestRow['interest'])) {
+            $interests = array_values(array_filter(array_map('trim', explode(',', $interestRow['interest']))));
+        }
         
         $workExpModel = new WorkExperienceModel();
         $educationModel = new EducationModel();
@@ -67,20 +75,21 @@ class Candidate extends BaseController
         $completionPercentage = round(($completedFields / $totalFields) * 100);
 
         return view('candidate/profile', [
-            'user' => $user,
-            'github' => $github,
-            'skills' => $skills,
+            'user'            => $user,
+            'github'          => $github,
+            'skills'          => $skills,
+            'interests'       => $interests,
             'workExperiences' => $workExperiences,
-            'education' => $education,
-            'certifications' => $certifications,
+            'education'       => $education,
+            'certifications'  => $certifications,
             'stats' => [
                 'applications' => $totalApplications,
-                'interviews' => $totalInterviews,
-                'offers' => $totalOffers
+                'interviews'   => $totalInterviews,
+                'offers'       => $totalOffers
             ],
             'completion' => [
                 'percentage' => $completionPercentage,
-                'fields' => $completionFields
+                'fields'     => $completionFields
             ]
         ]);
     }
@@ -180,24 +189,6 @@ class Candidate extends BaseController
         ]);
 
         return redirect()->back()->with('success', 'GitHub profile analyzed successfully');
-    }
-
-    public function appliedJobs()
-    {
-        $candidateId = session()->get('user_id');
-
-        $db = \Config\Database::connect();
-
-        $jobs = $db->table('applications a')
-            ->select('a.id as application_id, j.title, a.status, j.id as job_id')
-            ->join('jobs j', 'j.id = a.job_id')
-            ->where('a.candidate_id', $candidateId)
-            ->get()
-            ->getResultArray();
-
-        return view('candidate/applied_jobs', [
-            'jobs' => $jobs
-        ]);
     }
 
     public function downloadResume()
@@ -481,5 +472,68 @@ class Candidate extends BaseController
         }
         
         return redirect()->back()->with('success', 'Certification deleted');
+    }
+
+    // ── Interests (stored as comma-separated string in one row per candidate) ──
+
+    public function addInterest()
+    {
+        $userId   = session()->get('user_id');
+        $newItem  = trim($this->request->getPost('interest'));
+
+        if (empty($newItem)) {
+            return redirect()->back()->with('error', 'Interest cannot be empty');
+        }
+
+        $interestsModel = new CandidateInterestsModel();
+        $existingRow    = $interestsModel->where('candidate_id', $userId)->first();
+
+        if ($existingRow) {
+            // Parse current list and check for duplicate (case-insensitive)
+            $current = array_filter(array_map('trim', explode(',', $existingRow['interest'])));
+            $lower   = array_map('strtolower', $current);
+
+            if (!in_array(strtolower($newItem), $lower)) {
+                $current[] = $newItem;
+                $interestsModel->update($existingRow['id'], [
+                    'interest' => implode(', ', $current),
+                ]);
+            }
+        } else {
+            $interestsModel->insert([
+                'candidate_id' => $userId,
+                'interest'     => $newItem,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Interest added successfully');
+    }
+
+    public function deleteInterest($interest)
+    {
+        // $interest is the URL-encoded interest name (not an ID)
+        $userId      = session()->get('user_id');
+        $toRemove    = urldecode($interest);
+
+        $interestsModel = new CandidateInterestsModel();
+        $existingRow    = $interestsModel->where('candidate_id', $userId)->first();
+
+        if ($existingRow) {
+            $current  = array_filter(array_map('trim', explode(',', $existingRow['interest'])));
+            $filtered = array_values(array_filter($current, function ($item) use ($toRemove) {
+                return strtolower(trim($item)) !== strtolower($toRemove);
+            }));
+
+            if (empty($filtered)) {
+                // No interests left — delete the row entirely
+                $interestsModel->delete($existingRow['id']);
+            } else {
+                $interestsModel->update($existingRow['id'], [
+                    'interest' => implode(', ', $filtered),
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Interest removed');
     }
 }

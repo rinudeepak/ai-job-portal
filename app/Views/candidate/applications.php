@@ -1,50 +1,56 @@
-<?= view('Layouts/candidate_header', ['title' => 'My Applications']) ?>
+<?= view('Layouts/candidate_header', ['title' => 'Applications']) ?>
 
-<div class="featured-job-area feature-padding pt-5">
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h2><i class="fas fa-file-alt"></i> My Applications</h2>
-                <p class="text-muted">Track all your job applications and their status</p>
-            </div>
-        </div>
+<?php
+$totalApplications = count($applications ?? []);
+$activeApplications = count(array_filter($applications ?? [], function ($application) {
+    return !in_array($application['status'] ?? '', ['rejected', 'selected'], true);
+}));
+?>
 
-        <div class="row">
-            <?php if (empty($applications)): ?>
-                <div class="col-12">
-                    <div class="card shadow text-center py-5">
-                        <div class="card-body">
-                            <i class="fas fa-inbox fa-5x text-muted mb-4"></i>
-                            <h4 class="text-muted">No Applications Yet</h4>
-                            <p class="text-muted mb-4">You haven't applied to any jobs yet.</p>
-                            <a href="<?= base_url('jobs') ?>" class="btn btn-primary btn-lg">
-                                <i class="fas fa-search"></i> Browse Jobs
-                            </a>
-                        </div>
+<div class="applications-jobboard">
+    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7">
+                    <h1 class="text-white font-weight-bold">My Applications</h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
+                        <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong>Applications</strong></span>
                     </div>
                 </div>
-            <?php else: ?>
-                <?php foreach ($applications as $application): ?>
-                <div class="col-lg-6 col-md-12 mb-4">
-                    <div class="card application-card shadow h-100">
-                        <div class="card-header bg-white border-bottom">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">
-                                    <?= esc($application['job_title']) ?>
-                                </h5>
-                                <span class="badge badge-<?= getStatusBadgeColor($application['status']) ?>">
-                                    <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
-                                </span>
-                            </div>
-                            <small class="text-muted">
-                                <i class="fas fa-clock"></i> Applied <?= date('M d, Y', strtotime($application['applied_at'])) ?>
-                            </small>
-                        </div>
+            </div>
+        </div>
+    </section>
 
-                        <div class="card-body">
-                            <!-- Progress Steps -->
-                            <div class="mb-3">
-                                <h6><i class="fas fa-route"></i> Progress</h6>
+    <div class="container content-wrap pb-5">
+        <?php if (empty($applications)): ?>
+            <div class="text-center bg-white rounded shadow-sm p-5 mb-4">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Applications Yet</h4>
+                <p class="text-muted mb-4">You have not applied to any jobs yet.</p>
+                <a href="<?= base_url('jobs') ?>" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Browse Jobs
+                </a>
+            </div>
+        <?php else: ?>
+            <div class="row">
+                <?php foreach ($applications as $application): ?>
+                    <div class="col-lg-6">
+                        <div class="application-card">
+                            <div class="application-head">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="mb-1"><?= esc($application['job_title']) ?></h5>
+                                        <small class="text-muted"><i class="far fa-clock"></i> Applied <?= date('M d, Y', strtotime($application['applied_at'])) ?></small>
+                                    </div>
+                                    <span class="badge status-badge badge-<?= getStatusBadgeColor($application['status']) ?>">
+                                        <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="application-body">
                                 <?php
                                 $stages = [
                                     'applied' => 'Applied',
@@ -53,60 +59,75 @@
                                     'interview_slot_booked' => 'Interview Booked',
                                     'selected' => 'Selected'
                                 ];
-                                $currentIndex = array_search($application['status'], array_keys($stages));
+                                $currentIndex = array_search($application['status'], array_keys($stages), true);
                                 $isRejected = $application['status'] === 'rejected';
                                 ?>
+
+                                <h6 class="mb-2"><i class="fas fa-route"></i> Progress</h6>
                                 <?php if ($isRejected): ?>
-                                    <div class="alert alert-danger mb-0">
+                                    <div class="alert alert-danger mb-3">
                                         <i class="fas fa-times-circle"></i> Application Rejected
                                     </div>
                                 <?php else: ?>
-                                    <div class="progress" style="height: 25px;">
-                                        <div class="progress-bar bg-success" style="width: <?= (($currentIndex + 1) / count($stages)) * 100 ?>%">
-                                            <?= $stages[$application['status']] ?? 'In Progress' ?>
+                                    <?php $progress = ($currentIndex !== false) ? (($currentIndex + 1) / count($stages)) * 100 : 20; ?>
+                                    <div class="progress mb-3" style="height: 24px;">
+                                        <div class="progress-bar bg-success" style="width: <?= $progress ?>%">
+                                            <?= esc($stages[$application['status']] ?? 'In Progress') ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($application['overall_rating'])): ?>
+                                    <h6 class="mb-2"><i class="fas fa-chart-bar"></i> AI Interview Score</h6>
+                                    <div class="score-grid">
+                                        <div class="score-item">
+                                            <small class="text-muted d-block">Technical</small>
+                                            <strong><?= number_format($application['technical_score'] ?? 0, 1) ?>%</strong>
+                                        </div>
+                                        <div class="score-item">
+                                            <small class="text-muted d-block">Communication</small>
+                                            <strong><?= number_format($application['communication_score'] ?? 0, 1) ?>%</strong>
+                                        </div>
+                                        <div class="score-item">
+                                            <small class="text-muted d-block">Overall</small>
+                                            <strong><?= number_format($application['overall_rating'] ?? 0, 1) ?>%</strong>
                                         </div>
                                     </div>
                                 <?php endif; ?>
                             </div>
 
-                            <!-- AI Scores -->
-                            <?php if (!empty($application['overall_rating'])): ?>
-                            <div class="mb-3">
-                                <h6><i class="fas fa-chart-bar"></i> AI Interview Score</h6>
-                                <div class="d-flex justify-content-between">
-                                    <span>Technical: <strong><?= number_format($application['technical_score'] ?? 0, 1) ?>%</strong></span>
-                                    <span>Communication: <strong><?= number_format($application['communication_score'] ?? 0, 1) ?>%</strong></span>
-                                    <span>Overall: <strong><?= number_format($application['overall_rating'] ?? 0, 1) ?>%</strong></span>
+                            <div class="application-footer">
+                                <div class="d-flex flex-wrap" style="gap: 8px;">
+                                    <a href="<?= base_url('job/' . $application['job_id']) ?>" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> View Job
+                                    </a>
+
+                                    <?php if ($application['status'] === 'applied'): ?>
+                                        <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-success btn-sm">
+                                            <i class="fas fa-video"></i> Start AI Interview
+                                        </a>
+                                    <?php elseif ($application['status'] === 'shortlisted'): ?>
+                                        <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-calendar-plus"></i> Book Interview Slot
+                                        </a>
+                                    <?php elseif ($application['status'] === 'interview_slot_booked'): ?>
+                                        <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-info btn-sm text-white">
+                                            <i class="fas fa-calendar-check"></i> View Interview Schedule
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="card-footer bg-white">
-                            <?php if ($application['status'] === 'applied'): ?>
-                                <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-success btn-block">
-                                    <i class="fas fa-video"></i> Start AI Interview
-                                </a>
-                            <?php elseif ($application['status'] === 'shortlisted'): ?>
-                                <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-warning btn-block">
-                                    <i class="fas fa-calendar-plus"></i> Book Interview Slot
-                                </a>
-                            <?php elseif ($application['status'] === 'interview_slot_booked'): ?>
-                                <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-info btn-block">
-                                    <i class="fas fa-calendar-check"></i> View Interview Schedule
-                                </a>
-                            <?php endif; ?>
                         </div>
                     </div>
-                </div>
                 <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <?php
-function getStatusBadgeColor($status) {
+function getStatusBadgeColor($status)
+{
     $colors = [
         'applied' => 'warning',
         'ai_interview_started' => 'info',
@@ -116,6 +137,7 @@ function getStatusBadgeColor($status) {
         'interview_slot_booked' => 'warning',
         'selected' => 'success'
     ];
+
     return $colors[$status] ?? 'secondary';
 }
 ?>

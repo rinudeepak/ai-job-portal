@@ -13,29 +13,33 @@ class Jobs extends BaseController
         
         // Get filter parameters
         $filters = [
-            'location' => $this->request->getGet('location'),
-            'category' => $this->request->getGet('category'),
+            'search'           => $this->request->getGet('search'),
+            'location'         => $this->request->getGet('location'),
+            'category'         => $this->request->getGet('category'),
             'experience_level' => $this->request->getGet('experience_level'),
-            'employment_type' => $this->request->getGet('employment_type'),
-            'remote' => $this->request->getGet('remote'),
-            'posted_within' => $this->request->getGet('posted_within'),
-            'skills_match' => $this->request->getGet('skills_match'),
-            'sort' => $this->request->getGet('sort') ?: 'newest'
+            'employment_type'  => $this->request->getGet('employment_type'),
+            'remote'           => $this->request->getGet('remote'),
+            'posted_within'    => $this->request->getGet('posted_within'),
+            'skills_match'     => $this->request->getGet('skills_match'),
+            'sort'             => $this->request->getGet('sort') ?: 'newest',
         ];
         
         // Build query with filters
         $builder = $jobModel->where('status', 'open');
         
-        // Exclude already applied jobs
-        if ($candidateId) {
-            $builder->whereNotIn('id', function($builder) use ($candidateId) {
-                return $builder->select('job_id')
-                              ->from('applications')
-                              ->where('candidate_id', $candidateId);
-            });
-        }
+        // Keep all open jobs visible in listings.
+        // Re-apply is already blocked in the job details/apply flow.
         
         // Apply filters
+        if (!empty($filters['search'])) {
+            $builder->groupStart()
+                    ->like('title', $filters['search'])
+                    ->orLike('company', $filters['search'])
+                    ->orLike('required_skills', $filters['search'])
+                    ->orLike('description', $filters['search'])
+                    ->groupEnd();
+        }
+
         if (!empty($filters['location'])) {
             $builder->like('location', $filters['location']);
         }
@@ -124,17 +128,64 @@ class Jobs extends BaseController
                               ->where('category !=', '')
                               ->groupBy('category')
                               ->findAll();
+    
         
-        
-        return view('candidate/job_listing', [
-            'jobs' => $jobs,
-            'totalJobs' => $totalJobs,
-            'filters' => $filters,
-            'locations' => $locations,
-            'experienceLevels' => $experienceLevels,
-            'employmentTypes' => $employmentTypes,
-            'categories' => $categories,
-            'pager' => $pager
+        // ── Suggested / "For You" tab data ──────────────────────────────────
+        $activeTab      = $this->request->getGet('tab') === 'suggested' ? 'suggested' : 'all';
+        $useAi          = (bool) $this->request->getGet('ai'); // ?ai=1 to enable AI
+        $suggestedJobs  = [];
+        $candidateSkills    = [];
+        $candidateInterests = [];
+        $behavior           = [];
+
+        if ($candidateId) {
+            $skillsModel    = new \App\Models\CandidateSkillsModel();
+            $interestsModel = new \App\Models\CandidateInterestsModel();
+
+            // Skills: stored as a comma-separated string in one row — explode correctly
+            $skillRow = $skillsModel->where('candidate_id', $candidateId)->first();
+            if ($skillRow && !empty($skillRow['skill_name'])) {
+                $candidateSkills = array_values(
+                    array_filter(array_map('trim', explode(',', $skillRow['skill_name'])))
+                );
+            }
+
+            // Interests: stored as one comma-separated row per candidate
+            $interestRow = $interestsModel->where('candidate_id', $candidateId)->first();
+            $candidateInterests = [];
+            if ($interestRow && !empty($interestRow['interest'])) {
+                $candidateInterests = array_values(
+                    array_filter(array_map('trim', explode(',', $interestRow['interest'])))
+                );
+            }
+
+            $behavior = $jobModel->getCandidateBehaviorProfile($candidateId);
+
+            // Only compute suggestions when the "For You" tab is active (or always — cheap enough)
+            if ($useAi) {
+                $matcher       = new \App\Libraries\AiJobMatcher();
+                $suggestedJobs = $matcher->generateSuggestions($candidateId, 20);
+            } else {
+                $suggestedJobs = $jobModel->getSuggestedJobsBasic($candidateId, 20);
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────
+
+        return view('candidate/smart_jobs', [
+            'jobs'               => $jobs,
+            'totalJobs'          => $totalJobs,
+            'filters'            => $filters,
+            'locations'          => $locations,
+            'experienceLevels'   => $experienceLevels,
+            'employmentTypes'    => $employmentTypes,
+            'categories'         => $categories,
+            'pager'              => $pager,
+            'activeTab'          => $activeTab,
+            'suggestedJobs'      => $suggestedJobs,
+            'candidateSkills'    => $candidateSkills,
+            'candidateInterests' => $candidateInterests,
+            'behavior'           => $behavior,
+            'useAi'              => $useAi,
         ]);
     }
     

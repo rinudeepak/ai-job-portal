@@ -1,126 +1,169 @@
 <?= view('Layouts/candidate_header', ['title' => 'Job Details']) ?>
 
-<!-- job post company Start -->
-<div class="job-post-company pt-5 pb-120">
-    <div class="container">
-        <div class="row justify-content-between">
-            <!-- Left Content -->
-            <div class="col-xl-7 col-lg-8">
-                <!-- job single -->
-                <div class="single-job-items mb-50">
-                    <div class="job-items">
-                        <div class="company-img company-img-details">
-                            <a href="#"><img src="<?= base_url('assets/img/icon/job-list1.png') ?>" alt=""></a>
-                        </div>
-                        <div class="job-tittle">
-                            <a href="#">
-                                <h4><?= esc($job['title']) ?></h4>
-                            </a>
-                            <ul>
-                                <li><?= esc($job['company']) ?></li>
-                                <li><i class="fas fa-map-marker-alt"></i><?= esc($job['location']) ?></li>
-                                <li>$3500 - $4000</li>
-                            </ul>
-                        </div>
+<div class="job-details-jobboard">
+    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <h1 class="text-white font-weight-bold"><?= esc($job['title']) ?></h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
+                        <span class="mx-2 slash">/</span>
+                        <a href="<?= base_url('jobs') ?>">Jobs</a>
+                        <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong><?= esc($job['title']) ?></strong></span>
                     </div>
                 </div>
-                <!-- job single End -->
-
-                <div class="job-post-details">
-                    <div class="post-details1 mb-50">
-                        <!-- Small Section Tittle -->
-                        <div class="small-section-tittle">
-                            <h4>Job Description</h4>
-                        </div>
-                        <p><?= esc($job['description']) ?></p>
-                    </div>
-                    <div class="post-details2  mb-50">
-                        <!-- Small Section Tittle -->
-                        <div class="small-section-tittle">
-                            <h4>Required Knowledge, Skills, and Abilities</h4>
-                        </div>
-                        <?= esc($job['required_skills']) ?>
-                    </div>
-                    <div class="post-details2  mb-50">
-                        <!-- Small Section Tittle -->
-                        <div class="small-section-tittle">
-                            <h4>Education + Experience</h4>
-                        </div>
-                        <?= esc($job['experience_level']) ?>
-                    </div>
-                </div>
-
             </div>
-            <!-- Right Content -->
-            <div class="col-xl-4 col-lg-4">
-                <!-- Career Transition Suggestion -->
-                <?php if (session()->getFlashdata('career_suggestion')): 
-                    $suggestion = session()->getFlashdata('career_suggestion'); ?>
-                <div class="alert alert-info alert-dismissible fade show mb-3" role="alert">
-                    <h6><i class="fas fa-rocket"></i> Career Transition Opportunity!</h6>
-                    <p class="small mb-2"><?= $suggestion['message'] ?></p>
-                    <a href="<?= base_url('career-transition') ?>" class="btn btn-sm btn-primary w-100">
-                        <i class="fas fa-graduation-cap"></i> Get Learning Roadmap
-                    </a>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                <?php endif; ?>
-                
-                <div class="post-details3  mb-50">
-                    <!-- Small Section Tittle -->
-                    <div class="small-section-tittle">
-                        <h4>Job Overview</h4>
+        </div>
+    </section>
+
+    <section class="site-section content-wrap">
+        <div class="container">
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-8 mb-4 mb-lg-0">
+                    <div class="d-flex align-items-center">
+                        <div class="border p-2 d-inline-block mr-3 rounded">
+                            <div class="job-details-logo">
+                                <?= strtoupper(substr($job['company'] ?? 'J', 0, 1)) ?>
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="mb-1"><?= esc($job['title']) ?></h2>
+                            <div>
+                                <span class="ml-0 mr-2 mb-2 d-inline-block">
+                                    <span class="icon-briefcase mr-2"></span><?= esc($job['company']) ?>
+                                </span>
+                                <span class="m-2 d-inline-block">
+                                    <span class="icon-room mr-2"></span><?= esc($job['location']) ?>
+                                </span>
+                                <span class="m-2 d-inline-block">
+                                    <span class="icon-clock-o mr-2"></span>
+                                    <span class="text-primary"><?= esc(ucwords(str_replace('-', ' ', $job['employment_type'] ?? 'Full Time'))) ?></span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <ul>
-                        <li>Posted date : <span><?= date('d M Y', strtotime($job['created_at'])) ?></span></li>
-                        <li>Location : <span><?= esc($job['location']) ?></span></li>
-                        <!-- <li>Vacancy : <span>02</span></li>
-                              <li>Job nature : <span>Full time</span></li>
-                              <li>Salary :  <span>$7,800 yearly</span></li>
-                              <li>Application date : <span>12 Sep 2020</span></li> -->
-                    </ul>
-                    <?php if (session()->getFlashdata('success')): ?>
-                        <div class="alert alert-success">
-                            <?= session()->getFlashdata('success') ?>
+                </div>
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <?php if ($alreadyApplied): ?>
+                                <button class="btn btn-block btn-light btn-md" disabled>
+                                    <span class="icon-check mr-2 text-success"></span>Already Applied
+                                </button>
+                            <?php else: ?>
+                                <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="btn btn-block btn-primary btn-md">Apply Now</button>
+                                </form>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
+                    </div>
+                </div>
+            </div>
 
-                    <?php if (session()->getFlashdata('error')): ?>
-                        <div class="alert alert-danger">
-                            <?= session()->getFlashdata('error') ?>
-                        </div>
-                    <?php endif; ?>
+            <?php if (session()->getFlashdata('success')): ?>
+                <div class="alert alert-success">
+                    <?= esc(session()->getFlashdata('success')) ?>
+                </div>
+            <?php endif; ?>
 
-                    <div class="apply-btn2">
-                        <?php if ($alreadyApplied): ?>
-                            <button class="btn" disabled style="background:#999;cursor:not-allowed;">
-                                Already Applied
-                            </button>
+            <?php if (session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger">
+                    <?= esc(session()->getFlashdata('error')) ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="mb-5">
+                        <h3 class="h5 d-flex align-items-center mb-4 text-primary">
+                            <span class="icon-align-left mr-3"></span>Job Description
+                        </h3>
+                        <p><?= nl2br(esc($job['description'])) ?></p>
+                    </div>
+
+                    <div class="mb-5">
+                        <h3 class="h5 d-flex align-items-center mb-4 text-primary">
+                            <span class="icon-rocket mr-3"></span>Required Knowledge, Skills, and Abilities
+                        </h3>
+                        <?php
+                        $skills = array_filter(array_map('trim', explode(',', $job['required_skills'] ?? '')));
+                        ?>
+                        <?php if (!empty($skills)): ?>
+                            <ul class="list-unstyled m-0 p-0">
+                                <?php foreach ($skills as $skill): ?>
+                                    <li class="d-flex align-items-start mb-2">
+                                        <span class="icon-check_circle mr-2 text-muted"></span>
+                                        <span><?= esc($skill) ?></span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
                         <?php else: ?>
-                            <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="btn">Apply Now</button>
-                            </form>
+                            <ul class="list-unstyled m-0 p-0">
+                                <li class="d-flex align-items-start mb-2">
+                                    <span class="icon-check_circle mr-2 text-muted"></span>
+                                    <span>Skills not specified.</span>
+                                </li>
+                            </ul>
                         <?php endif; ?>
                     </div>
 
+                    <div class="mb-5">
+                        <h3 class="h5 d-flex align-items-center mb-4 text-primary">
+                            <span class="icon-book mr-3"></span>Education + Experience
+                        </h3>
+                        <ul class="list-unstyled m-0 p-0">
+                            <li class="d-flex align-items-start mb-2">
+                                <span class="icon-check_circle mr-2 text-muted"></span>
+                                <span><?= esc($job['experience_level'] ?? 'Not specified') ?></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <?php if ($alreadyApplied): ?>
+                                <button class="btn btn-block btn-light btn-md" disabled>
+                                    <span class="icon-check mr-2 text-success"></span>Already Applied
+                                </button>
+                            <?php else: ?>
+                                <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="btn btn-block btn-primary btn-md">Apply Now</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-                <!-- <div class="post-details4  mb-50">-->
-                <!-- Small Section Tittle -->
-                <!--<div class="small-section-tittle">
-                               <h4>Company Information</h4>
-                           </div>
-                              <span>Colorlib</span>
-                              <p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.</p>
-                            <ul>
-                                <li>Name: <span>Colorlib </span></li>
-                                <li>Web : <span> colorlib.com</span></li>
-                                <li>Email: <span>carrier.colorlib@gmail.com</span></li>
-                            </ul>
-                       </div> -->
+
+                <div class="col-lg-4">
+                    <?php if (session()->getFlashdata('career_suggestion')):
+                        $suggestion = session()->getFlashdata('career_suggestion'); ?>
+                        <div class="bg-light p-3 border rounded mb-4">
+                            <h3 class="text-primary mt-2 h5 mb-2"><i class="fas fa-rocket mr-2"></i>Career Transition Opportunity</h3>
+                            <p class="small mb-2"><?= esc($suggestion['message']) ?></p>
+                            <a href="<?= base_url('career-transition') ?>" class="btn btn-sm btn-primary btn-block">
+                                <i class="fas fa-graduation-cap mr-1"></i> Get Learning Roadmap
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="bg-light p-3 border rounded mb-4">
+                        <h3 class="text-primary mt-3 h5 pl-3 mb-3">Job Summary</h3>
+                        <ul class="list-unstyled pl-3 mb-0">
+                            <li class="mb-2"><strong class="text-black">Published on:</strong> <?= date('d M Y', strtotime($job['created_at'])) ?></li>
+                            <li class="mb-2"><strong class="text-black">Company:</strong> <?= esc($job['company']) ?></li>
+                            <li class="mb-2"><strong class="text-black">Employment Status:</strong> <?= esc(ucwords(str_replace('-', ' ', $job['employment_type'] ?? 'Full Time'))) ?></li>
+                            <li class="mb-2"><strong class="text-black">Experience:</strong> <?= esc($job['experience_level'] ?? 'Not specified') ?></li>
+                            <li class="mb-2"><strong class="text-black">Job Location:</strong> <?= esc($job['location']) ?></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 </div>
-<!-- job post company End -->
+
 <?= view('Layouts/candidate_footer') ?>

@@ -1,6 +1,22 @@
 <?= view('Layouts/candidate_header', ['title' => 'My Profile']) ?>
 
-<section class="contact-section pt-5">
+<div class="profile-jobboard">
+    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7">
+                    <h1 class="text-white font-weight-bold">My Profile</h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
+                        <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong>My Profile</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<section class="site-section pt-0 content-wrap">
     <div class="container">
         <!-- Profile Completion Progress -->
         <div class="row mb-4">
@@ -26,7 +42,7 @@
                             <?php if (!empty($user['profile_photo'])): ?>
                                 <img src="<?= base_url($user['profile_photo']) ?>" alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover; border: 4px solid #e9ecef;">
                             <?php else: ?>
-                                <img src="<?= base_url('assets/img/default-avatar.png') ?>" alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover; border: 4px solid #e9ecef;">
+                                <img src="<?= base_url('jobboard/images/default-avatar.png') ?>" alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover; border: 4px solid #e9ecef;">
                             <?php endif; ?>
                             <div class="mt-2">
                                 <form method="post" action="<?= base_url('candidate/upload-photo') ?>" enctype="multipart/form-data" style="display: inline;">
@@ -97,6 +113,14 @@
                     <li class="nav-item">
                         <a class="nav-link" id="skills-tab" data-toggle="tab" href="#skills" role="tab">
                             <i class="fas fa-code"></i> Skills
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="interests-tab" data-toggle="tab" href="#interests" role="tab">
+                            <i class="fas fa-heart"></i> Interests
+                            <?php if (!empty($interests)): ?>
+                                <span class="badge badge-success ml-1"><?= count($interests) ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -349,6 +373,108 @@
                         </div>
                     </div>
 
+                    <!-- Interests Tab -->
+                    <div class="tab-pane fade" id="interests" role="tabpanel">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-heart"></i> Job Interests</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (session()->getFlashdata('success')): ?>
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <?= esc(session()->getFlashdata('success')) ?>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (session()->getFlashdata('error')): ?>
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <?= esc(session()->getFlashdata('error')) ?>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                <?php endif; ?>
+
+                                <p class="text-muted mb-3">
+                                    <i class="fas fa-info-circle"></i>
+                                    Add job categories, roles, or technologies you're interested in.
+                                    These are used to personalise your <strong>For You</strong> job recommendations.
+                                </p>
+
+                                <!-- Current interests -->
+                                <?php if (!empty($interests)): ?>
+                                    <div class="mb-4">
+                                        <h6><i class="fas fa-tags"></i> Your Interests</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <?php foreach ($interests as $interest): ?>
+                                                <span class="badge bg-success d-inline-flex align-items-center gap-1 px-3 py-2" style="font-size:.85rem;">
+                                                    <?= esc($interest) ?>
+                                                    <a href="<?= base_url('candidate/delete-interest/' . urlencode($interest)) ?>"
+                                                       onclick="return confirm('Remove this interest?')"
+                                                       class="text-white ms-1"
+                                                       title="Remove"
+                                                       style="text-decoration:none;line-height:1;">
+                                                        &times;
+                                                    </a>
+                                                </span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="text-center py-3 mb-4">
+                                        <i class="fas fa-heart fa-3x text-muted mb-2"></i>
+                                        <p class="text-muted">No interests added yet. Add some below to get personalised job matches!</p>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Add interest form -->
+                                <div class="mt-2">
+                                    <h6><i class="fas fa-plus-circle"></i> Add an Interest</h6>
+                                    <form method="post" action="<?= base_url('candidate/add-interest') ?>" class="d-flex gap-2">
+                                        <?= csrf_field() ?>
+                                        <input type="text" name="interest" class="form-control"
+                                               placeholder="e.g. Web Development, Data Science, React, Remote…" required>
+                                        <button type="submit" class="btn btn-success text-nowrap">
+                                            <i class="fas fa-plus"></i> Add
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Suggestions -->
+                                <div class="mt-4">
+                                    <h6 class="text-muted"><i class="fas fa-lightbulb"></i> Popular interests — click to add</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <?php
+                                        $suggestions = [
+                                            'Web Development','Mobile Development','Data Science','Machine Learning',
+                                            'DevOps','Cloud Computing','Cybersecurity','UI/UX Design',
+                                            'Backend Development','Frontend Development','Full Stack','Remote',
+                                            'Python','JavaScript','PHP','Java','React','Node.js',
+                                        ];
+                                        // $interests is a flat string array e.g. ['PHP', 'React', 'DevOps']
+                                        $existingInterests = array_map('strtolower', $interests ?? []);
+                                        foreach ($suggestions as $sug):
+                                            if (!in_array(strtolower($sug), $existingInterests)):
+                                        ?>
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary btn-sm"
+                                                    onclick="quickAddInterest('<?= esc($sug) ?>')">
+                                                + <?= esc($sug) ?>
+                                            </button>
+                                        <?php
+                                            endif;
+                                        endforeach;
+                                        ?>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden quick-add form -->
+                                <form method="post" action="<?= base_url('candidate/add-interest') ?>" id="quickInterestForm" style="display:none;">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="interest" id="quickInterestValue">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Work Experience Tab -->
                     <div class="tab-pane fade" id="experience" role="tabpanel">
                         <div class="card shadow-sm">
@@ -464,6 +590,7 @@
         </div>
     </div>
 </section>
+</div>
 
 <!-- Add Work Experience Modal -->
 <div class="modal fade" id="addExperienceModal" tabindex="-1">
@@ -623,62 +750,9 @@
     </div>
 </div>
 
-<script>
-function editExperience(exp) {
-    document.getElementById('exp_id').value = exp.id;
-    document.querySelector('[name="job_title"]').value = exp.job_title;
-    document.querySelector('[name="company_name"]').value = exp.company_name;
-    document.querySelector('[name="employment_type"]').value = exp.employment_type;
-    document.querySelector('[name="location"]').value = exp.location || '';
-    document.querySelector('[name="start_date"]').value = exp.start_date;
-    document.querySelector('[name="end_date"]').value = exp.end_date || '';
-    document.getElementById('isCurrent').checked = exp.is_current == 1;
-    document.querySelector('[name="description"]').value = exp.description || '';
-    document.querySelector('#addExperienceModal .modal-title').textContent = 'Edit Work Experience';
-    $('#addExperienceModal').modal('show');
-}
-
-function editEducation(edu) {
-    document.getElementById('edu_id').value = edu.id;
-    document.querySelector('#educationForm [name="degree"]').value = edu.degree;
-    document.querySelector('#educationForm [name="field_of_study"]').value = edu.field_of_study;
-    document.querySelector('#educationForm [name="institution"]').value = edu.institution;
-    document.querySelector('#educationForm [name="start_year"]').value = edu.start_year;
-    document.querySelector('#educationForm [name="end_year"]').value = edu.end_year;
-    document.querySelector('#educationForm [name="grade"]').value = edu.grade || '';
-    document.querySelector('#addEducationModal .modal-title').textContent = 'Edit Education';
-    $('#addEducationModal').modal('show');
-}
-
-function editCertification(cert) {
-    document.getElementById('cert_id').value = cert.id;
-    document.querySelector('#certificationForm [name="certification_name"]').value = cert.certification_name;
-    document.querySelector('#certificationForm [name="issuing_organization"]').value = cert.issuing_organization;
-    document.querySelector('#certificationForm [name="issue_date"]').value = cert.issue_date;
-    document.querySelector('#certificationForm [name="expiry_date"]').value = cert.expiry_date || '';
-    document.querySelector('#certificationForm [name="credential_id"]').value = cert.credential_id || '';
-    document.querySelector('#certificationForm [name="credential_url"]').value = cert.credential_url || '';
-    document.querySelector('#addCertificationModal .modal-title').textContent = 'Edit Certification';
-    $('#addCertificationModal').modal('show');
-}
-
-$('#addExperienceModal').on('hidden.bs.modal', function () {
-    document.getElementById('workExpForm').reset();
-    document.getElementById('exp_id').value = '';
-    document.querySelector('#addExperienceModal .modal-title').textContent = 'Add Work Experience';
-});
-
-$('#addEducationModal').on('hidden.bs.modal', function () {
-    document.getElementById('educationForm').reset();
-    document.getElementById('edu_id').value = '';
-    document.querySelector('#addEducationModal .modal-title').textContent = 'Add Education';
-});
-
-$('#addCertificationModal').on('hidden.bs.modal', function () {
-    document.getElementById('certificationForm').reset();
-    document.getElementById('cert_id').value = '';
-    document.querySelector('#addCertificationModal .modal-title').textContent = 'Add Certification';
-});
-</script>
-
 <?= view('Layouts/candidate_footer') ?>
+
+
+
+
+

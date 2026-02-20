@@ -2,7 +2,7 @@
 
 <div class="slider-area">
     <div class="single-slider section-overly slider-height2 d-flex align-items-center"
-        data-background="<?= base_url('assets/img/hero/about.jpg') ?>">
+        data-background="<?= base_url('jobboard/images/about.jpg') ?>">
         <div class="container">
             <div class="row">
                 <div class="col-xl-12">
@@ -140,3 +140,6 @@
 
 
 <?= view('Layouts/candidate_footer') ?>
+
+
+

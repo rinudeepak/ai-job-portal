@@ -75,7 +75,6 @@ $routes->get('recruiter/post_job', 'Recruiter::postJob', ['filter' => 'auth']);
 $routes->post('recruiter/post_job', 'Recruiter::saveJob', ['filter' => 'auth']);
 
 $routes->get('candidate/profile', 'Candidate::profile', ['filter' => 'auth']);
-$routes->get('candidate/applied_jobs', 'Candidate::appliedJobs', ['filter' => 'auth']);
 $routes->post('candidate/resume_upload', 'Candidate::resumeUpload', ['filter' => 'auth']);
 $routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills', ['filter' => 'auth']);
 $routes->get('candidate/download-resume', 'Candidate::downloadResume', ['filter' => 'auth']);
@@ -90,6 +89,8 @@ $routes->post('candidate/add-education', 'Candidate::addEducation', ['filter' =>
 $routes->get('candidate/delete-education/(:num)', 'Candidate::deleteEducation/$1', ['filter' => 'auth']);
 $routes->post('candidate/add-certification', 'Candidate::addCertification', ['filter' => 'auth']);
 $routes->get('candidate/delete-certification/(:num)', 'Candidate::deleteCertification/$1', ['filter' => 'auth']);
+$routes->post('candidate/add-interest', 'Candidate::addInterest', ['filter' => 'auth']);
+$routes->get('candidate/delete-interest/(:any)', 'Candidate::deleteInterest/$1', ['filter' => 'auth']);
 
 $routes->get('recruiter/candidate/(:num)', 'RecruiterCandidates::viewProfile/$1', ['filter' => 'auth']);
 
@@ -144,9 +145,3 @@ $routes->group('recruiter', ['filter' => 'auth'], function($routes) {
     // Bulk Actions
     $routes->post('slots/bulk-shortlist', 'SlotManagementController::bulkShortlist');
 });
-
-
-
-
-
-

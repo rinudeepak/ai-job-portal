@@ -8,7 +8,7 @@
                     <?php if (!empty($candidate['profile_photo'])): ?>
                         <img src="<?= base_url($candidate['profile_photo']) ?>" alt="Profile" class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
                     <?php else: ?>
-                        <img src="<?= base_url('assets/img/default-avatar.png') ?>" alt="Profile" class="rounded-circle mb-3" width="120" height="120">
+                        <img src="<?= base_url('jobboard/images/default-avatar.png') ?>" alt="Profile" class="rounded-circle mb-3" width="120" height="120">
                     <?php endif; ?>
                     <h4><?= esc($candidate['name']) ?></h4>
                     <p class="text-muted"><?= esc($candidate['email']) ?></p>
@@ -138,3 +138,8 @@
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>
+
+
+
+
+

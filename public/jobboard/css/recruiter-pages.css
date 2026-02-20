@@ -1,0 +1,379 @@
+.recruiter-jobboard {
+    background: #f8faff;
+}
+
+.recruiter-jobboard main {
+    padding-top: 0;
+    min-height: calc(100vh - 260px);
+}
+
+.recruiter-jobboard .container-fluid,
+.recruiter-jobboard .container {
+    max-width: 1220px;
+}
+
+.recruiter-jobboard .site-navbar {
+    position: absolute;
+    top: 0;
+    z-index: 1002;
+    background: transparent;
+    border-bottom: 0;
+    margin-top: 1rem !important;
+    padding-top: 0;
+    padding-bottom: 0;
+    box-shadow: none;
+}
+
+.recruiter-jobboard .site-navbar .container-fluid {
+    padding-left: 28px;
+    padding-right: 28px;
+}
+
+.recruiter-jobboard .site-navbar .row.align-items-center {
+    min-height: 56px;
+}
+
+.recruiter-jobboard .site-navbar .site-logo a,
+.recruiter-jobboard .site-navbar .site-menu > li > a,
+.recruiter-jobboard .site-navbar .site-menu-toggle {
+    color: #fff !important;
+}
+
+.recruiter-jobboard .site-navbar .site-logo a {
+    font-size: 1.85rem;
+    letter-spacing: .08em;
+    font-weight: 700;
+}
+
+.recruiter-jobboard .site-navbar .site-menu > li > a {
+    font-size: 1rem;
+    font-weight: 600;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.recruiter-jobboard .site-navbar .site-menu > li > a:hover {
+    color: #9ac31b !important;
+}
+
+.recruiter-jobboard .recruiter-global-hero {
+    min-height: 420px;
+}
+
+.recruiter-jobboard .recruiter-global-hero .container {
+    padding-top: 130px;
+    padding-bottom: 80px;
+}
+
+.recruiter-jobboard main > .container-fluid,
+.recruiter-jobboard main > .container {
+    margin-top: 0;
+    padding-top: 36px !important;
+    padding-bottom: 56px !important;
+}
+
+.recruiter-jobboard .site-navbar .right-cta-menu .btn {
+    padding: 9px 18px;
+    font-size: .95rem;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.recruiter-jobboard h2,
+.recruiter-jobboard h5,
+.recruiter-jobboard h6 {
+    color: #1f2f57;
+}
+
+.recruiter-jobboard .text-muted {
+    color: #6b7c9f !important;
+}
+
+.recruiter-jobboard .card {
+    border: 1px solid #e8edf8;
+    border-radius: 12px;
+    box-shadow: 0 10px 22px rgba(35, 54, 106, .08);
+}
+
+.recruiter-jobboard .card-header {
+    background: #fff;
+    border-bottom: 1px solid #edf1fa;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.recruiter-jobboard .btn {
+    border-radius: 8px;
+}
+
+.recruiter-jobboard .btn-primary {
+    background: #89ba16;
+    border-color: #89ba16;
+    color: #fff;
+}
+
+.recruiter-jobboard .btn-primary:hover {
+    background: #739f12;
+    border-color: #739f12;
+    color: #fff;
+}
+
+.recruiter-jobboard .contact-section {
+    padding: 20px 0 60px;
+}
+
+.recruiter-jobboard .form-contact .form-control,
+.recruiter-jobboard .contact_form .form-control {
+    border: 1px solid #dbe4f7;
+    border-radius: 8px;
+    min-height: 46px;
+    background: #fff;
+}
+
+.recruiter-jobboard .form-contact textarea.form-control,
+.recruiter-jobboard .contact_form textarea.form-control {
+    min-height: 140px;
+}
+
+.recruiter-jobboard .button-contactForm.boxed-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: #89ba16;
+    border: 1px solid #89ba16;
+    color: #fff;
+    font-weight: 600;
+}
+
+.recruiter-jobboard .button-contactForm.boxed-btn:hover {
+    color: #fff;
+    background: #739f12;
+    border-color: #739f12;
+    text-decoration: none;
+}
+
+.recruiter-jobboard .btn-info {
+    background: #2f57bd;
+    border-color: #2f57bd;
+    color: #fff;
+}
+
+.recruiter-jobboard .btn-info:hover {
+    background: #244699;
+    border-color: #244699;
+    color: #fff;
+}
+
+.recruiter-jobboard .btn-success {
+    background: #89ba16;
+    border-color: #89ba16;
+    color: #fff;
+}
+
+.recruiter-jobboard .btn-success:hover {
+    background: #739f12;
+    border-color: #739f12;
+    color: #fff;
+}
+
+.recruiter-jobboard .btn-warning {
+    color: #1f2f57;
+    font-weight: 600;
+}
+
+.recruiter-jobboard .btn-outline-secondary {
+    border-color: #c9d5ef;
+    color: #42567f;
+}
+
+.recruiter-jobboard .btn-outline-secondary:hover {
+    background: #f1f5ff;
+    border-color: #b7c8ea;
+    color: #2c406a;
+}
+
+.recruiter-jobboard .table {
+    margin-bottom: 0;
+}
+
+.recruiter-jobboard .table thead th {
+    border-top: 0;
+    color: #3e4e73;
+    background: #f7faff;
+}
+
+.recruiter-jobboard .table-hover tbody tr:hover {
+    background: #f9fbff;
+}
+
+.recruiter-jobboard .badge {
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-weight: 600;
+}
+
+.recruiter-jobboard .badge-lg {
+    font-size: 12px;
+    padding: 8px 12px;
+}
+
+.recruiter-jobboard .border-left-primary,
+.recruiter-jobboard .border-left-success,
+.recruiter-jobboard .border-left-info,
+.recruiter-jobboard .border-left-warning {
+    border-left-width: 4px !important;
+}
+
+.recruiter-jobboard .border-left-primary {
+    border-left-color: #2f57bd !important;
+}
+
+.recruiter-jobboard .border-left-success {
+    border-left-color: #28a745 !important;
+}
+
+.recruiter-jobboard .border-left-info {
+    border-left-color: #17a2b8 !important;
+}
+
+.recruiter-jobboard .border-left-warning {
+    border-left-color: #f0ad4e !important;
+}
+
+.recruiter-jobboard .text-xs {
+    font-size: 12px;
+}
+
+.recruiter-jobboard .text-gray-800 {
+    color: #1f2f57 !important;
+}
+
+.recruiter-jobboard .text-gray-300 {
+    color: #b8c4df !important;
+}
+
+.recruiter-jobboard .pipeline-stat .stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recruiter-jobboard .pipeline-stat h3 {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #22335d;
+}
+
+.recruiter-jobboard .leaderboard-table .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.recruiter-jobboard .leaderboard-table .rank-badge.gold {
+    background: #ffefb0;
+    color: #8a6500;
+}
+
+.recruiter-jobboard .leaderboard-table .rank-badge.silver {
+    background: #eceff5;
+    color: #44506a;
+}
+
+.recruiter-jobboard .leaderboard-table .rank-badge.bronze {
+    background: #f7dcc8;
+    color: #79401a;
+}
+
+.recruiter-jobboard .leaderboard-table .rank-number {
+    display: inline-block;
+    min-width: 32px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.recruiter-jobboard .score-display .score-value {
+    display: block;
+    font-weight: 700;
+}
+
+.recruiter-jobboard .score-display .score-bar {
+    width: 74px;
+    height: 6px;
+    background: #e4eaf8;
+    border-radius: 999px;
+    margin: 6px auto 0;
+    overflow: hidden;
+}
+
+.recruiter-jobboard .score-display .score-fill {
+    height: 100%;
+    background: #2f57bd;
+}
+
+.recruiter-jobboard .skill-badge {
+    display: inline-block;
+    margin: 2px 4px 2px 0;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    border: 1px solid #d7e1f8;
+    background: #f6f9ff;
+}
+
+.recruiter-jobboard .bg-gradient-primary {
+    background: linear-gradient(90deg, #2f57bd, #5a7bda) !important;
+}
+
+.recruiter-jobboard .me-1 {
+    margin-right: .25rem !important;
+}
+
+.recruiter-jobboard .skill-badge.skill-has {
+    border-color: #bee5c8;
+    background: #eefbf2;
+}
+
+.recruiter-jobboard .skill-badge.skill-missing {
+    border-color: #f2d3d7;
+    background: #fff5f6;
+}
+
+.recruiter-jobboard .pagination li a,
+.recruiter-jobboard .pagination li span {
+    border-radius: 8px !important;
+}
+
+@media (max-width: 991px) {
+    .recruiter-jobboard main {
+        padding-top: 0;
+    }
+
+    .recruiter-jobboard .site-navbar .container-fluid {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .recruiter-jobboard .recruiter-global-hero {
+        min-height: 340px;
+    }
+
+    .recruiter-jobboard .recruiter-global-hero .container {
+        padding-top: 110px;
+        padding-bottom: 60px;
+    }
+
+    .recruiter-jobboard main > .container-fluid,
+    .recruiter-jobboard main > .container {
+        margin-top: 0;
+        padding-top: 24px !important;
+    }
+}

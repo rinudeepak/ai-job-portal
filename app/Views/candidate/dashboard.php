@@ -1,286 +1,209 @@
 <?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
 
-<!-- Dashboard Content Start -->
-<div class="featured-job-area feature-padding pt-5">
-    <div class="container">
-        <!-- Career Transition Suggestions -->
-        <?php 
-        $suggestions = session()->get('career_suggestions') ?? [];
-        $activeSuggestions = array_filter($suggestions, function($s) {
-            return isset($s['expires_at']) && time() < $s['expires_at'];
-        });
-        
-        if (!empty($activeSuggestions)): ?>
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <h5><i class="fas fa-lightbulb"></i> Career Growth Suggestions</h5>
-            <p>We noticed you're exploring roles that may require additional skills. Consider these career paths:</p>
-            
-            <div class="row">
-            <?php foreach ($activeSuggestions as $suggestion): ?>
-                <div class="col-md-6 mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="text-primary"><i class="fas fa-arrow-right"></i> <?= esc($suggestion['job_title']) ?></h6>
-                            <p class="small text-muted mb-2">Skills may not match your current profile</p>
-                            <a href="#" onclick="confirmCareerReset(event, '<?= urlencode($suggestion['job_title']) ?>')" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-route"></i> Explore Learning Path
-                            </a>
-                        </div>
+<?php
+$suggestions = session()->get('career_suggestions') ?? [];
+$activeSuggestions = array_filter($suggestions, function ($s) {
+    return isset($s['expires_at']) && time() < $s['expires_at'];
+});
+$avgScore = $stats['average_ai_score'] ?? 0;
+$recentApps = array_slice($applications ?? [], 0, 5);
+?>
+
+<div class="dashboard-jobboard">
+    <section class="home-section section-hero overlay bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+        <div class="container">
+            <div class="row align-items-center justify-content-center">
+                <div class="col-lg-10 text-center">
+                    <h1 class="text-white font-weight-bold mb-3">Welcome Back to Your Career Dashboard</h1>
+                    <p class="lead text-white mb-4">Track your applications, interviews, and AI progress with the same JobBoard visual style.</p>
+                    <div>
+                        <span class="metric-chip">Applications: <?= $stats['total_applications'] ?? 0 ?></span>
+                        <span class="metric-chip">Active: <?= $stats['active_applications'] ?? 0 ?></span>
+                        <span class="metric-chip">Interviews: <?= $stats['interviews_scheduled'] ?? 0 ?></span>
+                        <span class="metric-chip">AI Score: <?= $avgScore > 0 ? number_format($avgScore, 1) : 'N/A' ?></span>
+                    </div>
+                    <div class="mt-4">
+                        <a href="<?= base_url('jobs') ?>" class="btn btn-primary btn-lg mr-2">Browse Jobs</a>
+                        <a href="<?= base_url('candidate/applications') ?>" class="btn btn-outline-white border-width-2 btn-lg">My Applications</a>
                     </div>
                 </div>
-            <?php endforeach; ?>
             </div>
-            
-            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="dismissAllSuggestions()">
-                <i class="fas fa-times"></i> Dismiss All
-            </button>
         </div>
-        <?php endif; ?>
-        
-        <!-- Notification Alerts Section -->
-       
+    </section>
 
-        <!-- Pending Actions Section -->
+    <div class="container dashboard-alerts">
+        <?php if (!empty($activeSuggestions)): ?>
+            <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+                <h5><i class="fas fa-lightbulb"></i> Career Growth Suggestions</h5>
+                <p class="mb-3">You explored roles that may require extra skills. Suggested paths:</p>
+                <div class="row">
+                    <?php foreach ($activeSuggestions as $suggestion): ?>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded border">
+                                <div>
+                                    <strong><?= esc($suggestion['job_title']) ?></strong>
+                                    <div class="small text-muted">Skill gap detected for this target role.</div>
+                                </div>
+                                <a href="#" onclick="confirmCareerReset(event, '<?= urlencode($suggestion['job_title']) ?>')" class="btn btn-sm btn-outline-primary">
+                                    Explore
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="dismissAllSuggestions()">Dismiss All</button>
+            </div>
+        <?php endif; ?>
+
         <?php if (!empty($pendingActions) && count($pendingActions) > 0): ?>
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="alert alert-warning border-left-warning shadow">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-exclamation-triangle fa-2x mr-3"></i>
-                        <div>
-                            <h5 class="mb-1">
-                                <i class="fas fa-tasks"></i> You have <?= count($pendingActions) ?> pending action(s)
-                            </h5>
-                            <ul class="mb-0 pl-3">
-                                <?php foreach ($pendingActions as $action): ?>
-                                    <li>
-                                        <strong><?= esc($action['title']) ?>:</strong> 
-                                        <?= esc($action['description']) ?>
-                                        <?php if (!empty($action['link'])): ?>
-                                            <a href="<?= $action['link'] ?>" class="btn btn-sm btn-primary ml-2">
-                                                <?= $action['button_text'] ?? 'Take Action' ?>
-                                            </a>
-                                        <?php endif; ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            <div class="alert alert-warning shadow-sm" role="alert">
+                <h5 class="mb-2"><i class="fas fa-tasks"></i> You have <?= count($pendingActions) ?> pending action(s)</h5>
+                <ul class="mb-0 pl-3">
+                    <?php foreach ($pendingActions as $action): ?>
+                        <li class="mb-2">
+                            <strong><?= esc($action['title']) ?>:</strong> <?= esc($action['description']) ?>
+                            <?php if (!empty($action['link'])): ?>
+                                <a href="<?= $action['link'] ?>" class="btn btn-sm btn-primary ml-2"><?= $action['button_text'] ?? 'Take Action' ?></a>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
-        </div>
         <?php endif; ?>
+    </div>
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card stats-card border-left-primary shadow h-100">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Total Applications
-                                </div>
-                                <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                    <?= $stats['total_applications'] ?? 0 ?>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-file-alt fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
+    <section class="py-5 bg-image overlay-primary fixed overlay" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="next">
+        <div class="container">
+            <div class="row mb-5 justify-content-center">
+                <div class="col-md-8 text-center">
+                    <h2 class="section-title mb-2 text-white">Your Dashboard Stats</h2>
+                    <p class="lead text-white">Live overview of your hiring pipeline and profile performance.</p>
                 </div>
             </div>
-
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card stats-card border-left-success shadow h-100">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Active Applications
-                                </div>
-                                <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                    <?= $stats['active_applications'] ?? 0 ?>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
+            <div class="row pb-0 block__19738 section-counter">
+                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <strong class="number"><?= $stats['total_applications'] ?? 0 ?></strong>
                     </div>
+                    <span class="caption">Total Applications</span>
                 </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card stats-card border-left-warning shadow h-100">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                    Interviews Scheduled
-                                </div>
-                                <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                    <?= $stats['interviews_scheduled'] ?? 0 ?>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
+                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <strong class="number"><?= $stats['active_applications'] ?? 0 ?></strong>
                     </div>
+                    <span class="caption">Active Applications</span>
                 </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card stats-card border-left-info shadow h-100">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                    Average AI Score
-                                </div>
-                                <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                    <?php 
-                                    $avgScore = $stats['average_ai_score'] ?? 0;
-                                    echo $avgScore > 0 ? number_format($avgScore, 1) : 'N/A';
-                                    ?>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-robot fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
+                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <strong class="number"><?= $stats['interviews_scheduled'] ?? 0 ?></strong>
                     </div>
+                    <span class="caption">Interviews Scheduled</span>
+                </div>
+                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <strong class="number"><?= $avgScore > 0 ? number_format($avgScore, 1) : 'N/A' ?></strong>
+                    </div>
+                    <span class="caption">Average AI Score</span>
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- Applications Overview -->
-        <div class="row">
-            <div class="col-12">
-                <div class="section-tittle mb-3 d-flex justify-content-between align-items-center">
-                    <h3>Recent Applications</h3>
-                    <a href="<?= base_url('candidate/applications') ?>" class="btn btn-primary">
-                        <i class="fas fa-list"></i> View All Applications
+    <section class="site-section">
+        <div class="container">
+            <div class="row mb-5 justify-content-center">
+                <div class="col-md-7 text-center">
+                    <h2 class="section-title mb-2">Recent Applications</h2>
+                </div>
+            </div>
+
+            <?php if (empty($applications)): ?>
+                <div class="text-center bg-white rounded shadow-sm p-5 mb-4">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Applications Yet</h4>
+                    <p class="text-muted mb-4">Start exploring opportunities and submit your first application.</p>
+                    <a href="<?= base_url('jobs') ?>" class="btn btn-primary btn-lg">Browse Jobs</a>
+                </div>
+            <?php else: ?>
+                <ul class="job-listings mb-5">
+                    <?php foreach ($recentApps as $application): ?>
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
+                            <a href="<?= base_url('job/' . $application['job_id']) ?>" target="_blank"></a>
+                            <div class="job-listing-logo">
+                                <div class="icon-wrap">
+                                    <span class="icon-briefcase"></span>
+                                </div>
+                            </div>
+                            <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
+                                <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
+                                    <h2><?= esc($application['job_title']) ?></h2>
+                                    <strong>Applied <?= date('M d, Y', strtotime($application['applied_at'])) ?></strong>
+                                </div>
+                                <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
+                                    <span class="icon-briefcase"></span>
+                                    <?= esc($application['company_name'] ?? 'Job Details') ?>
+                                </div>
+                                <div class="job-listing-meta">
+                                    <span class="badge status-badge badge-<?= getStatusBadgeColor($application['status']) ?>">
+                                        <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+
+            <div class="text-center mb-4">
+                <a href="<?= base_url('candidate/applications') ?>" class="btn btn-primary btn-lg">View All Applications</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="site-section py-4 bg-light">
+        <div class="container">
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-7 text-center">
+                    <h2 class="section-title mb-2">Quick Actions</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <a href="<?= base_url('jobs') ?>" class="action-card d-block text-center">
+                        <span class="icon-search d-inline-block mb-3" style="font-size:34px;"></span>
+                        <h5>Browse Jobs</h5>
+                        <p class="mb-0 text-muted">Find matching roles.</p>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <a href="<?= base_url('candidate/my-bookings') ?>" class="action-card d-block text-center">
+                        <span class="icon-calendar d-inline-block mb-3" style="font-size:34px;"></span>
+                        <h5>My Interviews</h5>
+                        <p class="mb-0 text-muted">Check schedules.</p>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <a href="<?= base_url('candidate/profile') ?>" class="action-card d-block text-center">
+                        <span class="icon-user d-inline-block mb-3" style="font-size:34px;"></span>
+                        <h5>My Profile</h5>
+                        <p class="mb-0 text-muted">Update profile data.</p>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <a href="<?= base_url('career-transition') ?>" class="action-card d-block text-center">
+                        <span class="icon-trending_up d-inline-block mb-3" style="font-size:34px;"></span>
+                        <h5>Career Transition AI</h5>
+                        <p class="mb-0 text-muted">Build your path.</p>
                     </a>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <?php if (empty($applications)): ?>
-                <div class="col-12">
-                    <div class="card shadow text-center py-5">
-                        <div class="card-body">
-                            <i class="fas fa-inbox fa-5x text-muted mb-4"></i>
-                            <h4 class="text-muted">No Applications Yet</h4>
-                            <p class="text-muted mb-4">You haven't applied to any jobs yet. Start exploring opportunities!</p>
-                            <a href="<?= base_url('jobs') ?>" class="btn btn-primary btn-lg">
-                                <i class="fas fa-search"></i> Browse Jobs
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="col-12">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Job Title</th>
-                                            <th>Applied Date</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php 
-                                        $recentApps = array_slice($applications, 0, 5);
-                                        foreach ($recentApps as $application): 
-                                        ?>
-                                        <tr>
-                                            <td>
-                                                <strong><?= esc($application['job_title']) ?></strong>
-                                            </td>
-                                            <td><?= date('M d, Y', strtotime($application['applied_at'])) ?></td>
-                                            <td>
-                                                <span class="badge badge-<?= getStatusBadgeColor($application['status']) ?>">
-                                                    <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <a href="<?= base_url('job/'.$application['job_id']) ?>" class="btn btn-sm btn-outline-primary" target="_blank">
-                                                    <i class="fas fa-eye"></i> View Job
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <?php if (count($applications) > 5): ?>
-                                <div class="text-center mt-3">
-                                    <a href="<?= base_url('candidate/applications') ?>" class="btn btn-outline-primary">
-                                        View All <?= count($applications) ?> Applications
-                                    </a>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Quick Links -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="section-tittle mb-3">
-                    <h3>Quick Actions</h3>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <a href="<?= base_url('jobs') ?>" class="quick-link-card">
-                    <i class="fas fa-search fa-3x mb-3 text-primary"></i>
-                    <h5>Browse Jobs</h5>
-                    <p class="text-muted">Find new opportunities</p>
-                </a>
-            </div>
-            <div class="col-md-4 mb-4">
-                <a href="<?= base_url('candidate/my-bookings') ?>" class="quick-link-card">
-                    <i class="fas fa-calendar-alt fa-3x mb-3 text-success"></i>
-                    <h5>My Interviews</h5>
-                    <p class="text-muted">Manage interview schedules</p>
-                </a>
-            </div>
-            <div class="col-md-4 mb-4">
-                <a href="<?= base_url('candidate/profile') ?>" class="quick-link-card">
-                    <i class="fas fa-user fa-3x mb-3 text-info"></i>
-                    <h5>My Profile</h5>
-                    <p class="text-muted">Update your information</p>
-                </a>
-            </div>
-            <div class="col-md-4 mb-4">
-                <a href="<?= base_url('career-transition') ?>" class="quick-link-card">
-                    <i class="fas fa-rocket fa-3x mb-3 text-warning"></i>
-                    <h5>Career Transition AI</h5>
-                    <p class="text-muted">Plan your career growth</p>
-                </a>
-            </div>
-            
-        </div>
-    </div>
+    </section>
 </div>
-<!-- Dashboard Content End -->
-
-
 
 <?php
-// Helper function for status badge colors
-function getStatusBadgeColor($status) {
+function getStatusBadgeColor($status)
+{
     $colors = [
         'applied' => 'warning',
         'ai_interview_started' => 'info',
@@ -289,66 +212,10 @@ function getStatusBadgeColor($status) {
         'rejected' => 'danger',
         'interview_slot_booked' => 'warning',
         'selected' => 'success'
-        
     ];
+
     return $colors[$status] ?? 'secondary';
 }
-
-// Helper function for score badge colors
-function getScoreBadgeColor($score) {
-    if ($score >= 80) return 'success';
-    if ($score >= 60) return 'warning';
-    return 'danger';
-}
-
-// Helper function for time ago
-function timeAgo($datetime) {
-    $timestamp = strtotime($datetime);
-    $diff = time() - $timestamp;
-    
-    if ($diff < 60) return 'just now';
-    if ($diff < 3600) return floor($diff / 60) . ' minutes ago';
-    if ($diff < 86400) return floor($diff / 3600) . ' hours ago';
-    if ($diff < 604800) return floor($diff / 86400) . ' days ago';
-    
-    return date('M d, Y', $timestamp);
-}
 ?>
-
-<script>
-function dismissAllSuggestions() {
-    fetch('<?= base_url('career-transition/dismiss-suggestion') ?>', {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    }).then(() => {
-        location.reload();
-    });
-}
-
-function confirmCareerReset(event, targetRole = null) {
-    event.preventDefault();
-    fetch('<?= base_url('career-transition') ?>')
-        .then(response => response.text())
-        .then(html => {
-            if (html.includes('Change Career Path')) {
-                if (confirm('You have an existing career path. Do you want to reset it and start a new one? Your current progress will be lost.')) {
-                    if (targetRole) {
-                        window.location.href = '<?= base_url('career-transition?reset=1&target=') ?>' + targetRole;
-                    } else {
-                        window.location.href = '<?= base_url('career-transition?reset=1') ?>';
-                    }
-                }
-            } else {
-                if (targetRole) {
-                    window.location.href = '<?= base_url('career-transition?target=') ?>' + targetRole;
-                } else {
-                    window.location.href = '<?= base_url('career-transition') ?>';
-                }
-            }
-        });
-}
-</script>
 
 <?= view('Layouts/candidate_footer') ?>
