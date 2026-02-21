@@ -19,6 +19,12 @@ $routes->post('register', 'Auth::saveCandidate');
 // recruiter registration (restricted)
 $routes->get('recruiter/register', 'Auth::registerAdmin');
 $routes->post('recruiter/register', 'Auth::saveAdmin');
+$routes->get('recruiter/verification', 'Auth::recruiterVerification');
+$routes->get('recruiter/verify-email/(:any)', 'Auth::verifyRecruiterEmail/$1');
+$routes->post('recruiter/verify-phone', 'Auth::verifyRecruiterPhone');
+$routes->post('recruiter/resend-verification-email', 'Auth::resendRecruiterVerificationEmail');
+$routes->post('recruiter/resend-phone-otp', 'Auth::resendRecruiterPhoneOtp');
+$routes->get('company/(:num)', 'CompanyProfile::show/$1', ['filter' => 'auth']);
 
 // $routes->get('dashboard', 'Auth::dashboard');
 // Candidate Dashboard Routes
@@ -58,6 +64,8 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
     // Applications by Job
     $routes->get('applications', 'RecruiterApplications::index');
     $routes->get('applications/job/(:num)', 'RecruiterApplications::viewByJob/$1');
+    $routes->post('applications/shortlist/(:num)', 'RecruiterApplications::shortlist/$1');
+    $routes->post('applications/reject/(:num)', 'RecruiterApplications::reject/$1');
     
     // Job Management
     $routes->get('jobs', 'RecruiterJobs::index');
@@ -65,6 +73,8 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
     $routes->post('jobs/update/(:num)', 'RecruiterJobs::update/$1');
     $routes->get('jobs/close/(:num)', 'RecruiterJobs::close/$1');
     $routes->get('jobs/reopen/(:num)', 'RecruiterJobs::reopen/$1');
+    $routes->get('company-profile', 'CompanyProfile::edit');
+    $routes->post('company-profile', 'CompanyProfile::update');
 });
 
 $routes->get('jobs', 'Jobs::index', ['filter' => 'auth']);

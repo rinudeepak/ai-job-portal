@@ -1,6 +1,13 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Applications - ' . $job['title']]) ?>
 
 <div class="container-fluid py-5">
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+    <?php endif; ?>
+
     <div class="mb-4">
         <a href="<?= base_url('recruiter/applications') ?>" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back to Jobs
@@ -14,6 +21,10 @@
                 <i class="fas fa-map-marker-alt"></i> <?= esc($job['location']) ?> | 
                 <i class="fas fa-calendar"></i> Posted on <?= date('M d, Y', strtotime($job['created_at'])) ?>
             </small>
+            <?php $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
+            <div class="mt-2">
+                <span class="badge badge-info">AI Policy: <?= esc(str_replace('_', ' ', $policy)) ?></span>
+            </div>
         </div>
     </div>
 
@@ -72,6 +83,20 @@
                                         <a href="<?= base_url('recruiter/candidate/'.$app['candidate_id']) ?>" class="btn btn-sm btn-primary" target="_blank">
                                             <i class="fas fa-user"></i> View Profile
                                         </a>
+                                        <?php if ($app['status'] !== 'interview_slot_booked'): ?>
+                                            <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="d-inline-block">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-check"></i> Shortlist
+                                                </button>
+                                            </form>
+                                            <form method="post" action="<?= base_url('recruiter/applications/reject/' . $app['id']) ?>" class="d-inline-block">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

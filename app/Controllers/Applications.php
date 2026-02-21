@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ApplicationModel;
+use App\Models\JobModel;
 
 class Applications extends BaseController
 {
@@ -69,16 +70,22 @@ class Applications extends BaseController
         $mismatch = !empty($jobTitle) && !empty($allCandidateSkills) && 
                     (!$hasJobTitleSkill && !$hasRequiredSkills);
 
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+        $initialStatus = $aiPolicy === JobModel::AI_POLICY_OFF ? 'shortlisted' : 'applied';
+
         $model->insert([
             'job_id' => $jobId,
             'candidate_id' => $candidateId,
-            'status' => 'applied',
+            'status' => $initialStatus,
             'applied_at' => date('Y-m-d H:i:s')
         ]);
         
         $applicationId = $model->getInsertID();
         $stageModel = model('StageHistoryModel');
         $stageModel->moveToStage($applicationId, 'Applied');
+        if ($initialStatus === 'shortlisted') {
+            $stageModel->moveToStage($applicationId, 'Shortlisted (AI Policy OFF)');
+        }
 
         if ($mismatch) {
             // Store multiple suggestions as array
@@ -103,9 +110,22 @@ class Applications extends BaseController
                 $session->set('career_suggestions', $suggestions);
             }
             
-            return redirect()->to('candidate/dashboard')->with('success', 'Job applied successfully');
+            return redirect()->to('candidate/dashboard')->with('success', $this->getApplySuccessMessage($aiPolicy));
         }
 
-        return redirect()->back()->with('success', 'Job applied successfully');
+        return redirect()->back()->with('success', $this->getApplySuccessMessage($aiPolicy));
+    }
+
+    private function getApplySuccessMessage(string $aiPolicy): string
+    {
+        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
+            return 'Job applied successfully. This job skips AI interview and moved to shortlist stage.';
+        }
+
+        if ($aiPolicy === JobModel::AI_POLICY_OPTIONAL) {
+            return 'Job applied successfully. AI interview is optional for this job.';
+        }
+
+        return 'Job applied successfully';
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\JobModel;
 
 class RecruiterJobs extends BaseController
 {
@@ -56,6 +57,12 @@ class RecruiterJobs extends BaseController
             'required_skills' => $this->request->getPost('required_skills'),
             'openings' => $this->request->getPost('openings')
         ];
+
+        // Keep backward compatibility if DB is not migrated yet.
+        $db = \Config\Database::connect();
+        if ($db->fieldExists('ai_interview_policy', 'jobs')) {
+            $data['ai_interview_policy'] = JobModel::normalizeAiPolicy($this->request->getPost('ai_interview_policy'));
+        }
 
         $jobModel->update($jobId, $data);
 

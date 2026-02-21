@@ -262,15 +262,30 @@ $employmentTypes    = $employmentTypes    ?? [];
                             $score   = $job['match_score'] ?? 0;
                             $cls     = $score >= 70 ? 'high' : ($score >= 40 ? 'mid' : 'low');
                             $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
+                            $companyRefId = (int) ($job['company_id'] ?? 0);
+                            if ($companyRefId <= 0) {
+                                $companyRefId = (int) ($job['recruiter_id'] ?? 0);
+                            }
+                            $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
                         ?>
                         <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item">
                             <div class="job-listing-logo">
-                                <div class="smart-job-logo"><?= $initial ?></div>
+                                <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
+                                    <div class="smart-job-logo">
+                                        <?php if (!empty($job['company_logo'])): ?>
+                                            <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="smart-job-logo-img">
+                                        <?php else: ?>
+                                            <?= $initial ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </a>
                             </div>
                             <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
                                 <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
                                     <h2><a class="job-title-link" href="<?= base_url('job/' . $job['id']) ?>"><?= esc($job['title']) ?></a></h2>
-                                    <strong><?= esc($job['company']) ?></strong>
+                                    <strong>
+                                        <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a>
+                                    </strong>
                                     <div class="smart-job-extra mt-2">
                                         <span><i class="fas fa-layer-group"></i> <?= esc($job['experience_level']) ?></span>
                                     </div>
@@ -405,16 +420,31 @@ $employmentTypes    = $employmentTypes    ?? [];
                             $cls     = $score >= 70 ? 'high' : ($score >= 40 ? 'mid' : 'low');
                             $isTop   = $index < 3;
                             $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
+                            $companyRefId = (int) ($job['company_id'] ?? 0);
+                            if ($companyRefId <= 0) {
+                                $companyRefId = (int) ($job['recruiter_id'] ?? 0);
+                            }
+                            $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
                         ?>
                         <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item <?= $isTop ? 'top-match' : '' ?>">
                             <?php if ($isTop): ?><div class="top-badge">Top Match</div><?php endif; ?>
                             <div class="job-listing-logo">
-                                <div class="smart-job-logo"><?= $initial ?></div>
+                                <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
+                                    <div class="smart-job-logo">
+                                        <?php if (!empty($job['company_logo'])): ?>
+                                            <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="smart-job-logo-img">
+                                        <?php else: ?>
+                                            <?= $initial ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </a>
                             </div>
                             <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
                                 <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
                                     <h2><a class="job-title-link" href="<?= base_url('job/' . $job['id']) ?>"><?= esc($job['title']) ?></a></h2>
-                                    <strong><?= esc($job['company']) ?></strong>
+                                    <strong>
+                                        <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a>
+                                    </strong>
                                     <div class="smart-job-extra mt-2">
                                         <span><i class="fas fa-layer-group"></i> <?= esc($job['experience_level']) ?></span>
                                     </div>

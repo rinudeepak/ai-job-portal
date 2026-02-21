@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Candidate Registration | JobBoard</title>
+    <title>Candidate Registration | HireMatrix</title>
 
     <link rel="stylesheet" href="<?= base_url('jobboard/css/custom-bs.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/jquery.fancybox.min.css') ?>">
@@ -32,7 +32,7 @@
     <header class="site-navbar mt-3">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6"><a href="<?= base_url('/') ?>">JobBoard</a></div>
+                <div class="site-logo col-6"><a href="<?= base_url('/') ?>">HireMatrix</a></div>
                 <nav class="mx-auto site-navigation">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
                         <li><a href="<?= base_url('/') ?>">Home</a></li>
@@ -71,7 +71,7 @@
         <div class="container pt-4">
             <div class="row justify-content-center">
                 <div class="col-lg-6">
-                    <h2 class="mb-4">Sign Up To JobBoard</h2>
+                    <h2 class="mb-4">Sign Up To HireMatrix</h2>
                     <form method="post" action="<?= base_url('register') ?>" class="p-4 border rounded bg-white">
                         <?= csrf_field() ?>
 

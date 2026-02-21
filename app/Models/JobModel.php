@@ -6,6 +6,11 @@ use CodeIgniter\Model;
 
 class JobModel extends Model
 {
+    public const AI_POLICY_OFF = 'OFF';
+    public const AI_POLICY_OPTIONAL = 'OPTIONAL';
+    public const AI_POLICY_REQUIRED_SOFT = 'REQUIRED_SOFT';
+    public const AI_POLICY_REQUIRED_HARD = 'REQUIRED_HARD';
+
     protected $table = 'jobs';
     protected $primaryKey = 'id';
 
@@ -13,16 +18,31 @@ class JobModel extends Model
         'title',
         'category',
         'recruiter_id',
+        'company_id',
         'company',
         'location',
         'description',
         'required_skills',
         'experience_level',
         'min_ai_cutoff_score',
+        'ai_interview_policy',
         'openings',
         'status',
         'employment_type'
     ];
+
+    public static function normalizeAiPolicy(?string $policy): string
+    {
+        $value = strtoupper(trim((string) $policy));
+        $allowed = [
+            self::AI_POLICY_OFF,
+            self::AI_POLICY_OPTIONAL,
+            self::AI_POLICY_REQUIRED_SOFT,
+            self::AI_POLICY_REQUIRED_HARD,
+        ];
+
+        return in_array($value, $allowed, true) ? $value : self::AI_POLICY_REQUIRED_HARD;
+    }
     // Count open jobs
     public function getTotalOpenJobs()
     {

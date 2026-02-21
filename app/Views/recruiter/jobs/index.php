@@ -27,6 +27,7 @@
                             <th>Job Title</th>
                             <th>Location</th>
                             <th>Applications</th>
+                            <th>AI Policy</th>
                             <th>Status</th>
                             <th>Posted Date</th>
                             <th>Actions</th>
@@ -42,6 +43,10 @@
                                         <a href="<?= base_url('recruiter/applications/job/' . $job['id']) ?>">
                                             <span class="badge badge-primary"><?= $job['application_count'] ?></span>
                                         </a>
+                                    </td>
+                                    <td>
+                                        <?php $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
+                                        <span class="badge badge-info"><?= esc(str_replace('_', ' ', $policy)) ?></span>
                                     </td>
                                     <td>
                                         <span class="badge badge-<?= $job['status'] == 'open' ? 'success' : 'secondary' ?>">
@@ -69,7 +74,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center py-5">
+                                <td colspan="7" class="text-center py-5">
                                     <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
                                     <h5>No jobs posted yet</h5>
                                     <p class="text-muted">Start by posting your first job</p>

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>JobBoard | Home</title>
+    <title>HireMatrix | Home</title>
     <meta name="description" content="AI Job Portal home page">
 
     <link rel="stylesheet" href="<?= base_url('jobboard/css/custom-bs.css') ?>">
@@ -36,7 +36,7 @@
     <header class="site-navbar mt-3">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6"><a href="<?= base_url('/') ?>">JobBoard</a></div>
+                <div class="site-logo col-6"><a href="<?= base_url('/') ?>">HireMatrix</a></div>
 
                 <nav class="mx-auto site-navigation">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
@@ -97,6 +97,13 @@
     </section>
 
     <section class="py-5 bg-image overlay-primary fixed overlay" id="next" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');">
+        <?php
+            $platformStats = $platformStats ?? [];
+            $candidatesCount = (int) ($platformStats['candidates'] ?? 0);
+            $jobsPostedCount = (int) ($platformStats['jobs_posted'] ?? 0);
+            $interviewsBookedCount = (int) ($platformStats['interviews_booked'] ?? 0);
+            $recruitersCount = (int) ($platformStats['recruiters'] ?? 0);
+        ?>
         <div class="container">
             <div class="row mb-5 justify-content-center">
                 <div class="col-md-7 text-center">
@@ -106,19 +113,19 @@
             </div>
             <div class="row pb-0 block__19738 section-counter">
                 <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="1900">0</strong></div>
+                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $candidatesCount ?>"><?= $candidatesCount ?></strong></div>
                     <span class="caption">Candidates</span>
                 </div>
                 <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="450">0</strong></div>
+                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $jobsPostedCount ?>"><?= $jobsPostedCount ?></strong></div>
                     <span class="caption">Jobs Posted</span>
                 </div>
                 <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="320">0</strong></div>
+                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $interviewsBookedCount ?>"><?= $interviewsBookedCount ?></strong></div>
                     <span class="caption">Interviews Booked</span>
                 </div>
                 <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="120">0</strong></div>
+                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $recruitersCount ?>"><?= $recruitersCount ?></strong></div>
                     <span class="caption">Recruiters</span>
                 </div>
             </div>
@@ -135,56 +142,57 @@
             </div>
 
             <ul class="job-listings mb-5">
-                <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
-                    <a href="<?= base_url('login') ?>"></a>
-                    <div class="job-listing-logo">
-                        <img src="<?= base_url('jobboard/images/job_logo_1.jpg') ?>" alt="Job" class="img-fluid">
-                    </div>
-                    <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
-                        <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                            <h2>Frontend Developer</h2>
-                            <strong>Product Team</strong>
+                <?php if (!empty($featuredJobs)): ?>
+                    <?php foreach ($featuredJobs as $job): ?>
+                        <?php
+                            $logo = trim((string) ($job['company_logo'] ?? ''));
+                            $logoUrl = $logo !== '' ? base_url($logo) : '';
+                            $companyName = trim((string) ($job['company'] ?? 'Confidential Company'));
+                            $employmentType = trim((string) ($job['employment_type'] ?? ''));
+                        ?>
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
+                            <a href="<?= base_url('login') ?>"></a>
+                            <div class="job-listing-logo">
+                                <?php if ($logoUrl !== ''): ?>
+                                    <img src="<?= esc($logoUrl) ?>" alt="Company Logo" class="img-fluid">
+                                <?php else: ?>
+                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
+                                        <span class="icon-domain"></span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
+                                <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
+                                    <h2><?= esc($job['title'] ?? 'Untitled Role') ?></h2>
+                                    <strong><?= esc($companyName) ?></strong>
+                                </div>
+                                <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
+                                    <span class="icon-room"></span> <?= esc($job['location'] ?? 'Location not specified') ?>
+                                </div>
+                                <div class="job-listing-meta">
+                                    <span class="badge badge-success"><?= esc($employmentType !== '' ? $employmentType : 'Open') ?></span>
+                                </div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
+                        <a href="<?= base_url('login') ?>"></a>
+                        <div class="job-listing-logo">
+                            <img src="<?= base_url('jobboard/images/job_logo_1.jpg') ?>" alt="Job" class="img-fluid">
                         </div>
-                        <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                            <span class="icon-room"></span> Bangalore, India
+                        <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
+                            <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
+                                <h2>No Featured Roles Yet</h2>
+                                <strong>New openings will appear here soon</strong>
+                            </div>
+                            <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
+                                <span class="icon-room"></span> Check back shortly
+                            </div>
+                            <div class="job-listing-meta"><span class="badge badge-secondary">Coming Soon</span></div>
                         </div>
-                        <div class="job-listing-meta"><span class="badge badge-success">Full Time</span></div>
-                    </div>
-                </li>
-
-                <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
-                    <a href="<?= base_url('login') ?>"></a>
-                    <div class="job-listing-logo">
-                        <img src="<?= base_url('jobboard/images/job_logo_2.jpg') ?>" alt="Job" class="img-fluid">
-                    </div>
-                    <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
-                        <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                            <h2>DevOps Engineer</h2>
-                            <strong>Cloud Team</strong>
-                        </div>
-                        <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                            <span class="icon-room"></span> Hyderabad, India
-                        </div>
-                        <div class="job-listing-meta"><span class="badge badge-danger">Remote</span></div>
-                    </div>
-                </li>
-
-                <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
-                    <a href="<?= base_url('login') ?>"></a>
-                    <div class="job-listing-logo">
-                        <img src="<?= base_url('jobboard/images/job_logo_3.jpg') ?>" alt="Job" class="img-fluid">
-                    </div>
-                    <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
-                        <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                            <h2>Data Analyst</h2>
-                            <strong>Analytics Team</strong>
-                        </div>
-                        <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                            <span class="icon-room"></span> Chennai, India
-                        </div>
-                        <div class="job-listing-meta"><span class="badge badge-warning">Hybrid</span></div>
-                    </div>
-                </li>
+                    </li>
+                <?php endif; ?>
             </ul>
 
             <div class="row justify-content-center">

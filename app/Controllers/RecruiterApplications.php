@@ -50,4 +50,41 @@ class RecruiterApplications extends BaseController
             'applications' => $applications
         ]);
     }
+
+    public function shortlist($applicationId)
+    {
+        return $this->updateApplicationStatus($applicationId, 'shortlisted');
+    }
+
+    public function reject($applicationId)
+    {
+        return $this->updateApplicationStatus($applicationId, 'rejected');
+    }
+
+    private function updateApplicationStatus(int $applicationId, string $status)
+    {
+        $applicationModel = model('ApplicationModel');
+        $currentUserId = session()->get('user_id');
+
+        $application = $applicationModel
+            ->select('applications.*, jobs.recruiter_id')
+            ->join('jobs', 'jobs.id = applications.job_id')
+            ->where('applications.id', $applicationId)
+            ->first();
+
+        if (!$application || (int) $application['recruiter_id'] !== (int) $currentUserId) {
+            return redirect()->back()->with('error', 'Application not found');
+        }
+
+        if ($application['status'] === 'interview_slot_booked') {
+            return redirect()->back()->with('error', 'Booked interview applications cannot be changed here');
+        }
+
+        $applicationModel->update($applicationId, ['status' => $status]);
+
+        $stageModel = model('StageHistoryModel');
+        $stageModel->moveToStage($applicationId, $status === 'shortlisted' ? 'Shortlisted (Recruiter Override)' : 'Rejected (Recruiter Override)');
+
+        return redirect()->back()->with('success', 'Application status updated to ' . ucwords(str_replace('_', ' ', $status)));
+    }
 }

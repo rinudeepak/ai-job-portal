@@ -103,9 +103,21 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                                     </a>
 
                                     <?php if ($application['status'] === 'applied'): ?>
-                                        <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-success btn-sm">
-                                            <i class="fas fa-video"></i> Start AI Interview
-                                        </a>
+                                        <?php $policy = strtoupper($application['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
+                                        <?php if ($policy === 'OFF'): ?>
+                                            <span class="badge badge-info p-2">AI interview disabled for this job</span>
+                                        <?php else: ?>
+                                            <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-success btn-sm">
+                                                <i class="fas fa-video"></i> <?= $policy === 'OPTIONAL' ? 'Start AI Interview (Optional)' : 'Start AI Interview' ?>
+                                            </a>
+                                            <?php if ($policy === 'OPTIONAL'): ?>
+                                                <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-outline-warning btn-sm">
+                                                    <i class="fas fa-calendar-plus"></i> Book Slot Without AI
+                                                </a>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    <?php elseif ($application['status'] === 'ai_interview_completed' && strtoupper($application['ai_interview_policy'] ?? 'REQUIRED_HARD') === 'REQUIRED_SOFT'): ?>
+                                        <span class="badge badge-info p-2">AI done. Recruiter decision pending.</span>
                                     <?php elseif ($application['status'] === 'shortlisted'): ?>
                                         <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-warning btn-sm">
                                             <i class="fas fa-calendar-plus"></i> Book Interview Slot

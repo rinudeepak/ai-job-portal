@@ -7,6 +7,7 @@ $activeSuggestions = array_filter($suggestions, function ($s) {
 });
 $avgScore = $stats['average_ai_score'] ?? 0;
 $recentApps = array_slice($applications ?? [], 0, 5);
+$topSuggestedJobs = $topSuggestedJobs ?? [];
 ?>
 
 <div class="dashboard-jobboard">
@@ -15,7 +16,7 @@ $recentApps = array_slice($applications ?? [], 0, 5);
             <div class="row align-items-center justify-content-center">
                 <div class="col-lg-10 text-center">
                     <h1 class="text-white font-weight-bold mb-3">Welcome Back to Your Career Dashboard</h1>
-                    <p class="lead text-white mb-4">Track your applications, interviews, and AI progress with the same JobBoard visual style.</p>
+                    <p class="lead text-white mb-4">Track your applications, interviews, and AI progress with the same HireMatrix visual style.</p>
                     <div>
                         <span class="metric-chip">Applications: <?= $stats['total_applications'] ?? 0 ?></span>
                         <span class="metric-chip">Active: <?= $stats['active_applications'] ?? 0 ?></span>
@@ -111,6 +112,54 @@ $recentApps = array_slice($applications ?? [], 0, 5);
 
     <section class="site-section">
         <div class="container">
+            <div class="row mb-5 justify-content-center">
+                <div class="col-md-7 text-center">
+                    <h2 class="section-title mb-2">Top Suggested Jobs</h2>
+                    <p class="text-muted">Best matches based on your profile and behavior.</p>
+                </div>
+            </div>
+
+            <?php if (!empty($topSuggestedJobs)): ?>
+                <ul class="job-listings mb-4">
+                    <?php foreach ($topSuggestedJobs as $job): ?>
+                        <?php
+                            $score = (int) round($job['match_score'] ?? 0);
+                            $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
+                        ?>
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
+                            <a href="<?= base_url('job/' . $job['id']) ?>"></a>
+                            <div class="job-listing-logo">
+                                <?php if (!empty($job['company_logo'])): ?>
+                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company'] ?? 'Company') ?>" class="img-fluid" style="width:64px;height:64px;object-fit:cover;border-radius:8px;">
+                                <?php else: ?>
+                                    <div class="icon-wrap"><?= esc($initial) ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
+                                <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
+                                    <h2><?= esc($job['title'] ?? 'Untitled Role') ?></h2>
+                                    <strong><?= esc($job['company'] ?? 'Company') ?></strong>
+                                </div>
+                                <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
+                                    <span class="icon-room"></span> <?= esc($job['location'] ?? 'N/A') ?>
+                                </div>
+                                <div class="job-listing-meta">
+                                    <span class="badge badge-success"><?= $score ?>% Match</span>
+                                </div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <div class="text-center mb-5">
+                    <a href="<?= base_url('jobs?tab=suggested') ?>" class="btn btn-outline-primary btn-lg">View More Suggestions</a>
+                </div>
+            <?php else: ?>
+                <div class="text-center bg-white rounded shadow-sm p-4 mb-5">
+                    <p class="mb-3 text-muted">No suggestions yet. Add more skills and interests to improve recommendations.</p>
+                    <a href="<?= base_url('candidate/profile') ?>" class="btn btn-outline-primary">Update Profile</a>
+                </div>
+            <?php endif; ?>
+
             <div class="row mb-5 justify-content-center">
                 <div class="col-md-7 text-center">
                     <h2 class="section-title mb-2">Recent Applications</h2>

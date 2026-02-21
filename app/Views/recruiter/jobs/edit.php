@@ -44,6 +44,17 @@
                     <input type="number" name="openings" class="form-control" value="<?= esc($job['openings']) ?>" required min="1">
                 </div>
 
+                <div class="form-group">
+                    <?php $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
+                    <label>AI Interview Policy *</label>
+                    <select name="ai_interview_policy" class="form-control">
+                        <option value="REQUIRED_HARD" <?= $policy === 'REQUIRED_HARD' ? 'selected' : '' ?>>Required Hard (strict)</option>
+                        <option value="REQUIRED_SOFT" <?= $policy === 'REQUIRED_SOFT' ? 'selected' : '' ?>>Required Soft (recruiter override)</option>
+                        <option value="OPTIONAL" <?= $policy === 'OPTIONAL' ? 'selected' : '' ?>>Optional</option>
+                        <option value="OFF" <?= $policy === 'OFF' ? 'selected' : '' ?>>Off</option>
+                    </select>
+                </div>
+
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Update Job
                 </button>

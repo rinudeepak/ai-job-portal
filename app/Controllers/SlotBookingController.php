@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\JobModel;
+
 class SlotBookingController extends BaseController
 {
     /**
@@ -12,6 +14,7 @@ class SlotBookingController extends BaseController
         $userId = session()->get('user_id');
         
         $applicationModel = model('ApplicationModel');
+        $jobModel = model('JobModel');
         $slotModel = model('InterviewSlotModel');
         $bookingModel = model('InterviewBookingModel');
         
@@ -23,8 +26,10 @@ class SlotBookingController extends BaseController
             return redirect()->to('/dashboard')->with('error', 'Application not found');
         }
         
-        // Only shortlisted candidates can book
-        if ($application['status'] !== 'shortlisted') {
+        $job = $jobModel->find($application['job_id']);
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+
+        if (!$this->canBookSlotForStatus($application['status'], $aiPolicy)) {
             return redirect()->to('/dashboard')->with('error', 'You are not eligible to book a slot yet');
         }
         
@@ -53,6 +58,7 @@ class SlotBookingController extends BaseController
         $slotId = $this->request->getPost('slot_id');
         
         $applicationModel = model('ApplicationModel');
+        $jobModel = model('JobModel');
         $slotModel = model('InterviewSlotModel');
         $bookingModel = model('InterviewBookingModel');
         $notificationModel = model('NotificationModel');
@@ -61,6 +67,12 @@ class SlotBookingController extends BaseController
         $application = $applicationModel->find($applicationId);
         if (!$application || $application['candidate_id'] != $userId) {
             return redirect()->back()->with('error', 'Invalid application');
+        }
+
+        $job = $jobModel->find($application['job_id']);
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+        if (!$this->canBookSlotForStatus($application['status'], $aiPolicy)) {
+            return redirect()->back()->with('error', 'You are not eligible to book a slot yet');
         }
         
         // Check if slot is available
@@ -228,5 +240,22 @@ class SlotBookingController extends BaseController
         return view('candidate/my_bookings', [
             'bookings' => $bookings
         ]);
+    }
+
+    private function canBookSlotForStatus(string $status, string $aiPolicy): bool
+    {
+        if ($status === 'shortlisted') {
+            return true;
+        }
+
+        if ($aiPolicy === JobModel::AI_POLICY_OPTIONAL) {
+            return in_array($status, ['applied', 'ai_interview_completed'], true);
+        }
+
+        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
+            return $status === 'applied';
+        }
+
+        return false;
     }
 }

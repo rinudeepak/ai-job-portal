@@ -1,4 +1,11 @@
 <?= view('Layouts/candidate_header', ['title' => 'Job Details']) ?>
+<?php
+$companyRefId = (int) ($job['company_id'] ?? 0);
+if ($companyRefId <= 0) {
+    $companyRefId = (int) ($job['recruiter_id'] ?? 0);
+}
+$companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
+?>
 
 <div class="job-details-jobboard">
     <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
@@ -24,15 +31,18 @@
                 <div class="col-lg-8 mb-4 mb-lg-0">
                     <div class="d-flex align-items-center">
                         <div class="border p-2 d-inline-block mr-3 rounded">
-                            <div class="job-details-logo">
-                                <?= strtoupper(substr($job['company'] ?? 'J', 0, 1)) ?>
-                            </div>
+                            <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
+                                <div class="job-details-logo">
+                                    <?= strtoupper(substr($job['company'] ?? 'J', 0, 1)) ?>
+                                </div>
+                            </a>
                         </div>
                         <div>
                             <h2 class="mb-1"><?= esc($job['title']) ?></h2>
                             <div>
                                 <span class="ml-0 mr-2 mb-2 d-inline-block">
-                                    <span class="icon-briefcase mr-2"></span><?= esc($job['company']) ?>
+                                    <span class="icon-briefcase mr-2"></span>
+                                    <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a>
                                 </span>
                                 <span class="m-2 d-inline-block">
                                     <span class="icon-room mr-2"></span><?= esc($job['location']) ?>
@@ -46,6 +56,20 @@
                     </div>
                 </div>
                 <div class="col-lg-4">
+                    <?php
+                    $policyRaw = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
+                    $policyMap = [
+                        'OFF' => ['label' => 'AI: Off', 'class' => 'badge-secondary', 'hint' => 'No AI interview required'],
+                        'OPTIONAL' => ['label' => 'AI: Optional', 'class' => 'badge-info', 'hint' => 'AI interview can improve ranking'],
+                        'REQUIRED_SOFT' => ['label' => 'AI: Required Soft', 'class' => 'badge-warning', 'hint' => 'AI required, recruiter can override'],
+                        'REQUIRED_HARD' => ['label' => 'AI: Required Hard', 'class' => 'badge-danger', 'hint' => 'AI result is strict gate'],
+                    ];
+                    $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
+                    ?>
+                    <div class="mb-2">
+                        <span class="badge <?= esc($policy['class']) ?>" title="<?= esc($policy['hint']) ?>"><?= esc($policy['label']) ?></span>
+                        <small class="text-muted ml-2"><?= esc($policy['hint']) ?></small>
+                    </div>
                     <div class="row">
                         <div class="col-12">
                             <?php if ($alreadyApplied): ?>
@@ -154,7 +178,7 @@
                         <h3 class="text-primary mt-3 h5 pl-3 mb-3">Job Summary</h3>
                         <ul class="list-unstyled pl-3 mb-0">
                             <li class="mb-2"><strong class="text-black">Published on:</strong> <?= date('d M Y', strtotime($job['created_at'])) ?></li>
-                            <li class="mb-2"><strong class="text-black">Company:</strong> <?= esc($job['company']) ?></li>
+                            <li class="mb-2"><strong class="text-black">Company:</strong> <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a></li>
                             <li class="mb-2"><strong class="text-black">Employment Status:</strong> <?= esc(ucwords(str_replace('-', ' ', $job['employment_type'] ?? 'Full Time'))) ?></li>
                             <li class="mb-2"><strong class="text-black">Experience:</strong> <?= esc($job['experience_level'] ?? 'Not specified') ?></li>
                             <li class="mb-2"><strong class="text-black">Job Location:</strong> <?= esc($job['location']) ?></li>

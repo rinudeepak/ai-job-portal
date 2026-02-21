@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\CompanyModel;
+use App\Models\JobModel;
 
 class CandidateDashboardController extends BaseController
 {
@@ -25,12 +27,16 @@ class CandidateDashboardController extends BaseController
         
         // Get notifications
         $notifications = $this->getRecentNotifications($candidateId);
+
+        // Top suggested jobs for dashboard (best matches only)
+        $topSuggestedJobs = $this->getTopSuggestedJobs($candidateId, 3);
         
         return view('candidate/dashboard', [
             'applications' => $applications,
             'stats' => $stats,
             'pendingActions' => $pendingActions,
-            'notifications' => $notifications
+            'notifications' => $notifications,
+            'topSuggestedJobs' => $topSuggestedJobs,
         ]);
     }
     
@@ -40,12 +46,18 @@ class CandidateDashboardController extends BaseController
     private function getApplicationsWithDetails($candidateId)
     {
         $applicationModel = model('ApplicationModel');
+        $db = \Config\Database::connect();
+        $hasPolicyColumn = $db->fieldExists('ai_interview_policy', 'jobs');
+        $policySelect = $hasPolicyColumn
+            ? 'jobs.ai_interview_policy'
+            : "'REQUIRED_HARD' as ai_interview_policy";
         
         $applications = $applicationModel
             ->select('
                 applications.*,
                 jobs.title as job_title,
                 jobs.company,
+                ' . $policySelect . ',
                 interview_sessions.technical_score,
                 interview_sessions.communication_score,
                 interview_sessions.overall_rating,
@@ -218,6 +230,47 @@ class CandidateDashboardController extends BaseController
             ->orderBy('created_at', 'DESC')
             ->limit(5)
             ->findAll();
+    }
+
+    /**
+     * Get top job suggestions for dashboard (limited list).
+     */
+    private function getTopSuggestedJobs(int $candidateId, int $limit = 3): array
+    {
+        $jobModel = new JobModel();
+        $suggestedJobs = $jobModel->getSuggestedJobsBasic($candidateId, $limit);
+
+        if (empty($suggestedJobs)) {
+            return [];
+        }
+
+        $companyIds = [];
+        foreach ($suggestedJobs as $job) {
+            $companyId = (int) ($job['company_id'] ?? 0);
+            if ($companyId > 0) {
+                $companyIds[] = $companyId;
+            }
+        }
+
+        $companyLogoMap = [];
+        if (!empty($companyIds)) {
+            $companyModel = new CompanyModel();
+            $companies = $companyModel
+                ->select('id, logo')
+                ->whereIn('id', array_values(array_unique($companyIds)))
+                ->findAll();
+
+            foreach ($companies as $company) {
+                $companyLogoMap[(int) $company['id']] = (string) ($company['logo'] ?? '');
+            }
+        }
+
+        foreach ($suggestedJobs as $idx => $job) {
+            $companyId = (int) ($job['company_id'] ?? 0);
+            $suggestedJobs[$idx]['company_logo'] = $companyLogoMap[$companyId] ?? '';
+        }
+
+        return $suggestedJobs;
     }
     
     /**

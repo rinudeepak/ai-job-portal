@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Recruiter Registration | JobBoard</title>
+    <title>Recruiter Registration | HireMatrix</title>
 
     <link rel="stylesheet" href="<?= base_url('jobboard/css/custom-bs.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/jquery.fancybox.min.css') ?>">
@@ -32,7 +32,7 @@
     <header class="site-navbar mt-3">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6"><a href="<?= base_url('/') ?>">JobBoard</a></div>
+                <div class="site-logo col-6"><a href="<?= base_url('/') ?>">HireMatrix</a></div>
                 <nav class="mx-auto site-navigation">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
                         <li><a href="<?= base_url('/') ?>">Home</a></li>
@@ -100,8 +100,19 @@
                             <div class="col-md-12">
                                 <label class="text-black" for="email">Email Address</label>
                                 <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" required>
+                                <small class="text-muted">Use company domain email only (free providers are blocked).</small>
                                 <?php if (session('validation') && session('validation')->hasError('email')): ?>
                                     <small class="text-danger"><?= session('validation')->getError('email') ?></small>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="row form-group">
+                            <div class="col-md-12">
+                                <label class="text-black" for="phone">Phone Number</label>
+                                <input type="text" id="phone" name="phone" class="form-control" value="<?= old('phone') ?>" required>
+                                <?php if (session('validation') && session('validation')->hasError('phone')): ?>
+                                    <small class="text-danger"><?= session('validation')->getError('phone') ?></small>
                                 <?php endif; ?>
                             </div>
                         </div>

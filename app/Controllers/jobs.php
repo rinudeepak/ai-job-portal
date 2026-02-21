@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\CompanyModel;
 use App\Models\JobModel;
 
 class Jobs extends BaseController
@@ -170,6 +171,42 @@ class Jobs extends BaseController
             }
         }
         // ────────────────────────────────────────────────────────────────────
+
+        // Attach company logo for job cards.
+        $companyIds = [];
+        foreach ($jobs as $job) {
+            $id = (int) ($job['company_id'] ?? 0);
+            if ($id > 0) {
+                $companyIds[] = $id;
+            }
+        }
+        foreach ($suggestedJobs as $job) {
+            $id = (int) ($job['company_id'] ?? 0);
+            if ($id > 0) {
+                $companyIds[] = $id;
+            }
+        }
+        $companyIds = array_values(array_unique($companyIds));
+
+        $companyLogoMap = [];
+        if (!empty($companyIds)) {
+            $companies = (new CompanyModel())
+                ->select('id, logo')
+                ->whereIn('id', $companyIds)
+                ->findAll();
+            foreach ($companies as $company) {
+                $companyLogoMap[(int) $company['id']] = (string) ($company['logo'] ?? '');
+            }
+        }
+
+        foreach ($jobs as $index => $job) {
+            $id = (int) ($job['company_id'] ?? 0);
+            $jobs[$index]['company_logo'] = $companyLogoMap[$id] ?? '';
+        }
+        foreach ($suggestedJobs as $index => $job) {
+            $id = (int) ($job['company_id'] ?? 0);
+            $suggestedJobs[$index]['company_logo'] = $companyLogoMap[$id] ?? '';
+        }
 
         return view('candidate/smart_jobs', [
             'jobs'               => $jobs,

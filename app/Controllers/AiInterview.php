@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\AiInterviewer;
+use App\Models\JobModel;
 
 class AiInterview extends BaseController
 {
@@ -23,14 +24,22 @@ class AiInterview extends BaseController
 
         $applicationModel = model('ApplicationModel');
         $application = $applicationModel->find($applicationId);
+        $userId = session()->get('user_id');
+        if (!$application || (int) $application['candidate_id'] !== (int) $userId) {
+            return redirect()->to('/candidate/applications')->with('error', 'Application not found');
+        }
+
         $jobModel = model('JobModel');
         $job = $jobModel->find($application['job_id']);
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
+            return redirect()->to('/candidate/applications')->with('info', 'AI interview is disabled for this job');
+        }
+
         $job_title = $job['title'];   // Get candidate info from session/database
         // $this->interviewer = new AiInterviewer($job['min_ai_cutoff_score']);
         session()->set('ai_cutoff_score', $job['min_ai_cutoff_score']);
 
-
-        $userId = session()->get('user_id');
 
         $userModel = model('UserModel');
         $user = $userModel->find($userId);
@@ -61,6 +70,19 @@ class AiInterview extends BaseController
     {
         $userId = session()->get('user_id');
         $position = $this->request->getPost('position');
+        $applicationModel = model('ApplicationModel');
+        $jobModel = model('JobModel');
+
+        $application = $applicationModel->find($applicationId);
+        if (!$application || (int) $application['candidate_id'] !== (int) $userId) {
+            return redirect()->to('/candidate/applications')->with('error', 'Application not found');
+        }
+
+        $job = $jobModel->find($application['job_id']);
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
+            return redirect()->to('/candidate/applications')->with('info', 'AI interview is disabled for this job');
+        }
 
         if (empty($position)) {
             return redirect()->back()->with('error', 'Please specify the position');
@@ -97,7 +119,6 @@ class AiInterview extends BaseController
             'created_at' => $sessionData['created_at']
         ]);
 
-        $applicationModel = model('ApplicationModel');
         $applicationModel->update($applicationId, [
             'status' => 'ai_interview_started'
         ]);
@@ -271,14 +292,27 @@ class AiInterview extends BaseController
             'completed_at' => date('Y-m-d H:i:s')
         ]);
         $applicationModel = model('ApplicationModel');
+        $application = $applicationModel->find($applicationId);
+        if (!$application) {
+            return redirect()->to('/candidate/applications')->with('error', 'Application not found');
+        }
+        $jobModel = model('JobModel');
+        $job = $jobModel->find($application['job_id'] ?? 0);
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+
+        $finalStatus = $this->resolveFinalApplicationStatus($aiPolicy, $evaluation['ai_decision'] ?? 'rejected');
+
         $applicationModel->update($applicationId, [
-            'status' => $evaluation['ai_decision'],
+            'status' => $finalStatus,
             'ai_interview_id' => $interviewId
         ]);
         // Track stage
 
         $stageModel = model('StageHistoryModel');
         $stageModel->moveToStage($applicationId, 'AI Interview Evaluated');
+        if ($finalStatus !== 'shortlisted' && $finalStatus !== 'rejected') {
+            $stageModel->moveToStage($applicationId, 'AI Review Pending Recruiter Decision');
+        }
 
         return redirect()->to('/interview/results/' . $interviewId);
     }
@@ -333,6 +367,25 @@ class AiInterview extends BaseController
         }
 
         return new AiInterviewer($cutoff);
+    }
+
+    private function resolveFinalApplicationStatus(string $policy, string $aiDecision): string
+    {
+        $normalizedDecision = strtolower(trim($aiDecision)) === 'shortlisted' ? 'shortlisted' : 'rejected';
+
+        if ($policy === JobModel::AI_POLICY_REQUIRED_HARD) {
+            return $normalizedDecision;
+        }
+
+        if ($policy === JobModel::AI_POLICY_REQUIRED_SOFT) {
+            return $normalizedDecision === 'shortlisted' ? 'shortlisted' : 'ai_interview_completed';
+        }
+
+        if ($policy === JobModel::AI_POLICY_OPTIONAL) {
+            return $normalizedDecision === 'shortlisted' ? 'shortlisted' : 'applied';
+        }
+
+        return 'shortlisted';
     }
 
 
