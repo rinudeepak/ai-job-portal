@@ -72,7 +72,12 @@
             <div class="row justify-content-center">
                 <div class="col-lg-6">
                     <h2 class="mb-4">Sign Up To HireMatrix</h2>
-                    <form method="post" action="<?= base_url('register') ?>" class="p-4 border rounded bg-white">
+                    <div class="mb-3">
+                        <a href="<?= base_url('auth/google') ?>" class="btn btn-outline-danger btn-block">
+                            <span class="fab fa-google mr-2"></span>Continue with Google
+                        </a>
+                    </div>
+                    <div class="text-center text-muted mb-3"><small>or sign up with email</small></div>                    <form method="post" action="<?= base_url('register') ?>" class="p-4 border rounded bg-white">
                         <?= csrf_field() ?>
 
                         <?php if (session()->getFlashdata('error')): ?>

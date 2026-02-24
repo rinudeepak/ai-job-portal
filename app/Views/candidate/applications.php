@@ -94,6 +94,34 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                                         </div>
                                     </div>
                                 <?php endif; ?>
+
+                                <?php
+                                $recruiterActivity = $application['recruiter_activity'] ?? [];
+                                $profileViewed = (int) (($recruiterActivity['profile_unique_recruiters'] ?? 0) ?: ($recruiterActivity['profile_viewed_count'] ?? 0));
+                                $contactViewed = (int) (($recruiterActivity['contact_unique_recruiters'] ?? 0) ?: ($recruiterActivity['contact_viewed_count'] ?? 0));
+                                $resumeDownloaded = (int) (($recruiterActivity['resume_unique_recruiters'] ?? 0) ?: ($recruiterActivity['resume_downloaded_count'] ?? 0));
+                                $lastActivityAt = $recruiterActivity['last_recruiter_activity_at'] ?? null;
+                                ?>
+                                <h6 class="mt-3 mb-2"><i class="fas fa-user-check"></i> Recruiter Activity</h6>
+                                <div class="score-grid">
+                                    <div class="score-item">
+                                        <small class="text-muted d-block">Profile Viewed</small>
+                                        <strong><?= $profileViewed ?></strong>
+                                    </div>
+                                    <div class="score-item">
+                                        <small class="text-muted d-block">Contact Viewed</small>
+                                        <strong><?= $contactViewed ?></strong>
+                                    </div>
+                                    <div class="score-item">
+                                        <small class="text-muted d-block">Resume Downloaded</small>
+                                        <strong><?= $resumeDownloaded ?></strong>
+                                    </div>
+                                </div>
+                                <?php if (!empty($lastActivityAt)): ?>
+                                    <small class="text-muted d-block mt-2">
+                                        Last recruiter activity: <?= date('M d, Y h:i A', strtotime($lastActivityAt)) ?>
+                                    </small>
+                                <?php endif; ?>
                             </div>
 
                             <div class="application-footer">

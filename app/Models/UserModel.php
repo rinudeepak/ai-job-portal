@@ -14,6 +14,7 @@ class UserModel extends Model
         'phone',
         'password',
         'role',
+        'google_id',
         'company_name',
         'company_id',
         'email_verification_token',

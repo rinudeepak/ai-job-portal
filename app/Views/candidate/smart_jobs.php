@@ -14,11 +14,33 @@ $locations          = $locations          ?? [];
 $categories         = $categories         ?? [];
 $experienceLevels   = $experienceLevels   ?? [];
 $employmentTypes    = $employmentTypes    ?? [];
+$savedJobIds        = $savedJobIds        ?? [];
 ?>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.jobs-page-jobboard .smart-job-item.clickable-job-card {
+    position: relative;
+    cursor: pointer;
+}
+.jobs-page-jobboard .smart-job-item.clickable-job-card > a.job-card-overlay-link {
+    position: absolute !important;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2 !important;
+    display: block;
+}
+.jobs-page-jobboard .smart-job-item.clickable-job-card > a.job-card-overlay-link:hover {
+    border-left: 7px solid #89ba16;
+}
+.jobs-page-jobboard .smart-job-item.clickable-job-card a:not(.job-card-overlay-link) {
+    position: relative !important;
+    z-index: 3 !important;
+}
+</style>
 
 <!-- ── SEARCH HERO ── -->
 <div class="jobs-page-jobboard">
@@ -262,13 +284,16 @@ $employmentTypes    = $employmentTypes    ?? [];
                             $score   = $job['match_score'] ?? 0;
                             $cls     = $score >= 70 ? 'high' : ($score >= 40 ? 'mid' : 'low');
                             $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
+                            $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
                             $companyRefId = (int) ($job['company_id'] ?? 0);
                             if ($companyRefId <= 0) {
                                 $companyRefId = (int) ($job['recruiter_id'] ?? 0);
                             }
                             $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item">
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item clickable-job-card"
+                            >
+                            <a class="job-card-overlay-link" href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
                             <div class="job-listing-logo">
                                 <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
                                     <div class="smart-job-logo">
@@ -311,8 +336,9 @@ $employmentTypes    = $employmentTypes    ?? [];
                                     <?php if ($score > 0): ?>
                                         <small class="smart-match-text"><?= round($score) ?>% match</small>
                                     <?php endif; ?>
-                                    <a class="smart-view-link" href="<?= base_url('job/' . $job['id']) ?>">
-                                        View Job <i class="fas fa-arrow-right"></i>
+                                    <a class="smart-view-link" href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>">
+                                        <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                                        <?= $isSaved ? 'Saved' : 'Save Job' ?>
                                     </a>
                                 </div>
                             </div>
@@ -420,13 +446,16 @@ $employmentTypes    = $employmentTypes    ?? [];
                             $cls     = $score >= 70 ? 'high' : ($score >= 40 ? 'mid' : 'low');
                             $isTop   = $index < 3;
                             $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
+                            $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
                             $companyRefId = (int) ($job['company_id'] ?? 0);
                             if ($companyRefId <= 0) {
                                 $companyRefId = (int) ($job['recruiter_id'] ?? 0);
                             }
                             $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item <?= $isTop ? 'top-match' : '' ?>">
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item clickable-job-card <?= $isTop ? 'top-match' : '' ?>"
+                            >
+                            <a class="job-card-overlay-link" href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
                             <?php if ($isTop): ?><div class="top-badge">Top Match</div><?php endif; ?>
                             <div class="job-listing-logo">
                                 <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
@@ -471,8 +500,9 @@ $employmentTypes    = $employmentTypes    ?? [];
                                     ?>
                                     <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
                                     <small class="smart-match-text"><?= round($score) ?>% match</small>
-                                    <a class="smart-view-link" href="<?= base_url('job/' . $job['id']) ?>">
-                                        View Job <i class="fas fa-arrow-right"></i>
+                                    <a class="smart-view-link" href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>">
+                                        <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                                        <?= $isSaved ? 'Saved' : 'Save Job' ?>
                                     </a>
                                 </div>
                             </div>
@@ -628,6 +658,7 @@ function setSearch(kw) {
     document.getElementById('searchInput').value = kw;
     doSearch();
 }
+
 </script>
 
 <?= view('Layouts/candidate_footer') ?>

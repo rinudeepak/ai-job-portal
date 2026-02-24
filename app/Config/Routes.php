@@ -15,6 +15,8 @@ $routes->get('logout', 'Auth::logout');
 // Candidate registration
 $routes->get('register', 'Auth::registerCandidate');
 $routes->post('register', 'Auth::saveCandidate');
+$routes->get('auth/google', 'Auth::googleCandidateStart');
+$routes->get('auth/google/callback', 'Auth::googleCandidateCallback');
 
 // recruiter registration (restricted)
 $routes->get('recruiter/register', 'Auth::registerAdmin');
@@ -32,6 +34,9 @@ $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'auth
     $routes->get('dashboard', 'CandidateDashboardController::index');
     $routes->get('/', 'CandidateDashboardController::index'); // Default route
     $routes->get('applications', 'CandidateDashboardController::applications');
+    $routes->get('saved-jobs', 'SavedJobs::index');
+    $routes->get('messages/(:num)', 'CandidateMessages::thread/$1');
+    $routes->post('messages/(:num)/reply', 'CandidateMessages::reply/$1');
 });
 
 // Career Transition AI Routes
@@ -80,6 +85,8 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
 $routes->get('jobs', 'Jobs::index', ['filter' => 'auth']);
 $routes->get('job/(:num)', 'Jobs::jobDetail/$1', ['filter' => 'auth']);
 $routes->post('job/apply/(:num)', 'Applications::apply/$1', ['filter' => 'auth']);
+$routes->get('job/save/(:num)', 'SavedJobs::save/$1', ['filter' => 'auth']);
+$routes->get('job/unsave/(:num)', 'SavedJobs::unsave/$1', ['filter' => 'auth']);
 
 $routes->get('recruiter/post_job', 'Recruiter::postJob', ['filter' => 'auth']);
 $routes->post('recruiter/post_job', 'Recruiter::saveJob', ['filter' => 'auth']);
@@ -103,6 +110,9 @@ $routes->post('candidate/add-interest', 'Candidate::addInterest', ['filter' => '
 $routes->get('candidate/delete-interest/(:any)', 'Candidate::deleteInterest/$1', ['filter' => 'auth']);
 
 $routes->get('recruiter/candidate/(:num)', 'RecruiterCandidates::viewProfile/$1', ['filter' => 'auth']);
+$routes->get('recruiter/candidate/(:num)/view-contact', 'RecruiterCandidates::viewContact/$1', ['filter' => 'auth']);
+$routes->get('recruiter/candidate/(:num)/download-resume', 'RecruiterCandidates::downloadResume/$1', ['filter' => 'auth']);
+$routes->post('recruiter/candidate/(:num)/send-message', 'RecruiterCandidates::sendMessage/$1', ['filter' => 'auth']);
 
 // Test route - remove after testing
 $routes->get('test-profile', 'TestProfile::checkTables');

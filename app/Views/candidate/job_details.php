@@ -5,6 +5,7 @@ if ($companyRefId <= 0) {
     $companyRefId = (int) ($job['recruiter_id'] ?? 0);
 }
 $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
+$isSaved = (bool) ($isSaved ?? false);
 ?>
 
 <div class="job-details-jobboard">
@@ -72,6 +73,9 @@ $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : 
                     </div>
                     <div class="row">
                         <div class="col-12">
+                            <a href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>" class="btn btn-block btn-outline-secondary btn-md mb-2">
+                                <span class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-2"></span><?= $isSaved ? 'Saved' : 'Save Job' ?>
+                            </a>
                             <?php if ($alreadyApplied): ?>
                                 <button class="btn btn-block btn-light btn-md" disabled>
                                     <span class="icon-check mr-2 text-success"></span>Already Applied

@@ -179,6 +179,167 @@ class Auth extends BaseController
         return redirect()->to(base_url('login'));
     }
 
+
+    public function googleCandidateStart()
+    {
+        $clientId = trim((string) (env('google.clientId') ?? env('GOOGLE_CLIENT_ID') ?? ''));
+        $redirectUri = base_url('auth/google/callback');
+
+        if ($clientId === '') {
+            return redirect()->to(base_url('register'))
+                ->with('error', 'Google sign-up is not configured. Please contact support.');
+        }
+
+        $state = bin2hex(random_bytes(16));
+        session()->set('google_oauth_state', $state);
+
+        $query = http_build_query([
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
+            'response_type' => 'code',
+            'scope' => 'openid email profile',
+            'state' => $state,
+            'access_type' => 'online',
+            'prompt' => 'select_account',
+        ]);
+
+        return redirect()->to('https://accounts.google.com/o/oauth2/v2/auth?' . $query);
+    }
+
+    public function googleCandidateCallback()
+    {
+        $request = $this->request;
+        $session = session();
+
+        if ($request->getGet('error')) {
+            return redirect()->to(base_url('register'))
+                ->with('error', 'Google sign-up was cancelled or denied.');
+        }
+
+        $state = (string) $request->getGet('state');
+        $expectedState = (string) $session->get('google_oauth_state');
+        $session->remove('google_oauth_state');
+
+        if ($state === '' || $expectedState === '' || !hash_equals($expectedState, $state)) {
+            return redirect()->to(base_url('register'))
+                ->with('error', 'Invalid Google sign-up state. Please try again.');
+        }
+
+        $code = (string) $request->getGet('code');
+        if ($code === '') {
+            return redirect()->to(base_url('register'))
+                ->with('error', 'Missing Google authorization code.');
+        }
+
+        $clientId = trim((string) (env('google.clientId') ?? env('GOOGLE_CLIENT_ID') ?? ''));
+        $clientSecret = trim((string) (env('google.clientSecret') ?? env('GOOGLE_CLIENT_SECRET') ?? ''));
+        $redirectUri = base_url('auth/google/callback');
+
+        if ($clientId === '' || $clientSecret === '') {
+            return redirect()->to(base_url('register'))
+                ->with('error', 'Google sign-up is not configured.');
+        }
+
+        try {
+            $http = \Config\Services::curlrequest();
+
+            $tokenResponse = $http->post('https://oauth2.googleapis.com/token', [
+                'form_params' => [
+                    'code' => $code,
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
+                    'redirect_uri' => $redirectUri,
+                    'grant_type' => 'authorization_code',
+                ],
+            ]);
+
+            $tokenData = json_decode((string) $tokenResponse->getBody(), true) ?: [];
+            $accessToken = (string) ($tokenData['access_token'] ?? '');
+
+            if ($accessToken === '') {
+                return redirect()->to(base_url('register'))
+                    ->with('error', 'Google sign-up failed while getting access token.');
+            }
+
+            $userResponse = $http->get('https://www.googleapis.com/oauth2/v3/userinfo', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                ],
+            ]);
+
+            $googleUser = json_decode((string) $userResponse->getBody(), true) ?: [];
+        } catch (\Throwable $e) {
+            log_message('error', 'Google OAuth callback failed: ' . $e->getMessage());
+            return redirect()->to(base_url('register'))
+                ->with('error', 'Unable to connect to Google right now. Please try again.');
+        }
+
+        $googleId = trim((string) ($googleUser['sub'] ?? ''));
+        $email = strtolower(trim((string) ($googleUser['email'] ?? '')));
+        $name = trim((string) ($googleUser['name'] ?? ''));
+        $emailVerified = (bool) ($googleUser['email_verified'] ?? false);
+
+        if ($googleId === '' || $email === '' || !$emailVerified) {
+            return redirect()->to(base_url('register'))
+                ->with('error', 'Google did not return a verified email address.');
+        }
+
+        $userModel = new UserModel();
+
+        $user = $userModel
+            ->groupStart()
+                ->where('google_id', $googleId)
+                ->orWhere('email', $email)
+            ->groupEnd()
+            ->first();
+
+        if ($user) {
+            if (($user['role'] ?? '') !== 'candidate') {
+                return redirect()->to(base_url('login'))
+                    ->with('error', 'This Google account is linked to a recruiter account. Please use recruiter login.');
+            }
+
+            $updates = [];
+            if (empty($user['google_id'])) {
+                $updates['google_id'] = $googleId;
+            }
+            if (empty($user['name']) && $name !== '') {
+                $updates['name'] = $name;
+            }
+            if (!empty($updates)) {
+                $userModel->update((int) $user['id'], $updates);
+                $user = $userModel->find((int) $user['id']) ?? $user;
+            }
+        } else {
+            $insertData = [
+                'name' => $name !== '' ? $name : 'Google User',
+                'email' => $email,
+                'phone' => '',
+                'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
+                'role' => 'candidate',
+                'google_id' => $googleId,
+            ];
+
+            $userModel->insert($insertData);
+            $newId = (int) $userModel->getInsertID();
+            $user = $userModel->find($newId);
+
+            if (!$user) {
+                return redirect()->to(base_url('register'))
+                    ->with('error', 'Failed to create candidate account from Google profile.');
+            }
+        }
+
+        $session->regenerate();
+        $session->set([
+            'user_id' => $user['id'],
+            'user_name' => $user['name'],
+            'role' => $user['role'],
+            'logged_in' => true,
+        ]);
+
+        return redirect()->to(base_url('candidate/dashboard'));
+    }
     /* ================= ADMIN REGISTRATION ================= */
 
     public function registerAdmin()

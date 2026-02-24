@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\CompanyModel;
 use App\Models\JobModel;
+use App\Models\RecruiterCandidateActionModel;
 
 class CandidateDashboardController extends BaseController
 {
@@ -73,6 +74,27 @@ class CandidateDashboardController extends BaseController
         foreach ($applications as &$application) {
             $application['next_action'] = $this->getNextAction($application);
         }
+
+        $applicationIds = array_values(array_filter(array_map(static function ($application) {
+            return (int) ($application['id'] ?? 0);
+        }, $applications)));
+
+        $activitySummary = (new RecruiterCandidateActionModel())
+            ->getSummaryByApplicationIds((int) $candidateId, $applicationIds);
+
+        foreach ($applications as &$application) {
+            $appId = (int) ($application['id'] ?? 0);
+            $application['recruiter_activity'] = $activitySummary[$appId] ?? [
+                'profile_unique_recruiters' => 0,
+                'contact_unique_recruiters' => 0,
+                'resume_unique_recruiters' => 0,
+                'profile_viewed_count' => 0,
+                'contact_viewed_count' => 0,
+                'resume_downloaded_count' => 0,
+                'last_recruiter_activity_at' => null,
+            ];
+        }
+        unset($application);
         
         return $applications;
     }

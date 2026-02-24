@@ -80,7 +80,7 @@
                                     </td>
                                     <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
                                     <td>
-                                        <a href="<?= base_url('recruiter/candidate/'.$app['candidate_id']) ?>" class="btn btn-sm btn-primary" target="_blank">
+                                        <a href="<?= base_url('recruiter/candidate/' . $app['candidate_id'] . '?application_id=' . $app['id'] . '&job_id=' . $job['id']) ?>" class="btn btn-sm btn-primary" target="_blank">
                                             <i class="fas fa-user"></i> View Profile
                                         </a>
                                         <?php if ($app['status'] !== 'interview_slot_booked'): ?>

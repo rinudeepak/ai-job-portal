@@ -1,14 +1,29 @@
 <?= view('Layouts/candidate_header', ['title' => 'Notifications']) ?>
 
-<section class="contact-section pt-5">
-    <div class="container">
+<div class="applications-jobboard">
+    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7">
+                    <h1 class="text-white font-weight-bold">Notifications</h1>
+                    <div class="custom-breadcrumbs">
+                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
+                        <span class="mx-2 slash">/</span>
+                        <span class="text-white"><strong>Notifications</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container content-wrap pb-5">
         <div class="row">
             <div class="col-12 mb-4">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="contact-title">All Notifications</h2>
+                    <h2 class="contact-title mb-0">All Notifications</h2>
                     <?php if ($unread_count > 0): ?>
                         <a href="<?= base_url('notifications/mark-all-read') ?>" class="btn btn-primary">
-                            <i class="fas fa-check-double"></i> Mark All as Read
+                            <span class="icon-check mr-1"></span> Mark All as Read
                         </a>
                     <?php endif; ?>
                 </div>
@@ -18,7 +33,7 @@
                 <?php if (empty($notifications)): ?>
                     <div class="card text-center">
                         <div class="card-body py-5">
-                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <span class="icon-bell-slash text-muted mb-3 d-inline-block" style="font-size: 42px;"></span>
                             <h5>No Notifications</h5>
                             <p class="text-muted">You're all caught up!</p>
                         </div>
@@ -53,7 +68,7 @@
                                             <?php if ($notification['action_link']): ?>
                                                 <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" 
                                                    class="btn btn-sm btn-outline-primary">
-                                                    Take Action <i class="fas fa-arrow-right"></i>
+                                                    Take Action <span class="icon-arrow-right ml-1"></span>
                                                 </a>
                                             <?php else: ?>
                                                 <span></span>
@@ -63,13 +78,13 @@
                                                 <?php if (!$notification['is_read']): ?>
                                                     <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" 
                                                        class="btn btn-sm btn-link">
-                                                        <i class="fas fa-check"></i> Mark as Read
+                                                        <span class="icon-check mr-1"></span> Mark as Read
                                                     </a>
                                                 <?php endif; ?>
                                                 <a href="<?= base_url('notifications/delete/' . $notification['id']) ?>" 
                                                    class="btn btn-sm btn-link text-danger"
                                                    onclick="return confirm('Delete this notification?')">
-                                                    <i class="fas fa-trash"></i>
+                                                    <span class="icon-trash mr-1"></span> Delete
                                                 </a>
                                             </div>
                                         </div>
@@ -82,6 +97,6 @@
             </div>
         </div>
     </div>
-</section>
+</div>
 
 <?= view('Layouts/candidate_footer') ?>

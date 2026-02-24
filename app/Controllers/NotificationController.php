@@ -47,12 +47,15 @@ class NotificationController extends BaseController
     public function index()
     {
         $userId = session()->get('user_id');
+        $role = (string) session()->get('role');
         $notificationModel = model('NotificationModel');
         
         $notifications = $notificationModel->getUserNotifications($userId, 50);
         $unreadCount = $notificationModel->getUnreadCount($userId);
-        
-        return view('candidate/notifications', [
+
+        $view = $role === 'recruiter' ? 'recruiter/notifications' : 'candidate/notifications';
+
+        return view($view, [
             'notifications' => $notifications,
             'unread_count' => $unreadCount
         ]);

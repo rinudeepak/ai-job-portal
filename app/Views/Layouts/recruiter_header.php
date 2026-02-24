@@ -26,6 +26,12 @@
 </div>
 
 <div class="site-wrap">
+    <?php
+    $recruiterId = (int) (session()->get('user_id') ?? 0);
+    $recruiterUnreadNotificationCount = $recruiterId > 0
+        ? (int) model('NotificationModel')->getUnreadCount($recruiterId)
+        : 0;
+    ?>
     <div class="site-mobile-menu site-navbar-target">
         <div class="site-mobile-menu-header">
             <div class="site-mobile-menu-close mt-3">
@@ -51,7 +57,48 @@
                     </ul>
                 </nav>
                 <div class="right-cta-menu text-right d-flex aligin-items-center col-6">
+                    <style>
+                        .recruiter-notification-link {
+                            position: relative;
+                            width: 42px;
+                            height: 42px;
+                            border-radius: 50%;
+                            border: 1px solid rgba(255, 255, 255, 0.45);
+                            background: rgba(255, 255, 255, 0.12);
+                            color: #fff;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin-right: 10px;
+                            text-decoration: none;
+                        }
+                        .recruiter-notification-link:hover {
+                            background: rgba(255, 255, 255, 0.2);
+                            color: #fff;
+                        }
+                        .recruiter-notification-badge {
+                            position: absolute;
+                            top: -5px;
+                            right: -5px;
+                            min-width: 18px;
+                            height: 18px;
+                            border-radius: 999px;
+                            background: #dc3545;
+                            color: #fff;
+                            font-size: 11px;
+                            font-weight: 700;
+                            line-height: 18px;
+                            text-align: center;
+                            padding: 0 4px;
+                        }
+                    </style>
                     <div class="ml-auto">
+                        <a href="<?= base_url('notifications') ?>" class="recruiter-notification-link d-none d-lg-inline-flex" title="Notifications" aria-label="Notifications">
+                            <span class="icon-bell" style="font-size: 18px; line-height: 1;"></span>
+                            <?php if ($recruiterUnreadNotificationCount > 0): ?>
+                                <span class="recruiter-notification-badge"><?= $recruiterUnreadNotificationCount > 99 ? '99+' : $recruiterUnreadNotificationCount ?></span>
+                            <?php endif; ?>
+                        </a>
                         <a href="<?= base_url('logout') ?>" class="btn btn-primary border-width-2 d-none d-lg-inline-block">
                             <span class="mr-2 icon-lock_outline"></span>Logout
                         </a>

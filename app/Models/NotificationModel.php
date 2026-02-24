@@ -71,6 +71,36 @@ class NotificationModel extends Model
             'icon' => 'fas fa-check-circle',
             'color' => 'success',
             'priority' => 7
+        ],
+        'recruiter_profile_viewed' => [
+            'title' => 'Profile Viewed',
+            'icon' => 'fas fa-user-check',
+            'color' => 'info',
+            'priority' => 8
+        ],
+        'recruiter_contact_viewed' => [
+            'title' => 'Contact Viewed',
+            'icon' => 'fas fa-address-card',
+            'color' => 'primary',
+            'priority' => 9
+        ],
+        'recruiter_resume_downloaded' => [
+            'title' => 'Resume Downloaded',
+            'icon' => 'fas fa-file-download',
+            'color' => 'success',
+            'priority' => 10
+        ],
+        'recruiter_message' => [
+            'title' => 'Message from Recruiter',
+            'icon' => 'icon-mail_outline',
+            'color' => 'primary',
+            'priority' => 11
+        ],
+        'candidate_message_reply' => [
+            'title' => 'Candidate Replied',
+            'icon' => 'icon-reply',
+            'color' => 'info',
+            'priority' => 12
         ]
     ];
     

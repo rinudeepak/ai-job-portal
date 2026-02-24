@@ -1,6 +1,21 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Candidate Profile']) ?>
 
 <div class="container mt-5 mb-5">
+    <?php
+    $applicationId = (int) (service('request')->getGet('application_id') ?? 0);
+    $jobId = (int) (service('request')->getGet('job_id') ?? 0);
+    $showContact = (int) (service('request')->getGet('show_contact') ?? 0) === 1;
+    $contactViewUrl = base_url('recruiter/candidate/' . $candidate['id'] . '/view-contact')
+        . '?application_id=' . $applicationId
+        . '&job_id=' . $jobId;
+    $messages = $messages ?? [];
+    ?>
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
+    <?php endif; ?>
     <div class="row">
         <div class="col-lg-4">
             <div class="card shadow-sm">
@@ -11,11 +26,21 @@
                         <img src="<?= base_url('jobboard/images/default-avatar.png') ?>" alt="Profile" class="rounded-circle mb-3" width="120" height="120">
                     <?php endif; ?>
                     <h4><?= esc($candidate['name']) ?></h4>
-                    <p class="text-muted"><?= esc($candidate['email']) ?></p>
-                    <?php if($candidate['phone']): ?><p><i class="fas fa-phone"></i> <?= esc($candidate['phone']) ?></p><?php endif; ?>
+                    <?php if ($showContact): ?>
+                        <p class="text-muted"><?= esc($candidate['email']) ?></p>
+                        <?php if($candidate['phone']): ?><p><i class="fas fa-phone"></i> <?= esc($candidate['phone']) ?></p><?php endif; ?>
+                    <?php else: ?>
+                        <a href="<?= $contactViewUrl ?>" class="btn btn-outline-info btn-sm mt-2">
+                            <i class="fas fa-address-card"></i> View Contact
+                        </a>
+                    <?php endif; ?>
                     <?php if($candidate['location']): ?><p><i class="fas fa-map-marker-alt"></i> <?= esc($candidate['location']) ?></p><?php endif; ?>
+                    <?php
+                    $resumeUrl = base_url('recruiter/candidate/' . $candidate['id'] . '/download-resume');
+                    $resumeUrl .= '?application_id=' . $applicationId . '&job_id=' . $jobId;
+                    ?>
                     <?php if($candidate['resume_path']): ?>
-                        <a href="<?= base_url('writable/'.$candidate['resume_path']) ?>" class="btn btn-primary btn-sm mt-2" download><i class="fas fa-download"></i> Download Resume</a>
+                        <a href="<?= $resumeUrl ?>" class="btn btn-primary btn-sm mt-2"><i class="fas fa-download"></i> Download Resume</a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -28,6 +53,37 @@
                 </div>
             </div>
             <?php endif; ?>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6><i class="icon-mail_outline"></i> Message Candidate</h6>
+                    <?php if (!empty($messages)): ?>
+                        <div class="mb-2 p-2 border rounded" style="max-height: 180px; overflow-y: auto;">
+                            <?php foreach (array_slice($messages, -8) as $msg): ?>
+                                <?php $isRecruiterMsg = ($msg['sender_role'] ?? '') === 'recruiter'; ?>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block">
+                                        <?= $isRecruiterMsg ? 'You' : esc($candidate['name']) ?> • <?= date('M d, h:i A', strtotime($msg['created_at'])) ?>
+                                    </small>
+                                    <div><?= nl2br(esc($msg['message'] ?? '')) ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                    <form method="post" action="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/send-message') ?>">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="application_id" value="<?= $applicationId ?>">
+                        <input type="hidden" name="job_id" value="<?= $jobId ?>">
+                        <input type="hidden" name="show_contact" value="<?= $showContact ? 1 : 0 ?>">
+                        <div class="form-group mb-2">
+                            <textarea name="message" class="form-control" rows="4" maxlength="1000" placeholder="Write a message to candidate..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                            <i class="icon-send mr-1"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
         
         <div class="col-lg-8">

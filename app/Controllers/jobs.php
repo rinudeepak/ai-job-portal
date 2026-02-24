@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\CompanyModel;
 use App\Models\JobModel;
+use App\Models\SavedJobModel;
 
 class Jobs extends BaseController
 {
@@ -208,6 +209,27 @@ class Jobs extends BaseController
             $suggestedJobs[$index]['company_logo'] = $companyLogoMap[$id] ?? '';
         }
 
+        $savedJobIds = [];
+        if ($candidateId) {
+            $displayJobIds = [];
+            foreach ($jobs as $job) {
+                $displayJobIds[] = (int) ($job['id'] ?? 0);
+            }
+            foreach ($suggestedJobs as $job) {
+                $displayJobIds[] = (int) ($job['id'] ?? 0);
+            }
+            $displayJobIds = array_values(array_filter(array_unique($displayJobIds)));
+
+            if (!empty($displayJobIds)) {
+                $savedRows = (new SavedJobModel())
+                    ->select('job_id')
+                    ->where('candidate_id', (int) $candidateId)
+                    ->whereIn('job_id', $displayJobIds)
+                    ->findAll();
+                $savedJobIds = array_map('intval', array_column($savedRows, 'job_id'));
+            }
+        }
+
         return view('candidate/smart_jobs', [
             'jobs'               => $jobs,
             'totalJobs'          => $totalJobs,
@@ -223,6 +245,7 @@ class Jobs extends BaseController
             'candidateInterests' => $candidateInterests,
             'behavior'           => $behavior,
             'useAi'              => $useAi,
+            'savedJobIds'        => $savedJobIds,
         ]);
     }
     
@@ -273,11 +296,17 @@ class Jobs extends BaseController
             $interviewId = $interview ? $interview['id'] : null;
         }
 
+        $isSaved = (bool) (new SavedJobModel())
+            ->where('candidate_id', (int) session()->get('user_id'))
+            ->where('job_id', (int) $id)
+            ->first();
+
         return view('candidate/job_details', [
             'title' => 'Job Details',
             'job' => $job,
             'alreadyApplied' => $alreadyApplied,
-            'interviewId' => $interviewId
+            'interviewId' => $interviewId,
+            'isSaved' => $isSaved,
         ]);
     }
 
