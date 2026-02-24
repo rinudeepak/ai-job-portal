@@ -51,7 +51,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <?php if ($notification['action_link']): ?>
                                             <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" class="btn btn-sm btn-outline-primary">
-                                                Open <span class="icon-arrow-right ml-1"></span>
+                                                <?= esc($config['action_text'] ?? 'Open') ?> <span class="icon-arrow-right ml-1"></span>
                                             </a>
                                         <?php else: ?>
                                             <span></span>
@@ -79,4 +79,3 @@
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>
-

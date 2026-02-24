@@ -48,9 +48,14 @@
                 <nav class="mx-auto site-navigation">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
                         <li><a href="<?= base_url('recruiter/dashboard') ?>" class="nav-link">Dashboard</a></li>
-                        <li><a href="<?= base_url('recruiter/jobs') ?>" class="nav-link">My Jobs</a></li>
+                        <li class="has-children">
+                            <a href="<?= base_url('recruiter/jobs') ?>" class="nav-link">Jobs</a>
+                            <ul class="dropdown">
+                                <li><a href="<?= base_url('recruiter/jobs') ?>">My Jobs</a></li>
+                                <li><a href="<?= base_url('recruiter/post_job') ?>">Post a Job</a></li>
+                            </ul>
+                        </li>
                         <li><a href="<?= base_url('recruiter/applications') ?>" class="nav-link">Applications</a></li>
-                        <li><a href="<?= base_url('recruiter/post_job') ?>" class="nav-link">Post Job</a></li>
                         <li><a href="<?= base_url('recruiter/company-profile') ?>" class="nav-link">Company Profile</a></li>
                         <li><a href="<?= base_url('recruiter/slots') ?>" class="nav-link">Interview Slots</a></li>
                         <li><a href="<?= base_url('recruiter/dashboard/leaderboard') ?>" class="nav-link">Leaderboard</a></li>
@@ -123,8 +128,6 @@
                     <h1 class="text-white font-weight-bold"><?= $heroTitle ?></h1>
                     <div class="custom-breadcrumbs">
                         <a href="<?= base_url('recruiter/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('recruiter/dashboard') ?>">Recruiter</a>
                         <span class="mx-2 slash">/</span>
                         <span class="text-white"><strong><?= $heroTitle ?></strong></span>
                     </div>

@@ -18,6 +18,35 @@
 
 <section class="site-section pt-0 content-wrap">
     <div class="container">
+        <style>
+            .profile-quick-actions .btn {
+                width: 100%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                border-radius: 8px;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+            .profile-quick-actions .btn:last-child {
+                margin-bottom: 0;
+            }
+            @media (min-width: 992px) {
+                .profile-two-pane {
+                    align-items: flex-start;
+                }
+                .profile-two-pane .profile-left-pane {
+                    position: sticky;
+                    top: 110px;
+                }
+                .profile-two-pane .profile-right-pane {
+                    max-height: calc(100vh - 130px);
+                    overflow-y: auto;
+                    padding-right: 8px;
+                }
+            }
+        </style>
         <!-- Profile Completion Progress -->
         <div class="row mb-4">
             <div class="col-12">
@@ -33,16 +62,16 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row profile-two-pane">
             <!-- Profile Card -->
-            <div class="col-lg-4 mb-4">
+            <div class="col-lg-4 mb-4 profile-left-pane">
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
                         <div class="profile-avatar mb-3">
                             <?php if (!empty($user['profile_photo'])): ?>
                                 <img src="<?= base_url($user['profile_photo']) ?>" alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover; border: 4px solid #e9ecef;">
                             <?php else: ?>
-                                <img src="<?= base_url('jobboard/images/default-avatar.png') ?>" alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover; border: 4px solid #e9ecef;">
+                                <div class="rounded-circle mx-auto" style="width: 120px; height: 120px; border: 4px solid #e9ecef; background: transparent;"></div>
                             <?php endif; ?>
                             <div class="mt-2">
                                 <form method="post" action="<?= base_url('candidate/upload-photo') ?>" enctype="multipart/form-data" style="display: inline;">
@@ -52,6 +81,14 @@
                                     </button>
                                     <input type="file" id="profilePhoto" name="profile_photo" accept="image/*" style="display: none;" onchange="this.form.submit()">
                                 </form>
+                                <?php if (!empty($user['profile_photo'])): ?>
+                                    <form method="post" action="<?= base_url('candidate/remove-photo') ?>" style="display: inline;">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger ml-2" onclick="return confirm('Remove profile photo?')">
+                                            <i class="fas fa-trash"></i> Remove Photo
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <h4><?= esc(session()->get('user_name')) ?></h4>
@@ -77,7 +114,7 @@
                 <div class="card shadow-sm mt-3">
                     <div class="card-body">
                         <h6 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h6>
-                        <div class="d-grid gap-2">
+                        <div class="profile-quick-actions">
                             <?php if (!empty($user['resume_path'])): ?>
                                 <a href="<?= base_url('candidate/download-resume') ?>" class="btn btn-outline-primary btn-sm"><i class="fas fa-download"></i> Download Resume</a>
                                 <button class="btn btn-outline-success btn-sm" onclick="previewResume()"><i class="fas fa-eye"></i> Preview Profile</button>
@@ -89,61 +126,33 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="fas fa-link"></i> Quick Links</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="#personal" class="list-group-item list-group-item-action px-0 py-2">Personal Information</a>
+                            <a href="#resume" class="list-group-item list-group-item-action px-0 py-2">Resume</a>
+                            <a href="#github" class="list-group-item list-group-item-action px-0 py-2">GitHub</a>
+                            <a href="#skills" class="list-group-item list-group-item-action px-0 py-2">Skills</a>
+                            <a href="#interests" class="list-group-item list-group-item-action px-0 py-2">Interests</a>
+                            <a href="#experience" class="list-group-item list-group-item-action px-0 py-2">Experience</a>
+                            <a href="#education" class="list-group-item list-group-item-action px-0 py-2">Education</a>
+                            <a href="#certifications" class="list-group-item list-group-item-action px-0 py-2">Certifications</a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Main Content -->
-            <div class="col-lg-8">
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="personal-tab" data-toggle="tab" href="#personal" role="tab">
-                            <i class="fas fa-user"></i> Personal Info
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="resume-tab" data-toggle="tab" href="#resume" role="tab">
-                            <i class="fas fa-file-alt"></i> Resume
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="github-tab" data-toggle="tab" href="#github" role="tab">
-                            <i class="fab fa-github"></i> GitHub
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="skills-tab" data-toggle="tab" href="#skills" role="tab">
-                            <i class="fas fa-code"></i> Skills
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="interests-tab" data-toggle="tab" href="#interests" role="tab">
-                            <i class="fas fa-heart"></i> Interests
-                            <?php if (!empty($interests)): ?>
-                                <span class="badge badge-success ml-1"><?= count($interests) ?></span>
-                            <?php endif; ?>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="experience-tab" data-toggle="tab" href="#experience" role="tab">
-                            <i class="fas fa-briefcase"></i> Experience
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="education-tab" data-toggle="tab" href="#education" role="tab">
-                            <i class="fas fa-graduation-cap"></i> Education
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="certifications-tab" data-toggle="tab" href="#certifications" role="tab">
-                            <i class="fas fa-certificate"></i> Certifications
-                        </a>
-                    </li>
-                </ul>
+            <div class="col-lg-8 profile-right-pane">
+                <div class="mb-4">
+                    <h5 class="mb-2"><i class="fas fa-id-card"></i> Complete Profile Overview</h5>
+                    <p class="text-muted mb-0">All profile sections are shown below as separate cards.</p>
+                </div>
 
-                <!-- Tab Content -->
-                <div class="tab-content" id="profileTabsContent">
-                    <!-- Personal Info Tab -->
-                    <div class="tab-pane fade show active" id="personal" role="tabpanel">
+                <div id="profileSections">
+                    <div class="profile-section mb-4" id="personal">
                         <div class="card shadow-sm">
                             <div class="card-header">
                                 <h5 class="mb-0"><i class="fas fa-user"></i> Personal Information</h5>
@@ -186,8 +195,7 @@
                         </div>
                     </div>
 
-                    <!-- Resume Tab -->
-                    <div class="tab-pane fade" id="resume" role="tabpanel">
+                    <div class="profile-section mb-4" id="resume">
                         <div class="card shadow-sm">
                             <div class="card-header">
                                 <h5 class="mb-0"><i class="fas fa-file-alt"></i> Resume Management</h5>
@@ -231,8 +239,7 @@
                         </div>
                     </div>
 
-                    <!-- GitHub Tab -->
-                    <div class="tab-pane fade" id="github" role="tabpanel">
+                    <div class="profile-section mb-4" id="github">
                         <div class="card shadow-sm">
                             <div class="card-header">
                                 <h5 class="mb-0"><i class="fab fa-github"></i> GitHub Integration</h5>
@@ -302,8 +309,7 @@
                         </div>
                     </div>
 
-                    <!-- Skills Tab -->
-                    <div class="tab-pane fade" id="skills" role="tabpanel">
+                    <div class="profile-section mb-4" id="skills">
                         <div class="card shadow-sm">
                             <div class="card-header">
                                 <h5 class="mb-0"><i class="fas fa-code"></i> Skills & Technologies</h5>
@@ -355,8 +361,8 @@
                                         <h6 class="text-muted">No Skills Found</h6>
                                         <p class="text-muted">Upload your resume or connect GitHub to extract skills automatically</p>
                                         <div class="mt-3">
-                                            <button class="btn btn-primary me-2" onclick="document.querySelector('#resume-tab').click()">Upload Resume</button>
-                                            <button class="btn btn-success" onclick="document.querySelector('#github-tab').click()">Connect GitHub</button>
+                                            <button class="btn btn-primary me-2" type="button" onclick="document.getElementById('resume').scrollIntoView({ behavior: 'smooth', block: 'start' })">Upload Resume</button>
+                                            <button class="btn btn-success" type="button" onclick="document.getElementById('github').scrollIntoView({ behavior: 'smooth', block: 'start' })">Connect GitHub</button>
                                         </div>
                                     </div>
                                 <?php endif; ?>
@@ -373,8 +379,7 @@
                         </div>
                     </div>
 
-                    <!-- Interests Tab -->
-                    <div class="tab-pane fade" id="interests" role="tabpanel">
+                    <div class="profile-section mb-4" id="interests">
                         <div class="card shadow-sm">
                             <div class="card-header">
                                 <h5 class="mb-0"><i class="fas fa-heart"></i> Job Interests</h5>
@@ -475,8 +480,7 @@
                         </div>
                     </div>
 
-                    <!-- Work Experience Tab -->
-                    <div class="tab-pane fade" id="experience" role="tabpanel">
+                    <div class="profile-section mb-4" id="experience">
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-briefcase"></i> Work Experience</h5>
@@ -520,8 +524,7 @@
                         </div>
                     </div>
 
-                    <!-- Education Tab -->
-                    <div class="tab-pane fade" id="education" role="tabpanel">
+                    <div class="profile-section mb-4" id="education">
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Education</h5>
@@ -553,8 +556,7 @@
                         </div>
                     </div>
 
-                    <!-- Certifications Tab -->
-                    <div class="tab-pane fade" id="certifications" role="tabpanel">
+                    <div class="profile-section mb-4" id="certifications">
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-certificate"></i> Certifications</h5>

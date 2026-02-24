@@ -36,7 +36,9 @@ class Recruiter extends BaseController
         $location = trim((string) $this->request->getPost('location'));
         $requiredSkills = trim((string) $this->request->getPost('required_skills'));
         $experienceLevel = trim((string) $this->request->getPost('experience_level'));
-        $minAiCutoff = (int) $this->request->getPost('min_ai_cutoff_score');
+        $aiInterviewPolicy = JobModel::normalizeAiPolicy($this->request->getPost('ai_interview_policy'));
+        $minAiCutoffRaw = trim((string) $this->request->getPost('min_ai_cutoff_score'));
+        $minAiCutoff = $minAiCutoffRaw === '' ? null : (int) $minAiCutoffRaw;
         $openings = (int) $this->request->getPost('openings');
 
         $currentUserId = (int) $session->get('user_id');
@@ -60,8 +62,16 @@ class Recruiter extends BaseController
             return redirect()->back()->withInput()->with('error', 'Openings must be greater than 0.');
         }
 
-        if ($minAiCutoff < 0 || $minAiCutoff > 100) {
-            return redirect()->back()->withInput()->with('error', 'Minimum AI cutoff score must be between 0 and 100.');
+        if ($aiInterviewPolicy !== JobModel::AI_POLICY_OFF) {
+            if ($minAiCutoff === null) {
+                return redirect()->back()->withInput()->with('error', 'Minimum AI cutoff score is required when AI interview is enabled.');
+            }
+
+            if ($minAiCutoff < 0 || $minAiCutoff > 100) {
+                return redirect()->back()->withInput()->with('error', 'Minimum AI cutoff score must be between 0 and 100.');
+            }
+        } else {
+            $minAiCutoff = 0;
         }
 
         $riskReasons = $this->runAutoJobChecks(
@@ -93,12 +103,12 @@ class Recruiter extends BaseController
         // Keep backward compatibility if DB is not migrated yet.
         $db = \Config\Database::connect();
         if ($db->fieldExists('ai_interview_policy', 'jobs')) {
-            $data['ai_interview_policy'] = JobModel::normalizeAiPolicy($this->request->getPost('ai_interview_policy'));
+            $data['ai_interview_policy'] = $aiInterviewPolicy;
         }
 
         $model->insert($data);
 
-        return redirect()->back()->with('success', 'Job Posted Successfully');
+        return redirect()->to(base_url('recruiter/jobs'))->with('success', 'Job Posted Successfully');
     }
 
     private function ensureVerifiedRecruiter()

@@ -312,9 +312,40 @@ class Candidate extends BaseController
         }
         
         $userModel = model('UserModel');
-        $userModel->update($userId, ['profile_photo' => 'uploads/profiles/' . $newName]);
+        $photoPath = 'uploads/profiles/' . $newName;
+        $userModel->update($userId, ['profile_photo' => $photoPath]);
+        session()->set('profile_photo', $photoPath);
         
         return redirect()->back()->with('success', 'Profile photo updated successfully');
+    }
+
+    public function removePhoto()
+    {
+        $userId = (int) session()->get('user_id');
+        $userModel = model('UserModel');
+        $user = $userModel->find($userId);
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'User not found');
+        }
+
+        $photoPath = trim((string) ($user['profile_photo'] ?? ''));
+        if ($photoPath === '') {
+            return redirect()->back()->with('error', 'No profile photo to remove');
+        }
+
+        // Delete physical file only for expected uploads path.
+        if (str_starts_with($photoPath, 'uploads/profiles/')) {
+            $absolutePath = FCPATH . $photoPath;
+            if (is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+        }
+
+        $userModel->update($userId, ['profile_photo' => '']);
+        session()->remove('profile_photo');
+
+        return redirect()->back()->with('success', 'Profile photo removed successfully');
     }
 
     public function addSkill()

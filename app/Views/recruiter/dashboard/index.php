@@ -1,6 +1,11 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard']) ?>
 
 <div class="container-fluid py-5">
+    <?php
+    $applicationsUrl = base_url('recruiter/applications');
+    $jobsUrl = base_url('recruiter/jobs');
+    $conversionUrl = base_url('recruiter/dashboard') . '#conversion-metrics';
+    ?>
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -36,6 +41,7 @@
     <!-- Quick Stats Row -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-3">
+            <a href="<?= $applicationsUrl ?>" class="dashboard-stat-link">
             <div class="card border-left-primary shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -53,15 +59,17 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-3">
+            <a href="<?= $applicationsUrl ?>" class="dashboard-stat-link">
             <div class="card border-left-success shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Selected
+                                Shortlisted Candidates
                             </div>
                             <div class="h4 mb-0 font-weight-bold text-gray-800">
                                 <?= $funnel['shortlisted'] ?>
@@ -73,15 +81,17 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-3">
+            <a href="<?= $jobsUrl ?>" class="dashboard-stat-link">
             <div class="card border-left-info shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Active Jobs
+                                Open Jobs
                             </div>
                             <div class="h4 mb-0 font-weight-bold text-gray-800">
                                 <?= $jobStats['active_jobs'] ?>
@@ -93,9 +103,11 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-3">
+            <a href="<?= $conversionUrl ?>" class="dashboard-stat-link">
             <div class="card border-left-warning shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -113,11 +125,12 @@
                     </div>
                 </div>
             </div>
+            </a>
         </div>
     </div>
 
     <!-- Main Content Row -->
-    <div class="row">
+    <div class="row" id="conversion-metrics">
         <!-- Recruitment Pipeline -->
         <div class="col-xl-8 mb-4">
             <div class="card shadow">

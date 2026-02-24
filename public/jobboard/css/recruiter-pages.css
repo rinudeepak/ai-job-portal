@@ -1,5 +1,5 @@
 .recruiter-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .recruiter-jobboard main {
@@ -205,6 +205,26 @@
     background: #f9fbff;
 }
 
+.recruiter-jobboard .dashboard-stat-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.recruiter-jobboard .dashboard-stat-link:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.recruiter-jobboard .dashboard-stat-link .card {
+    transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.recruiter-jobboard .dashboard-stat-link:hover .card {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(35, 54, 106, .12);
+}
+
 .recruiter-jobboard .badge {
     border-radius: 999px;
     padding: 6px 10px;
@@ -376,4 +396,9 @@
         margin-top: 0;
         padding-top: 24px !important;
     }
+}
+
+/* Recruiter inner page background alignment with base template */
+.recruiter-jobboard {
+    background-color: #f8f9fa !important;
 }

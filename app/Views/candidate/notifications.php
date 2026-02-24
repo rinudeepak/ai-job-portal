@@ -68,7 +68,7 @@
                                             <?php if ($notification['action_link']): ?>
                                                 <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" 
                                                    class="btn btn-sm btn-outline-primary">
-                                                    Take Action <span class="icon-arrow-right ml-1"></span>
+                                                    <?= esc($config['action_text'] ?? 'Take Action') ?> <span class="icon-arrow-right ml-1"></span>
                                                 </a>
                                             <?php else: ?>
                                                 <span></span>

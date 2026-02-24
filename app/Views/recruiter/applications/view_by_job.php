@@ -35,6 +35,50 @@
             </h6>
         </div>
         <div class="card-body">
+            <form method="get" action="<?= base_url('recruiter/applications/job/' . $job['id']) ?>" class="mb-4">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="small text-muted mb-1">Skills</label>
+                        <input type="text" name="skills" class="form-control" value="<?= esc($filters['skills'] ?? '') ?>" placeholder="e.g. PHP, Laravel">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1">Experience</label>
+                        <input type="text" name="experience" class="form-control" value="<?= esc($filters['experience'] ?? '') ?>" placeholder="e.g. 3 years">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1">Location</label>
+                        <input type="text" name="location" class="form-control" value="<?= esc($filters['location'] ?? '') ?>" placeholder="City / State">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1">Score Min</label>
+                        <input type="number" step="0.1" min="0" max="10" name="score_min" class="form-control" value="<?= esc($filters['score_min'] ?? '') ?>" placeholder="0">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1">Score Max</label>
+                        <input type="number" step="0.1" min="0" max="10" name="score_max" class="form-control" value="<?= esc($filters['score_max'] ?? '') ?>" placeholder="10">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="small text-muted mb-1">Status</label>
+                        <select name="status" class="form-control">
+                            <option value="">All</option>
+                            <?php foreach (($statusOptions ?? []) as $status): ?>
+                                <option value="<?= esc($status) ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>>
+                                    <?= esc(ucwords(str_replace('_', ' ', $status))) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <a href="<?= base_url('recruiter/applications/job/' . $job['id']) ?>" class="btn btn-outline-secondary btn-sm ml-2">
+                        Clear
+                    </a>
+                </div>
+            </form>
+
             <?php if (!empty($applications)): ?>
                 <div class="table-responsive">
                     <table class="table table-hover">
@@ -43,6 +87,9 @@
                                 <th>ID</th>
                                 <th>Candidate</th>
                                 <th>Email</th>
+                                <th>Location</th>
+                                <th>Experience</th>
+                                <th>Skills</th>
                                 <th>Status</th>
                                 <th>AI Rating</th>
                                 <th>Applied Date</th>
@@ -55,14 +102,25 @@
                                     <td>#<?= $app['id'] ?></td>
                                     <td><strong><?= esc($app['name']) ?></strong></td>
                                     <td><?= esc($app['email']) ?></td>
+                                    <td><?= esc($app['candidate_location'] ?? '-') ?></td>
+                                    <td><?= esc($app['experience_display'] ?? '-') ?></td>
+                                    <td>
+                                        <?php if (!empty($app['skill_name'])): ?>
+                                            <small><?= esc($app['skill_name']) ?></small>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php
                                         $statusColors = [
                                             'pending' => 'warning',
+                                            'applied' => 'warning',
                                             'ai_interview_started' => 'info',
                                             'ai_interview_completed' => 'primary',
                                             'shortlisted' => 'success',
                                             'interview_slot_booked' => 'success',
+                                            'selected' => 'success',
                                             'rejected' => 'danger'
                                         ];
                                         $color = $statusColors[$app['status']] ?? 'secondary';

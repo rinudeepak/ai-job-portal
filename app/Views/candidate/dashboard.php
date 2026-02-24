@@ -130,9 +130,11 @@ $topSuggestedJobs = $topSuggestedJobs ?? [];
                             <a href="<?= base_url('job/' . $job['id']) ?>"></a>
                             <div class="job-listing-logo">
                                 <?php if (!empty($job['company_logo'])): ?>
-                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company'] ?? 'Company') ?>" class="img-fluid" style="width:64px;height:64px;object-fit:cover;border-radius:8px;">
+                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company'] ?? 'Company') ?>" class="img-fluid">
                                 <?php else: ?>
-                                    <div class="icon-wrap"><?= esc($initial) ?></div>
+                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
+                                        <?= esc($initial) ?>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                             <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
@@ -179,7 +181,7 @@ $topSuggestedJobs = $topSuggestedJobs ?? [];
                         <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
                             <a href="<?= base_url('job/' . $application['job_id']) ?>" target="_blank"></a>
                             <div class="job-listing-logo">
-                                <div class="icon-wrap">
+                                <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
                                     <span class="icon-briefcase"></span>
                                 </div>
                             </div>
@@ -189,8 +191,7 @@ $topSuggestedJobs = $topSuggestedJobs ?? [];
                                     <strong>Applied <?= date('M d, Y', strtotime($application['applied_at'])) ?></strong>
                                 </div>
                                 <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                                    <span class="icon-briefcase"></span>
-                                    <?= esc($application['company_name'] ?? 'Job Details') ?>
+                                    <?= esc($application['company_name'] ?? '-') ?>
                                 </div>
                                 <div class="job-listing-meta">
                                     <span class="badge status-badge badge-<?= getStatusBadgeColor($application['status']) ?>">

@@ -16,6 +16,8 @@ class Jobs extends BaseController
         // Get filter parameters
         $filters = [
             'search'           => $this->request->getGet('search'),
+            'designation'      => $this->request->getGet('designation'),
+            'company'          => $this->request->getGet('company'),
             'location'         => $this->request->getGet('location'),
             'category'         => $this->request->getGet('category'),
             'experience_level' => $this->request->getGet('experience_level'),
@@ -40,6 +42,14 @@ class Jobs extends BaseController
                     ->orLike('required_skills', $filters['search'])
                     ->orLike('description', $filters['search'])
                     ->groupEnd();
+        }
+
+        if (!empty($filters['designation'])) {
+            $builder->like('title', $filters['designation']);
+        }
+
+        if (!empty($filters['company'])) {
+            $builder->like('company', $filters['company']);
         }
 
         if (!empty($filters['location'])) {

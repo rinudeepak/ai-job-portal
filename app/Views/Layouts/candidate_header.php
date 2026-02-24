@@ -33,6 +33,13 @@
     $request = service('request');
     $activeTab = (string) ($request->getGet('tab') ?? '');
     $headerSearch = (string) ($request->getGet('search') ?? '');
+    $headerDesignation = (string) ($request->getGet('designation') ?? '');
+    $headerCompany = (string) ($request->getGet('company') ?? '');
+    $headerLocation = (string) ($request->getGet('location') ?? '');
+    $headerExperienceRaw = $request->getGet('experience_level');
+    $headerExperience = is_array($headerExperienceRaw)
+        ? implode(', ', array_filter(array_map('strval', $headerExperienceRaw)))
+        : (string) ($headerExperienceRaw ?? '');
     $currentPath = '/' . trim((string) parse_url(current_url(), PHP_URL_PATH), '/');
     $pathEndsWith = static function (string $suffix) use ($currentPath): bool {
         return $currentPath === $suffix || str_ends_with($currentPath, $suffix);
@@ -142,30 +149,86 @@
                             85% { transform: rotate(6deg); }
                             95% { transform: rotate(-4deg); }
                         }
-                        .header-job-search-form {
-                            display: inline-flex;
-                            align-items: center;
+                        .header-job-search-wrap {
+                            position: relative;
                             margin-right: 10px;
                         }
-                        .header-job-search-input {
-                            width: 170px;
+                        .header-job-search-trigger {
+                            width: 220px;
                             height: 42px;
                             border: 1px solid rgba(0, 0, 0, 0.15);
                             border-radius: 999px;
+                            background: #fff;
+                            color: #495057;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: space-between;
                             padding: 0 14px;
-                            font-size: 14px;
-                            outline: none;
-                        }
-                        .header-job-search-btn {
-                            margin-left: 6px;
-                            height: 42px;
-                            border: 0;
-                            border-radius: 999px;
-                            padding: 0 10px;
-                            background: #198754;
-                            color: #fff;
                             font-size: 13px;
                             cursor: pointer;
+                        }
+                        .header-job-search-trigger strong {
+                            margin-left: 8px;
+                            font-weight: 600;
+                            color: #111827;
+                        }
+                        .header-job-search-panel {
+                            position: absolute;
+                            top: calc(100% + 10px);
+                            right: 0;
+                            width: 560px;
+                            max-width: min(560px, calc(100vw - 24px));
+                            background: #fff;
+                            border: 1px solid rgba(0, 0, 0, 0.12);
+                            border-radius: 12px;
+                            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+                            padding: 14px;
+                            z-index: 1200;
+                            display: none;
+                        }
+                        .header-job-search-panel.is-open {
+                            display: block;
+                        }
+                        .header-job-search-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 10px;
+                        }
+                        .header-job-search-grid input {
+                            width: 100%;
+                            height: 38px;
+                            border: 1px solid #d5d9df;
+                            border-radius: 8px;
+                            padding: 0 10px;
+                            font-size: 13px;
+                            outline: none;
+                        }
+                        .header-job-search-actions {
+                            margin-top: 12px;
+                            display: flex;
+                            gap: 8px;
+                        }
+                        .header-job-search-actions button,
+                        .header-job-search-actions a {
+                            height: 36px;
+                            border-radius: 8px;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 0 12px;
+                            font-size: 13px;
+                            text-decoration: none;
+                        }
+                        .header-job-search-submit {
+                            border: 0;
+                            background: #198754;
+                            color: #fff;
+                            font-weight: 600;
+                        }
+                        .header-job-search-clear {
+                            border: 1px solid #d5d9df;
+                            background: #fff;
+                            color: #374151;
                         }
                         .candidate-avatar-btn {
                             width: 42px;
@@ -216,16 +279,29 @@
                             background: #f8f9fa;
                         }
                     </style>
-                    <form action="<?= base_url('jobs') ?>" method="get" class="header-job-search-form d-none d-lg-inline-flex">
-                        <input
-                            type="text"
-                            name="search"
-                            class="header-job-search-input"
-                            placeholder="Search jobs..."
-                            value="<?= esc($headerSearch) ?>"
-                        >
-                        <button type="submit" class="header-job-search-btn">Search</button>
-                    </form>
+                    <div class="header-job-search-wrap d-none d-lg-inline-flex" id="headerJobSearchWrap">
+                        <button type="button" class="header-job-search-trigger" id="headerJobSearchTrigger" aria-expanded="false" aria-haspopup="true">
+                            <span><span class="icon-search"></span><strong>Search Jobs</strong></span>
+                            <span class="fas fa-chevron-down" style="font-size: 12px;"></span>
+                        </button>
+                        <div class="header-job-search-panel" id="headerJobSearchPanel">
+                            <form action="<?= base_url('jobs') ?>" method="get">
+                                <div class="header-job-search-grid">
+                                    <input type="text" name="designation" placeholder="Designation (e.g. React Developer)" value="<?= esc($headerDesignation) ?>">
+                                    <input type="text" name="company" placeholder="Company" value="<?= esc($headerCompany) ?>">
+                                    <input type="text" name="experience_level" placeholder="Experience (e.g. 2-4 years)" value="<?= esc($headerExperience) ?>">
+                                    <input type="text" name="location" placeholder="Location" value="<?= esc($headerLocation) ?>">
+                                    <input type="text" name="search" placeholder="Keywords (skills, tools)" value="<?= esc($headerSearch) ?>" style="grid-column: 1 / span 2;">
+                                </div>
+                                <div class="header-job-search-actions">
+                                    <button type="submit" class="header-job-search-submit">
+                                        <span class="icon-search mr-1"></span> Search
+                                    </button>
+                                    <a href="<?= base_url('jobs') ?>" class="header-job-search-clear">Clear</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     <a href="<?= base_url('notifications') ?>" class="header-notification-link d-none d-lg-inline-flex <?= $unreadNotificationCount > 0 ? 'has-unread' : '' ?>" title="Notifications" aria-label="Notifications">
                         <span class="icon-bell" style="font-size: 18px; line-height: 1;"></span>
                         <?php if ($unreadNotificationCount > 0): ?>
@@ -257,24 +333,41 @@
             const menu = document.getElementById('candidateAvatarMenu');
             const button = document.getElementById('candidateAvatarBtn');
             const dropdown = document.getElementById('candidateAvatarDropdown');
+            const searchWrap = document.getElementById('headerJobSearchWrap');
+            const searchTrigger = document.getElementById('headerJobSearchTrigger');
+            const searchPanel = document.getElementById('headerJobSearchPanel');
 
-            if (!menu || !button || !dropdown) {
-                return;
+            if (menu && button && dropdown) {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    dropdown.classList.toggle('is-open');
+                    button.setAttribute('aria-expanded', dropdown.classList.contains('is-open') ? 'true' : 'false');
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (!menu.contains(event.target)) {
+                        dropdown.classList.remove('is-open');
+                        button.setAttribute('aria-expanded', 'false');
+                    }
+                });
             }
 
-            button.addEventListener('click', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                dropdown.classList.toggle('is-open');
-                button.setAttribute('aria-expanded', dropdown.classList.contains('is-open') ? 'true' : 'false');
-            });
+            if (searchWrap && searchTrigger && searchPanel) {
+                searchTrigger.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const open = searchPanel.classList.toggle('is-open');
+                    searchTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                });
 
-            document.addEventListener('click', function (event) {
-                if (!menu.contains(event.target)) {
-                    dropdown.classList.remove('is-open');
-                    button.setAttribute('aria-expanded', 'false');
-                }
-            });
+                document.addEventListener('click', function (event) {
+                    if (!searchWrap.contains(event.target)) {
+                        searchPanel.classList.remove('is-open');
+                        searchTrigger.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
         });
     </script>
     <main>

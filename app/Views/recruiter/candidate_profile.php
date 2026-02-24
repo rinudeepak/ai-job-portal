@@ -10,6 +10,36 @@
         . '&job_id=' . $jobId;
     $messages = $messages ?? [];
     ?>
+    <style>
+        .candidate-summary-card .candidate-name {
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .candidate-summary-card .candidate-meta {
+            margin-bottom: 14px;
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        .candidate-summary-card .candidate-meta p {
+            margin-bottom: 6px;
+        }
+        .candidate-summary-actions {
+            margin-top: 12px;
+        }
+        .candidate-summary-actions .btn {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .candidate-summary-actions .btn:last-child {
+            margin-bottom: 0;
+        }
+    </style>
     <?php if (session()->getFlashdata('success')): ?>
         <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
     <?php endif; ?>
@@ -18,30 +48,39 @@
     <?php endif; ?>
     <div class="row">
         <div class="col-lg-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm candidate-summary-card">
                 <div class="card-body text-center">
                     <?php if (!empty($candidate['profile_photo'])): ?>
                         <img src="<?= base_url($candidate['profile_photo']) ?>" alt="Profile" class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
                     <?php else: ?>
-                        <img src="<?= base_url('jobboard/images/default-avatar.png') ?>" alt="Profile" class="rounded-circle mb-3" width="120" height="120">
+                        <div class="rounded-circle mx-auto mb-3" style="width: 120px; height: 120px; border: 1px solid #dee2e6; background: transparent;"></div>
                     <?php endif; ?>
-                    <h4><?= esc($candidate['name']) ?></h4>
-                    <?php if ($showContact): ?>
-                        <p class="text-muted"><?= esc($candidate['email']) ?></p>
-                        <?php if($candidate['phone']): ?><p><i class="fas fa-phone"></i> <?= esc($candidate['phone']) ?></p><?php endif; ?>
-                    <?php else: ?>
-                        <a href="<?= $contactViewUrl ?>" class="btn btn-outline-info btn-sm mt-2">
-                            <i class="fas fa-address-card"></i> View Contact
-                        </a>
-                    <?php endif; ?>
-                    <?php if($candidate['location']): ?><p><i class="fas fa-map-marker-alt"></i> <?= esc($candidate['location']) ?></p><?php endif; ?>
+                    <h4 class="candidate-name"><?= esc($candidate['name']) ?></h4>
+                    <div class="candidate-meta">
+                        <?php if ($showContact): ?>
+                            <p><i class="fas fa-envelope"></i> <?= esc($candidate['email']) ?></p>
+                            <?php if ($candidate['phone']): ?>
+                                <p><i class="fas fa-phone"></i> <?= esc($candidate['phone']) ?></p>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                        <?php if ($candidate['location']): ?>
+                            <p><i class="fas fa-map-marker-alt"></i> <?= esc($candidate['location']) ?></p>
+                        <?php endif; ?>
+                    </div>
                     <?php
                     $resumeUrl = base_url('recruiter/candidate/' . $candidate['id'] . '/download-resume');
                     $resumeUrl .= '?application_id=' . $applicationId . '&job_id=' . $jobId;
                     ?>
-                    <?php if($candidate['resume_path']): ?>
-                        <a href="<?= $resumeUrl ?>" class="btn btn-primary btn-sm mt-2"><i class="fas fa-download"></i> Download Resume</a>
-                    <?php endif; ?>
+                    <div class="candidate-summary-actions">
+                        <?php if (!$showContact): ?>
+                            <a href="<?= $contactViewUrl ?>" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-address-card"></i> View Contact
+                            </a>
+                        <?php endif; ?>
+                        <?php if($candidate['resume_path']): ?>
+                            <a href="<?= $resumeUrl ?>" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Download Resume</a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
             

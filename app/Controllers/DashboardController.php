@@ -113,8 +113,17 @@ class DashboardController extends BaseController
 
         // Job Statistics
         $jobStats = [
-            'active_jobs' => $jobModel->where('status', 'active')->countAllResults(),
-            'total_positions' => $jobModel->selectSum('openings')->where('status', 'active')->get()->getRow()->openings ?? 0,
+            'active_jobs' => $jobModel
+                ->where('recruiter_id', $currentUserId)
+                ->where('status', 'open')
+                ->countAllResults(),
+            'total_positions' => $jobModel
+                ->selectSum('openings')
+                ->where('recruiter_id', $currentUserId)
+                ->where('status', 'open')
+                ->get()
+                ->getRow()
+                ->openings ?? 0,
             'available_slots' => $slotModel->where('is_available', 1)
                 ->where('slot_datetime >', date('Y-m-d H:i:s'))
                 ->whereIn('job_id', $jobIds ?: [0])

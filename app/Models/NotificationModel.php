@@ -76,19 +76,22 @@ class NotificationModel extends Model
             'title' => 'Profile Viewed',
             'icon' => 'fas fa-user-check',
             'color' => 'info',
-            'priority' => 8
+            'priority' => 8,
+            'action_text' => 'View'
         ],
         'recruiter_contact_viewed' => [
             'title' => 'Contact Viewed',
             'icon' => 'fas fa-address-card',
             'color' => 'primary',
-            'priority' => 9
+            'priority' => 9,
+            'action_text' => 'View'
         ],
         'recruiter_resume_downloaded' => [
             'title' => 'Resume Downloaded',
             'icon' => 'fas fa-file-download',
             'color' => 'success',
-            'priority' => 10
+            'priority' => 10,
+            'action_text' => 'View'
         ],
         'recruiter_message' => [
             'title' => 'Message from Recruiter',

@@ -100,6 +100,7 @@ $routes->get('candidate/serve-resume', 'Candidate::serveResume', ['filter' => 'a
 $routes->post('candidate/add-skill', 'Candidate::addSkill', ['filter' => 'auth']);
 $routes->post('candidate/update_personal', 'Candidate::updatePersonal', ['filter' => 'auth']);
 $routes->post('candidate/upload-photo', 'Candidate::uploadPhoto', ['filter' => 'auth']);
+$routes->post('candidate/remove-photo', 'Candidate::removePhoto', ['filter' => 'auth']);
 $routes->post('candidate/add-work-experience', 'Candidate::addWorkExperience', ['filter' => 'auth']);
 $routes->get('candidate/delete-work-experience/(:num)', 'Candidate::deleteWorkExperience/$1', ['filter' => 'auth']);
 $routes->post('candidate/add-education', 'Candidate::addEducation', ['filter' => 'auth']);

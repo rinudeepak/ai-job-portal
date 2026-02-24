@@ -79,6 +79,7 @@
                     </div>
                     <div class="text-center text-muted mb-3"><small>or login with email</small></div>                    <form method="post" action="<?= base_url('login') ?>" class="p-4 border rounded bg-white">
                         <?= csrf_field() ?>
+                        <input type="hidden" name="next" value="<?= esc($next ?? '') ?>">
 
                         <?php if (session()->getFlashdata('error')) : ?>
                             <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>

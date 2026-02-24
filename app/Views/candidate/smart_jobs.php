@@ -20,27 +20,6 @@ $savedJobIds        = $savedJobIds        ?? [];
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-.jobs-page-jobboard .smart-job-item.clickable-job-card {
-    position: relative;
-    cursor: pointer;
-}
-.jobs-page-jobboard .smart-job-item.clickable-job-card > a.job-card-overlay-link {
-    position: absolute !important;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 2 !important;
-    display: block;
-}
-.jobs-page-jobboard .smart-job-item.clickable-job-card > a.job-card-overlay-link:hover {
-    border-left: 7px solid #89ba16;
-}
-.jobs-page-jobboard .smart-job-item.clickable-job-card a:not(.job-card-overlay-link) {
-    position: relative !important;
-    z-index: 3 !important;
-}
-</style>
 
 <!-- ── SEARCH HERO ── -->
 <div class="jobs-page-jobboard">
@@ -54,22 +33,7 @@ $savedJobIds        = $savedJobIds        ?? [];
                     <span class="mx-2 slash">/</span>
                     <span class="text-white"><strong>Jobs</strong></span>
                 </div>
-                <p>Search across all jobs. Filter by skills, type, and location. Get AI-matched suggestions.</p>
-                <div class="search-wrap">
-                    <input type="text" id="searchInput"
-                           value="<?= esc($filters['search'] ?? '') ?>"
-                           placeholder="Job title, skills, company... e.g. React developer remote"
-                           onkeydown="if(event.key==='Enter'){doSearch();}">
-                    <button type="button" class="search-btn" onclick="doSearch()">
-                        <i class="fas fa-search"></i>
-                        <span>Search</span>
-                    </button>
-                </div>
-                <div class="keyword-pills">
-                    <?php foreach (['PHP Developer','React','Remote','Full Stack','Data Analyst','DevOps','Python','Java'] as $kw): ?>
-                        <span class="kpill" onclick="setSearch('<?= esc($kw) ?>')"><?= esc($kw) ?></span>
-                    <?php endforeach; ?>
-                </div>
+                <p>Filter by skills, type, and location. Get AI-matched suggestions.</p>
             </div>
         </div>
     </div>
@@ -285,61 +249,44 @@ $savedJobIds        = $savedJobIds        ?? [];
                             $cls     = $score >= 70 ? 'high' : ($score >= 40 ? 'mid' : 'low');
                             $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
                             $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
-                            $companyRefId = (int) ($job['company_id'] ?? 0);
-                            if ($companyRefId <= 0) {
-                                $companyRefId = (int) ($job['recruiter_id'] ?? 0);
-                            }
-                            $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item clickable-job-card"
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center"
                             >
-                            <a class="job-card-overlay-link" href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
+                            <a href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
                             <div class="job-listing-logo">
-                                <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
-                                    <div class="smart-job-logo">
-                                        <?php if (!empty($job['company_logo'])): ?>
-                                            <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="smart-job-logo-img">
-                                        <?php else: ?>
-                                            <?= $initial ?>
-                                        <?php endif; ?>
+                                <?php if (!empty($job['company_logo'])): ?>
+                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="img-fluid">
+                                <?php else: ?>
+                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
+                                        <?= $initial ?>
                                     </div>
-                                </a>
+                                <?php endif; ?>
                             </div>
                             <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
                                 <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                                    <h2><a class="job-title-link" href="<?= base_url('job/' . $job['id']) ?>"><?= esc($job['title']) ?></a></h2>
-                                    <strong>
-                                        <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a>
-                                    </strong>
-                                    <div class="smart-job-extra mt-2">
-                                        <span><i class="fas fa-layer-group"></i> <?= esc($job['experience_level']) ?></span>
-                                    </div>
-                                    <div class="job-tags mt-2">
-                                        <?php
-                                            $skills = array_slice(array_map('trim', explode(',', $job['required_skills'] ?? '')), 0, 4);
-                                            foreach ($skills as $sk):
-                                                if (trim($sk)):
-                                        ?>
-                                            <span class="jtag"><?= esc(trim($sk)) ?></span>
-                                        <?php endif; endforeach; ?>
-                                    </div>
+                                    <h2><?= esc($job['title']) ?></h2>
+                                    <strong><?= esc($job['company']) ?></strong>
                                 </div>
                                 <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
                                     <span class="icon-room"></span> <?= esc($job['location']) ?>
                                 </div>
-                                <div class="job-listing-meta smart-job-meta">
+                                <div class="job-listing-meta">
                                     <?php
                                         $type = strtolower((string) ($job['employment_type'] ?? ''));
                                         $typeBadge = str_contains($type, 'part') ? 'badge-danger' : 'badge-success';
                                     ?>
                                     <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                    <?php if ($score > 0): ?>
-                                        <small class="smart-match-text"><?= round($score) ?>% match</small>
-                                    <?php endif; ?>
-                                    <a class="smart-view-link" href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>">
-                                        <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
-                                        <?= $isSaved ? 'Saved' : 'Save Job' ?>
-                                    </a>
+                                    <div class="mt-2">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary py-0 px-2 <?= $isSaved ? 'border-success text-success' : '' ?>"
+                                            aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
+                                            title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
+                                            onclick="event.stopPropagation();window.location.href='<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>';"
+                                        >
+                                            <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </li>
@@ -447,45 +394,23 @@ $savedJobIds        = $savedJobIds        ?? [];
                             $isTop   = $index < 3;
                             $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
                             $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
-                            $companyRefId = (int) ($job['company_id'] ?? 0);
-                            if ($companyRefId <= 0) {
-                                $companyRefId = (int) ($job['recruiter_id'] ?? 0);
-                            }
-                            $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center smart-job-item clickable-job-card <?= $isTop ? 'top-match' : '' ?>"
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center"
                             >
-                            <a class="job-card-overlay-link" href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
-                            <?php if ($isTop): ?><div class="top-badge">Top Match</div><?php endif; ?>
+                            <a href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
                             <div class="job-listing-logo">
-                                <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
-                                    <div class="smart-job-logo">
-                                        <?php if (!empty($job['company_logo'])): ?>
-                                            <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="smart-job-logo-img">
-                                        <?php else: ?>
-                                            <?= $initial ?>
-                                        <?php endif; ?>
+                                <?php if (!empty($job['company_logo'])): ?>
+                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="img-fluid">
+                                <?php else: ?>
+                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
+                                        <?= $initial ?>
                                     </div>
-                                </a>
+                                <?php endif; ?>
                             </div>
                             <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
                                 <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                                    <h2><a class="job-title-link" href="<?= base_url('job/' . $job['id']) ?>"><?= esc($job['title']) ?></a></h2>
-                                    <strong>
-                                        <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a>
-                                    </strong>
-                                    <div class="smart-job-extra mt-2">
-                                        <span><i class="fas fa-layer-group"></i> <?= esc($job['experience_level']) ?></span>
-                                    </div>
-                                    <div class="job-tags mt-2">
-                                        <?php
-                                            $skills = array_slice(array_map('trim', explode(',', $job['required_skills'] ?? '')), 0, 4);
-                                            foreach ($skills as $sk):
-                                                if (trim($sk)):
-                                        ?>
-                                            <span class="jtag"><?= esc(trim($sk)) ?></span>
-                                        <?php endif; endforeach; ?>
-                                    </div>
+                                    <h2><?= esc($job['title']) ?></h2>
+                                    <strong><?= esc($job['company']) ?></strong>
                                     <?php if (!empty($job['match_reason'])): ?>
                                     <div class="ai-reason mt-2"><i class="fas fa-lightbulb"></i> <?= esc($job['match_reason']) ?></div>
                                     <?php endif; ?>
@@ -493,17 +418,24 @@ $savedJobIds        = $savedJobIds        ?? [];
                                 <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
                                     <span class="icon-room"></span> <?= esc($job['location']) ?>
                                 </div>
-                                <div class="job-listing-meta smart-job-meta">
+                                <div class="job-listing-meta">
                                     <?php
                                         $type = strtolower((string) ($job['employment_type'] ?? ''));
                                         $typeBadge = str_contains($type, 'part') ? 'badge-danger' : 'badge-success';
                                     ?>
                                     <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                    <small class="smart-match-text"><?= round($score) ?>% match</small>
-                                    <a class="smart-view-link" href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>">
-                                        <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
-                                        <?= $isSaved ? 'Saved' : 'Save Job' ?>
-                                    </a>
+                                    <div class="mt-1 small text-muted"><?= round($score) ?>% match</div>
+                                    <div class="mt-2">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary py-0 px-2 <?= $isSaved ? 'border-success text-success' : '' ?>"
+                                            aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
+                                            title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
+                                            onclick="event.stopPropagation();window.location.href='<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>';"
+                                        >
+                                            <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </li>
@@ -556,9 +488,7 @@ function resetAllJobsFilters() {
     const form = document.getElementById('filterForm');
     if (!form) return;
 
-    const searchInput = document.getElementById('searchInput');
     const hiddenSearch = document.getElementById('hiddenSearch');
-    if (searchInput) searchInput.value = '';
     if (hiddenSearch) hiddenSearch.value = '';
 
     form.querySelectorAll('select[name="category"], select[name="location"]').forEach(function (el) {
@@ -601,10 +531,8 @@ function submitFilters() {
     // Filters are for All Jobs tab only.
     document.getElementById('activeTabInput').value = 'all';
 
-    // When using left filters, clear search bar.
-    const searchBar = document.getElementById('searchInput');
+    // Keep behavior: applying left filters clears text-search query.
     const hiddenSearch = document.querySelector('#filterForm input[name="search"]');
-    if (searchBar) searchBar.value = '';
     if (hiddenSearch) hiddenSearch.value = '';
 
     document.getElementById('filterForm').submit();
@@ -642,21 +570,6 @@ function applyMobileFilters() {
 
     document.getElementById('activeTabInput').value = 'all';
     submitFilters();
-}
-
-function doSearch() {
-    // When using top search, clear left filters.
-    resetLeftFilterOptions();
-
-    // Copy visible search input into hidden field, force All Jobs tab, then submit.
-    document.getElementById('hiddenSearch').value = document.getElementById('searchInput').value;
-    document.getElementById('activeTabInput').value = 'all';
-    document.getElementById('filterForm').submit();
-}
-
-function setSearch(kw) {
-    document.getElementById('searchInput').value = kw;
-    doSearch();
 }
 
 </script>

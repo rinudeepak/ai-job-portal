@@ -7,7 +7,7 @@
 }
 
 .dashboard-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .dashboard-jobboard #home-section {
@@ -38,19 +38,8 @@
 }
 
 .dashboard-jobboard .job-listing .job-listing-logo {
-    min-width: 90px;
-}
-
-.dashboard-jobboard .job-listing .job-listing-logo .icon-wrap {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: #eef3ff;
-    color: #3a5bbb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
+    flex: 0 0 150px;
+    border-right: 1px solid #eee;
 }
 
 .dashboard-jobboard .action-card {
@@ -76,7 +65,7 @@
 }
 
 .applications-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .applications-jobboard #home-section {
@@ -131,7 +120,7 @@
 }
 
 .profile-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .profile-jobboard #home-section {
@@ -191,7 +180,7 @@
 }
 
 .career-transition-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .career-transition-jobboard #home-section {
@@ -254,7 +243,7 @@
 }
 
 .career-history-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .career-history-jobboard #home-section {
@@ -295,7 +284,7 @@
 }
 
 .my-bookings-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .my-bookings-jobboard .content-wrap {
@@ -363,7 +352,7 @@
 
 .book-slot-jobboard,
 .reschedule-slot-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .book-slot-jobboard .content-wrap,
@@ -493,7 +482,7 @@
 }
 
 .job-details-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .job-details-jobboard .content-wrap {
@@ -559,7 +548,7 @@
 
 .course-modules-jobboard,
 .course-content-jobboard {
-    background: #f8faff;
+    background: #f8f9fa;
 }
 
 .course-modules-jobboard .content-wrap,
@@ -747,7 +736,7 @@
 
 .jobs-page-jobboard {
     --ink:    #0f1117;
-    --smoke:  #f4f5f7;
+    --smoke:  #f8f9fa;
     --white:  #ffffff;
     --green:  #1bcf6b;
     --green2: #0fa854;
@@ -1209,19 +1198,26 @@
 }
 
 .jobs-page-jobboard .job-listings {
-    border: 0;
-    background: transparent;
-    border-radius: 0;
+    border: 1px solid #eee;
+    background: #fff;
+    border-radius: 7px;
+    overflow: hidden;
 }
 
 .jobs-page-jobboard .job-listings .job-listing {
-    margin-bottom: 14px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #eee;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.jobs-page-jobboard .job-listings .job-listing:last-child {
     border-bottom: 0;
 }
 
 .jobs-page-jobboard .job-listings .job-listing .job-listing-logo {
-    flex: 0 0 78px;
-    border-right: 0;
+    flex: 0 0 150px;
+    border-right: 1px solid #eee;
     padding-right: 0;
     display: flex;
     align-items: center;
@@ -1229,8 +1225,8 @@
 }
 
 .jobs-page-jobboard .smart-job-item:hover {
-    border-color: #c7d3ea;
-    box-shadow: 0 6px 20px rgba(39, 58, 112, .08);
+    border-color: inherit;
+    box-shadow: none;
 }
 
 .jobs-page-jobboard .smart-job-logo {
@@ -1275,9 +1271,12 @@
 }
 
 .jobs-page-jobboard .job-listing-position h2 {
-    font-size: 1.35rem;
-    line-height: 1.3;
-    margin-bottom: 4px;
+    font-size: 1.2rem;
+    margin-bottom: 0;
+}
+
+.jobs-page-jobboard .job-listing-position strong {
+    color: #b3b3b3;
 }
 
 .jobs-page-jobboard .smart-job-extra {
@@ -1345,7 +1344,7 @@
 }
 
 .jobs-page-jobboard .job-listing-about {
-    margin-left: 16px !important;
+    margin-left: 18px !important;
 }
 
 .jobs-page-jobboard .pagination-wrap {
@@ -1369,7 +1368,8 @@
     }
 
     .jobs-page-jobboard .job-listings .job-listing .job-listing-logo {
-        flex: 0 0 72px;
+        flex: 0 0 100%;
+        border-right: 0;
     }
 
     .jobs-page-jobboard .job-listing-about {
@@ -1432,6 +1432,22 @@ mark { background: #fef9c3; padding: 0 2px; border-radius: 3px; }
 }
 
 /* ===== End Smart Jobs ===== */
+
+/* Inner page background alignment with base jobboard template */
+.dashboard-jobboard,
+.applications-jobboard,
+.profile-jobboard,
+.career-transition-jobboard,
+.career-history-jobboard,
+.my-bookings-jobboard,
+.book-slot-jobboard,
+.reschedule-slot-jobboard,
+.job-details-jobboard,
+.course-modules-jobboard,
+.course-content-jobboard,
+.jobs-page-jobboard {
+    background-color: #f8f9fa !important;
+}
 
 
 

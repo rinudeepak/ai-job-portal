@@ -11,7 +11,18 @@ class Auth extends BaseController
 
     public function login()
     {
-        return view('Auth/login');
+        $session = session();
+        $next = (string) $this->request->getGet('next');
+
+        if ($session->get('logged_in')) {
+            $default = $session->get('role') === 'recruiter'
+                ? base_url('recruiter/dashboard')
+                : base_url('candidate/dashboard');
+
+            return redirect()->to($this->resolveNextUrl($next, $default));
+        }
+
+        return view('Auth/login', ['next' => $next]);
     }
 
     public function authenticate()
@@ -54,9 +65,13 @@ class Auth extends BaseController
                 ->with('error', 'Please verify your phone number before logging in.');
         }
 
-        return ($user['role'] === 'recruiter')
-            ? redirect()->to(base_url('recruiter/dashboard'))
-            : redirect()->to(base_url('candidate/dashboard'));
+        $defaultTarget = ($user['role'] === 'recruiter')
+            ? base_url('recruiter/dashboard')
+            : base_url('candidate/dashboard');
+
+        $next = (string) $this->request->getPost('next');
+
+        return redirect()->to($this->resolveNextUrl($next, $defaultTarget));
 
     }
 
@@ -666,5 +681,24 @@ class Auth extends BaseController
         ];
 
         return in_array(strtolower(trim($domain)), $freeDomains, true);
+    }
+
+    private function resolveNextUrl(string $next, string $default): string
+    {
+        $next = trim($next);
+        if ($next === '') {
+            return $default;
+        }
+
+        if (str_starts_with($next, '/')) {
+            return base_url(ltrim($next, '/'));
+        }
+
+        $base = rtrim(base_url('/'), '/');
+        if (str_starts_with($next, $base)) {
+            return $next;
+        }
+
+        return $default;
     }
 }
