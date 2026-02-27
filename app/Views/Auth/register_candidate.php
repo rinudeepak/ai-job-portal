@@ -73,8 +73,16 @@
                 <div class="col-lg-6">
                     <h2 class="mb-4">Sign Up To HireMatrix</h2>
                     <div class="mb-3">
-                        <a href="<?= base_url('auth/google') ?>" class="btn btn-outline-danger btn-block">
-                            <span class="fab fa-google mr-2"></span>Continue with Google
+                        <a href="<?= base_url('auth/google') ?>" class="btn btn-google-auth btn-block">
+                            <span class="google-g-icon" aria-hidden="true">
+                                <svg viewBox="0 0 18 18" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.56 2.68-3.86 2.68-6.62z"/>
+                                    <path fill="#34A853" d="M9 18c2.43 0 4.46-.8 5.95-2.18l-2.92-2.26c-.81.54-1.84.86-3.03.86-2.33 0-4.3-1.57-5-3.68H1v2.31A9 9 0 0 0 9 18z"/>
+                                    <path fill="#FBBC05" d="M4 10.74a5.41 5.41 0 0 1 0-3.48V4.95H1a9 9 0 0 0 0 8.1l3-2.31z"/>
+                                    <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.43 1.34l2.57-2.57A8.98 8.98 0 0 0 1 4.95l3 2.31c.7-2.11 2.67-3.68 5-3.68z"/>
+                                </svg>
+                            </span>
+                            <span>Continue with Google</span>
                         </a>
                     </div>
                     <div class="text-center text-muted mb-3"><small>or sign up with email</small></div>                    <form method="post" action="<?= base_url('register') ?>" class="p-4 border rounded bg-white">

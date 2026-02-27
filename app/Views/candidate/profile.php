@@ -18,6 +18,10 @@
 
 <section class="site-section pt-0 content-wrap">
     <div class="container">
+        <?php
+        $globalSuccess = session()->getFlashdata('success');
+        $globalError = session()->getFlashdata('error');
+        ?>
         <style>
             .profile-quick-actions .btn {
                 width: 100%;
@@ -150,6 +154,22 @@
                     <h5 class="mb-2"><i class="fas fa-id-card"></i> Complete Profile Overview</h5>
                     <p class="text-muted mb-0">All profile sections are shown below as separate cards.</p>
                 </div>
+                <?php if (!empty($globalSuccess)): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle"></i> <?= esc($globalSuccess) ?>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+                <?php if (!empty($globalError)): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i> <?= esc($globalError) ?>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                <?php endif; ?>
 
                 <div id="profileSections">
                     <div class="profile-section mb-4" id="personal">
@@ -161,7 +181,9 @@
                                 <?php if (session()->getFlashdata('personal_success')): ?>
                                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                                         <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('personal_success') ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 <?php endif; ?>
                                 
@@ -204,7 +226,9 @@
                                 <?php if (session()->getFlashdata('upload_success')): ?>
                                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                                         <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('upload_success') ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 <?php endif; ?>
 
@@ -248,7 +272,9 @@
                                 <?php if (session()->getFlashdata('profile_success')): ?>
                                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                                         <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('profile_success') ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 <?php endif; ?>
 
@@ -385,19 +411,6 @@
                                 <h5 class="mb-0"><i class="fas fa-heart"></i> Job Interests</h5>
                             </div>
                             <div class="card-body">
-                                <?php if (session()->getFlashdata('success')): ?>
-                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                        <?= esc(session()->getFlashdata('success')) ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if (session()->getFlashdata('error')): ?>
-                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                        <?= esc(session()->getFlashdata('error')) ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                <?php endif; ?>
-
                                 <p class="text-muted mb-3">
                                     <i class="fas fa-info-circle"></i>
                                     Add job categories, roles, or technologies you're interested in.
@@ -487,18 +500,6 @@
                                 <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addExperienceModal"><i class="fas fa-plus"></i> Add</button>
                             </div>
                             <div class="card-body">
-                                <?php if (session()->getFlashdata('success')): ?>
-                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                        <?= session()->getFlashdata('success') ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if (session()->getFlashdata('error')): ?>
-                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                        <?= session()->getFlashdata('error') ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                <?php endif; ?>
                                 <?php if (!empty($workExperiences)): ?>
                                     <?php foreach($workExperiences as $exp): ?>
                                     <div class="experience-item border-bottom pb-3 mb-3">

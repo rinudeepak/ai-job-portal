@@ -47,7 +47,8 @@ class DashboardController extends BaseController
                 'jobStats' => [
                     'active_jobs' => 0,
                     'total_positions' => 0,
-                    'available_slots' => 0
+                    'available_slots' => 0,
+                    'interview_bookings' => 0
                 ],
                 'topJobs' => [],
                 'conversionMetrics' => [],
@@ -127,6 +128,9 @@ class DashboardController extends BaseController
             'available_slots' => $slotModel->where('is_available', 1)
                 ->where('slot_datetime >', date('Y-m-d H:i:s'))
                 ->whereIn('job_id', $jobIds ?: [0])
+                ->countAllResults(),
+            'interview_bookings' => model('InterviewBookingModel')
+                ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults()
         ];
 
@@ -169,7 +173,7 @@ class DashboardController extends BaseController
     /**
      * Skill Leaderboard
      */
-    public function leaderboard()
+    public function leaderboard($jobIdFromRoute = null)
     {
         $applicationModel = model('ApplicationModel');
         $jobModel = model('JobModel');
@@ -178,7 +182,7 @@ class DashboardController extends BaseController
         $currentUserId = session()->get('user_id');
         $jobIds = [];
         // Get jobs posted by this recruiter
-        $recruiterJobs = $jobModel->where('recruiter_id', $currentUserId)->findAll();
+        $recruiterJobs = $jobModel->where('recruiter_id', $currentUserId)->orderBy('created_at', 'DESC')->findAll();
         $jobIds = array_column($recruiterJobs, 'id');
 
         // If no jobs posted, show empty dashboard
@@ -193,24 +197,39 @@ class DashboardController extends BaseController
                     'sort_by' => 'technical_score',
                     'job_id' => null
                 ],
+                'selectedJob' => null,
                 'noJobs' => true
             ]);
         }
         // Get filters
         $skill = $this->request->getGet('skill');
         $sortBy = $this->request->getGet('sort_by') ?? 'technical_score';
-        $jobId = $this->request->getGet('job_id');
+        $jobId = $jobIdFromRoute !== null ? (int) $jobIdFromRoute : (int) ($this->request->getGet('job_id') ?? 0);
+        if ($jobId <= 0) {
+            $jobId = null;
+        }
+
+        $selectedJob = null;
+        if ($jobId !== null) {
+            $selectedJob = $jobModel
+                ->where('id', $jobId)
+                ->where('recruiter_id', $currentUserId)
+                ->first();
+            if (!$selectedJob) {
+                return redirect()->to(base_url('recruiter/jobs'))->with('error', 'Job not found');
+            }
+        }
 
         // Build query
         $builder = $applicationModel
-            ->select('applications.*, users.name, users.email, jobs.title as job_title, jobs.required_skills, interview_sessions.technical_score,
-                    interview_sessions.communication_score,
-                    interview_sessions.overall_rating')
+            ->select('applications.*, users.name, users.email, jobs.title as job_title, jobs.required_skills,
+                    MAX(COALESCE(interview_sessions.overall_rating, 0)) as overall_rating,
+                    MAX(COALESCE(interview_sessions.technical_score, 0)) as technical_score,
+                    MAX(COALESCE(interview_sessions.communication_score, 0)) as communication_score')
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->join('jobs', 'jobs.id = applications.job_id', 'left')
             ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
-            ->where('interview_sessions.overall_rating IS NOT NULL')
-            ->where('interview_sessions.overall_rating >', 0);
+            ->groupBy('applications.id');
         // Filter by recruiter's jobs only
         if (!empty($jobIds)) {
             $builder->whereIn('applications.job_id', $jobIds);
@@ -231,11 +250,11 @@ class DashboardController extends BaseController
 
         // Apply sorting
         if ($sortBy === 'technical_score') {
-            $builder->orderBy('interview_sessions.technical_score', 'DESC');
+            $builder->orderBy('technical_score', 'DESC');
         } elseif ($sortBy === 'overall_rating') {
-            $builder->orderBy('interview_sessions.overall_rating', 'DESC');
+            $builder->orderBy('overall_rating', 'DESC');
         } elseif ($sortBy === 'communication_score') {
-            $builder->orderBy('interview_sessions.communication_score', 'DESC');
+            $builder->orderBy('communication_score', 'DESC');
         }
 
         $builder->orderBy('applications.applied_at', 'DESC');
@@ -257,7 +276,7 @@ class DashboardController extends BaseController
         $allSkills = $this->extractAllSkills();
 
         // Get all jobs for filter
-        $jobs = $jobModel->findAll();
+        $jobs = $recruiterJobs;
 
         // Calculate ranks
         $candidates = $this->assignRanks($candidates, $sortBy);
@@ -272,7 +291,8 @@ class DashboardController extends BaseController
                 'skill' => $skill,
                 'sort_by' => $sortBy,
                 'job_id' => $jobId
-            ]
+            ],
+            'selectedJob' => $selectedJob
         ]);
     }
 
@@ -431,12 +451,20 @@ class DashboardController extends BaseController
             $selected->whereIn('job_id', $jobIds);
         $selectedCount = $selected->countAllResults();
 
+        $safeRate = static function (int $numerator, int $denominator): ?float {
+            if ($denominator <= 0) {
+                return null;
+            }
+
+            return round(($numerator / $denominator) * 100, 1);
+        };
+
         return [
-            'application_to_ai_interview' => round(($aiCompletedCount / $total) * 100, 1),
-            'ai_interview_to_shortlist' => round(($shortlistedCount / max(1, $aiCompletedCount)) * 100, 1),
-            'shortlist_to_hr_interview' => round(($hrScheduledCount / max(1, $shortlistedCount)) * 100, 1),
-            'hr_interview_to_selection' => round(($selectedCount / max(1, $hrCompletedCount)) * 100, 1),
-            'overall_conversion' => round(($selectedCount / $total) * 100, 1)
+            'application_to_ai_interview' => $safeRate($aiCompletedCount, $total),
+            'ai_interview_to_shortlist' => $safeRate($shortlistedCount, $aiCompletedCount),
+            'shortlist_to_hr_interview' => $safeRate($hrScheduledCount, $shortlistedCount),
+            'hr_interview_to_selection' => $safeRate($selectedCount, $hrCompletedCount),
+            'overall_conversion' => $safeRate($selectedCount, $total) ?? 0.0
         ];
 
     }

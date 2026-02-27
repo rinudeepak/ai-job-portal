@@ -40,13 +40,25 @@
                                     <td><strong><?= esc($job['title']) ?></strong></td>
                                     <td><?= esc($job['location']) ?></td>
                                     <td>
-                                        <a href="<?= base_url('recruiter/applications/job/' . $job['id']) ?>">
+                                        <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>">
                                             <span class="badge badge-primary"><?= $job['application_count'] ?></span>
                                         </a>
                                     </td>
                                     <td>
-                                        <?php $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
-                                        <span class="badge badge-info"><?= esc(str_replace('_', ' ', $policy)) ?></span>
+                                        <?php
+                                        $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
+                                        $policyMap = [
+                                            'OFF' => ['label' => 'Not Required', 'hint' => 'Direct apply', 'class' => 'ai-policy-chip-off'],
+                                            'OPTIONAL' => ['label' => 'Optional', 'hint' => 'Can improve ranking', 'class' => 'ai-policy-chip-optional'],
+                                            'REQUIRED_SOFT' => ['label' => 'Required + Review', 'hint' => 'Recruiter can override', 'class' => 'ai-policy-chip-soft'],
+                                            'REQUIRED_HARD' => ['label' => 'Mandatory Screening', 'hint' => 'Strict AI gate', 'class' => 'ai-policy-chip-hard'],
+                                        ];
+                                        $policyMeta = $policyMap[$policy] ?? $policyMap['REQUIRED_HARD'];
+                                        ?>
+                                        <div class="ai-policy-chip <?= esc($policyMeta['class']) ?>">
+                                            <strong>AI Interview: <?= esc($policyMeta['label']) ?></strong>
+                                            <small><?= esc($policyMeta['hint']) ?></small>
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="badge badge-<?= $job['status'] == 'open' ? 'success' : 'secondary' ?>">
@@ -55,20 +67,28 @@
                                     </td>
                                     <td><?= date('M d, Y', strtotime($job['created_at'])) ?></td>
                                     <td>
-                                        <a href="<?= base_url('recruiter/jobs/edit/' . $job['id']) ?>" class="btn btn-sm btn-info">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <?php if ($job['status'] == 'open'): ?>
-                                            <a href="<?= base_url('recruiter/jobs/close/' . $job['id']) ?>" 
-                                               class="btn btn-sm btn-warning"
-                                               onclick="return confirm('Are you sure you want to close this job?')">
-                                                <i class="fas fa-times-circle"></i> Close
+                                        <div class="job-actions-wrap">
+                                            <a href="<?= base_url('recruiter/jobs/edit/' . $job['id']) ?>" class="btn btn-sm btn-action btn-action-edit">
+                                                <i class="fas fa-edit"></i> Edit
                                             </a>
-                                        <?php else: ?>
-                                            <a href="<?= base_url('recruiter/jobs/reopen/' . $job['id']) ?>" class="btn btn-sm btn-success">
-                                                <i class="fas fa-check-circle"></i> Reopen
+                                            <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="btn btn-sm btn-action btn-action-applications">
+                                                <i class="fas fa-users"></i> View Applications
                                             </a>
-                                        <?php endif; ?>
+                                            <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/leaderboard') ?>" class="btn btn-sm btn-action btn-action-leaderboard">
+                                                <i class="fas fa-trophy"></i> Leaderboard
+                                            </a>
+                                            <?php if ($job['status'] == 'open'): ?>
+                                                <a href="<?= base_url('recruiter/jobs/close/' . $job['id']) ?>" 
+                                                   class="btn btn-sm btn-action btn-action-close"
+                                                   onclick="return confirm('Are you sure you want to close this job?')">
+                                                    <i class="fas fa-times-circle"></i> Close
+                                                </a>
+                                            <?php else: ?>
+                                                <a href="<?= base_url('recruiter/jobs/reopen/' . $job['id']) ?>" class="btn btn-sm btn-action btn-action-reopen">
+                                                    <i class="fas fa-check-circle"></i> Reopen
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

@@ -3,25 +3,15 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\JobModel;
+use App\Models\NotificationModel;
+use App\Models\RecruiterCandidateMessageModel;
 
 class RecruiterApplications extends BaseController
 {
     public function index()
     {
-        $jobModel = model('JobModel');
-        $applicationModel = model('ApplicationModel');
-        $currentUserId = session()->get('user_id');
-
-        // Get recruiter's jobs with application counts
-        $jobs = $jobModel
-            ->select('jobs.*, COUNT(applications.id) as application_count')
-            ->join('applications', 'applications.job_id = jobs.id', 'left')
-            ->where('jobs.recruiter_id', $currentUserId)
-            ->groupBy('jobs.id')
-            ->orderBy('jobs.created_at', 'DESC')
-            ->findAll();
-
-        return view('recruiter/applications/index', ['jobs' => $jobs]);
+        return redirect()->to(base_url('recruiter/jobs'));
     }
 
     public function viewByJob($jobId)
@@ -33,8 +23,9 @@ class RecruiterApplications extends BaseController
         // Verify job belongs to recruiter
         $job = $jobModel->where('id', $jobId)->where('recruiter_id', $currentUserId)->first();
         if (!$job) {
-            return redirect()->to('recruiter/applications')->with('error', 'Job not found');
+            return redirect()->to('recruiter/jobs')->with('error', 'Job not found');
         }
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
 
         $filters = [
             'skills' => trim((string) $this->request->getGet('skills')),
@@ -120,19 +111,19 @@ class RecruiterApplications extends BaseController
             $months = (int) ($application['total_experience_months'] ?? 0);
             if ($months <= 0) {
                 $application['experience_display'] = '-';
-                continue;
-            }
-
-            $years = floor($months / 12);
-            $remainingMonths = $months % 12;
-
-            if ($years > 0 && $remainingMonths > 0) {
-                $application['experience_display'] = $years . 'y ' . $remainingMonths . 'm';
-            } elseif ($years > 0) {
-                $application['experience_display'] = $years . 'y';
             } else {
-                $application['experience_display'] = $remainingMonths . 'm';
+                $years = floor($months / 12);
+                $remainingMonths = $months % 12;
+
+                if ($years > 0 && $remainingMonths > 0) {
+                    $application['experience_display'] = $years . 'y ' . $remainingMonths . 'm';
+                } elseif ($years > 0) {
+                    $application['experience_display'] = $years . 'y';
+                } else {
+                    $application['experience_display'] = $remainingMonths . 'm';
+                }
             }
+            $application['can_manual_decision'] = $this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''));
         }
         unset($application);
 
@@ -144,6 +135,8 @@ class RecruiterApplications extends BaseController
             'applications' => $applications,
             'filters' => $filters,
             'statusOptions' => $validStatuses,
+            'aiPolicy' => $aiPolicy,
+            'isAiCompulsory' => $this->isAiCompulsory($aiPolicy),
         ]);
     }
 
@@ -157,13 +150,139 @@ class RecruiterApplications extends BaseController
         return $this->updateApplicationStatus($applicationId, 'rejected');
     }
 
+    public function bulkAction($jobId)
+    {
+        $applicationModel = model('ApplicationModel');
+        $jobModel = model('JobModel');
+        $stageModel = model('StageHistoryModel');
+        $currentUserId = (int) session()->get('user_id');
+
+        $job = $jobModel->where('id', (int) $jobId)->where('recruiter_id', $currentUserId)->first();
+        if (!$job) {
+            return redirect()->to(base_url('recruiter/jobs'))->with('error', 'Job not found');
+        }
+
+        $applicationIds = $this->request->getPost('application_ids');
+        $bulkAction = trim((string) $this->request->getPost('bulk_action'));
+        $messageText = trim((string) $this->request->getPost('bulk_message'));
+
+        if (!is_array($applicationIds) || empty($applicationIds)) {
+            return redirect()->back()->with('error', 'Please select at least one candidate.');
+        }
+
+        $applicationIds = array_values(array_unique(array_map('intval', $applicationIds)));
+        $applicationIds = array_filter($applicationIds, static fn ($id) => $id > 0);
+
+        if (empty($applicationIds)) {
+            return redirect()->back()->with('error', 'Invalid selection.');
+        }
+
+        if (!in_array($bulkAction, ['shortlist', 'reject', 'message'], true)) {
+            return redirect()->back()->with('error', 'Invalid bulk action.');
+        }
+
+        $applications = $applicationModel
+            ->select('applications.*, jobs.recruiter_id, jobs.ai_interview_policy, users.name as candidate_name')
+            ->join('jobs', 'jobs.id = applications.job_id')
+            ->join('users', 'users.id = applications.candidate_id', 'left')
+            ->where('applications.job_id', (int) $jobId)
+            ->whereIn('applications.id', $applicationIds)
+            ->findAll();
+
+        if (empty($applications)) {
+            return redirect()->back()->with('error', 'No matching applications found.');
+        }
+
+        if ($bulkAction === 'message') {
+            if ($messageText === '') {
+                return redirect()->back()->with('error', 'Please enter a message for selected candidates.');
+            }
+            if (mb_strlen($messageText) > 1000) {
+                return redirect()->back()->with('error', 'Message is too long. Max 1000 characters.');
+            }
+
+            $messageModel = new RecruiterCandidateMessageModel();
+            $notificationModel = new NotificationModel();
+            $recruiterName = (string) (session()->get('user_name') ?? 'Recruiter');
+            $sent = 0;
+
+            foreach ($applications as $application) {
+                if ((int) $application['recruiter_id'] !== $currentUserId) {
+                    continue;
+                }
+
+                $messageModel->insert([
+                    'candidate_id' => (int) $application['candidate_id'],
+                    'recruiter_id' => $currentUserId,
+                    'application_id' => (int) $application['id'],
+                    'job_id' => (int) $application['job_id'],
+                    'sender_id' => $currentUserId,
+                    'sender_role' => 'recruiter',
+                    'message' => $messageText,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $notificationModel->insert([
+                    'user_id' => (int) $application['candidate_id'],
+                    'application_id' => (int) $application['id'],
+                    'type' => 'recruiter_message',
+                    'title' => 'Message from Recruiter',
+                    'message' => "{$recruiterName} sent you a message. Open conversation to read it.",
+                    'action_link' => base_url('candidate/messages/' . $currentUserId . '?application_id=' . (int) $application['id']),
+                    'is_read' => 0,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+                $sent++;
+            }
+
+            return redirect()->back()->with('success', "Message sent to {$sent} selected candidate(s).");
+        }
+
+        $targetStatus = $bulkAction === 'shortlist' ? 'shortlisted' : 'rejected';
+        $updated = 0;
+        $skipped = 0;
+
+        foreach ($applications as $application) {
+            if ((int) $application['recruiter_id'] !== $currentUserId) {
+                $skipped++;
+                continue;
+            }
+
+            if (($application['status'] ?? '') === 'interview_slot_booked') {
+                $skipped++;
+                continue;
+            }
+
+            $aiPolicy = JobModel::normalizeAiPolicy($application['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+            if (!$this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''))) {
+                $skipped++;
+                continue;
+            }
+
+            $applicationModel->update((int) $application['id'], ['status' => $targetStatus]);
+            $stageModel->moveToStage(
+                (int) $application['id'],
+                $targetStatus === 'shortlisted' ? 'Shortlisted (Recruiter Override)' : 'Rejected (Recruiter Override)'
+            );
+            $updated++;
+        }
+
+        if ($updated === 0) {
+            return redirect()->back()->with('error', 'No selected applications were eligible for this action.');
+        }
+
+        $statusLabel = ucwords(str_replace('_', ' ', $targetStatus));
+        $suffix = $skipped > 0 ? " ({$skipped} skipped)" : '';
+        return redirect()->back()->with('success', "Bulk {$statusLabel} applied to {$updated} candidate(s){$suffix}.");
+    }
+
     private function updateApplicationStatus(int $applicationId, string $status)
     {
         $applicationModel = model('ApplicationModel');
         $currentUserId = session()->get('user_id');
 
         $application = $applicationModel
-            ->select('applications.*, jobs.recruiter_id')
+            ->select('applications.*, jobs.recruiter_id, jobs.ai_interview_policy')
             ->join('jobs', 'jobs.id = applications.job_id')
             ->where('applications.id', $applicationId)
             ->first();
@@ -176,11 +295,38 @@ class RecruiterApplications extends BaseController
             return redirect()->back()->with('error', 'Booked interview applications cannot be changed here');
         }
 
+        $aiPolicy = JobModel::normalizeAiPolicy($application['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+        if (!$this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''))) {
+            return redirect()->back()->with('error', 'For AI compulsory jobs, recruiter decision is allowed only after AI interview completion.');
+        }
+
         $applicationModel->update($applicationId, ['status' => $status]);
 
         $stageModel = model('StageHistoryModel');
         $stageModel->moveToStage($applicationId, $status === 'shortlisted' ? 'Shortlisted (Recruiter Override)' : 'Rejected (Recruiter Override)');
 
         return redirect()->back()->with('success', 'Application status updated to ' . ucwords(str_replace('_', ' ', $status)));
+    }
+
+    private function isAiCompulsory(string $aiPolicy): bool
+    {
+        return in_array(
+            JobModel::normalizeAiPolicy($aiPolicy),
+            [JobModel::AI_POLICY_REQUIRED_HARD, JobModel::AI_POLICY_REQUIRED_SOFT],
+            true
+        );
+    }
+
+    private function canTakeManualDecision(string $aiPolicy, string $applicationStatus): bool
+    {
+        if (in_array($applicationStatus, ['interview_slot_booked', 'selected'], true)) {
+            return false;
+        }
+
+        if (!$this->isAiCompulsory($aiPolicy)) {
+            return true;
+        }
+
+        return in_array($applicationStatus, ['ai_interview_completed', 'shortlisted', 'rejected'], true);
     }
 }

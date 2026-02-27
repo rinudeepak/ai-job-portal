@@ -9,7 +9,7 @@
     <?php endif; ?>
 
     <div class="mb-4">
-        <a href="<?= base_url('recruiter/applications') ?>" class="btn btn-outline-secondary">
+        <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back to Jobs
         </a>
     </div>
@@ -22,8 +22,23 @@
                 <i class="fas fa-calendar"></i> Posted on <?= date('M d, Y', strtotime($job['created_at'])) ?>
             </small>
             <?php $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
+            <?php
+            $policyMap = [
+                'OFF' => ['label' => 'Not Required', 'hint' => 'Candidates can apply directly', 'class' => 'ai-policy-chip-off'],
+                'OPTIONAL' => ['label' => 'Optional', 'hint' => 'AI can improve candidate ranking', 'class' => 'ai-policy-chip-optional'],
+                'REQUIRED_SOFT' => ['label' => 'Required + Recruiter Review', 'hint' => 'Recruiter can still decide after AI', 'class' => 'ai-policy-chip-soft'],
+                'REQUIRED_HARD' => ['label' => 'Mandatory Screening', 'hint' => 'AI result is strict gate', 'class' => 'ai-policy-chip-hard'],
+            ];
+            $policyMeta = $policyMap[$policy] ?? $policyMap['REQUIRED_HARD'];
+            ?>
             <div class="mt-2">
-                <span class="badge badge-info">AI Policy: <?= esc(str_replace('_', ' ', $policy)) ?></span>
+                <div class="ai-policy-chip <?= esc($policyMeta['class']) ?>">
+                    <strong>AI Interview: <?= esc($policyMeta['label']) ?></strong>
+                    <small><?= esc($policyMeta['hint']) ?></small>
+                </div>
+                <?php if (!empty($isAiCompulsory)): ?>
+                    <small class="text-muted ml-2">Recruiter decision enabled only after AI interview completion.</small>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -35,7 +50,7 @@
             </h6>
         </div>
         <div class="card-body">
-            <form method="get" action="<?= base_url('recruiter/applications/job/' . $job['id']) ?>" class="mb-4">
+            <form method="get" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="mb-4">
                 <div class="row g-2">
                     <div class="col-md-3">
                         <label class="small text-muted mb-1">Skills</label>
@@ -73,17 +88,36 @@
                     <button type="submit" class="btn btn-primary btn-sm">
                         <i class="fas fa-filter"></i> Apply Filters
                     </button>
-                    <a href="<?= base_url('recruiter/applications/job/' . $job['id']) ?>" class="btn btn-outline-secondary btn-sm ml-2">
+                    <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="btn btn-outline-secondary btn-sm ml-2">
                         Clear
                     </a>
                 </div>
             </form>
 
             <?php if (!empty($applications)): ?>
+                <form method="post" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications/bulk') ?>" id="bulkActionForm" class="mb-3">
+                    <?= csrf_field() ?>
+                    <div class="d-flex flex-wrap align-items-center" style="gap: 10px;">
+                        <select name="bulk_action" id="bulkActionSelect" class="form-control form-control-sm" style="max-width: 240px;">
+                            <option value="">Bulk Action</option>
+                            <option value="shortlist">Shortlist Selected</option>
+                            <option value="reject">Reject Selected</option>
+                            <option value="message">Message Selected</option>
+                        </select>
+                        <input type="text" name="bulk_message" id="bulkMessageInput" class="form-control form-control-sm" style="min-width: 280px; max-width: 480px;" placeholder="Message for selected candidates (required only for Message action)">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fas fa-bolt"></i> Apply
+                        </button>
+                        <small class="text-muted">Select candidates using the first column.</small>
+                    </div>
+                </form>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="thead-light">
                             <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" id="selectAllApplications" title="Select all">
+                                </th>
                                 <th>ID</th>
                                 <th>Candidate</th>
                                 <th>Email</th>
@@ -99,6 +133,9 @@
                         <tbody>
                             <?php foreach ($applications as $app): ?>
                                 <tr>
+                                    <td>
+                                        <input type="checkbox" class="application-checkbox" value="<?= (int) $app['id'] ?>">
+                                    </td>
                                     <td>#<?= $app['id'] ?></td>
                                     <td><strong><?= esc($app['name']) ?></strong></td>
                                     <td><?= esc($app['email']) ?></td>
@@ -124,9 +161,20 @@
                                             'rejected' => 'danger'
                                         ];
                                         $color = $statusColors[$app['status']] ?? 'secondary';
+                                        $statusLabels = [
+                                            'pending' => 'Applied',
+                                            'applied' => 'Applied',
+                                            'ai_interview_started' => 'AI Interview In Progress',
+                                            'ai_interview_completed' => 'AI Interviewed',
+                                            'shortlisted' => 'Shortlisted',
+                                            'interview_slot_booked' => 'Interview Booked',
+                                            'selected' => 'Selected',
+                                            'rejected' => 'Rejected',
+                                        ];
+                                        $label = $statusLabels[$app['status']] ?? ucwords(str_replace('_', ' ', $app['status']));
                                         ?>
                                         <span class="badge badge-<?= $color ?>">
-                                            <?= ucwords(str_replace('_', ' ', $app['status'])) ?>
+                                            <?= esc($label) ?>
                                         </span>
                                     </td>
                                     <td>
@@ -138,23 +186,27 @@
                                     </td>
                                     <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
                                     <td>
-                                        <a href="<?= base_url('recruiter/candidate/' . $app['candidate_id'] . '?application_id=' . $app['id'] . '&job_id=' . $job['id']) ?>" class="btn btn-sm btn-primary" target="_blank">
-                                            <i class="fas fa-user"></i> View Profile
-                                        </a>
-                                        <?php if ($app['status'] !== 'interview_slot_booked'): ?>
-                                            <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="d-inline-block">
-                                                <?= csrf_field() ?>
-                                                <button type="submit" class="btn btn-sm btn-success">
-                                                    <i class="fas fa-check"></i> Shortlist
-                                                </button>
-                                            </form>
-                                            <form method="post" action="<?= base_url('recruiter/applications/reject/' . $app['id']) ?>" class="d-inline-block">
-                                                <?= csrf_field() ?>
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-times"></i> Reject
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
+                                        <div class="application-actions-wrap">
+                                            <a href="<?= base_url('recruiter/candidate/' . $app['candidate_id'] . '?application_id=' . $app['id'] . '&job_id=' . $job['id']) ?>" class="btn btn-sm btn-primary" target="_blank">
+                                                <i class="fas fa-user"></i> View Profile
+                                            </a>
+                                            <?php if (!empty($app['can_manual_decision'])): ?>
+                                                <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="application-action-form">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-check"></i> Shortlist
+                                                    </button>
+                                                </form>
+                                                <form method="post" action="<?= base_url('recruiter/applications/reject/' . $app['id']) ?>" class="application-action-form">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                </form>
+                                            <?php elseif (($app['status'] ?? '') !== 'interview_slot_booked' && ($app['status'] ?? '') !== 'selected'): ?>
+                                                <small class="text-muted d-block mt-1">Awaiting AI interview completion</small>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -171,5 +223,66 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var selectAll = document.getElementById('selectAllApplications');
+    var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.application-checkbox'));
+    var bulkForm = document.getElementById('bulkActionForm');
+    var bulkAction = document.getElementById('bulkActionSelect');
+    var bulkMessage = document.getElementById('bulkMessageInput');
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(function (cb) {
+                cb.checked = selectAll.checked;
+            });
+        });
+    }
+
+    checkboxes.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            if (!selectAll) {
+                return;
+            }
+            var allChecked = checkboxes.length > 0 && checkboxes.every(function (item) { return item.checked; });
+            selectAll.checked = allChecked;
+        });
+    });
+
+    if (bulkForm) {
+        bulkForm.addEventListener('submit', function (event) {
+            var selected = checkboxes.filter(function (cb) { return cb.checked; });
+            if (!bulkAction || !bulkAction.value) {
+                event.preventDefault();
+                alert('Please choose a bulk action.');
+                return;
+            }
+            if (selected.length === 0) {
+                event.preventDefault();
+                alert('Please select at least one candidate.');
+                return;
+            }
+            if (bulkAction.value === 'message' && (!bulkMessage || bulkMessage.value.trim() === '')) {
+                event.preventDefault();
+                alert('Please enter a message for selected candidates.');
+                return;
+            }
+
+            bulkForm.querySelectorAll('input[name=\"application_ids[]\"]').forEach(function (input) {
+                input.remove();
+            });
+
+            selected.forEach(function (cb) {
+                var hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'application_ids[]';
+                hidden.value = cb.value;
+                bulkForm.appendChild(hidden);
+            });
+        });
+    }
+});
+</script>
 
 <?= view('Layouts/recruiter_footer') ?>

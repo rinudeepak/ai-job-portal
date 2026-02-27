@@ -8,8 +8,8 @@
             <p class="text-muted">Rank candidates by technical and overall performance</p>
         </div>
         <div>
-            <a href="<?= base_url('recruiter/dashboard') ?>" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to My Jobs
             </a>
             <a href="<?= base_url('recruiter/dashboard/export-excel?type=leaderboard') ?>" class="btn btn-success">
                 <i class="fas fa-file-excel"></i> Export to Excel
@@ -23,7 +23,8 @@
             <h6 class="m-0 font-weight-bold text-primary">Filters & Sorting</h6>
         </div>
         <div class="card-body">
-            <form method="get" action="<?= base_url('recruiter/dashboard/leaderboard') ?>" id="filterForm">
+            <?php $leaderboardAction = !empty($selectedJob['id']) ? base_url('recruiter/jobs/' . $selectedJob['id'] . '/leaderboard') : base_url('recruiter/dashboard/leaderboard'); ?>
+            <form method="get" action="<?= $leaderboardAction ?>" id="filterForm">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
@@ -59,14 +60,18 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="job_id">Filter by Job</label>
-                            <select name="job_id" id="job_id" class="form-control">
-                                <option value="">All Jobs</option>
-                                <?php foreach ($jobs as $job): ?>
-                                    <option value="<?= $job['id'] ?>" <?= ($filters['job_id'] ?? '') == $job['id'] ? 'selected' : '' ?>>
-                                        <?= esc($job['title']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <?php if (!empty($selectedJob['id'])): ?>
+                                <input type="text" class="form-control" value="<?= esc($selectedJob['title']) ?>" readonly>
+                            <?php else: ?>
+                                <select name="job_id" id="job_id" class="form-control">
+                                    <option value="">All Jobs</option>
+                                    <?php foreach ($jobs as $job): ?>
+                                        <option value="<?= $job['id'] ?>" <?= ($filters['job_id'] ?? '') == $job['id'] ? 'selected' : '' ?>>
+                                            <?= esc($job['title']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -96,7 +101,7 @@
             <?php if (!empty($filters['job_id'])): ?>
                 <span class="badge badge-info">Job Selected</span>
             <?php endif; ?>
-            <a href="<?= base_url('recruiter/dashboard/leaderboard') ?>" class="btn btn-sm btn-outline-secondary ml-2">
+            <a href="<?= $leaderboardAction ?>" class="btn btn-sm btn-outline-secondary ml-2">
                 Clear All
             </a>
         </div>
@@ -114,7 +119,7 @@
             <?php if (empty($candidates)): ?>
                 <div class="text-center py-5">
                     <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No candidates found with AI interview scores</p>
+                    <p class="text-muted">No candidates found for this leaderboard</p>
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
@@ -239,9 +244,12 @@
                                     <td class="text-center">
                                         <?php
                                         $statusColors = [
+                                            'applied' => 'secondary',
+                                            'pending' => 'secondary',
+                                            'ai_interview_started' => 'info',
                                             'ai_interview_completed' => 'info',
                                             'shortlisted' => 'primary',
-                                            'hr_interview_scheduled' => 'warning',
+                                            'interview_slot_booked' => 'warning',
                                             'selected' => 'success',
                                             'rejected' => 'danger'
                                         ];
@@ -290,26 +298,7 @@
                             <!-- Pagination Links -->
                             <div>
                                 <?php
-                                // Preserve filters in pagination
-                                $queryParams = [];
-                                if (!empty($filters['skill'])) $queryParams['skill'] = $filters['skill'];
-                                if (!empty($filters['sort_by'])) $queryParams['sort_by'] = $filters['sort_by'];
-                                if (!empty($filters['job_id'])) $queryParams['job_id'] = $filters['job_id'];
-                                
-                                $queryString = http_build_query($queryParams);
-                                $pagerLinks = $pager->links();
-                                
-                                // Add query string to pagination links
-                                if (!empty($queryString)) {
-                                    $pagerLinks = preg_replace(
-                                        '/href="([^"]+leaderboard)(\?page=\d+)?"/',
-                                        'href="$1?' . $queryString . '$2"',
-                                        $pagerLinks
-                                    );
-                                    $pagerLinks = str_replace('?page=', '&page=', $pagerLinks);
-                                }
-                                
-                                echo $pagerLinks;
+                                echo $pager->links();
                                 ?>
                             </div>
                         </div>
@@ -358,7 +347,7 @@
                                 <h5 class="text-muted">Average Overall Rating</h5>
                                 <h3 class="text-warning">
                                     <?php
-                                    $avgOverall = !empty($candidates) ? array_sum(array_column($candidates, 'ai_interview_score')) / count($candidates) : 0;
+                                    $avgOverall = !empty($candidates) ? array_sum(array_column($candidates, 'overall_rating')) / count($candidates) : 0;
                                     echo number_format($avgOverall, 1);
                                     ?>
                                 </h3>

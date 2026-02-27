@@ -2,25 +2,73 @@
 
 <div class="container-fluid py-5">
     <?php
-    $applicationsUrl = base_url('recruiter/applications');
+    $applicationsUrl = base_url('recruiter/jobs');
     $jobsUrl = base_url('recruiter/jobs');
     $conversionUrl = base_url('recruiter/dashboard') . '#conversion-metrics';
+    $bookingsUrl = base_url('recruiter/slots/bookings');
+    $postJobUrl = base_url('recruiter/post_job');
+    $slotsUrl = base_url('recruiter/slots');
+    $leaderboardUrl = base_url('recruiter/dashboard/leaderboard');
+    $formatStageLabel = static function ($raw): string {
+        $normalized = strtolower(trim((string) $raw));
+        $map = [
+            'applied' => 'Applied',
+            'ai interview started' => 'AI Interview Started',
+            'ai interview completed' => 'AI Interview Completed',
+            'ai interview evaluated' => 'AI Evaluated',
+            'ai review pending recruiter decision' => 'Recruiter Decision Pending',
+            'shortlisted (recruiter override)' => 'Shortlisted',
+            'rejected (recruiter override)' => 'Rejected',
+            'shortlisted' => 'Shortlisted',
+            'rejected' => 'Rejected',
+            'interview slot booked' => 'Interview Slot Booked',
+            'selected' => 'Selected',
+        ];
+
+        return $map[$normalized] ?? ucwords(str_replace('_', ' ', (string) $raw));
+    };
+    $formatRate = static function ($value): string {
+        if ($value === null || $value === '') {
+            return 'N/A';
+        }
+
+        return number_format((float) $value, 1) . '%';
+    };
+    $rateClass = static function ($value, float $goodThreshold): string {
+        if ($value === null || $value === '') {
+            return 'secondary';
+        }
+
+        return ((float) $value) >= $goodThreshold ? 'success' : 'warning';
+    };
     ?>
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2><i class="fas fa-tachometer-alt"></i> Recruitment Dashboard</h2>
-            <p class="text-muted">Overview of recruitment metrics and analytics</p>
+            <p class="text-muted">Track hiring pipeline, shortlist quality candidates, and move interviews faster.</p>
         </div>
-        <div>
-            <a href="<?= base_url('recruiter/dashboard/leaderboard') ?>" class="btn btn-primary">
-                <i class="fas fa-trophy"></i> View Leaderboard
+        <div class="d-flex flex-wrap" style="gap:8px;">
+            <a href="<?= $postJobUrl ?>" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Post Job
             </a>
         </div>
     </div>
 
+    <?php if (!empty($noJobs)): ?>
+    <div class="card shadow mb-4">
+        <div class="card-body p-4 text-center">
+            <h4 class="mb-2">No jobs posted yet</h4>
+            <p class="text-muted mb-3">Post your first job to start receiving applications and build your hiring pipeline.</p>
+            <a href="<?= $postJobUrl ?>" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Post Your First Job
+            </a>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Pending Actions Alert -->
-    <?php if (array_sum($pendingActions) > 0): ?>
+    <?php if (empty($noJobs) && array_sum($pendingActions) > 0): ?>
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
         <strong><i class="fas fa-exclamation-triangle"></i> Pending Actions:</strong>
         <?php if ($pendingActions['pending_screening'] > 0): ?>
@@ -40,18 +88,19 @@
 
     <!-- Quick Stats Row -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
+        <div class="col-xl col-md-6 mb-3">
             <a href="<?= $applicationsUrl ?>" class="dashboard-stat-link">
             <div class="card border-left-primary shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1 dashboard-metric-title">
                                 Total Applications
                             </div>
                             <div class="h4 mb-0 font-weight-bold text-gray-800">
                                 <?= number_format($funnel['total_applications']) ?>
                             </div>
+                            <small class="text-muted d-block">Across all active jobs</small>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-file-alt fa-2x text-gray-300"></i>
@@ -62,40 +111,19 @@
             </a>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <a href="<?= $applicationsUrl ?>" class="dashboard-stat-link">
-            <div class="card border-left-success shadow h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Shortlisted Candidates
-                            </div>
-                            <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                <?= $funnel['shortlisted'] ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </a>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
+        <div class="col-xl col-md-6 mb-3">
             <a href="<?= $jobsUrl ?>" class="dashboard-stat-link">
             <div class="card border-left-info shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1 dashboard-metric-title">
                                 Open Jobs
                             </div>
                             <div class="h4 mb-0 font-weight-bold text-gray-800">
                                 <?= $jobStats['active_jobs'] ?>
                             </div>
+                            <small class="text-muted d-block">Currently hiring</small>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-briefcase fa-2x text-gray-300"></i>
@@ -106,18 +134,19 @@
             </a>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-3">
+        <div class="col-xl col-md-6 mb-3">
             <a href="<?= $conversionUrl ?>" class="dashboard-stat-link">
             <div class="card border-left-warning shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1 dashboard-metric-title">
                                 Conversion Rate
                             </div>
                             <div class="h4 mb-0 font-weight-bold text-gray-800">
                                 <?= $conversionMetrics['overall_conversion'] ?? 0 ?>%
                             </div>
+                            <small class="text-muted d-block">Pipeline efficiency</small>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-percentage fa-2x text-gray-300"></i>
@@ -127,7 +156,79 @@
             </div>
             </a>
         </div>
+
+        <div class="col-xl col-md-6 mb-3">
+            <a href="<?= $bookingsUrl ?>" class="dashboard-stat-link">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1 dashboard-metric-title">
+                                Interview Bookings
+                            </div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">
+                                <?= number_format($jobStats['interview_bookings'] ?? 0) ?>
+                            </div>
+                            <small class="text-muted d-block">HR rounds scheduled</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </a>
+        </div>
     </div>
+
+    <?php if (empty($noJobs)): ?>
+    <div class="row mb-4 recruiter-action-center">
+        <div class="col-xl-8 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-bolt"></i> Action Center</h6>
+                </div>
+                <div class="card-body p-0">
+                    <a href="<?= $jobsUrl ?>" class="action-item-link">
+                        <div class="action-item-label">
+                            <strong>Screen New Applications</strong>
+                            <small class="text-muted d-block">Review and shortlist incoming candidates.</small>
+                        </div>
+                        <span class="badge badge-warning"><?= (int) ($pendingActions['pending_screening'] ?? 0) ?></span>
+                    </a>
+                    <a href="<?= $jobsUrl ?>" class="action-item-link">
+                        <div class="action-item-label">
+                            <strong>Review AI Interview Results</strong>
+                            <small class="text-muted d-block">Take recruiter decisions for AI-cleared candidates.</small>
+                        </div>
+                        <span class="badge badge-info"><?= (int) ($pendingActions['ai_interviews_to_review'] ?? 0) ?></span>
+                    </a>
+                    <a href="<?= $bookingsUrl ?>" class="action-item-link">
+                        <div class="action-item-label">
+                            <strong>Interviews Today</strong>
+                            <small class="text-muted d-block">Track today’s booked interviews and status.</small>
+                        </div>
+                        <span class="badge badge-primary"><?= (int) ($pendingActions['hr_interviews_today'] ?? 0) ?></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 mb-3">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-link"></i> Quick Links</h6>
+                </div>
+                <div class="card-body recruiter-quick-links">
+                    <a href="<?= $jobsUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-briefcase"></i> My Jobs</a>
+                    <a href="<?= $postJobUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-plus-circle"></i> Post New Job</a>
+                    <a href="<?= $slotsUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-calendar-alt"></i> Interview Slots</a>
+                    <a href="<?= $bookingsUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-calendar-check"></i> Interview Bookings</a>
+                    <a href="<?= $leaderboardUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-trophy"></i> Leaderboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Main Content Row -->
     <div class="row" id="conversion-metrics">
@@ -155,7 +256,7 @@
                                 </div>
                                 <h3><?= number_format($funnel['ai_interview_completed']) ?></h3>
                                 <p class="text-muted mb-0">AI Screened</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($funnel['ai_interview_completed'] / $funnel['total_applications']) * 100, 1) : 0 ?>%</small>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($funnel['ai_interview_completed'] / $funnel['total_applications']) * 100, 1) : 0 ?>% from applications</small>
                             </div>
                         </div>
                         <div class="col-3">
@@ -165,7 +266,7 @@
                                 </div>
                                 <h3><?= number_format($funnel['shortlisted']) ?></h3>
                                 <p class="text-muted mb-0">Shortlisted</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['ai_interview_completed'] > 0 ? round(($funnel['shortlisted'] / $funnel['ai_interview_completed']) * 100, 1) : 0 ?>%</small>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['ai_interview_completed'] > 0 ? round(($funnel['shortlisted'] / $funnel['ai_interview_completed']) * 100, 1) : 0 ?>% from AI screened</small>
                             </div>
                         </div>
                         <div class="col-3">
@@ -175,7 +276,7 @@
                                 </div>
                                 <h3><?= number_format($funnel['interview_slot_booked']) ?></h3>
                                 <p class="text-muted mb-0">HR Interviews</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['shortlisted'] > 0 ? round(($funnel['interview_slot_booked'] / $funnel['shortlisted']) * 100, 1) : 0 ?>%</small>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['shortlisted'] > 0 ? round(($funnel['interview_slot_booked'] / $funnel['shortlisted']) * 100, 1) : 0 ?>% from shortlisted</small>
                             </div>
                         </div>
                     </div>
@@ -202,7 +303,7 @@
                             <div class="stage-time-item mb-3" data-aos="fade-left">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <div>
-                                        <span class="stage-name-label"><?= ucwords(str_replace('_', ' ', $stage['stage'])) ?></span>
+                                        <span class="stage-name-label"><?= esc($formatStageLabel($stage['stage'])) ?></span>
                                         <?php if ($isBottleneck): ?>
                                             <span class="badge badge-danger ml-1" title="Potential bottleneck">
                                                 <i class="fas fa-exclamation-triangle"></i>
@@ -265,32 +366,32 @@
                                 <tr>
                                     <td>Application → AI Interview</td>
                                     <td class="text-right">
-                                        <span class="badge badge-<?= ($conversionMetrics['application_to_ai_interview'] ?? 0) > 50 ? 'success' : 'warning' ?>">
-                                            <?= $conversionMetrics['application_to_ai_interview'] ?? 0 ?>%
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['application_to_ai_interview'] ?? null, 50) ?>">
+                                            <?= $formatRate($conversionMetrics['application_to_ai_interview'] ?? null) ?>
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>AI Interview → Shortlist</td>
                                     <td class="text-right">
-                                        <span class="badge badge-<?= ($conversionMetrics['ai_interview_to_shortlist'] ?? 0) > 40 ? 'success' : 'warning' ?>">
-                                            <?= $conversionMetrics['ai_interview_to_shortlist'] ?? 0 ?>%
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['ai_interview_to_shortlist'] ?? null, 40) ?>">
+                                            <?= $formatRate($conversionMetrics['ai_interview_to_shortlist'] ?? null) ?>
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Shortlist → HR Interview</td>
                                     <td class="text-right">
-                                        <span class="badge badge-<?= ($conversionMetrics['shortlist_to_hr_interview'] ?? 0) > 60 ? 'success' : 'warning' ?>">
-                                            <?= $conversionMetrics['shortlist_to_hr_interview'] ?? 0 ?>%
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['shortlist_to_hr_interview'] ?? null, 60) ?>">
+                                            <?= $formatRate($conversionMetrics['shortlist_to_hr_interview'] ?? null) ?>
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>HR Interview → Selection</td>
                                     <td class="text-right">
-                                        <span class="badge badge-<?= ($conversionMetrics['hr_interview_to_selection'] ?? 0) > 30 ? 'success' : 'warning' ?>">
-                                            <?= $conversionMetrics['hr_interview_to_selection'] ?? 0 ?>%
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['hr_interview_to_selection'] ?? null, 30) ?>">
+                                            <?= $formatRate($conversionMetrics['hr_interview_to_selection'] ?? null) ?>
                                         </span>
                                     </td>
                                 </tr>
@@ -298,7 +399,7 @@
                                     <td>Overall Conversion</td>
                                     <td class="text-right">
                                         <span class="badge badge-primary badge-lg">
-                                            <?= $conversionMetrics['overall_conversion'] ?? 0 ?>%
+                                            <?= number_format((float) ($conversionMetrics['overall_conversion'] ?? 0), 1) ?>%
                                         </span>
                                     </td>
                                 </tr>

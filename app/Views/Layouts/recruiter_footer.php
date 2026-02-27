@@ -16,7 +16,7 @@
             <div class="col-6 col-md-3 mb-4 mb-md-0">
                 <h3>Hiring</h3>
                 <ul class="list-unstyled">
-                    <li><a href="<?= base_url('recruiter/applications') ?>">Applications</a></li>
+                    <li><a href="<?= base_url('recruiter/jobs') ?>">Applications</a></li>
                     <li><a href="<?= base_url('recruiter/slots') ?>">Interview Slots</a></li>
                     <li><a href="<?= base_url('recruiter/slots/bookings') ?>">Interview Bookings</a></li>
                 </ul>
@@ -24,7 +24,6 @@
             <div class="col-6 col-md-3 mb-4 mb-md-0">
                 <h3>Analytics</h3>
                 <ul class="list-unstyled">
-                    <li><a href="<?= base_url('recruiter/dashboard/leaderboard') ?>">Leaderboard</a></li>
                     <li><a href="<?= base_url('recruiter/dashboard/export-excel') ?>">Export Data</a></li>
                     <li><a href="<?= base_url('logout') ?>">Logout</a></li>
                 </ul>

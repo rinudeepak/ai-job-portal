@@ -25,7 +25,6 @@ $routes->get('recruiter/verification', 'Auth::recruiterVerification');
 $routes->get('recruiter/verify-email/(:any)', 'Auth::verifyRecruiterEmail/$1');
 $routes->post('recruiter/verify-phone', 'Auth::verifyRecruiterPhone');
 $routes->post('recruiter/resend-verification-email', 'Auth::resendRecruiterVerificationEmail');
-$routes->post('recruiter/resend-phone-otp', 'Auth::resendRecruiterPhoneOtp');
 $routes->get('company/(:num)', 'CompanyProfile::show/$1', ['filter' => 'auth']);
 
 // $routes->get('dashboard', 'Auth::dashboard');
@@ -62,13 +61,16 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
     
     // Leaderboard
     $routes->get('dashboard/leaderboard', 'DashboardController::leaderboard');
+    $routes->get('jobs/(:num)/leaderboard', 'DashboardController::leaderboard/$1');
     
     // Excel Exports
     $routes->get('dashboard/export-excel', 'DashboardController::exportExcel');
     
-    // Applications by Job
+    // Applications by Job (legacy index kept as redirect)
     $routes->get('applications', 'RecruiterApplications::index');
     $routes->get('applications/job/(:num)', 'RecruiterApplications::viewByJob/$1');
+    $routes->get('jobs/(:num)/applications', 'RecruiterApplications::viewByJob/$1');
+    $routes->post('jobs/(:num)/applications/bulk', 'RecruiterApplications::bulkAction/$1');
     $routes->post('applications/shortlist/(:num)', 'RecruiterApplications::shortlist/$1');
     $routes->post('applications/reject/(:num)', 'RecruiterApplications::reject/$1');
     
@@ -114,10 +116,7 @@ $routes->get('recruiter/candidate/(:num)', 'RecruiterCandidates::viewProfile/$1'
 $routes->get('recruiter/candidate/(:num)/view-contact', 'RecruiterCandidates::viewContact/$1', ['filter' => 'auth']);
 $routes->get('recruiter/candidate/(:num)/download-resume', 'RecruiterCandidates::downloadResume/$1', ['filter' => 'auth']);
 $routes->post('recruiter/candidate/(:num)/send-message', 'RecruiterCandidates::sendMessage/$1', ['filter' => 'auth']);
-
-// Test route - remove after testing
-$routes->get('test-profile', 'TestProfile::checkTables');
-
+$routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::saveNotes/$1', ['filter' => 'auth']);
 
 // AI Interview Routes
 $routes->group('interview', ['filter' => 'auth'], function($routes) {

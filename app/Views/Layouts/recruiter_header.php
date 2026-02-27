@@ -55,10 +55,8 @@
                                 <li><a href="<?= base_url('recruiter/post_job') ?>">Post a Job</a></li>
                             </ul>
                         </li>
-                        <li><a href="<?= base_url('recruiter/applications') ?>" class="nav-link">Applications</a></li>
                         <li><a href="<?= base_url('recruiter/company-profile') ?>" class="nav-link">Company Profile</a></li>
                         <li><a href="<?= base_url('recruiter/slots') ?>" class="nav-link">Interview Slots</a></li>
-                        <li><a href="<?= base_url('recruiter/dashboard/leaderboard') ?>" class="nav-link">Leaderboard</a></li>
                     </ul>
                 </nav>
                 <div class="right-cta-menu text-right d-flex aligin-items-center col-6">

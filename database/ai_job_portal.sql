@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 24, 2026 at 03:29 PM
+-- Generation Time: Feb 26, 2026 at 08:40 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -88,7 +88,7 @@ CREATE TABLE `candidate_interests` (
 --
 
 INSERT INTO `candidate_interests` (`id`, `candidate_id`, `interest`) VALUES
-(1, 47, 'UI/UX Design');
+(1, 47, 'UI/UX Design, Backend Development, Full Stack');
 
 -- --------------------------------------------------------
 
@@ -183,7 +183,7 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `industry`, `size`, `hq`, `branches`, `short_description`, `what_we_do`, `mission_values`, `contact_email`, `contact_phone`, `contact_public`, `created_at`, `updated_at`) VALUES
-(1, 'TechNova Solutions', 'uploads/company_logos/1771669764_20d47a35f4f9596afa95.jpg', 'https://www.technovasolutions.com', 'IT Services', '50-200', 'Bangalore, India', 'Kochi, Chennai', 'We build scalable digital solutions for modern businesses.', 'We develop web applications, mobile apps, and cloud solutions for startups and enterprises.', 'Innovation, Transparency, Customer Success', 'hr@technovasolutions.com', '+91-9876543210', 1, '2026-02-21 09:27:53', '2026-02-21 10:29:24'),
+(1, 'TechNova Solutions', 'uploads/company_logos/1771669764_20d47a35f4f9596afa95.jpg', 'https://www.technovasolutions.com', 'IT Services', '50-200', 'Bangalore, India', 'Kochi, Chennai', 'We build scalable digital solutions for modern businesses.', 'We develop web applications, mobile apps, and cloud solutions for startups and enterprises.', 'Innovation, Transparency, Customer Success', 'hr@technovasolutions.com', '+91-9876543210', 1, '2026-02-21 09:27:53', '2026-02-26 07:17:40'),
 (2, 'PHP Developer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
 (3, 'CodeCraft Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
 (4, 'PixelSoft Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
@@ -208,7 +208,11 @@ INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `industry`, `size`, `h
 (23, 'SkyHost Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
 (24, 'InnovateHub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
 (25, 'GreenLeaf Finance', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(26, 'GreenLeaf Industries', NULL, 'https://www.greenleafindustries.com', 'Manufacturing', '200-500', 'Coimbatore, India', 'Hyderabad, Pune', 'Sustainable manufacturing for a better tomorrow.', 'We manufacture eco-friendly packaging products and export globally.', 'Sustainability, Integrity, Quality', 'careers@greenleafindustries.com', '', 0, '2026-02-21 10:40:17', '2026-02-21 10:43:18');
+(26, 'GreenLeaf Industries', NULL, 'https://www.greenleafindustries.com', 'Manufacturing', '200-500', 'Coimbatore, India', 'Hyderabad, Pune', 'Sustainable manufacturing for a better tomorrow.', 'We manufacture eco-friendly packaging products and export globally.', 'Sustainability, Integrity, Quality', 'careers@greenleafindustries.com', '', 0, '2026-02-21 10:40:17', '2026-02-21 10:43:18'),
+(27, 'SERP Hawk', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 09:20:38', '2026-02-25 09:20:38'),
+(28, 'SANDS Lab', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 10:49:16', '2026-02-25 10:49:16'),
+(29, 'xxx', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 05:49:32', '2026-02-26 05:49:32'),
+(30, 'bbb', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 07:37:05', '2026-02-26 07:37:05');
 
 -- --------------------------------------------------------
 
@@ -391,7 +395,8 @@ INSERT INTO `jobs` (`id`, `recruiter_id`, `company_id`, `title`, `category`, `co
 (57, 46, 1, 'Mechanical Engineer', 'Engineering', 'TechNova Solutions', 'Coimbatore, India', 'Responsible for maintaining and improving manufacturing machinery', 'AutoCAD, SolidWorks, Machine Maintenance', '1-3 Years', 2, 80, 'REQUIRED_HARD', 'open', '2026-02-21 16:07:59', 'Full-time'),
 (58, 48, 26, 'Quality Inspector', 'Manufacturing', 'GreenLeaf Industries', 'Pune, India', 'Ensure product quality and compliance with standards.', 'Quality Control, Inspection, ISO Standards', '2-5 Years', 1, 70, 'REQUIRED_HARD', 'open', '2026-02-21 16:15:54', 'Full-time'),
 (59, 46, 1, 'job2', 'Manufacturing', 'TechNova Solutions', 'Thrissur, Kerala', 'aaaaa', 'tool n die', '2-3 years', 3, 45, 'REQUIRED_HARD', 'open', '2026-02-24 14:07:09', 'Full-time'),
-(60, 46, 1, 'job3', 'information tachnology', 'TechNova Solutions', 'Bangalore, Karnataka', 'aaaaa', '', '', 3, 80, 'REQUIRED_HARD', 'open', '2026-02-24 14:14:47', 'Full-time');
+(60, 46, 1, 'job3', 'information tachnology', 'TechNova Solutions', 'Bangalore, Karnataka', 'aaaaa', '', '', 3, 80, 'REQUIRED_HARD', 'open', '2026-02-24 14:14:47', 'Full-time'),
+(61, 46, 1, 'job 4', 'IT', 'TechNova Solutions', 'BANGALORE', 'aaa   .......', '', '', 2, 0, 'OFF', 'open', '2026-02-26 12:17:54', 'Full-time');
 
 -- --------------------------------------------------------
 
@@ -442,7 +447,9 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (11, '2026-02-23-100000', 'App\\Database\\Migrations\\CreateSavedJobsTable', 'default', 'App', 1771826565, 8),
 (12, '2026-02-23-120000', 'App\\Database\\Migrations\\CreateRecruiterCandidateActionsTable', 'default', 'App', 1771829444, 9),
 (13, '2026-02-23-130000', 'App\\Database\\Migrations\\CreateRecruiterCandidateMessagesTable', 'default', 'App', 1771843012, 10),
-(14, '2026-02-23-150000', 'App\\Database\\Migrations\\AddGoogleIdToUsers', 'default', 'App', 1771844544, 11);
+(14, '2026-02-23-150000', 'App\\Database\\Migrations\\AddGoogleIdToUsers', 'default', 'App', 1771844544, 11),
+(15, '2026-02-25-100000', 'App\\Database\\Migrations\\DropUnusedPhoneOtpColumnsFromUsers', 'default', 'App', 1772016233, 12),
+(16, '2026-02-25-110000', 'App\\Database\\Migrations\\CreateRecruiterCandidateNotesTable', 'default', 'App', 1772022056, 13);
 
 -- --------------------------------------------------------
 
@@ -475,7 +482,9 @@ INSERT INTO `notifications` (`id`, `user_id`, `application_id`, `type`, `title`,
 (5, 47, 75, '', 'Message from Recruiter', 'Rohith Kumar sent you a message. Open conversation to read it.', 'http://localhost/ai-job-portal/public/candidate/messages/46?application_id=75', 1, '2026-02-23 10:43:19', '2026-02-23 10:43:37'),
 (6, 46, 75, '', 'Candidate Replied', 'Manju Aravind replied to your message.', 'http://localhost/ai-job-portal/public/recruiter/candidate/47?application_id=75&show_contact=1', 1, '2026-02-23 10:47:02', '2026-02-23 10:47:28'),
 (7, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-23 10:47:29', '2026-02-24 06:38:44'),
-(12, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-24 08:28:08', NULL);
+(12, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-24 08:28:08', NULL),
+(13, 49, 76, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-25 11:44:47', NULL),
+(14, 47, 74, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-26 04:40:32', NULL);
 
 -- --------------------------------------------------------
 
@@ -505,7 +514,9 @@ INSERT INTO `recruiter_candidate_actions` (`id`, `candidate_id`, `recruiter_id`,
 (15, 49, 46, 76, 56, 'contact_viewed', '2026-02-23 11:31:13'),
 (16, 49, 46, 76, 56, 'resume_downloaded', '2026-02-24 06:09:41'),
 (17, 47, 46, 75, 57, 'resume_downloaded', '2026-02-24 06:17:03'),
-(18, 47, 46, 75, 57, 'profile_viewed', '2026-02-24 08:28:08');
+(18, 47, 46, 75, 57, 'profile_viewed', '2026-02-24 08:28:08'),
+(19, 49, 46, 76, 56, 'profile_viewed', '2026-02-25 11:44:47'),
+(20, 47, 46, 74, 56, 'profile_viewed', '2026-02-26 04:40:32');
 
 -- --------------------------------------------------------
 
@@ -537,6 +548,29 @@ INSERT INTO `recruiter_candidate_messages` (`id`, `candidate_id`, `recruiter_id`
 (5, 47, 46, 75, 57, 46, 'recruiter', 'ok iwill check and update', '2026-02-23 10:43:19'),
 (6, 47, 46, 75, NULL, 47, 'candidate', 'thankyou', '2026-02-23 10:43:49'),
 (7, 47, 46, 75, NULL, 47, 'candidate', 'mam, have any update?', '2026-02-23 10:47:02');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `recruiter_candidate_notes`
+--
+
+CREATE TABLE `recruiter_candidate_notes` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `candidate_id` int(11) NOT NULL,
+  `recruiter_id` int(11) NOT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `recruiter_candidate_notes`
+--
+
+INSERT INTO `recruiter_candidate_notes` (`id`, `candidate_id`, `recruiter_id`, `tags`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 49, 46, 'Strong communication', 'can be interviewed', '2026-02-25 12:22:26', '2026-02-25 12:22:26');
 
 -- --------------------------------------------------------
 
@@ -660,8 +694,6 @@ CREATE TABLE `users` (
   `company_id` int(11) DEFAULT NULL,
   `email_verification_token` varchar(128) DEFAULT NULL,
   `email_verified_at` datetime DEFAULT NULL,
-  `phone_otp` varchar(10) DEFAULT NULL,
-  `phone_otp_expires_at` datetime DEFAULT NULL,
   `phone_verified_at` datetime DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
@@ -675,11 +707,15 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `preferred_language`, `phone`, `role`, `company_name`, `company_id`, `email_verification_token`, `email_verified_at`, `phone_otp`, `phone_otp_expires_at`, `phone_verified_at`, `password`, `created_at`, `resume_path`, `profile_photo`, `location`, `bio`) VALUES
-(46, 'Rohith Kumar', 'rohith@technova.com', NULL, 'en', '+919544104305', 'recruiter', 'TechNova Solutions', 1, NULL, NULL, NULL, NULL, '2026-02-21 09:55:45', '$2y$10$tE9gbIZsmrhYj3JT0GUUr.Ra9rusYsib3.sglY1aTUA/80Qe4ENwi', '2026-02-21 15:25:05', NULL, NULL, NULL, NULL),
-(47, 'Manju Aravind', 'manju@gmail.com', NULL, 'en', '1234567890', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$NyfTmre9jA2XQ7YQyaA5dOFUht/7z2AYgaVvOQn0O/JnFz.oULaTe', '2026-02-21 15:39:46', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'uploads/profiles/47_1771671062.jpg', 'BANGALORE', ''),
-(48, 'Asha Govind', 'asha@greenleaf.com', NULL, 'en', '+919544104305', 'recruiter', 'GreenLeaf Industries', 26, NULL, NULL, NULL, NULL, '2026-02-21 10:40:38', '$2y$10$vnhHNHOsFGO3BoRU8ORdkO7scVwwPBJZWKAXD7907xXQsYdujrAfe', '2026-02-21 16:10:17', NULL, NULL, NULL, NULL),
-(49, 'rinu george', 'rinugeorgep@gmail.com', '110489513847967949727', 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$aX/2kGvTsL77jRiGRl9c9uF3csUzIulWshhaTrNuGDzASo4EJtY1q', '2026-02-23 16:58:13', 'uploads/resumes/Rinu_George_Resume_15.pdf', '', 'BANGALORE', '');
+INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `preferred_language`, `phone`, `role`, `company_name`, `company_id`, `email_verification_token`, `email_verified_at`, `phone_verified_at`, `password`, `created_at`, `resume_path`, `profile_photo`, `location`, `bio`) VALUES
+(46, 'Rohith Kumar', 'rohith@technova.com', NULL, 'en', '+919544104305', 'recruiter', 'TechNova Solutions', 1, NULL, NULL, '2026-02-21 09:55:45', '$2y$10$tE9gbIZsmrhYj3JT0GUUr.Ra9rusYsib3.sglY1aTUA/80Qe4ENwi', '2026-02-21 15:25:05', NULL, NULL, NULL, NULL),
+(47, 'Manju Aravind', 'manju@gmail.com', NULL, 'en', '1234567890', 'candidate', NULL, NULL, NULL, NULL, NULL, '$2y$10$NyfTmre9jA2XQ7YQyaA5dOFUht/7z2AYgaVvOQn0O/JnFz.oULaTe', '2026-02-21 15:39:46', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'uploads/profiles/47_1771671062.jpg', 'BANGALORE', ''),
+(48, 'Asha Govind', 'asha@greenleaf.com', NULL, 'en', '+919544104305', 'recruiter', 'GreenLeaf Industries', 26, NULL, NULL, '2026-02-21 10:40:38', '$2y$10$vnhHNHOsFGO3BoRU8ORdkO7scVwwPBJZWKAXD7907xXQsYdujrAfe', '2026-02-21 16:10:17', NULL, NULL, NULL, NULL),
+(49, 'rinu george', 'rinugeorgep@gmail.com', '110489513847967949727', 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, '$2y$10$aX/2kGvTsL77jRiGRl9c9uF3csUzIulWshhaTrNuGDzASo4EJtY1q', '2026-02-23 16:58:13', 'uploads/resumes/Rinu_George_Resume_15.pdf', '', 'BANGALORE', ''),
+(60, 'rinu george', 'rinu@sandslab.com', NULL, 'en', '+919544104305', 'recruiter', 'SANDS Lab', 28, NULL, NULL, '2026-02-25 11:01:11', '$2y$10$AYu/RrcrjVoevRK19XM/PuCnSi2qjah40.HOoHEqkE08n5ULW4bza', '2026-02-25 16:30:57', NULL, NULL, NULL, NULL),
+(62, 'rinu george', 'rinu@serphawk.com', NULL, 'en', '+919544104305', 'recruiter', 'SERP Hawk', 27, NULL, NULL, '2026-02-25 11:43:19', '$2y$10$NQlgJesfIGrMFNJO1FPm5.Bi7Fr4Rn7od7csn/jZyGPecBxED1wla', '2026-02-25 17:13:10', NULL, NULL, NULL, NULL),
+(64, 'John', 'john@xxx.com', NULL, 'en', '+919544104305', 'recruiter', 'xxx', 29, NULL, NULL, '2026-02-26 05:51:30', '$2y$10$jjsjSTk6Td8eBNZpW/HzwO7eDIjwTyFNLoDnlj.vDjZJC7jMN9ImO', '2026-02-26 11:21:16', NULL, NULL, NULL, NULL),
+(65, 'kiran', 'kiran@bbb.com', NULL, 'en', '+919544104305', 'recruiter', 'bbb', 30, NULL, NULL, '2026-02-26 07:37:39', '$2y$10$IgxgjmtIcQzz/vj7u2c2Buet0SLEdbquuEP1huQaSVNUn6n4IWRoa', '2026-02-26 13:07:06', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -708,7 +744,8 @@ CREATE TABLE `work_experiences` (
 
 INSERT INTO `work_experiences` (`id`, `user_id`, `job_title`, `company_name`, `employment_type`, `location`, `start_date`, `end_date`, `is_current`, `description`, `created_at`, `updated_at`) VALUES
 (1, 49, 'Software Developer', 'SANDS Lab', 'Full-time', 'Thrissur, Kerala', '2020-02-03', '2022-06-24', 0, '', '2026-02-24 05:08:33', '2026-02-24 05:08:33'),
-(2, 49, 'Web Developer', 'KJP Digital Solutions Pvt Ltd', 'Full-time', 'Thrissur, Kerala', '2023-06-26', '2024-06-28', 0, '', '2026-02-24 05:09:45', '2026-02-24 05:09:45');
+(2, 49, 'Web Developer', 'KJP Digital Solutions Pvt Ltd', 'Full-time', 'Thrissur, Kerala', '2023-06-26', '2024-06-28', 0, '', '2026-02-24 05:09:45', '2026-02-24 05:09:45'),
+(3, 47, 'Web Developer', 'ABC company', 'Full-time', '', '2025-12-08', NULL, 1, '', '2026-02-26 00:48:23', '2026-02-26 00:48:23');
 
 --
 -- Indexes for dumped tables
@@ -879,6 +916,15 @@ ALTER TABLE `recruiter_candidate_messages`
   ADD KEY `job_id` (`job_id`);
 
 --
+-- Indexes for table `recruiter_candidate_notes`
+--
+ALTER TABLE `recruiter_candidate_notes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `candidate_id_recruiter_id` (`candidate_id`,`recruiter_id`),
+  ADD KEY `candidate_id` (`candidate_id`),
+  ADD KEY `recruiter_id` (`recruiter_id`);
+
+--
 -- Indexes for table `reschedule_history`
 --
 ALTER TABLE `reschedule_history`
@@ -966,7 +1012,7 @@ ALTER TABLE `certifications`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `course_lessons`
@@ -1014,7 +1060,7 @@ ALTER TABLE `interview_slots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `job_suggestions`
@@ -1026,25 +1072,31 @@ ALTER TABLE `job_suggestions`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_actions`
 --
 ALTER TABLE `recruiter_candidate_actions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_messages`
 --
 ALTER TABLE `recruiter_candidate_messages`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `recruiter_candidate_notes`
+--
+ALTER TABLE `recruiter_candidate_notes`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `reschedule_history`
@@ -1074,13 +1126,13 @@ ALTER TABLE `stage_history`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `work_experiences`
 --
 ALTER TABLE `work_experiences`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
@@ -1172,6 +1224,13 @@ ALTER TABLE `recruiter_candidate_messages`
   ADD CONSTRAINT `recruiter_candidate_messages_candidate_id_foreign` FOREIGN KEY (`candidate_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `recruiter_candidate_messages_job_id_foreign` FOREIGN KEY (`job_id`) REFERENCES `jobs` (`id`) ON DELETE CASCADE ON UPDATE SET NULL,
   ADD CONSTRAINT `recruiter_candidate_messages_recruiter_id_foreign` FOREIGN KEY (`recruiter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `recruiter_candidate_notes`
+--
+ALTER TABLE `recruiter_candidate_notes`
+  ADD CONSTRAINT `recruiter_candidate_notes_candidate_id_foreign` FOREIGN KEY (`candidate_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `recruiter_candidate_notes_recruiter_id_foreign` FOREIGN KEY (`recruiter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `saved_jobs`

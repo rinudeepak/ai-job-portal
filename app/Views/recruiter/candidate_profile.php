@@ -9,6 +9,7 @@
         . '?application_id=' . $applicationId
         . '&job_id=' . $jobId;
     $messages = $messages ?? [];
+    $recruiterNote = $recruiterNote ?? null;
     ?>
     <style>
         .candidate-summary-card .candidate-name {
@@ -92,6 +93,39 @@
                 </div>
             </div>
             <?php endif; ?>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6><i class="fas fa-sticky-note"></i> Recruiter Notes & Tags</h6>
+                    <?php if (!empty($recruiterNote['tags'])): ?>
+                        <div class="mb-2">
+                            <?php foreach (explode(',', (string) $recruiterNote['tags']) as $tag): ?>
+                                <?php $trimmedTag = trim($tag); ?>
+                                <?php if ($trimmedTag !== ''): ?>
+                                    <span class="badge badge-light border mr-1 mb-1"><?= esc($trimmedTag) ?></span>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                    <form method="post" action="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/save-notes') ?>">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="application_id" value="<?= $applicationId ?>">
+                        <input type="hidden" name="job_id" value="<?= $jobId ?>">
+                        <input type="hidden" name="show_contact" value="<?= $showContact ? 1 : 0 ?>">
+                        <div class="form-group mb-2">
+                            <label class="small text-muted">Tags (comma separated)</label>
+                            <input type="text" name="tags" class="form-control" maxlength="255" value="<?= esc($recruiterNote['tags'] ?? '') ?>" placeholder="e.g. Strong communication, Backend, Immediate joiner">
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="small text-muted">Private Notes</label>
+                            <textarea name="notes" class="form-control" rows="4" maxlength="5000" placeholder="Add private notes for this candidate..."><?= esc($recruiterNote['notes'] ?? '') ?></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-outline-dark">
+                            <i class="fas fa-save mr-1"></i> Save Notes
+                        </button>
+                    </form>
+                </div>
+            </div>
 
             <div class="card shadow-sm mt-3">
                 <div class="card-body">

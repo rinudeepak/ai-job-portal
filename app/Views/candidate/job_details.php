@@ -7,6 +7,49 @@ if ($companyRefId <= 0) {
 $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
 $isSaved = (bool) ($isSaved ?? false);
 ?>
+<style>
+.job-details-jobboard .ai-policy-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #dfe6f5;
+    background: #f8fbff;
+    margin-bottom: 12px;
+}
+.job-details-jobboard .ai-policy-card .ai-policy-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex: 0 0 28px;
+}
+.job-details-jobboard .ai-policy-card .ai-policy-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1f2f57;
+    margin-bottom: 2px;
+}
+.job-details-jobboard .ai-policy-card .ai-policy-desc {
+    font-size: 12px;
+    color: #607295;
+    line-height: 1.3;
+    margin: 0;
+}
+.job-details-jobboard .ai-policy-off { background: #f7f9fc; border-color: #dde3ed; }
+.job-details-jobboard .ai-policy-off .ai-policy-icon { background: #e8edf4; color: #4b5f80; }
+.job-details-jobboard .ai-policy-optional { background: #f2f9ff; border-color: #cfe5ff; }
+.job-details-jobboard .ai-policy-optional .ai-policy-icon { background: #dceeff; color: #2f78c6; }
+.job-details-jobboard .ai-policy-soft { background: #fffaf0; border-color: #f4dfb8; }
+.job-details-jobboard .ai-policy-soft .ai-policy-icon { background: #ffedcc; color: #b87b1b; }
+.job-details-jobboard .ai-policy-hard { background: #fff4f4; border-color: #f2c7c7; }
+.job-details-jobboard .ai-policy-hard .ai-policy-icon { background: #f8dada; color: #b53d3d; }
+</style>
 
 <div class="job-details-jobboard">
     <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
@@ -60,16 +103,39 @@ $isSaved = (bool) ($isSaved ?? false);
                     <?php
                     $policyRaw = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
                     $policyMap = [
-                        'OFF' => ['label' => 'AI: Off', 'class' => 'badge-secondary', 'hint' => 'No AI interview required'],
-                        'OPTIONAL' => ['label' => 'AI: Optional', 'class' => 'badge-info', 'hint' => 'AI interview can improve ranking'],
-                        'REQUIRED_SOFT' => ['label' => 'AI: Required Soft', 'class' => 'badge-warning', 'hint' => 'AI required, recruiter can override'],
-                        'REQUIRED_HARD' => ['label' => 'AI: Required Hard', 'class' => 'badge-danger', 'hint' => 'AI result is strict gate'],
+                        'OFF' => [
+                            'title' => 'AI Interview: Not Required',
+                            'desc' => 'You can apply directly. No AI round is needed for this job.',
+                            'class' => 'ai-policy-off',
+                            'icon' => 'fas fa-check-circle'
+                        ],
+                        'OPTIONAL' => [
+                            'title' => 'AI Interview: Optional',
+                            'desc' => 'Optional AI round is available and may improve your visibility.',
+                            'class' => 'ai-policy-optional',
+                            'icon' => 'fas fa-lightbulb'
+                        ],
+                        'REQUIRED_SOFT' => [
+                            'title' => 'AI Interview: Required + Recruiter Review',
+                            'desc' => 'AI round is required, and recruiter can still make the final decision.',
+                            'class' => 'ai-policy-soft',
+                            'icon' => 'fas fa-user-check'
+                        ],
+                        'REQUIRED_HARD' => [
+                            'title' => 'AI Interview: Mandatory Screening',
+                            'desc' => 'AI interview is mandatory and works as the primary screening gate.',
+                            'class' => 'ai-policy-hard',
+                            'icon' => 'fas fa-shield-alt'
+                        ],
                     ];
                     $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                     ?>
-                    <div class="mb-2">
-                        <span class="badge <?= esc($policy['class']) ?>" title="<?= esc($policy['hint']) ?>"><?= esc($policy['label']) ?></span>
-                        <small class="text-muted ml-2"><?= esc($policy['hint']) ?></small>
+                    <div class="ai-policy-card <?= esc($policy['class']) ?>">
+                        <span class="ai-policy-icon"><i class="<?= esc($policy['icon']) ?>"></i></span>
+                        <div>
+                            <div class="ai-policy-title"><?= esc($policy['title']) ?></div>
+                            <p class="ai-policy-desc"><?= esc($policy['desc']) ?></p>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-12">

@@ -169,8 +169,10 @@ class SlotManagementController extends BaseController
         log_message('debug', 'User ID: ' . session()->get('user_id'));
         log_message('debug', 'Job IDs: ' . json_encode($jobIds));
 
-        // Get only recruiter's jobs
-        if ($jobIds !== null) {
+        // Get only recruiter's jobs (guard empty arrays to avoid SQL IN ()).
+        if (is_array($jobIds) && empty($jobIds)) {
+            $jobs = [];
+        } elseif ($jobIds !== null) {
             $jobs = $jobModel->whereIn('id', $jobIds)->findAll();
         } else {
             $jobs = $jobModel->findAll();
@@ -351,6 +353,26 @@ class SlotManagementController extends BaseController
         // Get recruiter's job IDs
         $jobIds = $this->getRecruiterJobIds();
 
+        // If recruiter has no jobs, show empty state and avoid whereIn(..., []) SQL.
+        if (is_array($jobIds) && empty($jobIds)) {
+            return view('recruiter/slots/bookings', [
+                'bookings' => [],
+                'pager' => $bookingModel->pager,
+                'jobs' => [],
+                'stats' => [
+                    'total_bookings' => 0,
+                    'upcoming' => 0,
+                    'completed' => 0,
+                    'rescheduled' => 0,
+                ],
+                'filters' => [
+                    'status' => $this->request->getGet('status'),
+                    'job_id' => $this->request->getGet('job_id'),
+                ],
+                'noJobs' => true,
+            ]);
+        }
+
         // Get filters
         $status = $this->request->getGet('status');
         $jobId = $this->request->getGet('job_id');
@@ -408,6 +430,15 @@ class SlotManagementController extends BaseController
     private function getBookingStats($jobIds = null)
     {
         $bookingModel = model('InterviewBookingModel');
+
+        if (is_array($jobIds) && empty($jobIds)) {
+            return [
+                'total_bookings' => 0,
+                'upcoming' => 0,
+                'completed' => 0,
+                'rescheduled' => 0,
+            ];
+        }
 
         if ($jobIds !== null) {
             return [

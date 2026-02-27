@@ -121,6 +121,7 @@ nb-configuration.xml
 
 # Visual Studio Code
 .vscode/
+.vs/
 
 /results/
 /phpunit*.xml
@@ -130,4 +131,3 @@ nb-configuration.xml
 
 
 once i set  career transition then i cant change , include changing option also
-

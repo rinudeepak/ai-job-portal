@@ -22,7 +22,7 @@ class Applications extends BaseController
         $user = $userModel->find($candidateId);
         
         if (empty($user['resume_path'])) {
-            return redirect()->back()->with('error', 'Please upload your resume before applying for jobs. Go to Profile > Resume tab.');
+            return redirect()->to(base_url('candidate/profile'))->with('error', 'Please upload your resume to continue your job application. You have been redirected to your profile page.');
         }
         
         $model = new ApplicationModel();

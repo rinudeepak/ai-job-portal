@@ -205,6 +205,147 @@
     background: #f9fbff;
 }
 
+.recruiter-jobboard .job-actions-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action {
+    margin: 0 !important;
+    white-space: nowrap;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.1;
+    padding: 8px 11px;
+    border: 1px solid transparent;
+    box-shadow: none;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action i {
+    margin-right: 5px;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-edit {
+    background: #2f57bd;
+    border-color: #2f57bd;
+    color: #fff;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-edit:hover {
+    background: #264a9f;
+    border-color: #264a9f;
+    color: #fff;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-applications {
+    background: #89ba16;
+    border-color: #89ba16;
+    color: #fff;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-applications:hover {
+    background: #739f12;
+    border-color: #739f12;
+    color: #fff;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-leaderboard {
+    background: #6b778a;
+    border-color: #6b778a;
+    color: #fff;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-leaderboard:hover {
+    background: #596477;
+    border-color: #596477;
+    color: #fff;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-close {
+    background: #fff6cc;
+    border-color: #f0dd7a;
+    color: #3e4760;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-close:hover {
+    background: #f6e98d;
+    border-color: #e9d35b;
+    color: #2f3852;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-reopen {
+    background: #e9f7ee;
+    border-color: #b7e3c5;
+    color: #256b44;
+}
+
+.recruiter-jobboard .job-actions-wrap .btn-action-reopen:hover {
+    background: #d7f0e1;
+    border-color: #9ed6b1;
+    color: #1f5b3b;
+}
+
+.recruiter-jobboard .application-actions-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.recruiter-jobboard .application-actions-wrap .application-action-form {
+    margin: 0;
+}
+
+.recruiter-jobboard .application-actions-wrap .btn {
+    margin: 0 !important;
+    white-space: nowrap;
+}
+
+.recruiter-jobboard .ai-policy-chip {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 10px;
+    border: 1px solid #d9e3f7;
+    padding: 7px 10px;
+    line-height: 1.2;
+    min-width: 170px;
+}
+
+.recruiter-jobboard .ai-policy-chip strong {
+    font-size: 12px;
+    color: #1f2f57;
+    font-weight: 700;
+}
+
+.recruiter-jobboard .ai-policy-chip small {
+    font-size: 11px;
+    color: #5f7194;
+}
+
+.recruiter-jobboard .ai-policy-chip-off {
+    background: #f5f7fb;
+    border-color: #dde3ee;
+}
+
+.recruiter-jobboard .ai-policy-chip-optional {
+    background: #eef7ff;
+    border-color: #cfe4fb;
+}
+
+.recruiter-jobboard .ai-policy-chip-soft {
+    background: #fff9ef;
+    border-color: #f2ddb8;
+}
+
+.recruiter-jobboard .ai-policy-chip-hard {
+    background: #fff3f3;
+    border-color: #f3c7c7;
+}
+
 .recruiter-jobboard .dashboard-stat-link {
     display: block;
     color: inherit;
@@ -223,6 +364,56 @@
 .recruiter-jobboard .dashboard-stat-link:hover .card {
     transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(35, 54, 106, .12);
+}
+
+.recruiter-jobboard .dashboard-stat-link .card {
+    min-height: 126px;
+}
+
+.recruiter-jobboard .dashboard-metric-title {
+    min-height: 34px;
+    display: flex;
+    align-items: flex-start;
+    line-height: 1.25;
+}
+
+.recruiter-jobboard .recruiter-action-center .action-item-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #edf1fa;
+    color: inherit;
+    text-decoration: none;
+}
+
+.recruiter-jobboard .recruiter-action-center .action-item-link:last-child {
+    border-bottom: 0;
+}
+
+.recruiter-jobboard .recruiter-action-center .action-item-link:hover {
+    background: #f8fbff;
+    text-decoration: none;
+}
+
+.recruiter-jobboard .recruiter-action-center .action-item-link strong {
+    color: #1f2f57;
+    font-size: 14px;
+}
+
+.recruiter-jobboard .recruiter-action-center .action-item-link small {
+    font-size: 12px;
+}
+
+.recruiter-jobboard .recruiter-quick-links .btn {
+    text-align: left;
+    font-weight: 600;
+}
+
+.recruiter-jobboard .recruiter-quick-links .btn i {
+    width: 18px;
+    margin-right: 6px;
 }
 
 .recruiter-jobboard .badge {

@@ -11,6 +11,7 @@ use App\Models\GithubAnalysisModel;
 use App\Models\RecruiterCandidateActionModel;
 use App\Models\NotificationModel;
 use App\Models\RecruiterCandidateMessageModel;
+use App\Models\RecruiterCandidateNoteModel;
 
 class RecruiterCandidates extends BaseController
 {
@@ -70,6 +71,10 @@ class RecruiterCandidates extends BaseController
             (int) $recruiterId,
             $applicationId > 0 ? $applicationId : null
         );
+        $recruiterNote = (new RecruiterCandidateNoteModel())->getByCandidateAndRecruiter(
+            (int) $candidateId,
+            (int) $recruiterId
+        );
         
         return view('recruiter/candidate_profile', [
             'candidate' => $candidate,
@@ -79,6 +84,7 @@ class RecruiterCandidates extends BaseController
             'skills' => $skills,
             'github' => $github,
             'messages' => $messages,
+            'recruiterNote' => $recruiterNote,
         ]);
     }
 
@@ -220,6 +226,58 @@ class RecruiterCandidates extends BaseController
         return redirect()->to($redirectUrl)->with('success', 'Message sent to candidate.');
     }
 
+    public function saveNotes($candidateId)
+    {
+        if (session()->get('role') !== 'recruiter') {
+            return redirect()->to(base_url('login'))->with('error', 'Unauthorized');
+        }
+
+        $candidate = (new UserModel())->find($candidateId);
+        if (!$candidate || $candidate['role'] !== 'candidate') {
+            return redirect()->back()->with('error', 'Candidate not found');
+        }
+
+        $recruiterId = (int) session()->get('user_id');
+        $rawTags = trim((string) $this->request->getPost('tags'));
+        $notes = trim((string) $this->request->getPost('notes'));
+
+        if (mb_strlen($rawTags) > 255) {
+            return redirect()->back()->with('error', 'Tags are too long. Max 255 characters.');
+        }
+
+        if (mb_strlen($notes) > 5000) {
+            return redirect()->back()->with('error', 'Notes are too long. Max 5000 characters.');
+        }
+
+        $tags = $this->normalizeTags($rawTags);
+        $noteModel = new RecruiterCandidateNoteModel();
+        $existing = $noteModel->getByCandidateAndRecruiter((int) $candidateId, $recruiterId);
+
+        $data = [
+            'candidate_id' => (int) $candidateId,
+            'recruiter_id' => $recruiterId,
+            'tags' => $tags,
+            'notes' => $notes,
+        ];
+
+        if ($existing) {
+            $noteModel->update((int) $existing['id'], $data);
+        } else {
+            $noteModel->insert($data);
+        }
+
+        $applicationId = (int) ($this->request->getPost('application_id') ?? 0);
+        $jobId = (int) ($this->request->getPost('job_id') ?? 0);
+        $showContact = (int) ($this->request->getPost('show_contact') ?? 0);
+
+        $redirectUrl = base_url('recruiter/candidate/' . $candidateId)
+            . '?application_id=' . $applicationId
+            . '&job_id=' . $jobId
+            . '&show_contact=' . $showContact;
+
+        return redirect()->to($redirectUrl)->with('success', 'Recruiter notes saved.');
+    }
+
     private function notifyCandidateAction(
         int $candidateId,
         ?int $applicationId,
@@ -239,5 +297,38 @@ class RecruiterCandidates extends BaseController
             'is_read' => 0,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
+    }
+
+    private function normalizeTags(string $rawTags): string
+    {
+        if ($rawTags === '') {
+            return '';
+        }
+
+        $parts = preg_split('/[,]+/', $rawTags) ?: [];
+        $clean = [];
+        foreach ($parts as $part) {
+            $tag = trim($part);
+            if ($tag === '') {
+                continue;
+            }
+            if (mb_strlen($tag) > 40) {
+                $tag = mb_substr($tag, 0, 40);
+            }
+            $clean[] = $tag;
+        }
+
+        $unique = [];
+        $seen = [];
+        foreach ($clean as $tag) {
+            $key = mb_strtolower($tag);
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $unique[] = $tag;
+        }
+
+        return implode(', ', $unique);
     }
 }

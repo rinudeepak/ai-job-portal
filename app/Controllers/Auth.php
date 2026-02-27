@@ -163,7 +163,7 @@ class Auth extends BaseController
 
     public function registerCandidate()
     {
-        return view('auth/register_candidate');
+        return view('Auth/register_candidate');
     }
 
     public function saveCandidate()
@@ -359,7 +359,7 @@ class Auth extends BaseController
 
     public function registerAdmin()
     {
-        return view('auth/register_admin');
+        return view('Auth/register_admin');
     }
 
     public function saveAdmin()
@@ -399,8 +399,6 @@ class Auth extends BaseController
             $companyId = (int) $company['id'];
         }
 
-        $otp = (string) random_int(100000, 999999);
-        $otpExpiresAt = date('Y-m-d H:i:s', time() + (10 * 60));
         $model = new UserModel();
         $model->insert([
             'company_name' => $companyName,
@@ -413,17 +411,11 @@ class Auth extends BaseController
                 PASSWORD_DEFAULT
             ),
             'role' => 'recruiter',
-            'email_verification_token' => null,
-            'phone_otp' => $otp,
-            'phone_otp_expires_at' => $otpExpiresAt
+            'email_verification_token' => null
         ]);
 
-        $userId = $model->getInsertID();
-        $user = $model->find($userId);
-        $this->sendRecruiterOtpSms((string) ($user['phone'] ?? ''), $otp);
-
         return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
-            ->with('success', 'Account created. Phone OTP has been sent for verification.');
+            ->with('success', 'Account created. Complete phone verification to activate recruiter access.');
     }
 
     public function recruiterVerification()
@@ -441,11 +433,23 @@ class Auth extends BaseController
             $isPhoneVerified = !empty($user['phone_verified_at']);
         }
 
+        $firebaseConfig = [
+            'apiKey' => trim((string) (env('firebase.apiKey') ?? env('FIREBASE_API_KEY') ?? '')),
+            'authDomain' => trim((string) (env('firebase.authDomain') ?? env('FIREBASE_AUTH_DOMAIN') ?? '')),
+            'projectId' => trim((string) (env('firebase.projectId') ?? env('FIREBASE_PROJECT_ID') ?? '')),
+            'appId' => trim((string) (env('firebase.appId') ?? env('FIREBASE_APP_ID') ?? '')),
+            'messagingSenderId' => trim((string) (env('firebase.messagingSenderId') ?? env('FIREBASE_MESSAGING_SENDER_ID') ?? '')),
+        ];
+        $firebaseConfigured = $firebaseConfig['apiKey'] !== '' && $firebaseConfig['authDomain'] !== '';
+
         return view('Auth/recruiter_verification', [
             'email' => $email,
             'phone' => $phone,
             'isEmailVerified' => $isEmailVerified,
-            'isPhoneVerified' => $isPhoneVerified
+            'isPhoneVerified' => $isPhoneVerified,
+            'firebaseConfig' => $firebaseConfig,
+            'firebaseConfigured' => $firebaseConfigured,
+            'phoneE164' => $this->normalizePhoneForFirebase($phone),
         ]);
     }
 
@@ -460,26 +464,19 @@ class Auth extends BaseController
             return redirect()->to(base_url('login'))->with('error', 'Invalid or expired email verification link.');
         }
 
-        $otp = (string) random_int(100000, 999999);
-        $otpExpiresAt = date('Y-m-d H:i:s', time() + (10 * 60));
-
         $model->update($user['id'], [
             'email_verification_token' => null,
-            'email_verified_at' => date('Y-m-d H:i:s'),
-            'phone_otp' => $otp,
-            'phone_otp_expires_at' => $otpExpiresAt
+            'email_verified_at' => date('Y-m-d H:i:s')
         ]);
 
-        $this->sendRecruiterOtpSms((string) ($user['phone'] ?? ''), $otp);
-
         return redirect()->to(base_url('recruiter/verification?email=' . urlencode($user['email'])))
-            ->with('success', 'Email verified successfully. Phone OTP has been sent. Please complete phone verification.');
+            ->with('success', 'Email verified successfully. Please complete phone verification.');
     }
 
     public function verifyRecruiterPhone()
     {
         $email = strtolower(trim((string) $this->request->getPost('email')));
-        $otp = trim((string) $this->request->getPost('otp'));
+        $idToken = trim((string) $this->request->getPost('firebase_id_token'));
 
         $model = new UserModel();
         $user = $model->where('email', $email)->where('role', 'recruiter')->first();
@@ -488,22 +485,24 @@ class Auth extends BaseController
             return redirect()->back()->with('error', 'Recruiter account not found.');
         }
 
-        if (empty($user['phone_otp']) || empty($user['phone_otp_expires_at'])) {
-            return redirect()->back()->with('error', 'OTP not generated. Please resend OTP.');
+        if ($idToken === '') {
+            return redirect()->back()->with('error', 'Phone verification token missing. Please verify OTP again.');
         }
 
-        if ($user['phone_otp'] !== $otp) {
-            return redirect()->back()->with('error', 'Invalid OTP.');
+        $firebaseUser = [];
+        $verifyError = null;
+        if (!$this->verifyFirebasePhoneIdentityToken($idToken, $firebaseUser, $verifyError)) {
+            return redirect()->back()->with('error', $verifyError ?? 'Phone verification failed. Please try again.');
         }
 
-        if (strtotime((string) $user['phone_otp_expires_at']) < time()) {
-            return redirect()->back()->with('error', 'OTP expired. Please resend OTP.');
+        $firebasePhone = (string) ($firebaseUser['phoneNumber'] ?? '');
+        $storedPhone = (string) ($user['phone'] ?? '');
+        if (!$this->phonesMatch($firebasePhone, $storedPhone)) {
+            return redirect()->back()->with('error', 'Phone mismatch. Verify using the same phone number used during registration.');
         }
 
         $model->update($user['id'], [
-            'phone_verified_at' => date('Y-m-d H:i:s'),
-            'phone_otp' => null,
-            'phone_otp_expires_at' => null
+            'phone_verified_at' => date('Y-m-d H:i:s')
         ]);
 
         return redirect()->to(base_url('login'))
@@ -540,31 +539,6 @@ class Auth extends BaseController
         log_message('error', 'Resend verification email send() returned success for: ' . $email);
         return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
             ->with('success', 'Verification email resent.');
-    }
-
-    public function resendRecruiterPhoneOtp()
-    {
-        $email = strtolower(trim((string) $this->request->getPost('email')));
-        $model = new UserModel();
-        $user = $model->where('email', $email)->where('role', 'recruiter')->first();
-
-        if (!$user) {
-            return redirect()->back()->with('error', 'Recruiter account not found.');
-        }
-
-        $newOtp = (string) random_int(100000, 999999);
-        $otpExpiresAt = date('Y-m-d H:i:s', time() + (10 * 60));
-
-        $model->update($user['id'], [
-            'phone_otp' => $newOtp,
-            'phone_otp_expires_at' => $otpExpiresAt
-        ]);
-
-        $updatedUser = $model->find($user['id']);
-        $this->sendRecruiterOtpSms((string) ($updatedUser['phone'] ?? ''), $newOtp);
-
-        return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
-            ->with('success', 'Phone OTP resent.');
     }
 
     private function sendRecruiterVerificationEmail(array $user, ?string &$error = null): bool
@@ -631,33 +605,101 @@ class Auth extends BaseController
         }
     }
 
-    private function sendRecruiterOtpSms(string $phone, string $otp): void
+    private function verifyFirebasePhoneIdentityToken(string $idToken, ?array &$firebaseUser = null, ?string &$error = null): bool
     {
-        $sid = (string) env('twilio.accountSid');
-        $token = (string) env('twilio.authToken');
-        $from = (string) env('twilio.fromNumber');
-
-        if ($sid === '' || $token === '' || $from === '' || trim($phone) === '') {
-            log_message('warning', 'Twilio SMS not configured; OTP SMS not sent.');
-            return;
+        $apiKey = trim((string) (env('firebase.apiKey') ?? env('FIREBASE_API_KEY') ?? ''));
+        if ($apiKey === '') {
+            $error = 'Firebase is not configured on server.';
+            return false;
         }
 
         try {
             $client = \Config\Services::curlrequest();
-            $client->post(
-                'https://api.twilio.com/2010-04-01/Accounts/' . $sid . '/Messages.json',
+            $response = $client->post(
+                'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' . urlencode($apiKey),
                 [
-                    'auth' => [$sid, $token],
-                    'form_params' => [
-                        'To' => $phone,
-                        'From' => $from,
-                        'Body' => 'Your JobBoard recruiter OTP is: ' . $otp . '. Valid for 10 minutes.',
+                    'headers' => [
+                        'Content-Type' => 'application/json',
                     ],
+                    'body' => json_encode([
+                        'idToken' => $idToken,
+                    ], JSON_UNESCAPED_SLASHES),
                 ]
             );
+
+            $payload = json_decode((string) $response->getBody(), true) ?: [];
+            $user = $payload['users'][0] ?? null;
+            if (!is_array($user) || empty($user['phoneNumber'])) {
+                $error = 'Firebase verification did not return a valid phone number.';
+                return false;
+            }
+
+            $firebaseUser = $user;
+            return true;
         } catch (\Throwable $e) {
-            log_message('error', 'Failed to send OTP SMS: ' . $e->getMessage());
+            $error = 'Firebase phone verification failed.';
+            log_message('error', 'Firebase phone token verification error: ' . $e->getMessage());
+            return false;
         }
+    }
+
+    private function normalizePhoneForFirebase(string $phone): string
+    {
+        $phone = trim($phone);
+        if ($phone === '') {
+            return '';
+        }
+
+        $normalized = preg_replace('/[^\d+]/', '', $phone) ?? '';
+        if (str_starts_with($normalized, '00')) {
+            $normalized = '+' . substr($normalized, 2);
+        }
+        if (str_starts_with($normalized, '+')) {
+            return '+' . preg_replace('/\D/', '', substr($normalized, 1));
+        }
+
+        $digits = preg_replace('/\D/', '', $normalized);
+        if ($digits === '') {
+            return '';
+        }
+
+        $defaultCountryCode = trim((string) (env('firebase.defaultCountryCode') ?? env('FIREBASE_DEFAULT_COUNTRY_CODE') ?? '+91'));
+        $defaultCountryCode = '+' . preg_replace('/\D/', '', $defaultCountryCode);
+
+        if (strlen($digits) <= 10) {
+            return $defaultCountryCode . $digits;
+        }
+
+        return '+' . $digits;
+    }
+
+    private function normalizePhoneDigits(string $phone): string
+    {
+        return preg_replace('/\D/', '', $phone) ?? '';
+    }
+
+    private function phonesMatch(string $firebasePhone, string $storedPhone): bool
+    {
+        $firebaseDigits = $this->normalizePhoneDigits($firebasePhone);
+        $storedDigits = $this->normalizePhoneDigits($storedPhone);
+
+        if ($firebaseDigits === '' || $storedDigits === '') {
+            return false;
+        }
+
+        if ($firebaseDigits === $storedDigits) {
+            return true;
+        }
+
+        if (str_ends_with($firebaseDigits, $storedDigits) || str_ends_with($storedDigits, $firebaseDigits)) {
+            return true;
+        }
+
+        if (strlen($firebaseDigits) >= 10 && strlen($storedDigits) >= 10) {
+            return substr($firebaseDigits, -10) === substr($storedDigits, -10);
+        }
+
+        return false;
     }
 
     private function isRecruiterFullyVerified(array $user): bool

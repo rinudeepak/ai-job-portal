@@ -218,7 +218,9 @@
             </div>
 
             <!-- Pagination -->
-            <?= $pager->links() ?>
+            <?php if (isset($pager) && is_object($pager) && method_exists($pager, 'links')): ?>
+                <?= $pager->links() ?>
+            <?php endif; ?>
         </div>
     </div>
 </div>
