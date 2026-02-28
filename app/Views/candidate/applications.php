@@ -43,6 +43,15 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                                     <div>
                                         <h5 class="mb-1"><?= esc($application['job_title']) ?></h5>
                                         <small class="text-muted"><i class="far fa-clock"></i> Applied <?= date('M d, Y', strtotime($application['applied_at'])) ?></small>
+                                        <?php if (!empty($application['resume_version_title'])): ?>
+                                            <div class="small text-muted mt-1">
+                                                <i class="fas fa-file-alt"></i>
+                                                Resume used: <?= esc($application['resume_version_title']) ?>
+                                                <?php if (!empty($application['resume_version_target_role'])): ?>
+                                                    (<?= esc($application['resume_version_target_role']) ?>)
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                     <span class="badge status-badge badge-<?= getStatusBadgeColor($application['status']) ?>">
                                         <?= ucwords(str_replace('_', ' ', $application['status'])) ?>

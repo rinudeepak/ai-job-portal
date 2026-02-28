@@ -72,6 +72,23 @@
                         <label class="small text-muted mb-1">Score Max</label>
                         <input type="number" step="0.1" min="0" max="10" name="score_max" class="form-control" value="<?= esc($filters['score_max'] ?? '') ?>" placeholder="10">
                     </div>
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1">ATS Min</label>
+                        <input type="number" min="0" max="100" name="ats_min" class="form-control" value="<?= esc($filters['ats_min'] ?? '') ?>" placeholder="0">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1">ATS Max</label>
+                        <input type="number" min="0" max="100" name="ats_max" class="form-control" value="<?= esc($filters['ats_max'] ?? '') ?>" placeholder="100">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1">Sort By</label>
+                        <select name="sort" class="form-control">
+                            <option value="applied_desc" <?= ($filters['sort'] ?? '') === 'applied_desc' ? 'selected' : '' ?>>Newest Applied</option>
+                            <option value="ats_desc" <?= ($filters['sort'] ?? '') === 'ats_desc' ? 'selected' : '' ?>>ATS High to Low</option>
+                            <option value="ats_asc" <?= ($filters['sort'] ?? '') === 'ats_asc' ? 'selected' : '' ?>>ATS Low to High</option>
+                            <option value="ai_desc" <?= ($filters['sort'] ?? '') === 'ai_desc' ? 'selected' : '' ?>>AI Rating High to Low</option>
+                        </select>
+                    </div>
                     <div class="col-md-1">
                         <label class="small text-muted mb-1">Status</label>
                         <select name="status" class="form-control">
@@ -121,10 +138,12 @@
                                 <th>ID</th>
                                 <th>Candidate</th>
                                 <th>Email</th>
-                                <th>Location</th>
                                 <th>Experience</th>
                                 <th>Skills</th>
+                                <th>Tags</th>
+                                <th>Notes</th>
                                 <th>Status</th>
+                                <th>ATS Score</th>
                                 <th>AI Rating</th>
                                 <th>Applied Date</th>
                                 <th>Actions</th>
@@ -139,11 +158,33 @@
                                     <td>#<?= $app['id'] ?></td>
                                     <td><strong><?= esc($app['name']) ?></strong></td>
                                     <td><?= esc($app['email']) ?></td>
-                                    <td><?= esc($app['candidate_location'] ?? '-') ?></td>
                                     <td><?= esc($app['experience_display'] ?? '-') ?></td>
                                     <td>
                                         <?php if (!empty($app['skill_name'])): ?>
                                             <small><?= esc($app['skill_name']) ?></small>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($app['recruiter_tags'])): ?>
+                                            <?php foreach (explode(',', (string) $app['recruiter_tags']) as $tag): ?>
+                                                <?php $trimmedTag = trim($tag); ?>
+                                                <?php if ($trimmedTag !== ''): ?>
+                                                    <span class="badge badge-light border mb-1"><?= esc($trimmedTag) ?></span>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($app['recruiter_notes'])): ?>
+                                            <?php
+                                            $fullNote = trim((string) $app['recruiter_notes']);
+                                            $shortNote = mb_strlen($fullNote) > 80 ? mb_substr($fullNote, 0, 80) . '...' : $fullNote;
+                                            ?>
+                                            <small title="<?= esc($fullNote) ?>"><?= esc($shortNote) ?></small>
                                         <?php else: ?>
                                             <span class="text-muted">-</span>
                                         <?php endif; ?>
@@ -176,6 +217,20 @@
                                         <span class="badge badge-<?= $color ?>">
                                             <?= esc($label) ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        $ats = (int) ($app['ats_score'] ?? 0);
+                                        $atsBadge = 'danger';
+                                        if ($ats >= 80) {
+                                            $atsBadge = 'success';
+                                        } elseif ($ats >= 60) {
+                                            $atsBadge = 'warning';
+                                        } elseif ($ats >= 40) {
+                                            $atsBadge = 'info';
+                                        }
+                                        ?>
+                                        <span class="badge badge-<?= $atsBadge ?>"><?= $ats ?>%</span>
                                     </td>
                                     <td>
                                         <?php if ($app['overall_rating']): ?>

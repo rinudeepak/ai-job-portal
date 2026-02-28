@@ -44,7 +44,12 @@
     <header class="site-navbar mt-3 site-navbar-target">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6"><a href="<?= base_url('recruiter/dashboard') ?>">HireMatrix</a></div>
+                <div class="site-logo col-6">
+                    <a href="<?= base_url('recruiter/dashboard') ?>" class="d-inline-flex align-items-center">
+                        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 34px; width: auto; margin-right: 8px;">
+                        <span style="text-transform: none;">HireMatrix</span>
+                    </a>
+                </div>
                 <nav class="mx-auto site-navigation">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
                         <li><a href="<?= base_url('recruiter/dashboard') ?>" class="nav-link">Dashboard</a></li>
@@ -55,6 +60,7 @@
                                 <li><a href="<?= base_url('recruiter/post_job') ?>">Post a Job</a></li>
                             </ul>
                         </li>
+                        <li><a href="<?= base_url('recruiter/candidates') ?>" class="nav-link">Candidates</a></li>
                         <li><a href="<?= base_url('recruiter/company-profile') ?>" class="nav-link">Company Profile</a></li>
                         <li><a href="<?= base_url('recruiter/slots') ?>" class="nav-link">Interview Slots</a></li>
                     </ul>

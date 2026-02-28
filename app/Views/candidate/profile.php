@@ -137,10 +137,12 @@
                         <div class="list-group list-group-flush">
                             <a href="#personal" class="list-group-item list-group-item-action px-0 py-2">Personal Information</a>
                             <a href="#resume" class="list-group-item list-group-item-action px-0 py-2">Resume</a>
+                            <a href="<?= base_url('candidate/resume-studio') ?>" class="list-group-item list-group-item-action px-0 py-2">AI Resume Studio</a>
                             <a href="#github" class="list-group-item list-group-item-action px-0 py-2">GitHub</a>
                             <a href="#skills" class="list-group-item list-group-item-action px-0 py-2">Skills</a>
                             <a href="#interests" class="list-group-item list-group-item-action px-0 py-2">Interests</a>
                             <a href="#experience" class="list-group-item list-group-item-action px-0 py-2">Experience</a>
+                            <a href="#projects" class="list-group-item list-group-item-action px-0 py-2">Projects</a>
                             <a href="#education" class="list-group-item list-group-item-action px-0 py-2">Education</a>
                             <a href="#certifications" class="list-group-item list-group-item-action px-0 py-2">Certifications</a>
                         </div>
@@ -259,6 +261,18 @@
                                     </div>
                                     <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Resume</button>
                                 </form>
+
+                                <div class="border rounded p-4 mt-4 bg-light">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap" style="gap: 12px;">
+                                        <div>
+                                            <h6 class="mb-1"><i class="fas fa-magic"></i> AI Resume Studio</h6>
+                                            <p class="text-muted mb-0">Create premium AI resume versions, choose templates, manage job-specific resumes, and export polished PDFs from a dedicated page.</p>
+                                        </div>
+                                        <a href="<?= base_url('candidate/resume-studio') ?>" class="btn btn-dark btn-sm">
+                                            <i class="fas fa-arrow-right"></i> Open Studio
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -278,7 +292,7 @@
                                     </div>
                                 <?php endif; ?>
 
-                                <form method="post" action="<?= base_url('candidate/analyze_github') ?>">
+                                <form method="post" action="<?= base_url('candidate/analyze_github') ?>" data-loading-form>
                                     <?= csrf_field() ?>
                                     <div class="mb-3">
                                         <label class="form-label"><i class="fab fa-github"></i> GitHub Username</label>
@@ -288,7 +302,14 @@
                                         </div>
                                         <small class="text-muted">We'll analyze your repositories to extract skills automatically</small>
                                     </div>
-                                    <button type="submit" class="btn btn-primary"><i class="fas fa-sync"></i> Analyze GitHub</button>
+                                    <button type="submit" class="btn btn-primary" data-loading-button>
+                                        <span class="btn-submit-text">
+                                            <i class="fas fa-sync"></i> Analyze GitHub
+                                        </span>
+                                        <span class="btn-loading-state" aria-hidden="true">
+                                            <i class="fas fa-spinner fa-spin"></i> Analyzing...
+                                        </span>
+                                    </button>
                                 </form>
 
                                 <?php if (!empty($github['github_username'])): ?>
@@ -557,6 +578,49 @@
                         </div>
                     </div>
 
+                    <div class="profile-section mb-4" id="projects">
+                        <div class="card shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-diagram-project"></i> Projects</h5>
+                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addProjectModal"><i class="fas fa-plus"></i> Add</button>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($projects)): ?>
+                                    <?php foreach ($projects as $project): ?>
+                                    <div class="border-bottom pb-3 mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="mb-1"><?= esc($project['project_name']) ?></h6>
+                                                <?php if (!empty($project['role_name'])): ?>
+                                                    <p class="mb-1 text-muted"><i class="fas fa-user-tie"></i> <?= esc($project['role_name']) ?></p>
+                                                <?php endif; ?>
+                                                <?php if (!empty($project['tech_stack'])): ?>
+                                                    <p class="mb-1 text-muted"><i class="fas fa-layer-group"></i> <?= esc($project['tech_stack']) ?></p>
+                                                <?php endif; ?>
+                                                <?php if (!empty($project['project_summary'])): ?>
+                                                    <p class="mt-2 mb-1"><?= nl2br(esc($project['project_summary'])) ?></p>
+                                                <?php endif; ?>
+                                                <?php if (!empty($project['impact_metrics'])): ?>
+                                                    <p class="mb-1 text-muted"><strong>Impact:</strong> <?= esc($project['impact_metrics']) ?></p>
+                                                <?php endif; ?>
+                                                <?php if (!empty($project['project_url'])): ?>
+                                                    <p class="mb-0"><a href="<?= esc($project['project_url']) ?>" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View Project</a></p>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick='editProject(<?= json_encode($project) ?>)'><i class="fas fa-edit"></i></button>
+                                                <a href="<?= base_url('candidate/delete-project/' . $project['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this project?')"><i class="fas fa-trash"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <p class="text-muted text-center py-4">No projects added yet</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="profile-section mb-4" id="certifications">
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -753,7 +817,86 @@
     </div>
 </div>
 
+<!-- Add Project Modal -->
+<div class="modal fade" id="addProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Project</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form method="post" action="<?= base_url('candidate/add-project') ?>" id="projectForm">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id" id="project_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Project Name *</label>
+                            <input type="text" name="project_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Your Role</label>
+                            <input type="text" name="role_name" class="form-control" placeholder="e.g. Lead Developer">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tech Stack</label>
+                            <input type="text" name="tech_stack" class="form-control" placeholder="React, Laravel, MySQL">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Project URL</label>
+                            <input type="url" name="project_url" class="form-control" placeholder="https://...">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Project Summary</label>
+                            <textarea name="project_summary" class="form-control" rows="4" placeholder="Describe the product, scope, and your contribution..."></textarea>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Impact / Metrics</label>
+                            <textarea name="impact_metrics" class="form-control" rows="3" placeholder="e.g. reduced load time by 35%, served 10k monthly users"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?= view('Layouts/candidate_footer') ?>
+
+<script>
+function editProject(project) {
+    var form = document.getElementById('projectForm');
+    if (!form || !project) {
+        return;
+    }
+
+    form.querySelector('[name="id"]').value = project.id || '';
+    form.querySelector('[name="project_name"]').value = project.project_name || '';
+    form.querySelector('[name="role_name"]').value = project.role_name || '';
+    form.querySelector('[name="tech_stack"]').value = project.tech_stack || '';
+    form.querySelector('[name="project_url"]').value = project.project_url || '';
+    form.querySelector('[name="start_date"]').value = project.start_date || '';
+    form.querySelector('[name="end_date"]').value = project.end_date || '';
+    form.querySelector('[name="project_summary"]').value = project.project_summary || '';
+    form.querySelector('[name="impact_metrics"]').value = project.impact_metrics || '';
+
+    if (window.jQuery) {
+        window.jQuery('#addProjectModal').modal('show');
+    }
+}
+</script>
 
 
 

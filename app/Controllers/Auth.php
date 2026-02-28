@@ -48,6 +48,11 @@ class Auth extends BaseController
             return redirect()->back()->with('error', 'Invalid email or password');
         }
 
+        if ($user['role'] === 'recruiter' && !$this->isRecruiterFullyVerified($user)) {
+            return redirect()->to(base_url('recruiter/verification?email=' . urlencode($user['email'])))
+                ->with('error', $this->getRecruiterVerificationMessage($user));
+        }
+
         // Regenerate session to prevent fixation
         $session->regenerate();
 
@@ -57,13 +62,6 @@ class Auth extends BaseController
             'role' => $user['role'],
             'logged_in' => true
         ]);
-
-        // Recruiters currently need phone verification before accessing recruiter features.
-        if ($user['role'] === 'recruiter' && !$this->isRecruiterFullyVerified($user)) {
-            $session->destroy();
-            return redirect()->to(base_url('recruiter/verification?email=' . urlencode($user['email'])))
-                ->with('error', 'Please verify your phone number before logging in.');
-        }
 
         $defaultTarget = ($user['role'] === 'recruiter')
             ? base_url('recruiter/dashboard')
@@ -400,6 +398,8 @@ class Auth extends BaseController
         }
 
         $model = new UserModel();
+        $verificationToken = bin2hex(random_bytes(32));
+
         $model->insert([
             'company_name' => $companyName,
             'company_id' => $companyId,
@@ -411,11 +411,25 @@ class Auth extends BaseController
                 PASSWORD_DEFAULT
             ),
             'role' => 'recruiter',
-            'email_verification_token' => null
+            'email_verification_token' => $verificationToken
         ]);
 
+        $newRecruiterId = (int) $model->getInsertID();
+        $recruiter = $model->find($newRecruiterId);
+        $emailError = null;
+        $emailSent = $recruiter ? $this->sendRecruiterVerificationEmail($recruiter, $emailError) : false;
+
+        $redirect = redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)));
+        if (!$emailSent) {
+            return $redirect->with(
+                'error',
+                'Account created, but the verification email could not be sent. '
+                . ($emailError ?? 'Use the resend option below.')
+            );
+        }
+
         return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
-            ->with('success', 'Account created. Complete phone verification to activate recruiter access.');
+            ->with('success', 'Account created. Check your inbox to verify your company email, then complete phone verification.');
     }
 
     public function recruiterVerification()
@@ -447,6 +461,7 @@ class Auth extends BaseController
             'phone' => $phone,
             'isEmailVerified' => $isEmailVerified,
             'isPhoneVerified' => $isPhoneVerified,
+            'canVerifyPhone' => $isEmailVerified && !$isPhoneVerified,
             'firebaseConfig' => $firebaseConfig,
             'firebaseConfigured' => $firebaseConfigured,
             'phoneE164' => $this->normalizePhoneForFirebase($phone),
@@ -506,18 +521,22 @@ class Auth extends BaseController
         ]);
 
         return redirect()->to(base_url('login'))
-            ->with('success', 'Phone verified successfully. You can now log in.');
+            ->with('success', 'Recruiter account verified successfully. You can now log in.');
     }
 
     public function resendRecruiterVerificationEmail()
     {
         $email = strtolower(trim((string) $this->request->getPost('email')));
-        log_message('error', 'Resend verification email requested for: ' . $email);
         $model = new UserModel();
         $user = $model->where('email', $email)->where('role', 'recruiter')->first();
 
         if (!$user) {
             return redirect()->back()->with('error', 'Recruiter account not found.');
+        }
+
+        if (!empty($user['email_verified_at'])) {
+            return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
+                ->with('success', 'Email is already verified. Continue with phone verification.');
         }
 
         $newToken = bin2hex(random_bytes(32));
@@ -531,12 +550,10 @@ class Auth extends BaseController
         $emailSent = $this->sendRecruiterVerificationEmail($updatedUser, $emailError);
 
         if (!$emailSent) {
-            log_message('error', 'Resend verification email failed for: ' . $email . ' | ' . ($emailError ?? 'unknown'));
             return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
                 ->with('error', 'Verification email could not be sent. ' . ($emailError ?? 'Please try again in a minute.'));
         }
 
-        log_message('error', 'Resend verification email send() returned success for: ' . $email);
         return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
             ->with('success', 'Verification email resent.');
     }
@@ -556,33 +573,12 @@ class Auth extends BaseController
             . "If you did not create this account, ignore this email.";
 
         try {
+            $emailConfig = config('Email');
             $email = \Config\Services::email(null, false);
-            $fromEmail = trim((string) env('email.fromEmail'));
-            $fromName = trim((string) env('email.fromName')) ?: 'JobBoard';
-            $smtpHost = trim((string) env('email.SMTPHost'));
-            $smtpUser = trim((string) env('email.SMTPUser'));
-            $smtpPass = trim((string) env('email.SMTPPass'));
-            $smtpPort = (int) env('email.SMTPPort');
-            $smtpCrypto = trim((string) env('email.SMTPCrypto'));
-            $mailType = trim((string) env('email.mailType')) ?: 'text';
-
-            $email->initialize([
-                'protocol' => 'smtp',
-                'SMTPHost' => $smtpHost,
-                'SMTPUser' => $smtpUser,
-                'SMTPPass' => $smtpPass,
-                'SMTPPort' => $smtpPort > 0 ? $smtpPort : 587,
-                'SMTPCrypto' => $smtpCrypto !== '' ? $smtpCrypto : 'tls',
-                'SMTPTimeout' => 30,
-                'mailType' => $mailType,
-                'charset' => 'UTF-8',
-                'newline' => "\r\n",
-                'CRLF' => "\r\n",
-            ]);
             $email->clear(true);
 
-            if ($fromEmail !== '') {
-                $email->setFrom($fromEmail, $fromName);
+            if ($emailConfig->fromEmail !== '') {
+                $email->setFrom($emailConfig->fromEmail, $emailConfig->fromName ?: 'JobBoard');
             }
             $email->setTo($user['email']);
             $email->setSubject($subject);
@@ -705,6 +701,15 @@ class Auth extends BaseController
     private function isRecruiterFullyVerified(array $user): bool
     {
         return !empty($user['phone_verified_at']);
+    }
+
+    private function getRecruiterVerificationMessage(array $user): string
+    {
+        $phoneVerified = !empty($user['phone_verified_at']);
+
+        return $phoneVerified
+            ? ''
+            : 'Please verify your phone number before logging in.';
     }
 
     private function isFreeEmailDomain(string $domain): bool

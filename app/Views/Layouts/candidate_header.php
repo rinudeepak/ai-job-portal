@@ -55,8 +55,9 @@
     $isRecommendedActive = $isJobsListActive && $activeTab === 'suggested';
     $isApplicationStatusActive = $pathEndsWith('/candidate/applications');
     $isSavedJobsActive = $pathEndsWith('/candidate/saved-jobs');
+    $isJobAlertsActive = $pathEndsWith('/candidate/job-alerts');
     $isJobsRoot = $isJobsListActive || $isSavedJobsActive || $isJobDetailsActive;
-    $isJobsActive = $isJobsRoot || $isApplicationStatusActive;
+    $isJobsActive = $isJobsRoot || $isApplicationStatusActive || $isJobAlertsActive;
     $isCareerTransitionActive = str_contains($currentPath, '/career-transition');
 
     $homeNavClass = $isHomeActive ? 'nav-link active' : 'nav-link';
@@ -65,6 +66,7 @@
     $recommendedClass = $isRecommendedActive ? 'active' : '';
     $applicationStatusClass = $isApplicationStatusActive ? 'active' : '';
     $savedJobsClass = $isSavedJobsActive ? 'active' : '';
+    $jobAlertsClass = $isJobAlertsActive ? 'active' : '';
 
     if ($candidatePhoto === '' && $candidateId > 0) {
         $candidateRecord = model('UserModel')->select('profile_photo')->find($candidateId);
@@ -83,7 +85,12 @@
     <header class="site-navbar mt-3 site-navbar-target">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6 col-xl-2"><a href="<?= base_url('candidate/dashboard') ?>">HireMatrix</a></div>
+                <div class="site-logo col-6 col-xl-2">
+                    <a href="<?= base_url('candidate/dashboard') ?>" class="d-inline-flex align-items-center">
+                        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 34px; width: auto; margin-right: 8px;">
+                        <span style="text-transform: none;">HireMatrix</span>
+                    </a>
+                </div>
                 <nav class="mx-auto site-navigation col-xl-7">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
                         <li><a href="<?= base_url('candidate/dashboard') ?>" class="<?= $homeNavClass ?>">Home</a></li>
@@ -93,6 +100,7 @@
                                 <li><a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $recommendedClass ?>">Recommended Jobs</a></li>
                                 <li><a href="<?= base_url('candidate/applications') ?>" class="<?= $applicationStatusClass ?>">Application Status</a></li>
                                 <li><a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $savedJobsClass ?>">Saved Jobs</a></li>
+                                <li><a href="<?= base_url('candidate/job-alerts') ?>" class="<?= $jobAlertsClass ?>">Job Alerts</a></li>
                             </ul>
                         </li>
                         <li><a href="<?= base_url('career-transition') ?>" class="<?= $careerNavClass ?>">Career Transition AI</a></li>

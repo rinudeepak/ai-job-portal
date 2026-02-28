@@ -49,22 +49,34 @@ class CandidateDashboardController extends BaseController
         $applicationModel = model('ApplicationModel');
         $db = \Config\Database::connect();
         $hasPolicyColumn = $db->fieldExists('ai_interview_policy', 'jobs');
+        $hasResumeVersions = $db->tableExists('candidate_resume_versions') && $db->fieldExists('resume_version_id', 'applications');
         $policySelect = $hasPolicyColumn
             ? 'jobs.ai_interview_policy'
             : "'REQUIRED_HARD' as ai_interview_policy";
+        $resumeSelect = $hasResumeVersions
+            ? 'candidate_resume_versions.title as resume_version_title,
+                candidate_resume_versions.target_role as resume_version_target_role,'
+            : "'' as resume_version_title, '' as resume_version_target_role,";
         
-        $applications = $applicationModel
+        $builder = $applicationModel
             ->select('
                 applications.*,
                 jobs.title as job_title,
                 jobs.company,
+                ' . $resumeSelect . '
                 ' . $policySelect . ',
                 interview_sessions.technical_score,
                 interview_sessions.communication_score,
                 interview_sessions.overall_rating,
                 interview_sessions.completed_at as ai_interview_completed
             ')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left');
+
+        if ($hasResumeVersions) {
+            $builder->join('candidate_resume_versions', 'candidate_resume_versions.id = applications.resume_version_id', 'left');
+        }
+
+        $applications = $builder
             ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
             ->where('applications.candidate_id', $candidateId)
             ->orderBy('applications.applied_at', 'DESC')

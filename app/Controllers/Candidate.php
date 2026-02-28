@@ -2,10 +2,17 @@
 
 namespace App\Controllers;
 
+use App\Libraries\AiResumeBuilder;
+use App\Libraries\ResumeTemplateRenderer;
 use App\Models\UserModel;
 use App\Libraries\ResumeParser;
+use App\Models\ApplicationModel;
+use App\Models\CareerTransitionModel;
+use App\Models\CandidateResumeVersionModel;
+use App\Models\CandidateProjectModel;
 use App\Models\CandidateSkillsModel;
 use App\Models\CandidateInterestsModel;
+use App\Models\JobModel;
 use App\Models\GithubAnalysisModel;
 use App\Libraries\GithubAnalyzer;
 use App\Models\WorkExperienceModel;
@@ -42,11 +49,16 @@ class Candidate extends BaseController
         $workExpModel = new WorkExperienceModel();
         $educationModel = new EducationModel();
         $certificationModel = new CertificationModel();
+        $projectModel = new CandidateProjectModel();
+        $db = \Config\Database::connect();
         
         $workExperiences = $workExpModel->getByUser($userId);
         $education = $educationModel->getByUser($userId);
         $certifications = $certificationModel->getByUser($userId);
-        
+        $projects = $db->tableExists('candidate_projects')
+            ? $projectModel->getByUser((int) $userId)
+            : [];
+
         // Get application stats
         $applicationModel = model('ApplicationModel');
         $bookingModel = model('InterviewBookingModel');
@@ -82,6 +94,7 @@ class Candidate extends BaseController
             'workExperiences' => $workExperiences,
             'education'       => $education,
             'certifications'  => $certifications,
+            'projects'        => $projects,
             'stats' => [
                 'applications' => $totalApplications,
                 'interviews'   => $totalInterviews,
@@ -92,6 +105,18 @@ class Candidate extends BaseController
                 'fields'     => $completionFields
             ]
         ]);
+    }
+
+    public function resumeStudio()
+    {
+        $userId = (int) session()->get('user_id');
+        $user = (new UserModel())->find($userId) ?? [];
+
+        $studioData = $this->buildResumeStudioData($userId, $user);
+
+        return view('candidate/resume_studio', array_merge([
+            'user' => $user,
+        ], $studioData));
     }
 
     public function resumeUpload()
@@ -157,6 +182,215 @@ class Candidate extends BaseController
         }
 
         return redirect()->back()->with('upload_success', 'Resume Uploaded Successfully');
+    }
+
+    public function generateAiResume()
+    {
+        $candidateId = (int) session()->get('user_id');
+        if (!\Config\Database::connect()->tableExists('candidate_resume_versions')) {
+            return redirect()->back()->with('error', 'Resume version storage is not ready yet. Run the latest migrations first.');
+        }
+
+        $targetRole = trim((string) $this->request->getPost('target_role'));
+        $jobId = (int) ($this->request->getPost('job_id') ?? 0);
+        $makePrimary = (int) ($this->request->getPost('make_primary') ?? 0) === 1;
+        $templateKey = trim((string) $this->request->getPost('template_key'));
+
+        $job = null;
+        if ($jobId > 0) {
+            $job = (new JobModel())->find($jobId);
+            if ($job && $targetRole === '') {
+                $targetRole = trim((string) ($job['title'] ?? ''));
+            }
+        }
+
+        if ($targetRole === '') {
+            return redirect()->back()->with('error', 'Target role is required to generate an AI resume.');
+        }
+
+        $profile = $this->buildResumeProfileSnapshot($candidateId);
+        $currentRole = $this->detectCurrentRole($profile);
+        $resume = (new AiResumeBuilder())->buildResume($profile, $targetRole, [
+            'current_role' => $currentRole,
+            'job_title' => (string) ($job['title'] ?? ''),
+            'job_description' => (string) ($job['description'] ?? ''),
+            'template_key' => $templateKey,
+        ]);
+
+        $resumeVersionModel = new CandidateResumeVersionModel();
+        $payload = [
+            'candidate_id' => $candidateId,
+            'job_id' => $jobId > 0 ? $jobId : null,
+            'title' => (string) ($resume['title'] ?? ($targetRole . ' Resume')),
+            'target_role' => $targetRole,
+            'source_role' => $currentRole,
+            'generation_source' => $jobId > 0 ? 'job_version' : 'role_based',
+            'base_resume_path' => (string) ($profile['resume_path'] ?? ''),
+            'summary' => (string) ($resume['summary'] ?? ''),
+            'highlight_skills' => implode(', ', (array) ($resume['highlight_skills'] ?? [])),
+            'content' => (string) ($resume['content'] ?? ''),
+            'is_primary' => 0,
+            'last_synced_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $existing = $jobId > 0
+            ? $resumeVersionModel->findJobVersion($candidateId, $jobId)
+            : $resumeVersionModel->findRoleBasedVersion($candidateId, $targetRole);
+
+        if ($existing) {
+            $resumeVersionModel->update((int) $existing['id'], $payload);
+            $versionId = (int) $existing['id'];
+        } else {
+            $versionId = (int) $resumeVersionModel->insert($payload, true);
+        }
+
+        if ($makePrimary || !$resumeVersionModel->where('candidate_id', $candidateId)->where('is_primary', 1)->first()) {
+            $resumeVersionModel->setPrimaryVersion($candidateId, (int) $versionId);
+        }
+
+        return redirect()->to(base_url('candidate/resume-studio'))->with(
+            'success',
+            $jobId > 0
+                ? 'AI resume version generated for the selected job.'
+                : 'Role-based AI resume saved for this target role.'
+        );
+    }
+
+    public function syncResumeFromTransition()
+    {
+        $candidateId = (int) session()->get('user_id');
+        if (!\Config\Database::connect()->tableExists('candidate_resume_versions')) {
+            return redirect()->back()->with('error', 'Resume version storage is not ready yet. Run the latest migrations first.');
+        }
+
+        $transitionModel = new CareerTransitionModel();
+        $activeTransition = $transitionModel->getActiveTransition($candidateId);
+
+        if (!$activeTransition) {
+            return redirect()->back()->with('error', 'No active career transition found.');
+        }
+
+        $profile = $this->buildResumeProfileSnapshot($candidateId);
+        $targetRole = trim((string) ($activeTransition['target_role'] ?? ''));
+        $currentRole = trim((string) ($activeTransition['current_role'] ?? $this->detectCurrentRole($profile)));
+        $skillGaps = json_decode((string) ($activeTransition['skill_gaps'] ?? '[]'), true);
+        $transitionSummary = 'Career transition in progress from ' . $currentRole . ' to ' . $targetRole . '.'
+            . (!empty($skillGaps) ? ' Current focus areas: ' . implode(', ', array_slice((array) $skillGaps, 0, 6)) . '.' : '');
+
+        $resume = (new AiResumeBuilder())->buildResume($profile, $targetRole, [
+            'current_role' => $currentRole,
+            'transition_summary' => $transitionSummary,
+            'template_key' => 'executive_sidebar',
+        ]);
+
+        $resumeVersionModel = new CandidateResumeVersionModel();
+        $existing = $resumeVersionModel
+            ->where('candidate_id', $candidateId)
+            ->where('career_transition_id', (int) $activeTransition['id'])
+            ->where('generation_source', 'career_transition')
+            ->first();
+
+        $payload = [
+            'candidate_id' => $candidateId,
+            'career_transition_id' => (int) $activeTransition['id'],
+            'title' => (string) ($resume['title'] ?? ($targetRole . ' Career Transition Resume')),
+            'target_role' => $targetRole,
+            'source_role' => $currentRole,
+            'generation_source' => 'career_transition',
+            'base_resume_path' => (string) ($profile['resume_path'] ?? ''),
+            'summary' => (string) ($resume['summary'] ?? ''),
+            'highlight_skills' => implode(', ', (array) ($resume['highlight_skills'] ?? [])),
+            'content' => (string) ($resume['content'] ?? ''),
+            'last_synced_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($existing) {
+            $resumeVersionModel->update((int) $existing['id'], $payload);
+            $versionId = (int) $existing['id'];
+        } else {
+            $payload['is_primary'] = 0;
+            $versionId = (int) $resumeVersionModel->insert($payload, true);
+        }
+
+        $resumeVersionModel->setPrimaryVersion($candidateId, $versionId);
+
+        return redirect()->to(base_url('candidate/resume-studio'))->with(
+            'success',
+            'Career-transition resume refreshed and set as your primary AI resume version.'
+        );
+    }
+
+    public function setPrimaryResumeVersion($versionId)
+    {
+        $candidateId = (int) session()->get('user_id');
+        if (!\Config\Database::connect()->tableExists('candidate_resume_versions')) {
+            return redirect()->back()->with('error', 'Resume version storage is not ready yet. Run the latest migrations first.');
+        }
+
+        $resumeVersionModel = new CandidateResumeVersionModel();
+        $version = $resumeVersionModel->find((int) $versionId);
+
+        if (!$version || (int) ($version['candidate_id'] ?? 0) !== $candidateId) {
+            return redirect()->back()->with('error', 'Resume version not found.');
+        }
+
+        $resumeVersionModel->setPrimaryVersion($candidateId, (int) $versionId);
+
+        return redirect()->to(base_url('candidate/resume-studio'))->with('success', 'Primary AI resume version updated.');
+    }
+
+    public function downloadResumeVersion($versionId)
+    {
+        $candidateId = (int) session()->get('user_id');
+        if (!\Config\Database::connect()->tableExists('candidate_resume_versions')) {
+            return redirect()->back()->with('error', 'Resume version storage is not ready yet. Run the latest migrations first.');
+        }
+
+        $resumeVersion = (new CandidateResumeVersionModel())->find((int) $versionId);
+        if (!$resumeVersion || (int) ($resumeVersion['candidate_id'] ?? 0) !== $candidateId) {
+            return redirect()->back()->with('error', 'Resume version not found.');
+        }
+
+        $user = (new UserModel())->find($candidateId) ?? [];
+        $renderer = new ResumeTemplateRenderer();
+        $pdfPath = $renderer->createPdfFile((string) ($resumeVersion['content'] ?? ''), [
+            'name' => (string) ($user['name'] ?? 'Candidate'),
+            'target_role' => (string) ($resumeVersion['target_role'] ?? ''),
+            'summary' => (string) ($resumeVersion['summary'] ?? ''),
+            'highlight_skills' => $this->splitCsvList((string) ($resumeVersion['highlight_skills'] ?? '')),
+        ], (string) (($user['name'] ?? 'candidate') . '-' . ($resumeVersion['target_role'] ?? 'resume')));
+
+        return $this->response->download($pdfPath, null)->setFileName(basename($pdfPath));
+    }
+
+    public function deleteResumeVersion($versionId)
+    {
+        $candidateId = (int) session()->get('user_id');
+        if (!\Config\Database::connect()->tableExists('candidate_resume_versions')) {
+            return redirect()->back()->with('error', 'Resume version storage is not ready yet. Run the latest migrations first.');
+        }
+
+        $resumeVersionModel = new CandidateResumeVersionModel();
+        $resumeVersion = $resumeVersionModel->find((int) $versionId);
+        if (!$resumeVersion || (int) ($resumeVersion['candidate_id'] ?? 0) !== $candidateId) {
+            return redirect()->back()->with('error', 'Resume version not found.');
+        }
+
+        $wasPrimary = (int) ($resumeVersion['is_primary'] ?? 0) === 1;
+        $resumeVersionModel->delete((int) $versionId);
+
+        if ($wasPrimary) {
+            $replacement = $resumeVersionModel
+                ->where('candidate_id', $candidateId)
+                ->orderBy('updated_at', 'DESC')
+                ->first();
+
+            if ($replacement) {
+                $resumeVersionModel->setPrimaryVersion($candidateId, (int) $replacement['id']);
+            }
+        }
+
+        return redirect()->to(base_url('candidate/resume-studio'))->with('success', 'Resume version deleted.');
     }
 
     public function analyzeGithubSkills()
@@ -492,6 +726,62 @@ class Candidate extends BaseController
         }
     }
 
+    public function addProject()
+    {
+        $userId = (int) session()->get('user_id');
+        $db = \Config\Database::connect();
+        if (!$db->tableExists('candidate_projects')) {
+            return redirect()->back()->with('error', 'Project storage is not ready yet. Run the latest migrations first.');
+        }
+
+        $projectModel = new CandidateProjectModel();
+        $data = [
+            'user_id' => $userId,
+            'project_name' => trim((string) $this->request->getPost('project_name')),
+            'role_name' => trim((string) $this->request->getPost('role_name')),
+            'tech_stack' => trim((string) $this->request->getPost('tech_stack')),
+            'project_url' => trim((string) $this->request->getPost('project_url')),
+            'project_summary' => trim((string) $this->request->getPost('project_summary')),
+            'impact_metrics' => trim((string) $this->request->getPost('impact_metrics')),
+            'start_date' => $this->nullIfEmpty((string) $this->request->getPost('start_date')),
+            'end_date' => $this->nullIfEmpty((string) $this->request->getPost('end_date')),
+        ];
+
+        if ($data['project_name'] === '') {
+            return redirect()->back()->with('error', 'Project name is required.');
+        }
+
+        if ($data['project_url'] !== '' && !filter_var($data['project_url'], FILTER_VALIDATE_URL)) {
+            return redirect()->back()->with('error', 'Project URL must be a valid URL.');
+        }
+
+        $id = (int) ($this->request->getPost('id') ?? 0);
+        if ($id > 0) {
+            $existing = $projectModel->find($id);
+            if (!$existing || (int) ($existing['user_id'] ?? 0) !== $userId) {
+                return redirect()->back()->with('error', 'Invalid project selected.');
+            }
+            $projectModel->update($id, $data);
+        } else {
+            $projectModel->insert($data);
+        }
+
+        return redirect()->back()->with('success', 'Project saved successfully.');
+    }
+
+    public function deleteProject($id)
+    {
+        $userId = (int) session()->get('user_id');
+        $projectModel = new CandidateProjectModel();
+        $project = $projectModel->find((int) $id);
+
+        if ($project && (int) ($project['user_id'] ?? 0) === $userId) {
+            $projectModel->delete((int) $id);
+        }
+
+        return redirect()->back()->with('success', 'Project deleted.');
+    }
+
     public function deleteCertification($id)
     {
         $userId = session()->get('user_id');
@@ -566,5 +856,127 @@ class Candidate extends BaseController
         }
 
         return redirect()->back()->with('success', 'Interest removed');
+    }
+
+    private function buildResumeProfileSnapshot(int $candidateId): array
+    {
+        $user = (new UserModel())->find($candidateId) ?? [];
+        $skillsRow = (new CandidateSkillsModel())->where('candidate_id', $candidateId)->first();
+        $interestsRow = (new CandidateInterestsModel())->where('candidate_id', $candidateId)->first();
+        $githubRow = (new GithubAnalysisModel())->where('candidate_id', $candidateId)->first();
+        $workExperiences = (new WorkExperienceModel())->getByUser($candidateId);
+        $education = (new EducationModel())->getByUser($candidateId);
+        $certifications = (new CertificationModel())->getByUser($candidateId);
+        $projects = \Config\Database::connect()->tableExists('candidate_projects')
+            ? (new CandidateProjectModel())->getByUser($candidateId)
+            : [];
+
+        return [
+            'name' => (string) ($user['name'] ?? ''),
+            'bio' => (string) ($user['bio'] ?? ''),
+            'location' => (string) ($user['location'] ?? ''),
+            'resume_path' => (string) ($user['resume_path'] ?? ''),
+            'skills' => $this->splitCsvList((string) ($skillsRow['skill_name'] ?? '')),
+            'github_languages' => $this->splitCsvList((string) ($githubRow['languages_used'] ?? '')),
+            'interests' => $this->splitCsvList((string) ($interestsRow['interest'] ?? '')),
+            'work_experiences' => $workExperiences,
+            'education' => $education,
+            'certifications' => $certifications,
+            'projects' => $projects,
+        ];
+    }
+
+    private function detectCurrentRole(array $profile): string
+    {
+        $workExperiences = (array) ($profile['work_experiences'] ?? []);
+        foreach ($workExperiences as $experience) {
+            if ((int) ($experience['is_current'] ?? 0) === 1 && !empty($experience['job_title'])) {
+                return trim((string) $experience['job_title']);
+            }
+        }
+
+        if (!empty($workExperiences[0]['job_title'])) {
+            return trim((string) $workExperiences[0]['job_title']);
+        }
+
+        return 'Candidate';
+    }
+
+    private function splitCsvList(string $value): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', $value))));
+    }
+
+    private function nullIfEmpty(string $value): ?string
+    {
+        $value = trim($value);
+
+        return $value === '' ? null : $value;
+    }
+
+    private function buildResumeStudioData(int $userId, array $user): array
+    {
+        $db = \Config\Database::connect();
+        $transitionModel = new CareerTransitionModel();
+        $jobModel = new JobModel();
+        $templateRenderer = new ResumeTemplateRenderer();
+
+        $resumeVersions = $db->tableExists('candidate_resume_versions')
+            ? (new CandidateResumeVersionModel())->getForCandidate($userId)
+            : [];
+
+        foreach ($resumeVersions as &$resumeVersion) {
+            $decoded = $templateRenderer->decodeStoredContent((string) ($resumeVersion['content'] ?? ''), [
+                'name' => (string) ($user['name'] ?? ''),
+                'target_role' => (string) ($resumeVersion['target_role'] ?? ''),
+                'summary' => (string) ($resumeVersion['summary'] ?? ''),
+                'highlight_skills' => $this->splitCsvList((string) ($resumeVersion['highlight_skills'] ?? '')),
+            ]);
+
+            $resumeVersion['template_label'] = $templateRenderer->getTemplateLabel($decoded['template_key'] ?? 'modern_professional');
+            $resumeVersion['rendered_preview'] = $templateRenderer->renderPreview((string) ($resumeVersion['content'] ?? ''), [
+                'name' => (string) ($user['name'] ?? ''),
+                'target_role' => (string) ($resumeVersion['target_role'] ?? ''),
+                'summary' => (string) ($resumeVersion['summary'] ?? ''),
+                'highlight_skills' => $this->splitCsvList((string) ($resumeVersion['highlight_skills'] ?? '')),
+            ]);
+        }
+        unset($resumeVersion);
+
+        $recentApplications = (new ApplicationModel())
+            ->select('applications.id, applications.job_id, jobs.title, jobs.description')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->where('applications.candidate_id', $userId)
+            ->orderBy('applications.applied_at', 'DESC')
+            ->limit(10)
+            ->findAll();
+
+        $openJobs = $jobModel
+            ->select('id, title, description')
+            ->where('status', 'open')
+            ->orderBy('created_at', 'DESC')
+            ->limit(10)
+            ->findAll();
+
+        $resumeTargets = [];
+        foreach (array_merge($recentApplications, $openJobs) as $jobRow) {
+            $jobId = (int) ($jobRow['job_id'] ?? $jobRow['id'] ?? 0);
+            if ($jobId <= 0 || isset($resumeTargets[$jobId])) {
+                continue;
+            }
+
+            $resumeTargets[$jobId] = [
+                'job_id' => $jobId,
+                'title' => (string) ($jobRow['title'] ?? 'Untitled Role'),
+                'description' => (string) ($jobRow['description'] ?? ''),
+            ];
+        }
+
+        return [
+            'resumeVersions' => $resumeVersions,
+            'resumeTargets' => array_values($resumeTargets),
+            'activeTransition' => $transitionModel->getActiveTransition($userId),
+            'resumeTemplates' => $templateRenderer->getTemplates(),
+        ];
     }
 }

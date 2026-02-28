@@ -36,7 +36,12 @@
     <header class="site-navbar mt-3">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6"><a href="<?= base_url('/') ?>">HireMatrix</a></div>
+                <div class="site-logo col-6">
+                    <a href="<?= base_url('/') ?>" class="d-inline-flex align-items-center">
+                        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 34px; width: auto; margin-right: 8px;">
+                        <span style="text-transform: none;">HireMatrix</span>
+                    </a>
+                </div>
 
                 <nav class="mx-auto site-navigation">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ApplicationModel;
+use App\Models\CandidateResumeVersionModel;
 use App\Models\JobModel;
 
 class Applications extends BaseController
@@ -72,13 +73,24 @@ class Applications extends BaseController
 
         $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
         $initialStatus = $aiPolicy === JobModel::AI_POLICY_OFF ? 'shortlisted' : 'applied';
+        $db = \Config\Database::connect();
+        $resumeVersion = null;
+        if ($db->tableExists('candidate_resume_versions') && $db->fieldExists('resume_version_id', 'applications')) {
+            $resumeVersion = (new CandidateResumeVersionModel())->getPreferredVersionForJob((int) $candidateId, (int) $jobId);
+        }
 
-        $model->insert([
+        $payload = [
             'job_id' => $jobId,
             'candidate_id' => $candidateId,
             'status' => $initialStatus,
             'applied_at' => date('Y-m-d H:i:s')
-        ]);
+        ];
+
+        if ($db->fieldExists('resume_version_id', 'applications')) {
+            $payload['resume_version_id'] = (int) ($resumeVersion['id'] ?? 0) > 0 ? (int) $resumeVersion['id'] : null;
+        }
+
+        $model->insert($payload);
         
         $applicationId = $model->getInsertID();
         $stageModel = model('StageHistoryModel');

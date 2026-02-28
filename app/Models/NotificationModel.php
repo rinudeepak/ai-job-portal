@@ -104,6 +104,13 @@ class NotificationModel extends Model
             'icon' => 'icon-reply',
             'color' => 'info',
             'priority' => 12
+        ],
+        'job_alert_match' => [
+            'title' => 'Job Alert Match',
+            'icon' => 'fas fa-bell',
+            'color' => 'success',
+            'priority' => 13,
+            'action_text' => 'View'
         ]
     ];
     

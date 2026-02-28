@@ -34,6 +34,9 @@ class RecruiterApplications extends BaseController
             'status' => trim((string) $this->request->getGet('status')),
             'score_min' => $this->request->getGet('score_min'),
             'score_max' => $this->request->getGet('score_max'),
+            'ats_min' => $this->request->getGet('ats_min'),
+            'ats_max' => $this->request->getGet('ats_max'),
+            'sort' => trim((string) $this->request->getGet('sort')),
         ];
 
         $scoreMin = is_numeric($filters['score_min']) ? (float) $filters['score_min'] : null;
@@ -46,6 +49,21 @@ class RecruiterApplications extends BaseController
         }
         if ($scoreMin !== null && $scoreMax !== null && $scoreMin > $scoreMax) {
             [$scoreMin, $scoreMax] = [$scoreMax, $scoreMin];
+        }
+        $atsMin = is_numeric($filters['ats_min']) ? (int) $filters['ats_min'] : null;
+        $atsMax = is_numeric($filters['ats_max']) ? (int) $filters['ats_max'] : null;
+        if ($atsMin !== null) {
+            $atsMin = max(0, min(100, $atsMin));
+        }
+        if ($atsMax !== null) {
+            $atsMax = max(0, min(100, $atsMax));
+        }
+        if ($atsMin !== null && $atsMax !== null && $atsMin > $atsMax) {
+            [$atsMin, $atsMax] = [$atsMax, $atsMin];
+        }
+        $validSort = ['applied_desc', 'ats_desc', 'ats_asc', 'ai_desc'];
+        if (!in_array($filters['sort'], $validSort, true)) {
+            $filters['sort'] = 'applied_desc';
         }
 
         $validStatuses = [
@@ -64,13 +82,18 @@ class RecruiterApplications extends BaseController
 
         // Pre-aggregate total experience (months) per candidate from work_experiences.
         $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
-
         // Get applications for this job with optional filters
         $builder = $applicationModel
-            ->select('applications.*, users.name, users.email, users.location as candidate_location, MAX(interview_sessions.overall_rating) as overall_rating, candidate_skills.skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
+            ->select('applications.*, users.name, users.email, users.location as candidate_location, users.resume_path, MAX(interview_sessions.overall_rating) as overall_rating, candidate_skills.skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months, recruiter_candidate_notes.tags as recruiter_tags, recruiter_candidate_notes.notes as recruiter_notes')
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
             ->join('candidate_skills', 'candidate_skills.candidate_id = applications.candidate_id', 'left')
+            ->join(
+                'recruiter_candidate_notes',
+                'recruiter_candidate_notes.candidate_id = applications.candidate_id AND recruiter_candidate_notes.recruiter_id = ' . (int) $currentUserId,
+                'left',
+                false
+            )
             ->join($experienceSubQuery, 'candidate_experience.user_id = applications.candidate_id', 'left', false)
             ->where('applications.job_id', $jobId);
 
@@ -123,12 +146,38 @@ class RecruiterApplications extends BaseController
                     $application['experience_display'] = $remainingMonths . 'm';
                 }
             }
+            $application['ats_score'] = $this->calculateAtsScore($application, $job);
             $application['can_manual_decision'] = $this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''));
         }
         unset($application);
 
+        if ($atsMin !== null || $atsMax !== null) {
+            $applications = array_values(array_filter($applications, static function (array $application) use ($atsMin, $atsMax): bool {
+                $score = (int) ($application['ats_score'] ?? 0);
+                if ($atsMin !== null && $score < $atsMin) {
+                    return false;
+                }
+                if ($atsMax !== null && $score > $atsMax) {
+                    return false;
+                }
+                return true;
+            }));
+        }
+
+        if ($filters['sort'] === 'ats_desc') {
+            usort($applications, static fn (array $a, array $b) => ((int) ($b['ats_score'] ?? 0)) <=> ((int) ($a['ats_score'] ?? 0)));
+        } elseif ($filters['sort'] === 'ats_asc') {
+            usort($applications, static fn (array $a, array $b) => ((int) ($a['ats_score'] ?? 0)) <=> ((int) ($b['ats_score'] ?? 0)));
+        } elseif ($filters['sort'] === 'ai_desc') {
+            usort($applications, static fn (array $a, array $b) => ((float) ($b['overall_rating'] ?? 0)) <=> ((float) ($a['overall_rating'] ?? 0)));
+        } else {
+            usort($applications, static fn (array $a, array $b) => strcmp((string) ($b['applied_at'] ?? ''), (string) ($a['applied_at'] ?? '')));
+        }
+
         $filters['score_min'] = $scoreMin !== null ? (string) $scoreMin : '';
         $filters['score_max'] = $scoreMax !== null ? (string) $scoreMax : '';
+        $filters['ats_min'] = $atsMin !== null ? (string) $atsMin : '';
+        $filters['ats_max'] = $atsMax !== null ? (string) $atsMax : '';
 
         return view('recruiter/applications/view_by_job', [
             'job' => $job,
@@ -328,5 +377,80 @@ class RecruiterApplications extends BaseController
         }
 
         return in_array($applicationStatus, ['ai_interview_completed', 'shortlisted', 'rejected'], true);
+    }
+
+    private function calculateAtsScore(array $application, array $job): int
+    {
+        $candidateSkills = $this->normalizeSkillTokens((string) ($application['skill_name'] ?? ''));
+        $requiredSkills = $this->normalizeSkillTokens((string) ($job['required_skills'] ?? ''));
+
+        // Skill fit (60 points)
+        if (empty($requiredSkills)) {
+            $skillScore = 60;
+        } else {
+            $matched = 0;
+            foreach ($requiredSkills as $requiredSkill) {
+                if (in_array($requiredSkill, $candidateSkills, true)) {
+                    $matched++;
+                }
+            }
+            $skillScore = (int) round(($matched / max(1, count($requiredSkills))) * 60);
+        }
+
+        // Experience fit (20 points)
+        $requiredMonths = $this->extractRequiredExperienceMonths((string) ($job['experience_level'] ?? ''));
+        $candidateMonths = max(0, (int) ($application['total_experience_months'] ?? 0));
+        if ($requiredMonths === null || $requiredMonths <= 0) {
+            $experienceScore = 20;
+        } else {
+            $experienceScore = (int) round(min(1, $candidateMonths / $requiredMonths) * 20);
+        }
+
+        // AI performance (15 points)
+        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+        $rating = $application['overall_rating'] !== null ? (float) $application['overall_rating'] : null;
+        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
+            $aiScore = 15;
+        } elseif ($rating === null) {
+            $aiScore = 0;
+        } else {
+            $aiScore = (int) round(min(10, max(0, $rating)) / 10 * 15);
+        }
+
+        // Profile readiness (5 points): resume uploaded
+        $profileScore = !empty($application['resume_path']) ? 5 : 0;
+
+        return max(0, min(100, $skillScore + $experienceScore + $aiScore + $profileScore));
+    }
+
+    private function normalizeSkillTokens(string $skills): array
+    {
+        $parts = preg_split('/[,|\\/]+/', strtolower($skills)) ?: [];
+        $tokens = [];
+        foreach ($parts as $part) {
+            $value = trim($part);
+            if ($value !== '') {
+                $tokens[] = $value;
+            }
+        }
+        return array_values(array_unique($tokens));
+    }
+
+    private function extractRequiredExperienceMonths(string $experienceLevel): ?int
+    {
+        $value = strtolower(trim($experienceLevel));
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/', $value, $matches)) {
+            return (int) round(((float) $matches[1]) * 12);
+        }
+
+        if (preg_match('/(\d+(?:\.\d+)?)/', $value, $matches)) {
+            return (int) round(((float) $matches[1]) * 12);
+        }
+
+        return null;
     }
 }

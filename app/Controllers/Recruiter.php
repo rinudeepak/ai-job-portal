@@ -107,6 +107,13 @@ class Recruiter extends BaseController
         }
 
         $model->insert($data);
+        $jobId = (int) $model->getInsertID();
+        if ($jobId > 0) {
+            $job = $model->find($jobId);
+            if (!empty($job)) {
+                (new \App\Libraries\JobAlertService())->processNewJob($job);
+            }
+        }
 
         return redirect()->to(base_url('recruiter/jobs'))->with('success', 'Job Posted Successfully');
     }

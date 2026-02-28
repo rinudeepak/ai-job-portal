@@ -17,6 +17,7 @@
                 <h3>Hiring</h3>
                 <ul class="list-unstyled">
                     <li><a href="<?= base_url('recruiter/jobs') ?>">Applications</a></li>
+                    <li><a href="<?= base_url('recruiter/candidates') ?>">Candidate Database</a></li>
                     <li><a href="<?= base_url('recruiter/slots') ?>">Interview Slots</a></li>
                     <li><a href="<?= base_url('recruiter/slots/bookings') ?>">Interview Bookings</a></li>
                 </ul>

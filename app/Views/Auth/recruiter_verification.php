@@ -28,7 +28,7 @@
                     <?php if (!($isPhoneVerified ?? false)): ?>
                         <div class="card">
                             <div class="card-body">
-                                <h5>Step 1: Phone OTP Verification</h5>
+                                <h5>Phone OTP Verification</h5>
 
                                 <?php if (!($firebaseConfigured ?? false)): ?>
                                     <div class="alert alert-warning mb-3">

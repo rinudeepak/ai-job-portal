@@ -34,6 +34,10 @@ $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'auth
     $routes->get('/', 'CandidateDashboardController::index'); // Default route
     $routes->get('applications', 'CandidateDashboardController::applications');
     $routes->get('saved-jobs', 'SavedJobs::index');
+    $routes->get('job-alerts', 'JobAlerts::index');
+    $routes->post('job-alerts/create', 'JobAlerts::create');
+    $routes->get('job-alerts/toggle/(:num)', 'JobAlerts::toggle/$1');
+    $routes->get('job-alerts/delete/(:num)', 'JobAlerts::delete/$1');
     $routes->get('messages/(:num)', 'CandidateMessages::thread/$1');
     $routes->post('messages/(:num)/reply', 'CandidateMessages::reply/$1');
 });
@@ -76,6 +80,7 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
     
     // Job Management
     $routes->get('jobs', 'RecruiterJobs::index');
+    $routes->get('candidates', 'RecruiterCandidates::index');
     $routes->get('jobs/edit/(:num)', 'RecruiterJobs::edit/$1');
     $routes->post('jobs/update/(:num)', 'RecruiterJobs::update/$1');
     $routes->get('jobs/close/(:num)', 'RecruiterJobs::close/$1');
@@ -94,7 +99,13 @@ $routes->get('recruiter/post_job', 'Recruiter::postJob', ['filter' => 'auth']);
 $routes->post('recruiter/post_job', 'Recruiter::saveJob', ['filter' => 'auth']);
 
 $routes->get('candidate/profile', 'Candidate::profile', ['filter' => 'auth']);
+$routes->get('candidate/resume-studio', 'Candidate::resumeStudio', ['filter' => 'auth']);
 $routes->post('candidate/resume_upload', 'Candidate::resumeUpload', ['filter' => 'auth']);
+$routes->post('candidate/resume/generate', 'Candidate::generateAiResume', ['filter' => 'auth']);
+$routes->post('candidate/resume/sync-transition', 'Candidate::syncResumeFromTransition', ['filter' => 'auth']);
+$routes->post('candidate/resume-version/(:num)/primary', 'Candidate::setPrimaryResumeVersion/$1', ['filter' => 'auth']);
+$routes->post('candidate/resume-version/(:num)/delete', 'Candidate::deleteResumeVersion/$1', ['filter' => 'auth']);
+$routes->get('candidate/resume-version/(:num)/download', 'Candidate::downloadResumeVersion/$1', ['filter' => 'auth']);
 $routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills', ['filter' => 'auth']);
 $routes->get('candidate/download-resume', 'Candidate::downloadResume', ['filter' => 'auth']);
 $routes->get('candidate/preview-resume', 'Candidate::previewResume', ['filter' => 'auth']);
@@ -109,6 +120,8 @@ $routes->post('candidate/add-education', 'Candidate::addEducation', ['filter' =>
 $routes->get('candidate/delete-education/(:num)', 'Candidate::deleteEducation/$1', ['filter' => 'auth']);
 $routes->post('candidate/add-certification', 'Candidate::addCertification', ['filter' => 'auth']);
 $routes->get('candidate/delete-certification/(:num)', 'Candidate::deleteCertification/$1', ['filter' => 'auth']);
+$routes->post('candidate/add-project', 'Candidate::addProject', ['filter' => 'auth']);
+$routes->get('candidate/delete-project/(:num)', 'Candidate::deleteProject/$1', ['filter' => 'auth']);
 $routes->post('candidate/add-interest', 'Candidate::addInterest', ['filter' => 'auth']);
 $routes->get('candidate/delete-interest/(:any)', 'Candidate::deleteInterest/$1', ['filter' => 'auth']);
 

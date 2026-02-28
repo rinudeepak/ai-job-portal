@@ -12,6 +12,7 @@ class ApplicationModel extends Model
     protected $allowedFields = [
         'job_id',
         'candidate_id',
+        'resume_version_id',
         'status',
         'interview_slot',
         'ai_interview_id',
