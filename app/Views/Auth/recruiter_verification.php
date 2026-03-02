@@ -15,7 +15,7 @@
             <div class="row justify-content-center">
                 <div class="col-lg-6">
                     <h2 class="mb-4">Recruiter Verification</h2>
-                    <p class="text-muted">Complete Firebase phone verification to activate recruiter access.</p>
+                    <p class="text-muted">Complete company email verification first, then finish phone OTP verification to activate recruiter access.</p>
                     <p class="text-muted mb-3"><small>For local testing without billing, use Firebase Authentication test phone numbers.</small></p>
 
                     <?php if (session()->getFlashdata('success')): ?>
@@ -24,11 +24,45 @@
                     <?php if (session()->getFlashdata('error')): ?>
                         <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
                     <?php endif; ?>
+                    <?php $mailPreview = session()->getFlashdata('mail_preview'); ?>
+                    <?php if (!empty($mailPreview['url'])): ?>
+                        <div class="alert alert-info">
+                            <strong><?= esc($mailPreview['title'] ?? 'Email preview') ?>:</strong>
+                            testing mode is enabled, so no real email was sent.<br>
+                            Recipient: <code><?= esc($mailPreview['recipient'] ?? '') ?></code><br>
+                            Link: <a href="<?= esc($mailPreview['url']) ?>"><?= esc($mailPreview['url']) ?></a>
+                        </div>
+                    <?php endif; ?>
 
-                    <?php if (!($isPhoneVerified ?? false)): ?>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5>Step 1: Company Email Verification</h5>
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="text" class="form-control" value="<?= esc($email ?? 'Not available') ?>" readonly>
+                            </div>
+
+                            <?php if ($isEmailVerified ?? false): ?>
+                                <div class="alert alert-success mb-0">
+                                    Company email verified successfully.
+                                </div>
+                            <?php else: ?>
+                                <div class="alert alert-warning">
+                                    Your recruiter account is waiting for email verification. Open the verification link sent to your inbox.
+                                </div>
+                                <form method="post" action="<?= base_url('recruiter/resend-verification-email') ?>">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="email" value="<?= esc($email ?? '') ?>">
+                                    <button type="submit" class="btn btn-outline-primary">Resend Verification Email</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <?php if (($isEmailVerified ?? false) && !($isPhoneVerified ?? false)): ?>
                         <div class="card">
                             <div class="card-body">
-                                <h5>Phone OTP Verification</h5>
+                                <h5>Step 2: Phone OTP Verification</h5>
 
                                 <?php if (!($firebaseConfigured ?? false)): ?>
                                     <div class="alert alert-warning mb-3">
@@ -63,11 +97,20 @@
                                 </form>
                             </div>
                         </div>
+                    <?php elseif (!($isEmailVerified ?? false)): ?>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Step 2: Phone OTP Verification</h5>
+                                <div class="alert alert-secondary mb-0">
+                                    Phone OTP will be enabled after your company email is verified.
+                                </div>
+                            </div>
+                        </div>
                     <?php else: ?>
                         <div class="card">
                             <div class="card-body">
                                 <h5>Verification Complete</h5>
-                                <p class="mb-3 text-success">Phone verification is complete.</p>
+                                <p class="mb-3 text-success">Company email and phone verification are complete.</p>
                                 <a href="<?= base_url('login') ?>" class="btn btn-primary">Go to Login</a>
                             </div>
                         </div>
@@ -80,7 +123,7 @@
     </section>
 </div>
 
-<?php if (!($isPhoneVerified ?? false) && ($firebaseConfigured ?? false)): ?>
+<?php if (($isEmailVerified ?? false) && !($isPhoneVerified ?? false) && ($firebaseConfigured ?? false)): ?>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script>

@@ -117,6 +117,7 @@ class CandidateDashboardController extends BaseController
     private function calculateStats($candidateId)
     {
         $applicationModel = model('ApplicationModel');
+        $bookingModel = model('InterviewBookingModel');
         $notificationModel = model('NotificationModel');
         
         // Total applications
@@ -130,13 +131,10 @@ class CandidateDashboardController extends BaseController
             ->whereNotIn('status', ['rejected', 'withdrawn'])
             ->countAllResults();
         
-        // Interviews scheduled
-        $interviewsScheduled = $applicationModel
-            ->where('candidate_id', $candidateId)
-            ->groupStart()
-                ->where('status', 'ai_interview_scheduled')
-                ->orWhere('status', 'hr_interview_scheduled')
-            ->groupEnd()
+        // Scheduled interviews are the real slot bookings in the current lifecycle.
+        $interviewsScheduled = $bookingModel
+            ->where('user_id', $candidateId)
+            ->whereIn('booking_status', ['booked', 'rescheduled'])
             ->countAllResults();
         
         // Average AI score
@@ -176,20 +174,22 @@ class CandidateDashboardController extends BaseController
         $applicationModel = model('ApplicationModel');
         $bookingModel = model('InterviewBookingModel');
         
-        // Check for AI interviews to complete
+        // AI interview work is pending while application is applied or interview already started.
         $aiInterviewsPending = $applicationModel
-            ->select('applications.*, jobs.title as job_title')
+            ->select('applications.*, jobs.title as job_title, jobs.ai_interview_policy')
             ->join('jobs', 'jobs.id = applications.job_id', 'left')
             ->where('applications.candidate_id', $candidateId)
-            ->where('applications.status', 'ai_interview_scheduled')
+            ->whereIn('applications.status', ['applied', 'ai_interview_started'])
+            ->where('jobs.ai_interview_policy !=', JobModel::AI_POLICY_OFF)
             ->findAll();
         
         foreach ($aiInterviewsPending as $app) {
+            $isStarted = ($app['status'] ?? '') === 'ai_interview_started';
             $actions[] = [
-                'title' => 'AI Interview Pending',
-                'description' => 'Complete your AI interview for ' . $app['job_title'],
+                'title' => $isStarted ? 'Continue AI Interview' : 'AI Interview Pending',
+                'description' => ($isStarted ? 'Continue' : 'Start') . ' your AI interview for ' . $app['job_title'],
                 'link' => base_url('interview/start/' . $app['id']),
-                'button_text' => 'Start Interview',
+                'button_text' => $isStarted ? 'Continue Interview' : 'Start Interview',
                 'priority' => 'high'
             ];
         }
@@ -222,7 +222,7 @@ class CandidateDashboardController extends BaseController
             ->join('interview_slots', 'interview_slots.id = interview_bookings.slot_id', 'left')
             ->where('interview_bookings.user_id', $candidateId)
             ->where('interview_bookings.slot_datetime', date('Y-m-d'))
-            ->where('interview_bookings.booking_status', 'confirmed')
+            ->whereIn('interview_bookings.booking_status', ['booked', 'rescheduled'])
             ->findAll();
         
         foreach ($interviewsToday as $interview) {
@@ -313,11 +313,14 @@ class CandidateDashboardController extends BaseController
     private function getNextAction($application)
     {
         switch ($application['status']) {
-            case 'pending':
-                return 'Your application is being reviewed by our team.';
-                
-            case 'ai_interview_scheduled':
-                return 'Complete your AI interview to proceed to the next stage.';
+            case 'applied':
+                $policy = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRED_HARD'));
+                return $policy === JobModel::AI_POLICY_OFF
+                    ? 'Your application is under recruiter review.'
+                    : 'Start your AI interview to move forward.';
+
+            case 'ai_interview_started':
+                return 'Continue your AI interview to proceed to the next stage.';
                 
             case 'ai_interview_completed':
                 return 'Your AI interview has been completed. Waiting for review.';
@@ -325,14 +328,14 @@ class CandidateDashboardController extends BaseController
             case 'shortlisted':
                 return 'Congratulations! You\'ve been shortlisted. Book your HR interview slot.';
                 
-            case 'hr_interview_scheduled':
-                return 'Your HR interview is scheduled. Please check your bookings for details.';
-                
-            case 'hr_interview_completed':
-                return 'HR interview completed. Waiting for final decision.';
+            case 'interview_slot_booked':
+                return 'Your interview slot is booked. Check your bookings for the schedule.';
                 
             case 'selected':
                 return 'Congratulations! You\'ve been selected. Check your email for next steps.';
+
+            case 'hired':
+                return 'Congratulations! Your hiring process is complete.';
                 
             case 'rejected':
                 return 'Unfortunately, we are proceeding with other candidates at this time.';

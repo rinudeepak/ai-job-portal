@@ -19,6 +19,8 @@ class UserModel extends Model
         'company_id',
         'email_verification_token',
         'email_verified_at',
+        'password_reset_token',
+        'password_reset_expires_at',
         'phone_otp',
         'phone_otp_expires_at',
         'phone_verified_at',

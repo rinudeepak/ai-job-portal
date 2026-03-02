@@ -31,6 +31,7 @@ class Applications extends BaseController
         $alreadyApplied = $model
             ->where('job_id', $jobId)
             ->where('candidate_id', $candidateId)
+            ->where('status !=', 'withdrawn')
             ->first();
 
         if ($alreadyApplied) {
@@ -126,6 +127,47 @@ class Applications extends BaseController
         }
 
         return redirect()->back()->with('success', $this->getApplySuccessMessage($aiPolicy));
+    }
+
+    public function withdraw($applicationId)
+    {
+        $session = session();
+
+        if (!$session->get('logged_in') || $session->get('role') !== 'candidate') {
+            return redirect()->to(base_url('login'));
+        }
+
+        $candidateId = (int) $session->get('user_id');
+        $applicationModel = new ApplicationModel();
+
+        $application = $applicationModel
+            ->select('applications.*, jobs.status as job_status')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->where('applications.id', (int) $applicationId)
+            ->where('applications.candidate_id', $candidateId)
+            ->first();
+
+        if (!$application) {
+            return redirect()->back()->with('error', 'Application not found.');
+        }
+
+        $status = (string) ($application['status'] ?? '');
+        if ($status === 'withdrawn') {
+            return redirect()->back()->with('info', 'This application is already withdrawn.');
+        }
+
+        if (in_array($status, ['rejected', 'selected', 'hired'], true)) {
+            return redirect()->back()->with('error', 'This application can no longer be withdrawn.');
+        }
+
+        if ($status === 'interview_slot_booked' || !empty($application['booking_id'])) {
+            return redirect()->back()->with('error', 'Booked interview applications cannot be withdrawn here.');
+        }
+
+        $applicationModel->update((int) $applicationId, ['status' => 'withdrawn']);
+        model('StageHistoryModel')->moveToStage((int) $applicationId, 'Withdrawn by Candidate');
+
+        return redirect()->to(base_url('candidate/applications'))->with('success', 'Application withdrawn successfully.');
     }
 
     private function getApplySuccessMessage(string $aiPolicy): string

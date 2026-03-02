@@ -79,82 +79,123 @@ class Auth extends BaseController
         return redirect()->to(base_url('login'));
     }
 
-    public function dashboard()
+    public function changePassword()
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to(base_url('login'));
+        }
+
+        return view('Auth/change_password');
+    }
+
+    public function saveChangedPassword()
     {
         $session = session();
-        // 1️⃣ Check login
         if (!$session->get('logged_in')) {
             return redirect()->to(base_url('login'));
         }
 
-        $userId = $session->get('user_id');
-        $role = $session->get('role');
+        if (!$this->validate([
+            'current_password' => 'required',
+            'password' => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[password]',
+        ])) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
+        }
 
-        // CANDIDATE DASHBOARD WITH NOTIFICATIONS
-        $applicationModel = model('ApplicationModel');
-        $notificationModel = model('NotificationModel');
-        $userModel = model('UserModel');
-
-
-        // Get user data
+        $userId = (int) $session->get('user_id');
+        $userModel = new UserModel();
         $user = $userModel->find($userId);
 
-        // Get candidate applications
-        $applications = $applicationModel
-            ->select('applications.*, jobs.title as job_title')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
-            ->where('applications.candidate_id', $userId)
-            ->findAll();
-
-        // Trigger notifications for each application
-        foreach ($applications as $application) {
-            // Check if notification already exists for this application status
-            $existingNotification = $notificationModel->getNotificationByApplicationStatus(
-                $userId,
-                $application['id'],
-                $application['status']
-            );
-
-            // Only create if doesn't exist
-            if (!$existingNotification) {
-                $notificationModel->triggerApplicationNotifications($userId, $application);
-            }
+        if (!$user || empty($user['password']) || !password_verify((string) $this->request->getPost('current_password'), (string) $user['password'])) {
+            return redirect()->back()->withInput()->with('error', 'Current password is incorrect.');
         }
 
-        // Check if resume is uploaded (only create once)
-        if (empty($user['resume_path'])) {
-            $resumeNotification = $notificationModel
-                ->where('user_id', $userId)
-                ->where('type', 'resume_not_uploaded')
-                ->where('is_read', 0)
-                ->first();
-
-            if (!$resumeNotification) {
-                $notificationModel->createNotification(
-                    $userId,
-                    null,
-                    'resume_not_uploaded',
-                    'Your profile is incomplete. Please upload your resume to apply for jobs.',
-                    base_url('candidate/profile')
-                );
-            }
+        $newPassword = (string) $this->request->getPost('password');
+        if (password_verify($newPassword, (string) $user['password'])) {
+            return redirect()->back()->withInput()->with('error', 'New password must be different from the current password.');
         }
 
-        // Fetch all unread notifications
-        $notifications = $notificationModel->getUnreadNotifications($userId, 20);
+        $userModel->update($userId, [
+            'password' => password_hash($newPassword, PASSWORD_DEFAULT),
+        ]);
 
-        // Get unread count
-        $unreadCount = $notificationModel->getUnreadCount($userId);
+        return redirect()->to(base_url('account/change-password'))
+            ->with('success', 'Password changed successfully.');
+    }
 
+    public function forgotPassword()
+    {
+        if (session()->get('logged_in')) {
+            return redirect()->to(base_url('login'));
+        }
 
-        return ($role === 'admin')
-            ? view('recruiter/dashboard')
-            : view('candidate/dashboard', [
-                'notifications' => $notifications,
-                'unread_count' => $unreadCount,
-                'applications' => $applications,
-                'user' => $user
+        return view('Auth/forgot_password');
+    }
+
+    public function sendPasswordResetLink()
+    {
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->withInput()->with('error', 'Enter a valid email address.');
+        }
+
+        $userModel = new UserModel();
+        $user = $userModel->where('email', $email)->first();
+
+        if ($user) {
+            $token = bin2hex(random_bytes(32));
+            $userModel->update((int) $user['id'], [
+                'password_reset_token' => $token,
+                'password_reset_expires_at' => date('Y-m-d H:i:s', strtotime('+1 hour')),
             ]);
+
+            $updatedUser = $userModel->find((int) $user['id']);
+            $mailError = null;
+            if ($updatedUser) {
+                $this->sendPasswordResetEmail($updatedUser, $mailError);
+            }
+        }
+
+        return redirect()->to(base_url('forgot-password'))
+            ->with('success', 'If that email exists in our system, a password reset link has been sent.');
+    }
+
+    public function resetPassword($token)
+    {
+        $user = $this->findValidPasswordResetUser((string) $token);
+        if (!$user) {
+            return redirect()->to(base_url('forgot-password'))
+                ->with('error', 'Invalid or expired password reset link.');
+        }
+
+        return view('Auth/reset_password', ['token' => (string) $token]);
+    }
+
+    public function updatePassword($token)
+    {
+        $user = $this->findValidPasswordResetUser((string) $token);
+        if (!$user) {
+            return redirect()->to(base_url('forgot-password'))
+                ->with('error', 'Invalid or expired password reset link.');
+        }
+
+        if (!$this->validate([
+            'password' => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[password]',
+        ])) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
+        }
+
+        (new UserModel())->update((int) $user['id'], [
+            'password' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
+            'password_reset_token' => null,
+            'password_reset_expires_at' => null,
+        ]);
+
+        return redirect()->to(base_url('login'))
+            ->with('success', 'Password reset successful. You can now log in.');
     }
 
     /* ================= CANDIDATE REGISTRATION ================= */
@@ -500,6 +541,10 @@ class Auth extends BaseController
             return redirect()->back()->with('error', 'Recruiter account not found.');
         }
 
+        if (empty($user['email_verified_at'])) {
+            return redirect()->back()->with('error', 'Verify your company email before phone verification.');
+        }
+
         if ($idToken === '') {
             return redirect()->back()->with('error', 'Phone verification token missing. Please verify OTP again.');
         }
@@ -572,6 +617,11 @@ class Auth extends BaseController
             . $verifyUrl . "\n\n"
             . "If you did not create this account, ignore this email.";
 
+        if ($this->shouldCaptureMailLinks()) {
+            $this->captureMailPreview('Recruiter verification email', (string) $user['email'], $verifyUrl);
+            return true;
+        }
+
         try {
             $emailConfig = config('Email');
             $email = \Config\Services::email(null, false);
@@ -599,6 +649,99 @@ class Auth extends BaseController
             log_message('error', 'Email send failed for recruiter verification: ' . $e->getMessage());
             return false;
         }
+    }
+
+    private function sendPasswordResetEmail(array $user, ?string &$error = null): bool
+    {
+        if (empty($user['email']) || empty($user['password_reset_token'])) {
+            $error = 'Missing recipient email or reset token.';
+            return false;
+        }
+
+        $resetUrl = base_url('reset-password/' . $user['password_reset_token']);
+        $subject = 'Reset your HireMatrix password';
+        $message = "Hi " . ($user['name'] ?? 'User') . ",\n\n"
+            . "We received a request to reset your password.\n"
+            . "Use the link below within 1 hour:\n"
+            . $resetUrl . "\n\n"
+            . "If you did not request this, you can ignore this email.";
+
+        if ($this->shouldCaptureMailLinks()) {
+            $this->captureMailPreview('Password reset email', (string) $user['email'], $resetUrl);
+            return true;
+        }
+
+        try {
+            $emailConfig = config('Email');
+            $email = \Config\Services::email(null, false);
+            $email->clear(true);
+
+            if ($emailConfig->fromEmail !== '') {
+                $email->setFrom($emailConfig->fromEmail, $emailConfig->fromName ?: 'HireMatrix');
+            }
+
+            $email->setTo((string) $user['email']);
+            $email->setSubject($subject);
+            $email->setMessage($message);
+
+            $sent = $email->send(false);
+            if (!$sent) {
+                $debug = $email->printDebugger(['headers', 'subject']);
+                $error = trim(strip_tags($debug));
+                log_message('error', 'Password reset email failed: ' . $debug);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            $error = $e->getMessage();
+            log_message('error', 'Password reset email exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function findValidPasswordResetUser(string $token): ?array
+    {
+        $token = trim($token);
+        if ($token === '') {
+            return null;
+        }
+
+        $user = (new UserModel())
+            ->where('password_reset_token', $token)
+            ->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        $expiresAt = (string) ($user['password_reset_expires_at'] ?? '');
+        if ($expiresAt === '' || strtotime($expiresAt) < time()) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    private function shouldCaptureMailLinks(): bool
+    {
+        $capture = env('email.captureLinks');
+        if ($capture !== null) {
+            return filter_var($capture, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return defined('CI_ENVIRONMENT') && CI_ENVIRONMENT !== 'production';
+    }
+
+    private function captureMailPreview(string $title, string $recipient, string $url): void
+    {
+        session()->setFlashdata('mail_preview', [
+            'title' => $title,
+            'recipient' => $recipient,
+            'url' => $url,
+        ]);
+
+        log_message('info', $title . ' preview for ' . $recipient . ': ' . $url);
     }
 
     private function verifyFirebasePhoneIdentityToken(string $idToken, ?array &$firebaseUser = null, ?string &$error = null): bool
@@ -749,3 +892,4 @@ class Auth extends BaseController
         return $default;
     }
 }
+

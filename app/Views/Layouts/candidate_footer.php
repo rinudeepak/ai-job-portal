@@ -25,6 +25,7 @@
                 <h3>Account</h3>
                 <ul class="list-unstyled">
                     <li><a href="<?= base_url('candidate/profile') ?>">Settings</a></li>
+                    <li><a href="<?= base_url('account/change-password') ?>">Change Password</a></li>
                     <li><a href="<?= base_url('logout') ?>">Logout</a></li>
                 </ul>
             </div>

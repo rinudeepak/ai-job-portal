@@ -98,6 +98,10 @@
                             <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
                         <?php endif; ?>
 
+                        <?php if (session()->getFlashdata('success')) : ?>
+                            <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+                        <?php endif; ?>
+
                         <div class="row form-group">
                             <div class="col-md-12">
                                 <label class="text-black" for="email">Email</label>
@@ -113,6 +117,9 @@
                                     <div class="input-group-append">
                                         <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)">Show</button>
                                     </div>
+                                </div>
+                                <div class="mt-2">
+                                    <a href="<?= base_url('forgot-password') ?>">Forgot password?</a>
                                 </div>
                             </div>
                         </div>

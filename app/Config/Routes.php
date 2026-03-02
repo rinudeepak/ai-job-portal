@@ -11,6 +11,12 @@ $routes->get('/', 'Home::index');
 $routes->get('login', 'Auth::login');
 $routes->post('login', 'Auth::authenticate');
 $routes->get('logout', 'Auth::logout');
+$routes->get('forgot-password', 'Auth::forgotPassword');
+$routes->post('forgot-password', 'Auth::sendPasswordResetLink');
+$routes->get('reset-password/(:any)', 'Auth::resetPassword/$1');
+$routes->post('reset-password/(:any)', 'Auth::updatePassword/$1');
+$routes->get('account/change-password', 'Auth::changePassword', ['filter' => 'auth']);
+$routes->post('account/change-password', 'Auth::saveChangedPassword', ['filter' => 'auth']);
 
 // Candidate registration
 $routes->get('register', 'Auth::registerCandidate');
@@ -92,6 +98,7 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
 $routes->get('jobs', 'Jobs::index', ['filter' => 'auth']);
 $routes->get('job/(:num)', 'Jobs::jobDetail/$1', ['filter' => 'auth']);
 $routes->post('job/apply/(:num)', 'Applications::apply/$1', ['filter' => 'auth']);
+$routes->post('candidate/applications/withdraw/(:num)', 'Applications::withdraw/$1', ['filter' => 'auth']);
 $routes->get('job/save/(:num)', 'SavedJobs::save/$1', ['filter' => 'auth']);
 $routes->get('job/unsave/(:num)', 'SavedJobs::unsave/$1', ['filter' => 'auth']);
 

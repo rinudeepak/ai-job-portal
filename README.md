@@ -198,7 +198,24 @@ database.default.password=your_password
 ```
 
 ### Email (Optional)
-Configure SMTP in `app/Config/Email.php` for notifications.
+For temporary local testing, you can use Gmail SMTP in `.env`:
+
+```env
+email.fromEmail=yourgmail@gmail.com
+email.fromName=HireMatrix Test
+email.protocol=smtp
+email.SMTPHost=smtp.gmail.com
+email.SMTPUser=yourgmail@gmail.com
+email.SMTPPass=your_gmail_app_password
+email.SMTPPort=587
+email.SMTPCrypto=tls
+email.mailType=html
+```
+
+Important:
+- Use a Gmail app password, not your normal Gmail password.
+- Gmail is suitable only for low-volume testing, not production delivery.
+- Expect possible delays or spam/promotions placement during testing.
 
 ### File Uploads
 - Resumes: `writable/uploads/resumes/`

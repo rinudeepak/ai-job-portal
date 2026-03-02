@@ -292,6 +292,7 @@ class Jobs extends BaseController
         $application = $applicationModel
             ->where('job_id', $id)
             ->where('candidate_id', session()->get('user_id'))
+            ->where('status !=', 'withdrawn')
             ->first();
 
         $alreadyApplied = $application ? true : false;

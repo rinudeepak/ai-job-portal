@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 28, 2026 at 11:40 AM
+-- Generation Time: Mar 02, 2026 at 01:34 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -32,7 +32,7 @@ CREATE TABLE `applications` (
   `candidate_id` int(11) DEFAULT NULL,
   `resume_version_id` int(11) DEFAULT NULL,
   `job_id` int(11) DEFAULT NULL,
-  `status` enum('applied','ai_interview_started','ai_interview_completed','ai_evaluated','shortlisted','rejected','interview_slot_booked') DEFAULT NULL,
+  `status` enum('applied','ai_interview_started','ai_interview_completed','ai_evaluated','shortlisted','rejected','interview_slot_booked','selected','hired','withdrawn') DEFAULT NULL,
   `interview_slot` datetime DEFAULT NULL,
   `ai_interview_id` int(11) DEFAULT NULL,
   `booking_id` int(11) DEFAULT NULL,
@@ -49,7 +49,8 @@ INSERT INTO `applications` (`id`, `candidate_id`, `resume_version_id`, `job_id`,
 (76, 49, NULL, 56, 'shortlisted', NULL, NULL, NULL, '2026-02-23 11:30:51'),
 (77, 66, NULL, 60, 'applied', NULL, NULL, NULL, '2026-02-26 09:30:54'),
 (78, 67, NULL, 62, 'shortlisted', NULL, NULL, NULL, '2026-02-27 07:43:26'),
-(79, 47, 1, 62, 'shortlisted', NULL, NULL, NULL, '2026-02-28 06:18:56');
+(79, 47, 1, 62, 'withdrawn', NULL, NULL, NULL, '2026-02-28 06:18:56'),
+(80, 67, NULL, 60, 'applied', NULL, NULL, NULL, '2026-03-02 06:59:41');
 
 -- --------------------------------------------------------
 
@@ -652,7 +653,9 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (16, '2026-02-25-110000', 'App\\Database\\Migrations\\CreateRecruiterCandidateNotesTable', 'default', 'App', 1772022056, 13),
 (17, '2026-02-27-120000', 'App\\Database\\Migrations\\CreateJobAlertsTables', 'default', 'App', 1772174422, 14),
 (18, '2026-02-28-120000', 'App\\Database\\Migrations\\CreateCandidateResumeVersionsTable', 'default', 'App', 1772258325, 15),
-(19, '2026-02-28-140000', 'App\\Database\\Migrations\\CreateCandidateProjectsTable', 'default', 'App', 1772263750, 16);
+(19, '2026-02-28-140000', 'App\\Database\\Migrations\\CreateCandidateProjectsTable', 'default', 'App', 1772263750, 16),
+(20, '2026-03-02-120000', 'App\\Database\\Migrations\\AddWithdrawnStatusToApplications', 'default', 'App', 1772430665, 17),
+(21, '2026-03-02-130000', 'App\\Database\\Migrations\\AddPasswordResetFieldsToUsers', 'default', 'App', 1772430851, 18);
 
 -- --------------------------------------------------------
 
@@ -896,7 +899,12 @@ INSERT INTO `stage_history` (`id`, `application_id`, `stage_name`, `start_time`,
 (8, 78, 'Applied', '2026-02-27 07:43:26', '2026-02-27 07:43:26'),
 (9, 78, 'Shortlisted (AI Policy OFF)', '2026-02-27 07:43:26', NULL),
 (10, 79, 'Applied', '2026-02-28 06:18:56', '2026-02-28 06:18:56'),
-(11, 79, 'Shortlisted (AI Policy OFF)', '2026-02-28 06:18:56', NULL);
+(11, 79, 'Shortlisted (AI Policy OFF)', '2026-02-28 06:18:56', '2026-03-02 05:25:40'),
+(12, 79, 'Withdrawn by Candidate', '2026-03-02 05:25:40', '2026-03-02 05:27:03'),
+(13, 79, 'Withdrawn by Candidate', '2026-03-02 05:27:03', '2026-03-02 05:50:16'),
+(14, 79, 'Withdrawn by Candidate', '2026-03-02 05:50:16', '2026-03-02 05:51:16'),
+(15, 79, 'Withdrawn by Candidate', '2026-03-02 05:51:16', NULL),
+(16, 80, 'Applied', '2026-03-02 06:59:41', NULL);
 
 -- --------------------------------------------------------
 
@@ -916,6 +924,8 @@ CREATE TABLE `users` (
   `company_id` int(11) DEFAULT NULL,
   `email_verification_token` varchar(128) DEFAULT NULL,
   `email_verified_at` datetime DEFAULT NULL,
+  `password_reset_token` varchar(128) DEFAULT NULL,
+  `password_reset_expires_at` datetime DEFAULT NULL,
   `phone_verified_at` datetime DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
@@ -929,19 +939,19 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `preferred_language`, `phone`, `role`, `company_name`, `company_id`, `email_verification_token`, `email_verified_at`, `phone_verified_at`, `password`, `created_at`, `resume_path`, `profile_photo`, `location`, `bio`) VALUES
-(46, 'Rohith Kumar', 'rohith@technova.com', NULL, 'en', '+919544104305', 'recruiter', 'TechNova Solutions', 1, NULL, NULL, '2026-02-21 09:55:45', '$2y$10$tE9gbIZsmrhYj3JT0GUUr.Ra9rusYsib3.sglY1aTUA/80Qe4ENwi', '2026-02-21 15:25:05', NULL, NULL, NULL, NULL),
-(47, 'Manju Aravind', 'manju@gmail.com', NULL, 'en', '1234567890', 'candidate', NULL, NULL, NULL, NULL, NULL, '$2y$10$NyfTmre9jA2XQ7YQyaA5dOFUht/7z2AYgaVvOQn0O/JnFz.oULaTe', '2026-02-21 15:39:46', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'uploads/profiles/47_1771671062.jpg', 'BANGALORE', ''),
-(48, 'Asha Govind', 'asha@greenleaf.com', NULL, 'en', '+919544104305', 'recruiter', 'GreenLeaf Industries', 26, NULL, NULL, '2026-02-21 10:40:38', '$2y$10$vnhHNHOsFGO3BoRU8ORdkO7scVwwPBJZWKAXD7907xXQsYdujrAfe', '2026-02-21 16:10:17', NULL, NULL, NULL, NULL),
-(49, 'rinu george', 'rinugeorge@gmail.com', '110489513847967949727', 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, '$2y$10$aX/2kGvTsL77jRiGRl9c9uF3csUzIulWshhaTrNuGDzASo4EJtY1q', '2026-02-23 16:58:13', 'uploads/resumes/Rinu_George_Resume_15.pdf', '', 'BANGALORE', ''),
-(60, 'rinu george', 'rinu@sandslab.com', NULL, 'en', '+919544104305', 'recruiter', 'SANDS Lab', 28, NULL, NULL, '2026-02-25 11:01:11', '$2y$10$AYu/RrcrjVoevRK19XM/PuCnSi2qjah40.HOoHEqkE08n5ULW4bza', '2026-02-25 16:30:57', NULL, NULL, NULL, NULL),
-(62, 'rinu george', 'rinu@ser.com', NULL, 'en', '+919544104305', 'recruiter', 'SERP Hawk', 27, NULL, NULL, '2026-02-25 11:43:19', '$2y$10$NQlgJesfIGrMFNJO1FPm5.Bi7Fr4Rn7od7csn/jZyGPecBxED1wla', '2026-02-25 17:13:10', NULL, NULL, NULL, NULL),
-(64, 'John', 'john@xxx.com', NULL, 'en', '+919544104305', 'recruiter', 'xxx', 29, NULL, NULL, '2026-02-26 05:51:30', '$2y$10$jjsjSTk6Td8eBNZpW/HzwO7eDIjwTyFNLoDnlj.vDjZJC7jMN9ImO', '2026-02-26 11:21:16', NULL, NULL, NULL, NULL),
-(65, 'kiran', 'kiran@bbb.com', NULL, 'en', '+919544104305', 'recruiter', 'bbb', 30, NULL, NULL, '2026-02-26 07:37:39', '$2y$10$IgxgjmtIcQzz/vj7u2c2Buet0SLEdbquuEP1huQaSVNUn6n4IWRoa', '2026-02-26 13:07:06', NULL, NULL, NULL, NULL),
-(66, 'Rajeev', 'rajeev@gmail.com', NULL, 'en', '1472586900', 'candidate', NULL, NULL, NULL, NULL, NULL, '$2y$10$oWudCosjq5bAfx3P7kipMuJ.xcaiojdg42fL0801NEjGs2ZKAIBjC', '2026-02-26 14:55:26', 'uploads/resumes/Rinu-George-Resume.pdf', NULL, NULL, NULL),
-(67, 'rinu george', 'rinugeorgep@gmail.com', NULL, 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, '$2y$10$J5gbpKMdHbai.aUCaGh0VeJd5jt6GRkEQmL8bhEUQ06pAH4xWSGYC', '2026-02-27 12:19:18', 'uploads/resumes/Rinu-George-Resume_1.pdf', '', '', ''),
-(68, 'Praveen ', 'praveen@gmail.com', NULL, 'en', '3692581470', 'candidate', NULL, NULL, NULL, NULL, NULL, '$2y$10$ZmcxQa6iLxLXydNTcRYXJu7ryIIN3VU0nFmAZ/5oYfsfNmkd6aiN6', '2026-02-28 12:21:19', NULL, NULL, NULL, NULL),
-(72, 'rinu george', 'rinu@serphawk.com', NULL, 'en', '+919544104305', 'recruiter', 'SERP Hawk', 27, 'e6ac510f3b782c5c797ff2b711a71b9a1737e47e92a8a3eff538349d83a119cc', NULL, '2026-02-28 10:36:20', '$2y$10$DcTHfzm4RHDARH6vWe/aZeFzT9eC9G52zYhNGZ7IqVhxy4Sm8u6GW', '2026-02-28 16:06:06', NULL, NULL, NULL, NULL);
+INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `preferred_language`, `phone`, `role`, `company_name`, `company_id`, `email_verification_token`, `email_verified_at`, `password_reset_token`, `password_reset_expires_at`, `phone_verified_at`, `password`, `created_at`, `resume_path`, `profile_photo`, `location`, `bio`) VALUES
+(46, 'Rohith Kumar', 'rohith@technova.com', NULL, 'en', '+919544104305', 'recruiter', 'TechNova Solutions', 1, NULL, NULL, NULL, NULL, '2026-02-21 09:55:45', '$2y$10$tE9gbIZsmrhYj3JT0GUUr.Ra9rusYsib3.sglY1aTUA/80Qe4ENwi', '2026-02-21 15:25:05', NULL, NULL, NULL, NULL),
+(47, 'Manju Aravind', 'manju@gmail.com', NULL, 'en', '1234567890', 'candidate', NULL, NULL, NULL, NULL, '3ed8f3bdf75bb188a0dfa5ad53014f64e0fac172c767dedf0cfafb7a01ee90b3', '2026-03-02 07:00:58', NULL, '$2y$10$NyfTmre9jA2XQ7YQyaA5dOFUht/7z2AYgaVvOQn0O/JnFz.oULaTe', '2026-02-21 15:39:46', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'uploads/profiles/47_1771671062.jpg', 'BANGALORE', ''),
+(48, 'Asha Govind', 'asha@greenleaf.com', NULL, 'en', '+919544104305', 'recruiter', 'GreenLeaf Industries', 26, NULL, NULL, NULL, NULL, '2026-02-21 10:40:38', '$2y$10$vnhHNHOsFGO3BoRU8ORdkO7scVwwPBJZWKAXD7907xXQsYdujrAfe', '2026-02-21 16:10:17', NULL, NULL, NULL, NULL),
+(49, 'rinu george', 'rinugeorge@gmail.com', '110489513847967949727', 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$aX/2kGvTsL77jRiGRl9c9uF3csUzIulWshhaTrNuGDzASo4EJtY1q', '2026-02-23 16:58:13', 'uploads/resumes/Rinu_George_Resume_15.pdf', '', 'BANGALORE', ''),
+(60, 'rinu george', 'rinu@sandslab.com', NULL, 'en', '+919544104305', 'recruiter', 'SANDS Lab', 28, NULL, NULL, NULL, NULL, '2026-02-25 11:01:11', '$2y$10$AYu/RrcrjVoevRK19XM/PuCnSi2qjah40.HOoHEqkE08n5ULW4bza', '2026-02-25 16:30:57', NULL, NULL, NULL, NULL),
+(62, 'rinu george', 'rinu@ser.com', NULL, 'en', '+919544104305', 'recruiter', 'SERP Hawk', 27, NULL, NULL, NULL, NULL, '2026-02-25 11:43:19', '$2y$10$NQlgJesfIGrMFNJO1FPm5.Bi7Fr4Rn7od7csn/jZyGPecBxED1wla', '2026-02-25 17:13:10', NULL, NULL, NULL, NULL),
+(64, 'John', 'john@xxx.com', NULL, 'en', '+919544104305', 'recruiter', 'xxx', 29, NULL, NULL, NULL, NULL, '2026-02-26 05:51:30', '$2y$10$jjsjSTk6Td8eBNZpW/HzwO7eDIjwTyFNLoDnlj.vDjZJC7jMN9ImO', '2026-02-26 11:21:16', NULL, NULL, NULL, NULL),
+(65, 'kiran', 'kiran@bbb.com', NULL, 'en', '+919544104305', 'recruiter', 'bbb', 30, NULL, NULL, NULL, NULL, '2026-02-26 07:37:39', '$2y$10$IgxgjmtIcQzz/vj7u2c2Buet0SLEdbquuEP1huQaSVNUn6n4IWRoa', '2026-02-26 13:07:06', NULL, NULL, NULL, NULL),
+(66, 'Rajeev', 'rajeev@gmail.com', NULL, 'en', '1472586900', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$oWudCosjq5bAfx3P7kipMuJ.xcaiojdg42fL0801NEjGs2ZKAIBjC', '2026-02-26 14:55:26', 'uploads/resumes/Rinu-George-Resume.pdf', NULL, NULL, NULL),
+(67, 'rinu george', 'rinugeorgep@gmail.com', NULL, 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$t8XNiY/tAuV5tOGCVxPvfO9.DcUppHKclVI4lEdzkQaD2AXTZzq9.', '2026-02-27 12:19:18', 'uploads/resumes/Rinu-George-Resume_1.pdf', '', '', ''),
+(68, 'Praveen ', 'praveen@gmail.com', NULL, 'en', '3692581470', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$ZmcxQa6iLxLXydNTcRYXJu7ryIIN3VU0nFmAZ/5oYfsfNmkd6aiN6', '2026-02-28 12:21:19', NULL, NULL, NULL, NULL),
+(77, 'rinu george', 'rinu@serphawk.com', NULL, 'en', '+919544104305', 'recruiter', 'SERP Hawk', 27, NULL, '2026-03-02 11:47:51', NULL, NULL, '2026-03-02 11:48:07', '$2y$10$YT2rL3jkDnCPDmCa8Eyp9u43pvvAuQEm5QKRId4z9Sp1ReRjCXPGK', '2026-03-02 17:14:39', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1238,7 +1248,7 @@ ALTER TABLE `work_experiences`
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `candidate_github_stats`
@@ -1358,7 +1368,7 @@ ALTER TABLE `job_suggestions`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -1406,13 +1416,13 @@ ALTER TABLE `skills`
 -- AUTO_INCREMENT for table `stage_history`
 --
 ALTER TABLE `stage_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `work_experiences`

@@ -50,6 +50,18 @@
                     padding-right: 8px;
                 }
             }
+            .btn-loading-state {
+                display: none;
+                align-items: center;
+                gap: 8px;
+            }
+            .btn-submit-text.is-hidden {
+                display: none;
+            }
+            .btn.is-loading {
+                pointer-events: none;
+                opacity: .85;
+            }
         </style>
         <!-- Profile Completion Progress -->
         <div class="row mb-4">
@@ -896,6 +908,33 @@ function editProject(project) {
         window.jQuery('#addProjectModal').modal('show');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    var loadingForms = document.querySelectorAll('form[data-loading-form]');
+
+    loadingForms.forEach(function (form) {
+        form.addEventListener('submit', function () {
+            var button = form.querySelector('[data-loading-button]');
+            if (!button || button.disabled) {
+                return;
+            }
+
+            button.disabled = true;
+            button.classList.add('is-loading');
+
+            var submitText = button.querySelector('.btn-submit-text');
+            var loadingState = button.querySelector('.btn-loading-state');
+
+            if (submitText) {
+                submitText.classList.add('is-hidden');
+            }
+
+            if (loadingState) {
+                loadingState.style.display = 'inline-flex';
+            }
+        });
+    });
+});
 </script>
 
 

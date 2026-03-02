@@ -63,6 +63,7 @@
                         <li><a href="<?= base_url('recruiter/candidates') ?>" class="nav-link">Candidates</a></li>
                         <li><a href="<?= base_url('recruiter/company-profile') ?>" class="nav-link">Company Profile</a></li>
                         <li><a href="<?= base_url('recruiter/slots') ?>" class="nav-link">Interview Slots</a></li>
+                        <li><a href="<?= base_url('account/change-password') ?>" class="nav-link">Change Password</a></li>
                     </ul>
                 </nav>
                 <div class="right-cta-menu text-right d-flex aligin-items-center col-6">
