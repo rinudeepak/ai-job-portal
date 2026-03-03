@@ -8,6 +8,8 @@ use App\Models\UserModel;
 
 class CompanyProfile extends BaseController
 {
+    private const MAX_BRANDING_PHOTOS = 6;
+
     public function show(int $id)
     {
         $userModel = new UserModel();
@@ -116,6 +118,8 @@ class CompanyProfile extends BaseController
             'short_description' => trim((string) $this->request->getPost('company_short_description')),
             'what_we_do' => trim((string) $this->request->getPost('company_what_we_do')),
             'mission_values' => trim((string) $this->request->getPost('company_mission_values')),
+            'culture_summary' => trim((string) $this->request->getPost('company_culture_summary')),
+            'employee_benefits' => trim((string) $this->request->getPost('company_employee_benefits')),
             'contact_email' => trim((string) $this->request->getPost('company_contact_email')),
             'contact_phone' => trim((string) $this->request->getPost('company_contact_phone')),
             'contact_public' => $this->request->getPost('company_contact_public') ? 1 : 0,
@@ -132,6 +136,11 @@ class CompanyProfile extends BaseController
         if ($data['contact_email'] !== '' && !filter_var($data['contact_email'], FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->withInput()->with('error', 'Contact email must be valid.');
         }
+
+        $existingCompany = $companyId > 0 ? ($companyModel->find($companyId) ?? []) : [];
+        $currentBrandPhotos = $this->parseWorkplacePhotos($existingCompany['workplace_photos'] ?? null);
+        $removeBrandPhotos = $this->normalizePhotoPaths($this->request->getPost('remove_brand_photos'));
+        $retainedBrandPhotos = array_values(array_diff($currentBrandPhotos, $removeBrandPhotos));
 
         $logo = $this->request->getFile('company_logo');
         if ($logo && $logo->isValid() && !$logo->hasMoved()) {
@@ -150,6 +159,37 @@ class CompanyProfile extends BaseController
             $data['logo'] = 'uploads/company_logos/' . $newName;
         }
 
+        $newBrandPhotos = [];
+        $brandPhotoFiles = $this->request->getFileMultiple('company_brand_photos');
+        if (!empty($brandPhotoFiles)) {
+            $brandingDir = FCPATH . 'uploads/company_branding/';
+            if (!is_dir($brandingDir)) {
+                mkdir($brandingDir, 0755, true);
+            }
+
+            foreach ($brandPhotoFiles as $photo) {
+                if (!$photo || !$photo->isValid() || $photo->hasMoved()) {
+                    continue;
+                }
+
+                $allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+                if (!in_array($photo->getMimeType(), $allowed, true)) {
+                    return redirect()->back()->withInput()->with('error', 'Branding photos must be PNG/JPG/WEBP/GIF.');
+                }
+
+                $newName = $photo->getRandomName();
+                $photo->move($brandingDir, $newName);
+                $newBrandPhotos[] = 'uploads/company_branding/' . $newName;
+            }
+        }
+
+        $mergedBrandPhotos = array_slice(
+            array_values(array_unique(array_merge($retainedBrandPhotos, $newBrandPhotos))),
+            0,
+            self::MAX_BRANDING_PHOTOS
+        );
+        $data['workplace_photos'] = $mergedBrandPhotos === [] ? null : json_encode($mergedBrandPhotos);
+
         if ($companyId > 0) {
             $companyModel->update($companyId, $data);
         } else {
@@ -160,6 +200,19 @@ class CompanyProfile extends BaseController
             } else {
                 $companyModel->insert($data);
                 $companyId = (int) $companyModel->getInsertID();
+            }
+        }
+
+        foreach ($removeBrandPhotos as $removedPhoto) {
+            if (!in_array($removedPhoto, $currentBrandPhotos, true)) {
+                continue;
+            }
+
+            if (str_starts_with($removedPhoto, 'uploads/company_branding/')) {
+                $fullPath = FCPATH . str_replace('/', DIRECTORY_SEPARATOR, $removedPhoto);
+                if (is_file($fullPath)) {
+                    @unlink($fullPath);
+                }
             }
         }
 
@@ -176,5 +229,42 @@ class CompanyProfile extends BaseController
             ->update();
 
         return redirect()->to(base_url('recruiter/company-profile'))->with('success', 'Company profile updated.');
+    }
+
+    private function parseWorkplacePhotos($raw): array
+    {
+        if (is_array($raw)) {
+            return $this->normalizePhotoPaths($raw);
+        }
+
+        $raw = trim((string) $raw);
+        if ($raw === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) {
+            return $this->normalizePhotoPaths($decoded);
+        }
+
+        return $this->normalizePhotoPaths(explode(',', $raw));
+    }
+
+    private function normalizePhotoPaths($paths): array
+    {
+        if (!is_array($paths)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($paths as $path) {
+            $path = trim((string) $path);
+            if ($path === '') {
+                continue;
+            }
+            $normalized[] = $path;
+        }
+
+        return array_values(array_unique($normalized));
     }
 }

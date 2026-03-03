@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 02, 2026 at 01:34 PM
+-- Generation Time: Mar 03, 2026 at 12:44 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -96,7 +96,8 @@ CREATE TABLE `candidate_interests` (
 
 INSERT INTO `candidate_interests` (`id`, `candidate_id`, `interest`) VALUES
 (1, 47, 'UI/UX Design, Backend Development, Full Stack'),
-(2, 68, 'Web Development');
+(2, 68, 'Web Development'),
+(3, 67, 'Backend Development');
 
 -- --------------------------------------------------------
 
@@ -157,9 +158,10 @@ CREATE TABLE `candidate_resume_versions` (
 --
 
 INSERT INTO `candidate_resume_versions` (`id`, `candidate_id`, `job_id`, `application_id`, `career_transition_id`, `title`, `target_role`, `source_role`, `generation_source`, `base_resume_path`, `summary`, `highlight_skills`, `content`, `is_primary`, `last_synced_at`, `created_at`, `updated_at`) VALUES
-(1, 47, NULL, NULL, NULL, 'PHP Developer', 'PHP Developer', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Detail-oriented PHP Developer with a strong foundation in web development and a passion for backend solutions. Proven ability to deliver high-quality web applications, optimize performance, and enhance user experiences.', 'PHP, MySQL, JavaScript', '# Professional Summary\nDynamic PHP Developer with extensive experience in developing robust web applications. Expertise in PHP and MySQL, complemented by a background in JavaScript for front-end functionality. Committed to leveraging technical skills to contribute to effective web solutions.\n\n# Core Skills\n- Proficient in PHP and MySQL for backend development\n- Strong understanding of JavaScript for interactive web features\n- Experience with UI/UX design principles\n- Ability to optimize web applications for speed and efficiency\n\n# Experience\n## Web Developer  \n**ABC Company**  \n*Full-time | Bangalore*  \n*December 2025 - Present*  \n- Spearheaded the development of a PHP-based web application that improved user engagement by 30% through enhanced UI/UX design.\n- Collaborated with cross-functional teams to integrate MySQL databases, ensuring data integrity and security.\n- Optimized existing codebase, resulting in a 20% reduction in load times and improved overall application performance.\n\n# Education\n**B.Sc. in Computer Science**  \nPrajyoti Niketan College, Pudukad, Thrissur  \n*2012 - 2015*  \n\n# Certifications\n- (No certifications listed)\n\n# Transition Narrative\nTransitioning from a general web development role to a specialized PHP Developer position, I aim to apply my skills in PHP and MySQL to create efficient and scalable web applications.', 1, '2026-02-28 06:00:22', '2026-02-28 06:00:22', '2026-02-28 06:00:22'),
-(2, 47, 57, NULL, NULL, 'Mechanical Engineer', 'Mechanical Engineer', 'Web Developer', 'job_version', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Detail-oriented Mechanical Engineer with a strong foundation in web development and a passion for improving manufacturing machinery. Seeking to leverage technical skills and analytical thinking to enhance operational efficiency in mechanical systems.', 'Problem Solving, Analytical Thinking, Project Management', '# Professional Summary\nDedicated Mechanical Engineer with a background in web development, bringing a unique perspective to mechanical systems. Proven ability to analyze and improve machinery performance through innovative solutions.\n\n# Core Skills\n- Mechanical Design\n- Manufacturing Processes\n- CAD Software\n- Project Management\n- Problem Solving\n\n# Experience\n## Web Developer  \n**ABC Company**  \n*December 2025 - Present*  \n- Developed and maintained web applications, enhancing user experience and functionality.  \n- Collaborated with cross-functional teams to identify and implement process improvements, leading to a 20% increase in efficiency.\n\n# Education\n**B.Sc. in Computer Science**  \nPrajyoti Niketan College, Pudukad, Thrissur  \n*2012 - 2015*  \n\n# Certifications\n*None*  \n\n# Transition Narrative\nWhile my background is primarily in web development, I possess a strong analytical skill set and a passion for mechanical systems. I am eager to apply my problem-solving abilities and project management experience to the field of mechanical engineering.', 0, '2026-02-28 06:02:41', '2026-02-28 06:02:41', '2026-02-28 06:02:41'),
-(6, 68, NULL, NULL, NULL, 'Web Developer Transitioning to Data Scientist', 'Data Sccientist', 'Web Developer', 'role_based', '', 'Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.', 'Web Development, Software Development, Data Analysis', '{\"template_key\":\"minimal_timeline\",\"name\":\"Praveen \",\"target_role\":\"Data Sccientist\",\"title\":\"Web Developer Transitioning to Data Scientist\",\"summary\":\"Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.\",\"highlight_skills\":[\"Web Development\",\"Software Development\",\"Data Analysis\"],\"sections\":{\"experience\":{\"title\":\"Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"KJP Digital Solutions Pvt Ltd\",\"meta\":\"June 2023 - Present | Location Not Specified\",\"bullets\":[\"Developed responsive web applications, enhancing user engagement by 30%.\",\"Collaborated with cross-functional teams to deliver projects ahead of deadlines.\"]},{\"headline\":\"Software Developer\",\"subhead\":\"SANDS Lab\",\"meta\":\"February 2021 - December 2026 | Location Not Specified\",\"bullets\":[\"Designed and implemented software solutions that improved operational efficiency by 25%.\",\"Contributed to the development of a data management system, streamlining data processes.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"MBA in Marketing\",\"subhead\":\"Adi Shankara Institute of Engineering and Technology, Kalady\",\"meta\":\"2015 - 2017\",\"bullets\":[]},{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-02-28 07:08:19', '2026-02-28 07:08:19', '2026-02-28 07:08:19');
+(1, 47, NULL, NULL, NULL, 'PHP Developer', 'PHP Developer', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Results-driven Web Developer with a strong foundation in PHP and MySQL. Proven ability to enhance user experience through effective backend solutions. Seeking to leverage skills in a PHP Developer role.', 'PHP, MySQL', '{\"template_key\":\"tech_compact\",\"name\":\"Manju Aravind\",\"target_role\":\"PHP Developer\",\"title\":\"PHP Developer\",\"summary\":\"Results-driven Web Developer with a strong foundation in PHP and MySQL. Proven ability to enhance user experience through effective backend solutions. Seeking to leverage skills in a PHP Developer role.\",\"highlight_skills\":[\"PHP\",\"MySQL\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC company\",\"meta\":\"Dec 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL.\",\"Collaborated in a team to enhance application performance by 30%.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-03-03 11:40:09', '2026-02-28 06:00:22', '2026-03-03 11:40:09'),
+(6, 68, NULL, NULL, NULL, 'Web Developer Transitioning to Data Scientist', 'Data Sccientist', 'Web Developer', 'role_based', '', 'Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.', 'Web Development, Software Development, Data Analysis', '{\"template_key\":\"minimal_timeline\",\"name\":\"Praveen \",\"target_role\":\"Data Sccientist\",\"title\":\"Web Developer Transitioning to Data Scientist\",\"summary\":\"Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.\",\"highlight_skills\":[\"Web Development\",\"Software Development\",\"Data Analysis\"],\"sections\":{\"experience\":{\"title\":\"Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"KJP Digital Solutions Pvt Ltd\",\"meta\":\"June 2023 - Present | Location Not Specified\",\"bullets\":[\"Developed responsive web applications, enhancing user engagement by 30%.\",\"Collaborated with cross-functional teams to deliver projects ahead of deadlines.\"]},{\"headline\":\"Software Developer\",\"subhead\":\"SANDS Lab\",\"meta\":\"February 2021 - December 2026 | Location Not Specified\",\"bullets\":[\"Designed and implemented software solutions that improved operational efficiency by 25%.\",\"Contributed to the development of a data management system, streamlining data processes.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"MBA in Marketing\",\"subhead\":\"Adi Shankara Institute of Engineering and Technology, Kalady\",\"meta\":\"2015 - 2017\",\"bullets\":[]},{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-02-28 07:08:19', '2026-02-28 07:08:19', '2026-02-28 07:08:19'),
+(9, 67, NULL, NULL, NULL, 'PHP Developer Resume', 'PHP Developer', 'Candidate', 'role_based', 'uploads/resumes/Rinu-George-Resume_1.pdf', 'Results-driven PHP Developer with a strong foundation in backend development and a passion for creating efficient, scalable applications. Adept at leveraging modern frameworks to enhance user experience and optimize performance.', 'PHP, Backend Development', '{\"template_key\":\"modern_professional\",\"name\":\"rinu george\",\"target_role\":\"PHP Developer\",\"title\":\"PHP Developer Resume\",\"summary\":\"Results-driven PHP Developer with a strong foundation in backend development and a passion for creating efficient, scalable applications. Adept at leveraging modern frameworks to enhance user experience and optimize performance.\",\"highlight_skills\":[\"PHP\",\"Backend Development\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"HTML\",\"CSS\",\"Hack\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[]},\"projects\":{\"title\":\"Projects\",\"items\":[]},\"education\":{\"title\":\"Education\",\"items\":[]},\"certifications\":{\"title\":\"Certifications\",\"items\":[]}}}', 1, '2026-03-03 10:17:43', '2026-03-03 10:17:43', '2026-03-03 10:17:43'),
+(10, 47, NULL, NULL, NULL, 'Web Developer', 'php', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.', 'PHP, MySQL, JavaScript', '{\"template_key\":\"elegant_classic\",\"name\":\"Manju Aravind\",\"target_role\":\"php\",\"title\":\"Web Developer\",\"summary\":\"Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.\",\"highlight_skills\":[\"PHP\",\"MySQL\",\"JavaScript\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC Company\",\"meta\":\"December 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL.\",\"Collaborated with design teams to enhance user experience.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 0, '2026-03-03 10:38:15', '2026-03-03 10:38:15', '2026-03-03 11:40:09');
 
 -- --------------------------------------------------------
 
@@ -253,6 +255,9 @@ CREATE TABLE `companies` (
   `short_description` varchar(255) DEFAULT NULL,
   `what_we_do` text DEFAULT NULL,
   `mission_values` text DEFAULT NULL,
+  `culture_summary` text DEFAULT NULL,
+  `employee_benefits` text DEFAULT NULL,
+  `workplace_photos` text DEFAULT NULL,
   `contact_email` varchar(255) DEFAULT NULL,
   `contact_phone` varchar(30) DEFAULT NULL,
   `contact_public` tinyint(1) NOT NULL DEFAULT 0,
@@ -264,37 +269,36 @@ CREATE TABLE `companies` (
 -- Dumping data for table `companies`
 --
 
-INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `industry`, `size`, `hq`, `branches`, `short_description`, `what_we_do`, `mission_values`, `contact_email`, `contact_phone`, `contact_public`, `created_at`, `updated_at`) VALUES
-(1, 'TechNova Solutions', 'uploads/company_logos/1771669764_20d47a35f4f9596afa95.jpg', 'https://www.technovasolutions.com', 'IT Services', '50-200', 'Bangalore, India', 'Kochi, Chennai', 'We build scalable digital solutions for modern businesses.', 'We develop web applications, mobile apps, and cloud solutions for startups and enterprises.', 'Innovation, Transparency, Customer Success', 'hr@technovasolutions.com', '+91-9876543210', 1, '2026-02-21 09:27:53', '2026-02-26 07:17:40'),
-(2, 'PHP Developer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(3, 'CodeCraft Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(4, 'PixelSoft Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(5, 'Innova Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(6, 'NextGen IT Services', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(7, 'BlueSky Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(8, 'CloudNova Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(9, 'DesignHub Studio', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(10, 'InfraTech Solutions', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(11, 'Insight Analytics', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(12, 'AlgoSoft Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(13, 'WebSpark IT Services', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(14, 'TalentBridge HR', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(15, 'TestPro Labs', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(16, 'MarketScope Consulting', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(17, 'Infotech Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(18, 'company1', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(19, 'AppWave Solutions', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(20, 'SecureNet Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(21, 'WriteSmart Media', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(22, 'Creative Pixel Studio', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(23, 'SkyHost Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(24, 'InnovateHub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(25, 'GreenLeaf Finance', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(26, 'GreenLeaf Industries', NULL, 'https://www.greenleafindustries.com', 'Manufacturing', '200-500', 'Coimbatore, India', 'Hyderabad, Pune', 'Sustainable manufacturing for a better tomorrow.', 'We manufacture eco-friendly packaging products and export globally.', 'Sustainability, Integrity, Quality', 'careers@greenleafindustries.com', '', 0, '2026-02-21 10:40:17', '2026-02-21 10:43:18'),
-(27, 'SERP Hawk', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 09:20:38', '2026-02-25 09:20:38'),
-(28, 'SANDS Lab', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 10:49:16', '2026-02-25 10:49:16'),
-(29, 'xxx', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 05:49:32', '2026-02-26 05:49:32'),
-(30, 'bbb', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 07:37:05', '2026-02-26 07:37:05');
+INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `industry`, `size`, `hq`, `branches`, `short_description`, `what_we_do`, `mission_values`, `culture_summary`, `employee_benefits`, `workplace_photos`, `contact_email`, `contact_phone`, `contact_public`, `created_at`, `updated_at`) VALUES
+(1, 'TechNova Solutions', 'uploads/company_logos/1771669764_20d47a35f4f9596afa95.jpg', 'https://www.technovasolutions.com', 'IT Services', '50-200', 'Bangalore, India', 'Kochi, Chennai', 'We build scalable digital solutions for modern businesses.', 'We develop web applications, mobile apps, and cloud solutions for startups and enterprises.', 'Innovation, Transparency, Customer Success', '', '', '[\"uploads\\/company_branding\\/1772532582_98db5085fdfb539e31d4.jpg\",\"uploads\\/company_branding\\/1772532582_d7626ea5b495cce35001.jpg\",\"uploads\\/company_branding\\/1772532582_76a2461c46c599c189b6.jpg\"]', 'hr@technovasolutions.com', '+91-9876543210', 1, '2026-02-21 09:27:53', '2026-03-03 10:09:42'),
+(3, 'CodeCraft Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(4, 'PixelSoft Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(5, 'Innova Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(6, 'NextGen IT Services', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(7, 'BlueSky Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(8, 'CloudNova Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(9, 'DesignHub Studio', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(10, 'InfraTech Solutions', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(11, 'Insight Analytics', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(12, 'AlgoSoft Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(13, 'WebSpark IT Services', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(14, 'TalentBridge HR', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(15, 'TestPro Labs', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(16, 'MarketScope Consulting', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(17, 'Infotech Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(18, 'company1', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(19, 'AppWave Solutions', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(20, 'SecureNet Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(21, 'WriteSmart Media', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
+(22, 'Creative Pixel Studio', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
+(23, 'SkyHost Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
+(24, 'InnovateHub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
+(25, 'GreenLeaf Finance', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
+(26, 'GreenLeaf Industries', NULL, 'https://www.greenleafindustries.com', 'Manufacturing', '200-500', 'Coimbatore, India', 'Hyderabad, Pune', 'Sustainable manufacturing for a better tomorrow.', 'We manufacture eco-friendly packaging products and export globally.', 'Sustainability, Integrity, Quality', 'We are at our best when we work with clients to build stable teams, stable products, and stable support for their operations.We apply our frameworks, platforms, and services coupled with intelligent automation to eliminate the risk associated with technology assessment and implementation, talent shortages, and operational inefficiencies. We use our culture of honesty, integrity, teamwork, and perseverance to create value for clients.', 'Health Insurance , PF', '[\"uploads\\/company_branding\\/1772519389_642438e16877a39df672.jpg\",\"uploads\\/company_branding\\/1772519389_dc33b0635b5ce1c7d4f9.jpg\",\"uploads\\/company_branding\\/1772519389_2f3b82a38c3b976e534c.jpg\"]', 'careers@greenleafindustries.com', '', 1, '2026-02-21 10:40:17', '2026-03-03 07:18:04'),
+(27, 'SERP Hawk', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 09:20:38', '2026-02-25 09:20:38'),
+(28, 'SANDS Lab', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 10:49:16', '2026-02-25 10:49:16'),
+(29, 'xxx', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 05:49:32', '2026-02-26 05:49:32'),
+(30, 'bbb', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 07:37:05', '2026-02-26 07:37:05');
 
 -- --------------------------------------------------------
 
@@ -544,7 +548,10 @@ INSERT INTO `jobs` (`id`, `recruiter_id`, `company_id`, `title`, `category`, `co
 (59, 46, 1, 'job2', 'Manufacturing', 'TechNova Solutions', 'Thrissur, Kerala', 'aaaaa', 'tool n die', '2-3 years', 3, 45, 'REQUIRED_HARD', 'open', '2026-02-24 14:07:09', 'Full-time'),
 (60, 46, 1, 'job3', 'information tachnology', 'TechNova Solutions', 'Bangalore, Karnataka', 'aaaaa', '', '', 3, 80, 'REQUIRED_HARD', 'open', '2026-02-24 14:14:47', 'Full-time'),
 (61, 46, 1, 'job 4', 'IT', 'TechNova Solutions', 'BANGALORE', 'aaa   .......', '', '', 2, 0, 'OFF', 'closed', '2026-02-26 12:17:54', 'Full-time'),
-(62, 48, 26, 'PHP Developer', 'Software Developemnet', 'GreenLeaf Industries', 'Bangalore', 'aaaaaaaa', 'Core Php', '', 4, 0, 'OFF', 'open', '2026-02-27 12:25:16', 'Full-time');
+(62, 48, 26, 'PHP Developer', 'Software Developemnet', 'GreenLeaf Industries', 'Bangalore', 'aaaaaaaa', 'Core Php', '', 4, 0, 'OFF', 'open', '2026-02-27 12:25:16', 'Full-time'),
+(63, 46, 1, 'Software Tester', 'Software support', 'TechNova Solutions', 'Bangalore', 'ahgshagshag', '', '', 1, 0, 'OFF', 'open', '2026-03-03 10:37:50', 'Full-time'),
+(64, 46, 1, 'PHP Developer', 'IT', 'TechNova Solutions', 'Bangalore', 'aaaaa', 'Core PHP, MySQL', '', 1, 82, 'OPTIONAL', 'closed', '2026-03-03 11:15:27', 'Full-time'),
+(65, 48, 26, 'Software Tester', 'IT', 'GreenLeaf Industries', 'Bangalore', 'aaaa', 'Manual Testing, Selenium, Test Cases', '', 1, 80, 'REQUIRED_HARD', 'open', '2026-03-03 11:22:17', 'Full-time');
 
 -- --------------------------------------------------------
 
@@ -573,7 +580,7 @@ CREATE TABLE `job_alerts` (
 
 INSERT INTO `job_alerts` (`id`, `candidate_id`, `role_keywords`, `location_keywords`, `skills_keywords`, `salary_min`, `salary_max`, `notify_email`, `notify_in_app`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 47, 'PHP developer', 'Bangalore', 'Core PHP', NULL, NULL, 1, 1, 1, '2026-02-27 06:46:41', '2026-02-27 06:46:41'),
-(2, 67, 'PHP developer', 'Bangalore', 'Core PHP', NULL, NULL, 1, 1, 1, '2026-02-27 06:51:49', '2026-02-27 06:51:49');
+(3, 67, 'Software Tester', NULL, NULL, NULL, NULL, 1, 1, 1, '2026-03-03 05:51:37', '2026-03-03 05:51:37');
 
 -- --------------------------------------------------------
 
@@ -597,7 +604,7 @@ CREATE TABLE `job_alert_deliveries` (
 
 INSERT INTO `job_alert_deliveries` (`id`, `job_alert_id`, `job_id`, `candidate_id`, `email_sent_at`, `in_app_sent_at`, `created_at`) VALUES
 (1, 1, 62, 47, '2026-02-27 06:55:22', '2026-02-27 06:55:16', '2026-02-27 06:55:16'),
-(2, 2, 62, 67, '2026-02-27 06:55:28', '2026-02-27 06:55:22', '2026-02-27 06:55:22');
+(3, 3, 65, 67, '2026-03-03 05:52:26', '2026-03-03 05:52:17', '2026-03-03 05:52:17');
 
 -- --------------------------------------------------------
 
@@ -655,7 +662,8 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (18, '2026-02-28-120000', 'App\\Database\\Migrations\\CreateCandidateResumeVersionsTable', 'default', 'App', 1772258325, 15),
 (19, '2026-02-28-140000', 'App\\Database\\Migrations\\CreateCandidateProjectsTable', 'default', 'App', 1772263750, 16),
 (20, '2026-03-02-120000', 'App\\Database\\Migrations\\AddWithdrawnStatusToApplications', 'default', 'App', 1772430665, 17),
-(21, '2026-03-02-130000', 'App\\Database\\Migrations\\AddPasswordResetFieldsToUsers', 'default', 'App', 1772430851, 18);
+(21, '2026-03-02-130000', 'App\\Database\\Migrations\\AddPasswordResetFieldsToUsers', 'default', 'App', 1772430851, 18),
+(22, '2026-03-03-140000', 'App\\Database\\Migrations\\AddEmployerBrandingFieldsToCompanies', 'default', 'App', 1772519125, 19);
 
 -- --------------------------------------------------------
 
@@ -697,7 +705,9 @@ INSERT INTO `notifications` (`id`, `user_id`, `application_id`, `type`, `title`,
 (18, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:05:20', NULL),
 (19, 47, 75, '', 'Resume Downloaded', 'Rohith Kumar downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:05:58', NULL),
 (20, 47, 79, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:21:52', NULL),
-(21, 47, 79, '', 'Resume Downloaded', 'Asha Govind downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:21:58', NULL);
+(21, 47, 79, '', 'Resume Downloaded', 'Asha Govind downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:21:58', NULL),
+(22, 67, NULL, '', 'Job Alert Match', 'New matching job: Software Tester - Bangalore', 'http://localhost/ai-job-portal/public/job/65', 1, '2026-03-03 05:52:17', '2026-03-03 09:57:59'),
+(23, 68, NULL, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-03 05:53:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -734,7 +744,8 @@ INSERT INTO `recruiter_candidate_actions` (`id`, `candidate_id`, `recruiter_id`,
 (22, 47, 46, 75, 57, 'profile_viewed', '2026-02-28 06:05:20'),
 (23, 47, 46, 75, 57, 'resume_downloaded', '2026-02-28 06:05:58'),
 (24, 47, 48, 79, 62, 'profile_viewed', '2026-02-28 06:21:52'),
-(25, 47, 48, 79, 62, 'resume_downloaded', '2026-02-28 06:21:58');
+(25, 47, 48, 79, 62, 'resume_downloaded', '2026-02-28 06:21:58'),
+(26, 68, 48, NULL, NULL, 'profile_viewed', '2026-03-03 05:53:34');
 
 -- --------------------------------------------------------
 
@@ -1260,7 +1271,7 @@ ALTER TABLE `candidate_github_stats`
 -- AUTO_INCREMENT for table `candidate_interests`
 --
 ALTER TABLE `candidate_interests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `candidate_projects`
@@ -1272,7 +1283,7 @@ ALTER TABLE `candidate_projects`
 -- AUTO_INCREMENT for table `candidate_resume_versions`
 --
 ALTER TABLE `candidate_resume_versions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `candidate_skills`
@@ -1344,19 +1355,19 @@ ALTER TABLE `interview_slots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `job_alerts`
 --
 ALTER TABLE `job_alerts`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `job_alert_deliveries`
 --
 ALTER TABLE `job_alert_deliveries`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `job_suggestions`
@@ -1368,19 +1379,19 @@ ALTER TABLE `job_suggestions`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_actions`
 --
 ALTER TABLE `recruiter_candidate_actions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_messages`

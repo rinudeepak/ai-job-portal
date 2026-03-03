@@ -880,12 +880,10 @@ class Auth extends BaseController
             return $default;
         }
 
-        if (str_starts_with($next, '/')) {
-            return base_url(ltrim($next, '/'));
-        }
-
-        $base = rtrim(base_url('/'), '/');
-        if (str_starts_with($next, $base)) {
+        $parsedNext = parse_url($next);
+        $parsedBase = parse_url(base_url());
+        
+        if (isset($parsedNext['host']) && isset($parsedBase['host']) && $parsedNext['host'] === $parsedBase['host']) {
             return $next;
         }
 

@@ -84,6 +84,48 @@
                                 <textarea name="company_mission_values" class="form-control" rows="3"><?= esc(old('company_mission_values', $company['mission_values'] ?? '')) ?></textarea>
                             </div>
 
+                            <div class="form-group">
+                                <label>Culture / Work Environment</label>
+                                <textarea name="company_culture_summary" class="form-control" rows="4" placeholder="Describe team culture, work style, collaboration, learning, and growth opportunities."><?= esc(old('company_culture_summary', $company['culture_summary'] ?? '')) ?></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Employee Benefits</label>
+                                <textarea name="company_employee_benefits" class="form-control" rows="3" placeholder="Health insurance, flexible hours, bonus, remote work, learning budget"><?= esc(old('company_employee_benefits', $company['employee_benefits'] ?? '')) ?></textarea>
+                                <small class="form-text text-muted">Separate benefits with commas or new lines.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Workplace Photos</label>
+                                <input type="file" name="company_brand_photos[]" class="form-control" accept="image/*" multiple>
+                                <small class="form-text text-muted">Upload up to 6 office or team photos for employer branding.</small>
+                                <?php
+                                $existingPhotos = [];
+                                $photosRaw = $company['workplace_photos'] ?? '';
+                                if (is_string($photosRaw) && trim($photosRaw) !== '') {
+                                    $decodedPhotos = json_decode($photosRaw, true);
+                                    if (is_array($decodedPhotos)) {
+                                        $existingPhotos = $decodedPhotos;
+                                    }
+                                }
+                                ?>
+                                <?php if (!empty($existingPhotos)): ?>
+                                    <div class="row mt-3">
+                                        <?php foreach ($existingPhotos as $photo): ?>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="border rounded p-2 h-100">
+                                                    <img src="<?= base_url($photo) ?>" alt="Brand photo" style="width:100%;height:120px;object-fit:cover;border-radius:8px;">
+                                                    <div class="form-check mt-2">
+                                                        <input class="form-check-input" type="checkbox" name="remove_brand_photos[]" value="<?= esc($photo) ?>" id="remove_<?= md5($photo) ?>">
+                                                        <label class="form-check-label" for="remove_<?= md5($photo) ?>">Remove this photo</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
                             <div class="form-row">
                                 <div class="form-group col-md-6">
                                     <label>HR / Support Email</label>

@@ -367,17 +367,6 @@ $savedJobIds        = $savedJobIds        ?? [];
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
-                    <div>
-                        <?php if ($useAi): ?>
-                            <span style="font-size:.75rem;background:#f0fdf4;border:1px solid #bbf7d0;color:var(--green2);border-radius:999px;padding:4px 12px;font-weight:600;">
-                                <i class="fas fa-robot"></i> AI Enhanced
-                            </span>
-                        <?php else: ?>
-                            <a href="<?= base_url('jobs?tab=suggested&ai=1') ?>" style="font-size:.75rem;background:var(--smoke);border:1px solid var(--border);color:var(--slate);border-radius:999px;padding:4px 12px;font-weight:600;text-decoration:none;">
-                                <i class="fas fa-robot"></i> Enable AI
-                            </a>
-                        <?php endif; ?>
-                    </div>
                 </div>
                 <?php endif; ?>
 

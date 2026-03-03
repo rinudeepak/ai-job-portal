@@ -242,9 +242,9 @@
                             width: 42px;
                             height: 42px;
                             border-radius: 50%;
-                            border: 0;
-                            background: #0d6efd;
-                            color: #fff;
+                            border: 2px solid rgba(255, 255, 255, 0.8);
+                            background: #fff;
+                            color: #89ba16;
                             font-weight: 700;
                             display: inline-flex;
                             align-items: center;
@@ -252,6 +252,9 @@
                             cursor: pointer;
                             overflow: hidden;
                             padding: 0;
+                        }
+                        .candidate-avatar-btn:hover {
+                            border-color: #fff;
                         }
                         .candidate-avatar-photo {
                             width: 100%;
@@ -326,6 +329,7 @@
                         </button>
                         <div class="candidate-avatar-dropdown" id="candidateAvatarDropdown">
                             <a href="<?= base_url('candidate/profile') ?>">My Profile</a>
+                            <a href="<?= base_url('account/change-password') ?>">Change Password</a>
                             <a href="<?= base_url('logout') ?>">Logout</a>
                         </div>
                     </div>

@@ -174,12 +174,7 @@ class Jobs extends BaseController
             $behavior = $jobModel->getCandidateBehaviorProfile($candidateId);
 
             // Only compute suggestions when the "For You" tab is active (or always — cheap enough)
-            if ($useAi) {
-                $matcher       = new \App\Libraries\AiJobMatcher();
-                $suggestedJobs = $matcher->generateSuggestions($candidateId, 20);
-            } else {
-                $suggestedJobs = $jobModel->getSuggestedJobsBasic($candidateId, 20);
-            }
+            $suggestedJobs = $jobModel->getSuggestedJobsBasic($candidateId, 20);
         }
         // ────────────────────────────────────────────────────────────────────
 
@@ -275,6 +270,7 @@ class Jobs extends BaseController
     public function jobDetail($id)
     {
         $jobModel = new JobModel();
+        $companyModel = new CompanyModel();
         $applicationModel = model('ApplicationModel');
         $interviewModel = model('InterviewSessionModel');
 
@@ -312,9 +308,20 @@ class Jobs extends BaseController
             ->where('job_id', (int) $id)
             ->first();
 
+        $company = null;
+        $companyId = (int) ($job['company_id'] ?? 0);
+        if ($companyId > 0) {
+            $company = $companyModel->find($companyId);
+        }
+
+        if (!$company && !empty($job['company'])) {
+            $company = $companyModel->where('name', $job['company'])->first();
+        }
+
         return view('candidate/job_details', [
             'title' => 'Job Details',
             'job' => $job,
+            'company' => $company,
             'alreadyApplied' => $alreadyApplied,
             'interviewId' => $interviewId,
             'isSaved' => $isSaved,

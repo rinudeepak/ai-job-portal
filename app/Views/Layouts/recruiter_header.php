@@ -61,9 +61,7 @@
                             </ul>
                         </li>
                         <li><a href="<?= base_url('recruiter/candidates') ?>" class="nav-link">Candidates</a></li>
-                        <li><a href="<?= base_url('recruiter/company-profile') ?>" class="nav-link">Company Profile</a></li>
                         <li><a href="<?= base_url('recruiter/slots') ?>" class="nav-link">Interview Slots</a></li>
-                        <li><a href="<?= base_url('account/change-password') ?>" class="nav-link">Change Password</a></li>
                     </ul>
                 </nav>
                 <div class="right-cta-menu text-right d-flex aligin-items-center col-6">
@@ -101,17 +99,77 @@
                             text-align: center;
                             padding: 0 4px;
                         }
+                        .recruiter-avatar-dropdown {
+                            position: relative;
+                            display: inline-block;
+                        }
+                        .recruiter-avatar {
+                            width: 42px;
+                            height: 42px;
+                            border-radius: 50%;
+                            background: #fff;
+                            color: #89ba16;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: 700;
+                            font-size: 16px;
+                            cursor: pointer;
+                            border: 2px solid rgba(255, 255, 255, 0.8);
+                        }
+                        .recruiter-avatar:hover {
+                            border-color: #fff;
+                        }
+                        .recruiter-dropdown-menu {
+                            position: absolute;
+                            top: 52px;
+                            right: 0;
+                            background: #fff;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            min-width: 200px;
+                            display: none;
+                            z-index: 1000;
+                        }
+                        .recruiter-dropdown-menu.show {
+                            display: block;
+                        }
+                        .recruiter-dropdown-menu a {
+                            display: block;
+                            padding: 12px 20px;
+                            color: #333;
+                            text-decoration: none;
+                            font-size: 14px;
+                            border-bottom: 1px solid #f0f0f0;
+                        }
+                        .recruiter-dropdown-menu a:last-child {
+                            border-bottom: none;
+                        }
+                        .recruiter-dropdown-menu a:hover {
+                            background: #f8f9fa;
+                        }
+                        .recruiter-dropdown-menu a i {
+                            margin-right: 8px;
+                            width: 16px;
+                        }
                     </style>
-                    <div class="ml-auto">
+                    <div class="ml-auto d-flex align-items-center">
                         <a href="<?= base_url('notifications') ?>" class="recruiter-notification-link d-none d-lg-inline-flex" title="Notifications" aria-label="Notifications">
                             <span class="icon-bell" style="font-size: 18px; line-height: 1;"></span>
                             <?php if ($recruiterUnreadNotificationCount > 0): ?>
                                 <span class="recruiter-notification-badge"><?= $recruiterUnreadNotificationCount > 99 ? '99+' : $recruiterUnreadNotificationCount ?></span>
                             <?php endif; ?>
                         </a>
-                        <a href="<?= base_url('logout') ?>" class="btn btn-primary border-width-2 d-none d-lg-inline-block">
-                            <span class="mr-2 icon-lock_outline"></span>Logout
-                        </a>
+                        <div class="recruiter-avatar-dropdown d-none d-lg-inline-block">
+                            <div class="recruiter-avatar" onclick="toggleRecruiterDropdown()">
+                                <?= strtoupper(substr(session()->get('user_name') ?? 'R', 0, 1)) ?>
+                            </div>
+                            <div class="recruiter-dropdown-menu" id="recruiterDropdown">
+                                <a href="<?= base_url('recruiter/company-profile') ?>"><i class="icon-briefcase"></i>Company Profile</a>
+                                <a href="<?= base_url('account/change-password') ?>"><i class="icon-lock_outline"></i>Change Password</a>
+                                <a href="<?= base_url('logout') ?>"><i class="icon-power-off"></i>Logout</a>
+                            </div>
+                        </div>
                     </div>
                     <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3">
                         <span class="icon-menu h3 m-0 p-0 mt-2"></span>

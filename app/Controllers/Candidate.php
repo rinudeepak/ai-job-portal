@@ -363,6 +363,29 @@ class Candidate extends BaseController
         return $this->response->download($pdfPath, null)->setFileName(basename($pdfPath));
     }
 
+    public function previewResumeVersion($versionId)
+    {
+        $candidateId = (int) session()->get('user_id');
+        if (!\Config\Database::connect()->tableExists('candidate_resume_versions')) {
+            return 'Resume version storage is not ready yet.';
+        }
+
+        $resumeVersion = (new CandidateResumeVersionModel())->find((int) $versionId);
+        if (!$resumeVersion || (int) ($resumeVersion['candidate_id'] ?? 0) !== $candidateId) {
+            return 'Resume version not found.';
+        }
+
+        $user = (new UserModel())->find($candidateId) ?? [];
+        $renderer = new ResumeTemplateRenderer();
+        
+        return $renderer->renderDocument((string) ($resumeVersion['content'] ?? ''), [
+            'name' => (string) ($user['name'] ?? 'Candidate'),
+            'target_role' => (string) ($resumeVersion['target_role'] ?? ''),
+            'summary' => (string) ($resumeVersion['summary'] ?? ''),
+            'highlight_skills' => $this->splitCsvList((string) ($resumeVersion['highlight_skills'] ?? '')),
+        ]);
+    }
+
     public function deleteResumeVersion($versionId)
     {
         $candidateId = (int) session()->get('user_id');

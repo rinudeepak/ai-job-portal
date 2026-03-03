@@ -6,6 +6,22 @@ if ($companyRefId <= 0) {
 }
 $companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
 $isSaved = (bool) ($isSaved ?? false);
+$company = is_array($company ?? null) ? $company : [];
+$brandingPhotos = [];
+$brandingPhotosRaw = $company['workplace_photos'] ?? '';
+if (is_string($brandingPhotosRaw) && trim($brandingPhotosRaw) !== '') {
+    $decodedBrandingPhotos = json_decode($brandingPhotosRaw, true);
+    if (is_array($decodedBrandingPhotos)) {
+        $brandingPhotos = array_values(array_filter(array_map('strval', $decodedBrandingPhotos)));
+    }
+}
+$benefitsRaw = trim((string) ($company['employee_benefits'] ?? ''));
+$benefits = [];
+if ($benefitsRaw !== '') {
+    $benefits = preg_split('/[\r\n,]+/', $benefitsRaw) ?: [];
+    $benefits = array_values(array_filter(array_map('trim', $benefits)));
+}
+$cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
 ?>
 <style>
 .job-details-jobboard .ai-policy-card {

@@ -165,6 +165,54 @@
                         linear-gradient(90deg, #cbd5e1 0 74%, transparent 74%) 20px 28px/100% 4px no-repeat,
                         linear-gradient(90deg, #cbd5e1 0 86%, transparent 86%) 20px 54px/100% 4px no-repeat;
                 }
+                .template-preview.creative {
+                    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+                }
+                .template-preview.creative:before {
+                    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+                }
+                .template-preview.creative:after {
+                    content: "";
+                    position: absolute;
+                    inset: 24px 22px 22px 24px;
+                    background:
+                        linear-gradient(90deg, #ffffff 0 52%, transparent 52%) 0 0/100% 9px no-repeat,
+                        linear-gradient(90deg, #e9d5ff 0 100%, transparent 100%) 0 18px/100% 4px no-repeat,
+                        linear-gradient(90deg, #e9d5ff 0 78%, transparent 78%) 0 30px/100% 4px no-repeat,
+                        linear-gradient(90deg, #e9d5ff 0 100%, transparent 100%) 0 48px/100% 2px no-repeat;
+                }
+                .template-preview.tech {
+                    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+                }
+                .template-preview.tech:before {
+                    border-left: 4px solid #059669;
+                }
+                .template-preview.tech:after {
+                    content: "";
+                    position: absolute;
+                    inset: 24px 22px 22px 28px;
+                    background:
+                        linear-gradient(90deg, #111827 0 42%, transparent 42%) 0 0/100% 8px no-repeat,
+                        linear-gradient(90deg, #059669 0 32%, transparent 32%) 0 16px/100% 6px no-repeat,
+                        linear-gradient(90deg, #cbd5e1 0 100%, transparent 100%) 0 32px/100% 4px no-repeat,
+                        linear-gradient(90deg, #cbd5e1 0 82%, transparent 82%) 0 44px/100% 4px no-repeat;
+                }
+                .template-preview.classic {
+                    background: linear-gradient(180deg, #fffef9 0%, #fefce8 100%);
+                }
+                .template-preview.classic:before {
+                    border-top: 3px double #1e40af;
+                }
+                .template-preview.classic:after {
+                    content: "";
+                    position: absolute;
+                    inset: 28px 22px 22px 24px;
+                    background:
+                        linear-gradient(90deg, #1e40af 0 48%, transparent 48%) 0 0/100% 10px no-repeat,
+                        linear-gradient(90deg, #475569 0 38%, transparent 38%) 0 18px/100% 6px no-repeat,
+                        linear-gradient(90deg, #cbd5e1 0 100%, transparent 100%) 0 36px/100% 1px no-repeat,
+                        linear-gradient(90deg, #cbd5e1 0 88%, transparent 88%) 0 48px/100% 4px no-repeat;
+                }
                 .template-card strong {
                     font-size: 1rem;
                     color: #0f172a;
@@ -223,14 +271,7 @@
                                 <label class="form-label d-block">Choose Template</label>
                                 <div class="template-grid">
                                     <?php foreach (($resumeTemplates ?? []) as $templateKey => $template): ?>
-                                        <?php
-                                        $previewClass = 'modern';
-                                        if ($templateKey === 'executive_sidebar') {
-                                            $previewClass = 'sidebar';
-                                        } elseif ($templateKey === 'minimal_timeline') {
-                                            $previewClass = 'timeline';
-                                        }
-                                        ?>
+                                        <?php $previewClass = (string) ($template['preview_class'] ?? 'modern'); ?>
                                         <label class="template-option">
                                             <input type="radio" name="template_key" value="<?= esc($templateKey) ?>" <?= $templateKey === 'modern_professional' ? 'checked' : '' ?>>
                                             <span class="template-card">
@@ -355,4 +396,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+function previewResumeVersion(versionId) {
+    window.open('<?= base_url('candidate/resume-version/') ?>' + versionId + '/preview', '_blank', 'width=900,height=800');
+}
 </script>

@@ -20,9 +20,11 @@ class CompanyModel extends Model
         'short_description',
         'what_we_do',
         'mission_values',
+        'culture_summary',
+        'employee_benefits',
+        'workplace_photos',
         'contact_email',
         'contact_phone',
         'contact_public',
     ];
 }
-

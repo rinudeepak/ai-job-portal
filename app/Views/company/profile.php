@@ -1,4 +1,21 @@
 <?= view('Layouts/candidate_header', ['title' => 'Company Profile']) ?>
+<?php
+$brandingPhotos = [];
+$brandingPhotosRaw = $company['workplace_photos'] ?? '';
+if (is_string($brandingPhotosRaw) && trim($brandingPhotosRaw) !== '') {
+    $decodedBrandingPhotos = json_decode($brandingPhotosRaw, true);
+    if (is_array($decodedBrandingPhotos)) {
+        $brandingPhotos = array_values(array_filter(array_map('strval', $decodedBrandingPhotos)));
+    }
+}
+
+$benefits = [];
+$benefitsRaw = trim((string) ($company['employee_benefits'] ?? ''));
+if ($benefitsRaw !== '') {
+    $benefits = preg_split('/[\r\n,]+/', $benefitsRaw) ?: [];
+    $benefits = array_values(array_filter(array_map('trim', $benefits)));
+}
+?>
 
 <div class="job-details-jobboard">
     <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
@@ -75,6 +92,57 @@
                     </div>
                 <?php endif; ?>
 
+                <div class="card mb-4 employer-branding-company-card">
+                    <div class="card-body">
+                        <div class="employer-branding-head mb-4">
+                            <div>
+                                <h5 class="mb-1">Life At <?= esc($company['name'] ?? 'This Company') ?></h5>
+                                <p class="mb-0 text-muted">Explore the team environment, employee perks, and the workplace setup.</p>
+                            </div>
+                        </div>
+
+                        <div class="employer-branding-grid">
+                            <div class="employer-branding-card">
+                                <h4>Team Culture</h4>
+                                <p class="mb-0">
+                                    <?= esc(trim((string) ($company['culture_summary'] ?? '')) !== '' ? $company['culture_summary'] : ($company['mission_values'] ?? 'Culture details will be updated soon.')) ?>
+                                </p>
+                            </div>
+
+                            <div class="employer-branding-card">
+                                <h4>Perks & Benefits</h4>
+                                <?php if (!empty($benefits)): ?>
+                                    <div class="branding-benefits-list">
+                                        <?php foreach ($benefits as $benefit): ?>
+                                            <span class="branding-benefit-chip"><?= esc($benefit) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="mb-0">Benefits information will be updated soon.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="employer-branding-card mt-4">
+                            <div class="branding-gallery-head">
+                                <h4>Office & Team Gallery</h4>
+                                <span><?= !empty($brandingPhotos) ? count($brandingPhotos) . ' photos' : 'No photos yet' ?></span>
+                            </div>
+                            <?php if (!empty($brandingPhotos)): ?>
+                                <div class="branding-photo-grid">
+                                    <?php foreach ($brandingPhotos as $photo): ?>
+                                        <a href="<?= base_url($photo) ?>" target="_blank" rel="noopener" class="branding-photo-tile">
+                                            <img src="<?= base_url($photo) ?>" alt="<?= esc(($company['name'] ?? 'Company') . ' workplace photo') ?>">
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="mb-0">No workplace photos uploaded yet.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
                 <?php if (!empty($openJobs)): ?>
                     <div class="card">
                         <div class="card-body">
@@ -93,17 +161,15 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5>Contact</h5>
-                        <?php if ((int) ($company['contact_public'] ?? 0) === 1): ?>
+                <?php if ((int) ($company['contact_public'] ?? 0) === 1): ?>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Contact</h5>
                             <p class="mb-2"><strong>Email:</strong> <?= esc($company['contact_email'] ?: 'Not specified') ?></p>
                             <p class="mb-0"><strong>Phone:</strong> <?= esc($company['contact_phone'] ?: 'Not specified') ?></p>
-                        <?php else: ?>
-                            <p class="mb-0 text-muted">Contact info is private.</p>
-                        <?php endif; ?>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

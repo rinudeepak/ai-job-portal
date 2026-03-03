@@ -113,6 +113,7 @@ $routes->post('candidate/resume/sync-transition', 'Candidate::syncResumeFromTran
 $routes->post('candidate/resume-version/(:num)/primary', 'Candidate::setPrimaryResumeVersion/$1', ['filter' => 'auth']);
 $routes->post('candidate/resume-version/(:num)/delete', 'Candidate::deleteResumeVersion/$1', ['filter' => 'auth']);
 $routes->get('candidate/resume-version/(:num)/download', 'Candidate::downloadResumeVersion/$1', ['filter' => 'auth']);
+$routes->get('candidate/resume-version/(:num)/preview', 'Candidate::previewResumeVersion/$1', ['filter' => 'auth']);
 $routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills', ['filter' => 'auth']);
 $routes->get('candidate/download-resume', 'Candidate::downloadResume', ['filter' => 'auth']);
 $routes->get('candidate/preview-resume', 'Candidate::previewResume', ['filter' => 'auth']);
