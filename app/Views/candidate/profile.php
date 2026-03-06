@@ -39,10 +39,13 @@
             @media (min-width: 992px) {
                 .profile-two-pane {
                     align-items: flex-start;
+                    min-height: calc(100vh - 130px);
                 }
                 .profile-two-pane .profile-left-pane {
-                    position: sticky;
-                    top: 110px;
+                    max-height: calc(100vh - 130px);
+                    overflow-y: auto;
+                    padding-right: 8px;
+                    align-self: flex-start;
                 }
                 .profile-two-pane .profile-right-pane {
                     max-height: calc(100vh - 130px);
@@ -226,6 +229,62 @@
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section mb-4" id="career-details">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-briefcase"></i> Career Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (session()->getFlashdata('career_success')): ?>
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('career_success') ?>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <form method="post" action="<?= base_url('candidate/update-career-details') ?>">
+                                    <?= csrf_field() ?>
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            <label class="form-label"><i class="fas fa-heading"></i> Resume Headline</label>
+                                            <input type="text" name="resume_headline" class="form-control" value="<?= esc($user['resume_headline'] ?? '') ?>" placeholder="e.g. Senior Full Stack Developer with 5+ years experience" maxlength="255">
+                                            <small class="text-muted">A one-line professional summary that appears at the top of your profile</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-map-marker-alt"></i> Preferred Locations</label>
+                                            <input type="text" name="preferred_locations" class="form-control" value="<?= esc($user['preferred_locations'] ?? '') ?>" placeholder="Bangalore, Mumbai, Remote">
+                                            <small class="text-muted">Comma-separated locations where you want to work</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-clock"></i> Notice Period</label>
+                                            <select name="notice_period" class="form-control">
+                                                <option value="">Select notice period</option>
+                                                <option value="Immediate" <?= ($user['notice_period'] ?? '') === 'Immediate' ? 'selected' : '' ?>>Immediate / 15 days or less</option>
+                                                <option value="1 Month" <?= ($user['notice_period'] ?? '') === '1 Month' ? 'selected' : '' ?>>1 Month</option>
+                                                <option value="2 Months" <?= ($user['notice_period'] ?? '') === '2 Months' ? 'selected' : '' ?>>2 Months</option>
+                                                <option value="3 Months" <?= ($user['notice_period'] ?? '') === '3 Months' ? 'selected' : '' ?>>3 Months</option>
+                                                <option value="More than 3 Months" <?= ($user['notice_period'] ?? '') === 'More than 3 Months' ? 'selected' : '' ?>>More than 3 Months</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-rupee-sign"></i> Current Salary (LPA)</label>
+                                            <input type="number" name="current_salary" class="form-control" value="<?= esc($user['current_salary'] ?? '') ?>" placeholder="e.g. 8.5" step="0.01" min="0">
+                                            <small class="text-muted">Your current annual salary in Lakhs</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-rupee-sign"></i> Expected Salary (LPA)</label>
+                                            <input type="number" name="expected_salary" class="form-control" value="<?= esc($user['expected_salary'] ?? '') ?>" placeholder="e.g. 12" step="0.01" min="0">
+                                            <small class="text-muted">Your expected annual salary in Lakhs</small>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Career Details</button>
                                 </form>
                             </div>
                         </div>

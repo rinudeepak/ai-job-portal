@@ -10,10 +10,6 @@ class Jobs extends BaseController
 {
     public function index()
     {
-        if (session()->get('role') !== 'candidate') {
-            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
-        }
-        
         $jobModel = new JobModel();
         $candidateId = session()->get('user_id');
         
@@ -34,6 +30,9 @@ class Jobs extends BaseController
         
         // Build query with filters
         $builder = $jobModel->where('status', 'open');
+        
+        // Keep all open jobs visible in listings.
+        // Re-apply is already blocked in the job details/apply flow.
         
         // Apply filters
         if (!empty($filters['search'])) {
@@ -268,13 +267,8 @@ class Jobs extends BaseController
         
         return [];
     }
-    
     public function jobDetail($id)
     {
-        if (session()->get('role') !== 'candidate') {
-            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
-        }
-        
         $jobModel = new JobModel();
         $companyModel = new CompanyModel();
         $applicationModel = model('ApplicationModel');

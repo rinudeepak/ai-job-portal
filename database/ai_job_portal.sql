@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 03, 2026 at 12:44 PM
+-- Generation Time: Mar 06, 2026 at 11:37 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -48,9 +48,9 @@ INSERT INTO `applications` (`id`, `candidate_id`, `resume_version_id`, `job_id`,
 (75, 47, NULL, 57, 'rejected', NULL, NULL, NULL, '2026-02-23 07:15:19'),
 (76, 49, NULL, 56, 'shortlisted', NULL, NULL, NULL, '2026-02-23 11:30:51'),
 (77, 66, NULL, 60, 'applied', NULL, NULL, NULL, '2026-02-26 09:30:54'),
-(78, 67, NULL, 62, 'shortlisted', NULL, NULL, NULL, '2026-02-27 07:43:26'),
+(78, 67, NULL, 62, 'selected', NULL, NULL, NULL, '2026-02-27 07:43:26'),
 (79, 47, 1, 62, 'withdrawn', NULL, NULL, NULL, '2026-02-28 06:18:56'),
-(80, 67, NULL, 60, 'applied', NULL, NULL, NULL, '2026-03-02 06:59:41');
+(80, 67, NULL, 60, 'selected', NULL, NULL, NULL, '2026-03-02 06:59:41');
 
 -- --------------------------------------------------------
 
@@ -74,9 +74,9 @@ CREATE TABLE `candidate_github_stats` (
 --
 
 INSERT INTO `candidate_github_stats` (`id`, `candidate_id`, `github_username`, `repo_count`, `commit_count`, `languages_used`, `github_score`, `created_at`) VALUES
-(1, 47, 'rinudeepak', 3, 54, 'HTML,PHP,CSS,JavaScript,Hack', 3, '2026-02-23 06:53:38'),
 (2, 67, 'rinudeepak', 3, 59, 'HTML,PHP,CSS,JavaScript,Hack', 3, '2026-02-27 06:51:04'),
-(4, 68, 'rinudeepak', 3, 59, 'HTML,PHP,CSS,JavaScript,Hack', 3, '2026-02-28 07:12:26');
+(4, 68, 'rinudeepak', 3, 59, 'HTML,PHP,CSS,JavaScript,Hack', 3, '2026-02-28 07:12:26'),
+(5, 47, 'younisyousaf', 31, 278, 'JavaScript,EJS,CSS,HTML,Vue,PHP,Blade,TypeScript,C#,Dart,C++,CMake,Swift,C,Dockerfile,Shell,Kotlin,Objective-C,Python,SCSS', 10, '2026-03-04 10:36:38');
 
 -- --------------------------------------------------------
 
@@ -98,6 +98,39 @@ INSERT INTO `candidate_interests` (`id`, `candidate_id`, `interest`) VALUES
 (1, 47, 'UI/UX Design, Backend Development, Full Stack'),
 (2, 68, 'Web Development'),
 (3, 67, 'Backend Development');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `candidate_profiles`
+--
+
+CREATE TABLE `candidate_profiles` (
+  `user_id` int(11) NOT NULL,
+  `headline` varchar(255) DEFAULT NULL,
+  `location` varchar(150) DEFAULT NULL,
+  `bio` text DEFAULT NULL,
+  `resume_path` varchar(255) DEFAULT NULL,
+  `profile_photo` varchar(255) DEFAULT NULL,
+  `key_skills` text DEFAULT NULL,
+  `preferred_locations` varchar(500) DEFAULT NULL,
+  `current_salary` decimal(10,2) DEFAULT NULL,
+  `expected_salary` decimal(10,2) DEFAULT NULL,
+  `notice_period` varchar(50) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `candidate_profiles`
+--
+
+INSERT INTO `candidate_profiles` (`user_id`, `headline`, `location`, `bio`, `resume_path`, `profile_photo`, `key_skills`, `preferred_locations`, `current_salary`, `expected_salary`, `notice_period`, `created_at`, `updated_at`) VALUES
+(47, NULL, 'BANGALORE', '', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'uploads/profiles/47_1771671062.jpg', NULL, NULL, NULL, NULL, NULL, '2026-02-21 15:39:46', '2026-03-06 15:34:07'),
+(49, NULL, 'BANGALORE', '', 'uploads/resumes/Rinu_George_Resume_15.pdf', '', NULL, NULL, NULL, NULL, NULL, '2026-02-23 16:58:13', '2026-03-06 15:34:07'),
+(66, NULL, NULL, NULL, 'uploads/resumes/Rinu-George-Resume.pdf', NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-26 14:55:26', '2026-03-06 15:34:07'),
+(67, NULL, '', '', 'uploads/resumes/Rinu-George-Resume_1.pdf', '', NULL, NULL, NULL, NULL, NULL, '2026-02-27 12:19:18', '2026-03-06 15:34:07'),
+(68, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-28 12:21:19', '2026-03-06 15:34:07');
 
 -- --------------------------------------------------------
 
@@ -158,10 +191,10 @@ CREATE TABLE `candidate_resume_versions` (
 --
 
 INSERT INTO `candidate_resume_versions` (`id`, `candidate_id`, `job_id`, `application_id`, `career_transition_id`, `title`, `target_role`, `source_role`, `generation_source`, `base_resume_path`, `summary`, `highlight_skills`, `content`, `is_primary`, `last_synced_at`, `created_at`, `updated_at`) VALUES
-(1, 47, NULL, NULL, NULL, 'PHP Developer', 'PHP Developer', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Results-driven Web Developer with a strong foundation in PHP and MySQL. Proven ability to enhance user experience through effective backend solutions. Seeking to leverage skills in a PHP Developer role.', 'PHP, MySQL', '{\"template_key\":\"tech_compact\",\"name\":\"Manju Aravind\",\"target_role\":\"PHP Developer\",\"title\":\"PHP Developer\",\"summary\":\"Results-driven Web Developer with a strong foundation in PHP and MySQL. Proven ability to enhance user experience through effective backend solutions. Seeking to leverage skills in a PHP Developer role.\",\"highlight_skills\":[\"PHP\",\"MySQL\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC company\",\"meta\":\"Dec 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL.\",\"Collaborated in a team to enhance application performance by 30%.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-03-03 11:40:09', '2026-02-28 06:00:22', '2026-03-03 11:40:09'),
+(1, 47, NULL, NULL, NULL, 'Web Developer', 'PHP Developer', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Dynamic Web Developer with a focus on PHP and backend technologies. Proven ability to deliver high-quality applications and enhance user experiences. Currently seeking to leverage expertise in PHP development.', 'PHP, MySQL', '{\"template_key\":\"executive_sidebar\",\"name\":\"Manju Aravind\",\"target_role\":\"PHP Developer\",\"title\":\"Web Developer\",\"summary\":\"Dynamic Web Developer with a focus on PHP and backend technologies. Proven ability to deliver high-quality applications and enhance user experiences. Currently seeking to leverage expertise in PHP development.\",\"highlight_skills\":[\"PHP\",\"MySQL\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC Company\",\"meta\":\"Dec 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL, improving load times by 30%.\",\"Collaborated with UI/UX designers to enhance user experience, resulting in a 25% increase in user engagement.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-03-04 06:08:14', '2026-02-28 06:00:22', '2026-03-04 06:08:14'),
 (6, 68, NULL, NULL, NULL, 'Web Developer Transitioning to Data Scientist', 'Data Sccientist', 'Web Developer', 'role_based', '', 'Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.', 'Web Development, Software Development, Data Analysis', '{\"template_key\":\"minimal_timeline\",\"name\":\"Praveen \",\"target_role\":\"Data Sccientist\",\"title\":\"Web Developer Transitioning to Data Scientist\",\"summary\":\"Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.\",\"highlight_skills\":[\"Web Development\",\"Software Development\",\"Data Analysis\"],\"sections\":{\"experience\":{\"title\":\"Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"KJP Digital Solutions Pvt Ltd\",\"meta\":\"June 2023 - Present | Location Not Specified\",\"bullets\":[\"Developed responsive web applications, enhancing user engagement by 30%.\",\"Collaborated with cross-functional teams to deliver projects ahead of deadlines.\"]},{\"headline\":\"Software Developer\",\"subhead\":\"SANDS Lab\",\"meta\":\"February 2021 - December 2026 | Location Not Specified\",\"bullets\":[\"Designed and implemented software solutions that improved operational efficiency by 25%.\",\"Contributed to the development of a data management system, streamlining data processes.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"MBA in Marketing\",\"subhead\":\"Adi Shankara Institute of Engineering and Technology, Kalady\",\"meta\":\"2015 - 2017\",\"bullets\":[]},{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-02-28 07:08:19', '2026-02-28 07:08:19', '2026-02-28 07:08:19'),
 (9, 67, NULL, NULL, NULL, 'PHP Developer Resume', 'PHP Developer', 'Candidate', 'role_based', 'uploads/resumes/Rinu-George-Resume_1.pdf', 'Results-driven PHP Developer with a strong foundation in backend development and a passion for creating efficient, scalable applications. Adept at leveraging modern frameworks to enhance user experience and optimize performance.', 'PHP, Backend Development', '{\"template_key\":\"modern_professional\",\"name\":\"rinu george\",\"target_role\":\"PHP Developer\",\"title\":\"PHP Developer Resume\",\"summary\":\"Results-driven PHP Developer with a strong foundation in backend development and a passion for creating efficient, scalable applications. Adept at leveraging modern frameworks to enhance user experience and optimize performance.\",\"highlight_skills\":[\"PHP\",\"Backend Development\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"HTML\",\"CSS\",\"Hack\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[]},\"projects\":{\"title\":\"Projects\",\"items\":[]},\"education\":{\"title\":\"Education\",\"items\":[]},\"certifications\":{\"title\":\"Certifications\",\"items\":[]}}}', 1, '2026-03-03 10:17:43', '2026-03-03 10:17:43', '2026-03-03 10:17:43'),
-(10, 47, NULL, NULL, NULL, 'Web Developer', 'php', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.', 'PHP, MySQL, JavaScript', '{\"template_key\":\"elegant_classic\",\"name\":\"Manju Aravind\",\"target_role\":\"php\",\"title\":\"Web Developer\",\"summary\":\"Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.\",\"highlight_skills\":[\"PHP\",\"MySQL\",\"JavaScript\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC Company\",\"meta\":\"December 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL.\",\"Collaborated with design teams to enhance user experience.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 0, '2026-03-03 10:38:15', '2026-03-03 10:38:15', '2026-03-03 11:40:09');
+(10, 47, NULL, NULL, NULL, 'Web Developer', 'php', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.', 'PHP, MySQL, JavaScript', '{\"template_key\":\"elegant_classic\",\"name\":\"Manju Aravind\",\"target_role\":\"php\",\"title\":\"Web Developer\",\"summary\":\"Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.\",\"highlight_skills\":[\"PHP\",\"MySQL\",\"JavaScript\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC Company\",\"meta\":\"December 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL.\",\"Collaborated with design teams to enhance user experience.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 0, '2026-03-03 10:38:15', '2026-03-03 10:38:15', '2026-03-04 06:08:14');
 
 -- --------------------------------------------------------
 
@@ -271,8 +304,8 @@ CREATE TABLE `companies` (
 
 INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `industry`, `size`, `hq`, `branches`, `short_description`, `what_we_do`, `mission_values`, `culture_summary`, `employee_benefits`, `workplace_photos`, `contact_email`, `contact_phone`, `contact_public`, `created_at`, `updated_at`) VALUES
 (1, 'TechNova Solutions', 'uploads/company_logos/1771669764_20d47a35f4f9596afa95.jpg', 'https://www.technovasolutions.com', 'IT Services', '50-200', 'Bangalore, India', 'Kochi, Chennai', 'We build scalable digital solutions for modern businesses.', 'We develop web applications, mobile apps, and cloud solutions for startups and enterprises.', 'Innovation, Transparency, Customer Success', '', '', '[\"uploads\\/company_branding\\/1772532582_98db5085fdfb539e31d4.jpg\",\"uploads\\/company_branding\\/1772532582_d7626ea5b495cce35001.jpg\",\"uploads\\/company_branding\\/1772532582_76a2461c46c599c189b6.jpg\"]', 'hr@technovasolutions.com', '+91-9876543210', 1, '2026-02-21 09:27:53', '2026-03-03 10:09:42'),
-(3, 'CodeCraft Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(4, 'PixelSoft Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
+(3, 'CodeCraft Technologies', NULL, 'https://www.codecrafttech.com/', 'Software', '10-50', '', 'Bangalore', '', 'Based in the Silicon Valley of India, CodeCraft is a digital transformation company for enterprises. We provide robust, reliable, and scalable solutions across Mobility, web, cloud, and design. Provide custom experiences and engage with your customers more with our mobility solutions on iOS and Android. Whether its Finance, IoT, Energy, Health care, we have domain expertise on your business vertical. Unleash the power of the cloud for your business by making data available for your customers anytime, anywhere all presented with our Award-winning UI/UX designs. Explore our cloud solutions and discover how you can improve your bottom line with our SaaS and PaaS services', '', '', '', '[\"uploads\\/company_branding\\/1772696134_3e0869fe4ca51cef3ea6.jpg\"]', '', '', 0, '2026-02-21 09:27:53', '2026-03-05 07:35:34'),
+(4, 'PixelSoft Pvt Ltd', NULL, 'https://pixelsoft.tech/', '', '', 'Bangalore', 'Bangalore', '', 'PixelSoft is a blooming and winning digital organization which stands to serve its clients and uplift their brand values by offering them state-of-art and cost ...', '', '', '', NULL, '', '', 0, '2026-02-21 09:27:53', '2026-03-05 07:40:05'),
 (5, 'Innova Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
 (6, 'NextGen IT Services', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
 (7, 'BlueSky Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
@@ -299,6 +332,35 @@ INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `industry`, `size`, `h
 (28, 'SANDS Lab', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 10:49:16', '2026-02-25 10:49:16'),
 (29, 'xxx', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 05:49:32', '2026-02-26 05:49:32'),
 (30, 'bbb', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 07:37:05', '2026-02-26 07:37:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `company_reviews`
+--
+
+CREATE TABLE `company_reviews` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `company_id` int(11) NOT NULL,
+  `candidate_id` int(11) NOT NULL,
+  `review_type` varchar(20) DEFAULT 'interview',
+  `rating` tinyint(1) NOT NULL,
+  `headline` varchar(180) DEFAULT NULL,
+  `review_text` text DEFAULT NULL,
+  `pros` text DEFAULT NULL,
+  `cons` text DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'published',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `company_reviews`
+--
+
+INSERT INTO `company_reviews` (`id`, `company_id`, `candidate_id`, `review_type`, `rating`, `headline`, `review_text`, `pros`, `cons`, `status`, `created_at`, `updated_at`) VALUES
+(1, 1, 47, 'interview', 4, 'good team environment', 'good company, good team, good culture', '', '', 'published', '2026-03-04 12:01:54', '2026-03-04 12:01:54'),
+(2, 1, 67, 'employee', 5, 'Team', 'Very supporting team, very good culture', '', '', 'published', '2026-03-05 07:23:42', '2026-03-05 07:23:42');
 
 -- --------------------------------------------------------
 
@@ -534,24 +596,31 @@ CREATE TABLE `jobs` (
   `ai_interview_policy` enum('OFF','OPTIONAL','REQUIRED_SOFT','REQUIRED_HARD') NOT NULL DEFAULT 'REQUIRED_HARD',
   `status` enum('open','closed') DEFAULT 'open',
   `created_at` datetime DEFAULT current_timestamp(),
-  `employment_type` varchar(50) DEFAULT 'Full-time'
+  `employment_type` varchar(50) DEFAULT 'Full-time',
+  `salary_range` varchar(100) DEFAULT NULL,
+  `application_deadline` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `jobs`
 --
 
-INSERT INTO `jobs` (`id`, `recruiter_id`, `company_id`, `title`, `category`, `company`, `location`, `description`, `required_skills`, `experience_level`, `openings`, `min_ai_cutoff_score`, `ai_interview_policy`, `status`, `created_at`, `employment_type`) VALUES
-(56, 46, 1, 'PHP Developer', NULL, 'TechNova Solutions', 'Bangalore', 'We are looking for a PHP Developer to build and maintain web applications.', 'Core PHP, MySQL, HTML, CSS, JavaScript', '2-3 years', 3, 85, 'OPTIONAL', 'open', '2026-02-21 15:35:28', 'Full-time'),
-(57, 46, 1, 'Mechanical Engineer', 'Engineering', 'TechNova Solutions', 'Coimbatore, India', 'Responsible for maintaining and improving manufacturing machinery', 'AutoCAD, SolidWorks, Machine Maintenance', '1-3 Years', 2, 80, 'REQUIRED_HARD', 'open', '2026-02-21 16:07:59', 'Full-time'),
-(58, 48, 26, 'Quality Inspector', 'Manufacturing', 'GreenLeaf Industries', 'Pune, India', 'Ensure product quality and compliance with standards.', 'Quality Control, Inspection, ISO Standards', '2-5 Years', 1, 70, 'REQUIRED_HARD', 'open', '2026-02-21 16:15:54', 'Full-time'),
-(59, 46, 1, 'job2', 'Manufacturing', 'TechNova Solutions', 'Thrissur, Kerala', 'aaaaa', 'tool n die', '2-3 years', 3, 45, 'REQUIRED_HARD', 'open', '2026-02-24 14:07:09', 'Full-time'),
-(60, 46, 1, 'job3', 'information tachnology', 'TechNova Solutions', 'Bangalore, Karnataka', 'aaaaa', '', '', 3, 80, 'REQUIRED_HARD', 'open', '2026-02-24 14:14:47', 'Full-time'),
-(61, 46, 1, 'job 4', 'IT', 'TechNova Solutions', 'BANGALORE', 'aaa   .......', '', '', 2, 0, 'OFF', 'closed', '2026-02-26 12:17:54', 'Full-time'),
-(62, 48, 26, 'PHP Developer', 'Software Developemnet', 'GreenLeaf Industries', 'Bangalore', 'aaaaaaaa', 'Core Php', '', 4, 0, 'OFF', 'open', '2026-02-27 12:25:16', 'Full-time'),
-(63, 46, 1, 'Software Tester', 'Software support', 'TechNova Solutions', 'Bangalore', 'ahgshagshag', '', '', 1, 0, 'OFF', 'open', '2026-03-03 10:37:50', 'Full-time'),
-(64, 46, 1, 'PHP Developer', 'IT', 'TechNova Solutions', 'Bangalore', 'aaaaa', 'Core PHP, MySQL', '', 1, 82, 'OPTIONAL', 'closed', '2026-03-03 11:15:27', 'Full-time'),
-(65, 48, 26, 'Software Tester', 'IT', 'GreenLeaf Industries', 'Bangalore', 'aaaa', 'Manual Testing, Selenium, Test Cases', '', 1, 80, 'REQUIRED_HARD', 'open', '2026-03-03 11:22:17', 'Full-time');
+INSERT INTO `jobs` (`id`, `recruiter_id`, `company_id`, `title`, `category`, `company`, `location`, `description`, `required_skills`, `experience_level`, `openings`, `min_ai_cutoff_score`, `ai_interview_policy`, `status`, `created_at`, `employment_type`, `salary_range`, `application_deadline`) VALUES
+(56, 46, 1, 'PHP Developer', 'Software Development', 'TechNova Solutions', 'Bangalore', 'We are looking for a PHP Developer to build and maintain web applications.', 'Core PHP, MySQL, HTML, CSS, JavaScript', '2-3 years', 3, 85, 'OPTIONAL', 'open', '2026-02-21 15:35:28', 'Part-time', '2-5 LPA', '2026-03-26'),
+(57, 46, 1, 'Mechanical Engineer', 'Engineering', 'TechNova Solutions', 'Coimbatore, India', 'Responsible for maintaining and improving manufacturing machinery', 'AutoCAD, SolidWorks, Machine Maintenance', '1-3 Years', 2, 80, 'REQUIRED_HARD', 'open', '2026-02-21 16:07:59', 'Full-time', NULL, NULL),
+(58, 48, 26, 'Quality Inspector', 'Manufacturing', 'GreenLeaf Industries', 'Pune, India', 'Ensure product quality and compliance with standards.', 'Quality Control, Inspection, ISO Standards', '2-5 Years', 1, 70, 'REQUIRED_HARD', 'open', '2026-02-21 16:15:54', 'Full-time', NULL, NULL),
+(59, 46, 1, 'job2', 'Manufacturing', 'TechNova Solutions', 'Thrissur, Kerala', 'aaaaa', 'tool n die', '2-3 years', 3, 45, 'REQUIRED_HARD', 'open', '2026-02-24 14:07:09', 'Full-time', NULL, NULL),
+(60, 46, 1, 'job3', 'information tachnology', 'TechNova Solutions', 'Bangalore, Karnataka', 'aaaaa', '', '', 3, 80, 'REQUIRED_HARD', 'open', '2026-02-24 14:14:47', 'Full-time', NULL, NULL),
+(61, 46, 1, 'job 4', 'IT', 'TechNova Solutions', 'BANGALORE', 'aaa   .......', '', '', 2, 0, 'OFF', 'closed', '2026-02-26 12:17:54', 'Full-time', NULL, NULL),
+(62, 48, 26, 'PHP Developer', 'Software Developemnet', 'GreenLeaf Industries', 'Bangalore', 'aaaaaaaa', 'Core Php', '', 4, 0, 'OFF', 'open', '2026-02-27 12:25:16', 'Full-time', NULL, NULL),
+(63, 46, 1, 'Software Tester', 'Software support', 'TechNova Solutions', 'Bangalore', 'ahgshagshag', '', '', 1, 0, 'OFF', 'open', '2026-03-03 10:37:50', 'Full-time', NULL, NULL),
+(64, 46, 1, 'PHP Developer', 'IT', 'TechNova Solutions', 'Bangalore', 'aaaaa', 'Core PHP, MySQL', '3-5 years', 1, 82, 'OPTIONAL', 'closed', '2026-03-03 11:15:27', 'Full-time', '2-5 LPA', '2026-03-17'),
+(65, 48, 26, 'Software Tester', 'IT', 'GreenLeaf Industries', 'Bangalore', 'aaaa', 'Manual Testing, Selenium, Test Cases', '', 1, 80, 'REQUIRED_HARD', 'open', '2026-03-03 11:22:17', 'Full-time', NULL, NULL),
+(66, 79, 3, 'Quality Inspector', 'Manufacturing', 'CodeCraft Technologies', 'Pune, India', 'Inspect manufactured products and ensure they meet quality standards. Identify defects and improve production quality.', 'Quality Control, Inspection Tools, Documentation, ISO Standards', '1-2 Years', 4, 75, 'OPTIONAL', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
+(67, 79, 3, 'Frontend Developer', 'IT / Software', 'CodeCraft Technologies', 'Hyderabad, India', 'Develop responsive web interfaces and collaborate with backend developers to build modern web applications.', 'HTML, CSS, JavaScript, Bootstrap, React', '2-4 Years', 2, 82, 'OPTIONAL', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
+(68, 80, 4, 'Data Analyst', 'Analytics', 'PixelSoft Pvt Ltd', 'Chennai, India', 'Analyze business data, identify trends, and create reports for decision making.', 'Python, SQL, Excel, Power BI', '1-3 Years', 3, 80, 'REQUIRED_SOFT', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
+(69, 80, 4, 'HR Executive', 'Human Resources', 'PixelSoft Pvt Ltd', 'Kochi, India', 'Handle recruitment processes, employee engagement, and HR documentation.', 'Recruitment, Communication, HRMS, Interview Coordination', '1-2 Years', 1, 70, 'OPTIONAL', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
+(70, 80, 4, 'DevOps Engineer', 'IT / Cloud', 'PixelSoft Pvt Ltd', 'Bangalore, India', 'Manage CI/CD pipelines, cloud infrastructure, and deployment automation.', 'Docker, Kubernetes, AWS, CI/CD, Linux', '3-5 Years', 2, 85, 'REQUIRED_HARD', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -663,7 +732,14 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (19, '2026-02-28-140000', 'App\\Database\\Migrations\\CreateCandidateProjectsTable', 'default', 'App', 1772263750, 16),
 (20, '2026-03-02-120000', 'App\\Database\\Migrations\\AddWithdrawnStatusToApplications', 'default', 'App', 1772430665, 17),
 (21, '2026-03-02-130000', 'App\\Database\\Migrations\\AddPasswordResetFieldsToUsers', 'default', 'App', 1772430851, 18),
-(22, '2026-03-03-140000', 'App\\Database\\Migrations\\AddEmployerBrandingFieldsToCompanies', 'default', 'App', 1772519125, 19);
+(22, '2026-03-03-140000', 'App\\Database\\Migrations\\AddEmployerBrandingFieldsToCompanies', 'default', 'App', 1772519125, 19),
+(23, '2026-03-01-100000', 'App\\Database\\Migrations\\AddCandidateCareerFields', 'default', 'App', 1772605523, 20),
+(24, '2026-03-04-180000', 'App\\Database\\Migrations\\CreateCompanyReviewsTable', 'default', 'App', 1772624900, 21),
+(25, '2026-03-05-090000', 'App\\Database\\Migrations\\AddReviewTypeToCompanyReviews', 'default', 'App', 1772695027, 22),
+(26, '2026-03-06-120000', 'App\\Database\\Migrations\\AddSalaryRangeAndDeadlineToJobs', 'default', 'App', 1772786015, 23),
+(27, '2026-03-06-130000', 'App\\Database\\Migrations\\CreateNormalizedUserProfileTables', 'default', 'App', 1772791448, 24),
+(28, '2026-03-06-140000', 'App\\Database\\Migrations\\DropDeprecatedCandidateColumnsFromUsers', 'default', 'App', 1772792504, 25),
+(29, '2026-03-06-150000', 'App\\Database\\Migrations\\DropDeprecatedRecruiterCompanyNameFromUsers', 'default', 'App', 1772792771, 26);
 
 -- --------------------------------------------------------
 
@@ -698,16 +774,18 @@ INSERT INTO `notifications` (`id`, `user_id`, `application_id`, `type`, `title`,
 (7, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-23 10:47:29', '2026-02-24 06:38:44'),
 (12, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-24 08:28:08', NULL),
 (13, 49, 76, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-25 11:44:47', NULL),
-(14, 47, 74, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-26 04:40:32', NULL),
+(14, 47, 74, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-26 04:40:32', '2026-03-03 11:50:11'),
 (15, 66, NULL, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-27 06:17:47', NULL),
-(16, 47, NULL, '', 'Job Alert Match', 'New matching job: PHP Developer - Bangalore', 'http://localhost/ai-job-portal/public/job/62', 0, '2026-02-27 06:55:16', NULL),
+(16, 47, NULL, '', 'Job Alert Match', 'New matching job: PHP Developer - Bangalore', 'http://localhost/ai-job-portal/public/job/62', 1, '2026-02-27 06:55:16', '2026-03-03 11:50:00'),
 (17, 67, NULL, '', 'Job Alert Match', 'New matching job: PHP Developer - Bangalore', 'http://localhost/ai-job-portal/public/job/62', 1, '2026-02-27 06:55:22', '2026-02-27 06:56:06'),
-(18, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:05:20', NULL),
-(19, 47, 75, '', 'Resume Downloaded', 'Rohith Kumar downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:05:58', NULL),
-(20, 47, 79, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:21:52', NULL),
-(21, 47, 79, '', 'Resume Downloaded', 'Asha Govind downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-28 06:21:58', NULL),
+(18, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:05:20', '2026-03-03 11:50:50'),
+(19, 47, 75, '', 'Resume Downloaded', 'Rohith Kumar downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:05:58', '2026-03-03 11:49:51'),
+(20, 47, 79, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:21:52', '2026-03-03 11:49:44'),
+(21, 47, 79, '', 'Resume Downloaded', 'Asha Govind downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:21:58', '2026-03-03 11:49:32'),
 (22, 67, NULL, '', 'Job Alert Match', 'New matching job: Software Tester - Bangalore', 'http://localhost/ai-job-portal/public/job/65', 1, '2026-03-03 05:52:17', '2026-03-03 09:57:59'),
-(23, 68, NULL, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-03 05:53:34', NULL);
+(23, 68, NULL, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-03 05:53:34', NULL),
+(24, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-04 10:32:29', NULL),
+(25, 49, 76, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-04 11:01:39', NULL);
 
 -- --------------------------------------------------------
 
@@ -745,7 +823,9 @@ INSERT INTO `recruiter_candidate_actions` (`id`, `candidate_id`, `recruiter_id`,
 (23, 47, 46, 75, 57, 'resume_downloaded', '2026-02-28 06:05:58'),
 (24, 47, 48, 79, 62, 'profile_viewed', '2026-02-28 06:21:52'),
 (25, 47, 48, 79, 62, 'resume_downloaded', '2026-02-28 06:21:58'),
-(26, 68, 48, NULL, NULL, 'profile_viewed', '2026-03-03 05:53:34');
+(26, 68, 48, NULL, NULL, 'profile_viewed', '2026-03-03 05:53:34'),
+(27, 47, 46, 75, 57, 'profile_viewed', '2026-03-04 10:32:29'),
+(28, 49, 46, 76, 56, 'profile_viewed', '2026-03-04 11:01:39');
 
 -- --------------------------------------------------------
 
@@ -801,6 +881,67 @@ CREATE TABLE `recruiter_candidate_notes` (
 INSERT INTO `recruiter_candidate_notes` (`id`, `candidate_id`, `recruiter_id`, `tags`, `notes`, `created_at`, `updated_at`) VALUES
 (1, 49, 46, 'Strong communication', 'can be interviewed', '2026-02-25 12:22:26', '2026-02-25 12:22:26'),
 (2, 47, 48, 'Immediate joiner', '', '2026-02-28 06:40:41', '2026-02-28 06:40:41');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `recruiter_company_map`
+--
+
+CREATE TABLE `recruiter_company_map` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `recruiter_user_id` int(11) NOT NULL,
+  `company_id` int(11) NOT NULL,
+  `is_admin` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `recruiter_company_map`
+--
+
+INSERT INTO `recruiter_company_map` (`id`, `recruiter_user_id`, `company_id`, `is_admin`, `created_at`, `updated_at`) VALUES
+(1, 46, 1, 1, '2026-02-21 15:25:05', '2026-03-06 15:34:07'),
+(2, 48, 26, 1, '2026-02-21 16:10:17', '2026-03-06 15:34:07'),
+(3, 60, 28, 1, '2026-02-25 16:30:57', '2026-03-06 15:34:07'),
+(4, 62, 27, 1, '2026-02-25 17:13:10', '2026-03-06 15:34:07'),
+(5, 64, 29, 1, '2026-02-26 11:21:16', '2026-03-06 15:34:07'),
+(6, 65, 30, 1, '2026-02-26 13:07:06', '2026-03-06 15:34:07'),
+(7, 77, 27, 1, '2026-03-02 17:14:39', '2026-03-06 15:34:07'),
+(8, 79, 3, 1, '2026-03-05 13:02:03', '2026-03-06 15:34:07'),
+(9, 80, 4, 1, '2026-03-05 13:07:55', '2026-03-06 15:34:07');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `recruiter_profiles`
+--
+
+CREATE TABLE `recruiter_profiles` (
+  `user_id` int(11) NOT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `designation` varchar(150) DEFAULT NULL,
+  `company_name_snapshot` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `recruiter_profiles`
+--
+
+INSERT INTO `recruiter_profiles` (`user_id`, `full_name`, `phone`, `designation`, `company_name_snapshot`, `created_at`, `updated_at`) VALUES
+(46, 'Rohith Kumar', '+919544104305', NULL, 'TechNova Solutions', '2026-02-21 15:25:05', '2026-03-06 15:34:07'),
+(48, 'Asha Govind', '+919544104305', NULL, 'GreenLeaf Industries', '2026-02-21 16:10:17', '2026-03-06 15:34:07'),
+(60, 'rinu george', '+919544104305', NULL, 'SANDS Lab', '2026-02-25 16:30:57', '2026-03-06 15:34:07'),
+(62, 'rinu george', '+919544104305', NULL, 'SERP Hawk', '2026-02-25 17:13:10', '2026-03-06 15:34:07'),
+(64, 'John', '+919544104305', NULL, 'xxx', '2026-02-26 11:21:16', '2026-03-06 15:34:07'),
+(65, 'kiran', '+919544104305', NULL, 'bbb', '2026-02-26 13:07:06', '2026-03-06 15:34:07'),
+(77, 'rinu george', '+919544104305', NULL, 'SERP Hawk', '2026-03-02 17:14:39', '2026-03-06 15:34:07'),
+(79, 'Athira', '+919544104305', NULL, 'CodeCraft Technologies', '2026-03-05 13:02:03', '2026-03-06 15:34:07'),
+(80, 'Sajay', '+919544104305', NULL, 'PixelSoft Pvt Ltd', '2026-03-05 13:07:55', '2026-03-06 15:34:07');
 
 -- --------------------------------------------------------
 
@@ -930,8 +1071,7 @@ CREATE TABLE `users` (
   `google_id` varchar(191) DEFAULT NULL,
   `preferred_language` varchar(5) DEFAULT 'en',
   `phone` varchar(15) DEFAULT NULL,
-  `role` enum('candidate','recruiter','','') NOT NULL,
-  `company_name` varchar(255) DEFAULT NULL,
+  `role` enum('candidate','recruiter') NOT NULL,
   `company_id` int(11) DEFAULT NULL,
   `email_verification_token` varchar(128) DEFAULT NULL,
   `email_verified_at` datetime DEFAULT NULL,
@@ -939,30 +1079,28 @@ CREATE TABLE `users` (
   `password_reset_expires_at` datetime DEFAULT NULL,
   `phone_verified_at` datetime DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `resume_path` varchar(255) DEFAULT NULL,
-  `profile_photo` varchar(255) DEFAULT NULL,
-  `location` varchar(150) DEFAULT NULL,
-  `bio` text DEFAULT NULL
+  `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `preferred_language`, `phone`, `role`, `company_name`, `company_id`, `email_verification_token`, `email_verified_at`, `password_reset_token`, `password_reset_expires_at`, `phone_verified_at`, `password`, `created_at`, `resume_path`, `profile_photo`, `location`, `bio`) VALUES
-(46, 'Rohith Kumar', 'rohith@technova.com', NULL, 'en', '+919544104305', 'recruiter', 'TechNova Solutions', 1, NULL, NULL, NULL, NULL, '2026-02-21 09:55:45', '$2y$10$tE9gbIZsmrhYj3JT0GUUr.Ra9rusYsib3.sglY1aTUA/80Qe4ENwi', '2026-02-21 15:25:05', NULL, NULL, NULL, NULL),
-(47, 'Manju Aravind', 'manju@gmail.com', NULL, 'en', '1234567890', 'candidate', NULL, NULL, NULL, NULL, '3ed8f3bdf75bb188a0dfa5ad53014f64e0fac172c767dedf0cfafb7a01ee90b3', '2026-03-02 07:00:58', NULL, '$2y$10$NyfTmre9jA2XQ7YQyaA5dOFUht/7z2AYgaVvOQn0O/JnFz.oULaTe', '2026-02-21 15:39:46', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'uploads/profiles/47_1771671062.jpg', 'BANGALORE', ''),
-(48, 'Asha Govind', 'asha@greenleaf.com', NULL, 'en', '+919544104305', 'recruiter', 'GreenLeaf Industries', 26, NULL, NULL, NULL, NULL, '2026-02-21 10:40:38', '$2y$10$vnhHNHOsFGO3BoRU8ORdkO7scVwwPBJZWKAXD7907xXQsYdujrAfe', '2026-02-21 16:10:17', NULL, NULL, NULL, NULL),
-(49, 'rinu george', 'rinugeorge@gmail.com', '110489513847967949727', 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$aX/2kGvTsL77jRiGRl9c9uF3csUzIulWshhaTrNuGDzASo4EJtY1q', '2026-02-23 16:58:13', 'uploads/resumes/Rinu_George_Resume_15.pdf', '', 'BANGALORE', ''),
-(60, 'rinu george', 'rinu@sandslab.com', NULL, 'en', '+919544104305', 'recruiter', 'SANDS Lab', 28, NULL, NULL, NULL, NULL, '2026-02-25 11:01:11', '$2y$10$AYu/RrcrjVoevRK19XM/PuCnSi2qjah40.HOoHEqkE08n5ULW4bza', '2026-02-25 16:30:57', NULL, NULL, NULL, NULL),
-(62, 'rinu george', 'rinu@ser.com', NULL, 'en', '+919544104305', 'recruiter', 'SERP Hawk', 27, NULL, NULL, NULL, NULL, '2026-02-25 11:43:19', '$2y$10$NQlgJesfIGrMFNJO1FPm5.Bi7Fr4Rn7od7csn/jZyGPecBxED1wla', '2026-02-25 17:13:10', NULL, NULL, NULL, NULL),
-(64, 'John', 'john@xxx.com', NULL, 'en', '+919544104305', 'recruiter', 'xxx', 29, NULL, NULL, NULL, NULL, '2026-02-26 05:51:30', '$2y$10$jjsjSTk6Td8eBNZpW/HzwO7eDIjwTyFNLoDnlj.vDjZJC7jMN9ImO', '2026-02-26 11:21:16', NULL, NULL, NULL, NULL),
-(65, 'kiran', 'kiran@bbb.com', NULL, 'en', '+919544104305', 'recruiter', 'bbb', 30, NULL, NULL, NULL, NULL, '2026-02-26 07:37:39', '$2y$10$IgxgjmtIcQzz/vj7u2c2Buet0SLEdbquuEP1huQaSVNUn6n4IWRoa', '2026-02-26 13:07:06', NULL, NULL, NULL, NULL),
-(66, 'Rajeev', 'rajeev@gmail.com', NULL, 'en', '1472586900', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$oWudCosjq5bAfx3P7kipMuJ.xcaiojdg42fL0801NEjGs2ZKAIBjC', '2026-02-26 14:55:26', 'uploads/resumes/Rinu-George-Resume.pdf', NULL, NULL, NULL),
-(67, 'rinu george', 'rinugeorgep@gmail.com', NULL, 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$t8XNiY/tAuV5tOGCVxPvfO9.DcUppHKclVI4lEdzkQaD2AXTZzq9.', '2026-02-27 12:19:18', 'uploads/resumes/Rinu-George-Resume_1.pdf', '', '', ''),
-(68, 'Praveen ', 'praveen@gmail.com', NULL, 'en', '3692581470', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$ZmcxQa6iLxLXydNTcRYXJu7ryIIN3VU0nFmAZ/5oYfsfNmkd6aiN6', '2026-02-28 12:21:19', NULL, NULL, NULL, NULL),
-(77, 'rinu george', 'rinu@serphawk.com', NULL, 'en', '+919544104305', 'recruiter', 'SERP Hawk', 27, NULL, '2026-03-02 11:47:51', NULL, NULL, '2026-03-02 11:48:07', '$2y$10$YT2rL3jkDnCPDmCa8Eyp9u43pvvAuQEm5QKRId4z9Sp1ReRjCXPGK', '2026-03-02 17:14:39', NULL, NULL, NULL, NULL);
+INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `preferred_language`, `phone`, `role`, `company_id`, `email_verification_token`, `email_verified_at`, `password_reset_token`, `password_reset_expires_at`, `phone_verified_at`, `password`, `created_at`) VALUES
+(46, 'Rohith Kumar', 'rohith@technova.com', NULL, 'en', '+919544104305', 'recruiter', 1, NULL, NULL, NULL, NULL, '2026-02-21 09:55:45', '$2y$10$tE9gbIZsmrhYj3JT0GUUr.Ra9rusYsib3.sglY1aTUA/80Qe4ENwi', '2026-02-21 15:25:05'),
+(47, 'Manju Aravind', 'manju@gmail.com', NULL, 'en', '1234567890', 'candidate', NULL, NULL, NULL, '3ed8f3bdf75bb188a0dfa5ad53014f64e0fac172c767dedf0cfafb7a01ee90b3', '2026-03-02 07:00:58', NULL, '$2y$10$NyfTmre9jA2XQ7YQyaA5dOFUht/7z2AYgaVvOQn0O/JnFz.oULaTe', '2026-02-21 15:39:46'),
+(48, 'Asha Govind', 'asha@greenleaf.com', NULL, 'en', '+919544104305', 'recruiter', 26, NULL, NULL, NULL, NULL, '2026-02-21 10:40:38', '$2y$10$vnhHNHOsFGO3BoRU8ORdkO7scVwwPBJZWKAXD7907xXQsYdujrAfe', '2026-02-21 16:10:17'),
+(49, 'rinu george', 'rinugeorge@gmail.com', '110489513847967949727', 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$aX/2kGvTsL77jRiGRl9c9uF3csUzIulWshhaTrNuGDzASo4EJtY1q', '2026-02-23 16:58:13'),
+(60, 'rinu george', 'rinu@sandslab.com', NULL, 'en', '+919544104305', 'recruiter', 28, NULL, NULL, NULL, NULL, '2026-02-25 11:01:11', '$2y$10$AYu/RrcrjVoevRK19XM/PuCnSi2qjah40.HOoHEqkE08n5ULW4bza', '2026-02-25 16:30:57'),
+(62, 'rinu george', 'rinu@ser.com', NULL, 'en', '+919544104305', 'recruiter', 27, NULL, NULL, NULL, NULL, '2026-02-25 11:43:19', '$2y$10$NQlgJesfIGrMFNJO1FPm5.Bi7Fr4Rn7od7csn/jZyGPecBxED1wla', '2026-02-25 17:13:10'),
+(64, 'John', 'john@xxx.com', NULL, 'en', '+919544104305', 'recruiter', 29, NULL, NULL, NULL, NULL, '2026-02-26 05:51:30', '$2y$10$jjsjSTk6Td8eBNZpW/HzwO7eDIjwTyFNLoDnlj.vDjZJC7jMN9ImO', '2026-02-26 11:21:16'),
+(65, 'kiran', 'kiran@bbb.com', NULL, 'en', '+919544104305', 'recruiter', 30, NULL, NULL, NULL, NULL, '2026-02-26 07:37:39', '$2y$10$IgxgjmtIcQzz/vj7u2c2Buet0SLEdbquuEP1huQaSVNUn6n4IWRoa', '2026-02-26 13:07:06'),
+(66, 'Rajeev', 'rajeev@gmail.com', NULL, 'en', '1472586900', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$oWudCosjq5bAfx3P7kipMuJ.xcaiojdg42fL0801NEjGs2ZKAIBjC', '2026-02-26 14:55:26'),
+(67, 'rinu george', 'rinugeorgep@gmail.com', NULL, 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$t8XNiY/tAuV5tOGCVxPvfO9.DcUppHKclVI4lEdzkQaD2AXTZzq9.', '2026-02-27 12:19:18'),
+(68, 'Praveen ', 'praveen@gmail.com', NULL, 'en', '3692581470', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$ZmcxQa6iLxLXydNTcRYXJu7ryIIN3VU0nFmAZ/5oYfsfNmkd6aiN6', '2026-02-28 12:21:19'),
+(77, 'rinu george', 'rinu@serphawk.com', NULL, 'en', '+919544104305', 'recruiter', 27, NULL, '2026-03-02 11:47:51', NULL, NULL, '2026-03-02 11:48:07', '$2y$10$YT2rL3jkDnCPDmCa8Eyp9u43pvvAuQEm5QKRId4z9Sp1ReRjCXPGK', '2026-03-02 17:14:39'),
+(79, 'Athira', 'athira@codecraft.com', NULL, 'en', '+919544104305', 'recruiter', 3, NULL, '2026-03-05 07:32:06', NULL, NULL, '2026-03-05 07:32:19', '$2y$10$BOtC8XNj9HMoAxyLvE/LUeAvfAHtpes.B94csDchy.5lHriewWoj.', '2026-03-05 13:02:03'),
+(80, 'Sajay', 'sajay@pixelsoft.com', NULL, 'en', '+919544104305', 'recruiter', 4, NULL, '2026-03-05 07:37:58', NULL, NULL, '2026-03-05 07:38:08', '$2y$10$VsCPWaPZM/cXmmgjPxW7pOQnJlzSXqkypAqGVbt6JoaJCqd4HsHxa', '2026-03-05 13:07:55');
 
 -- --------------------------------------------------------
 
@@ -1023,6 +1161,12 @@ ALTER TABLE `candidate_interests`
   ADD KEY `candidate_id` (`candidate_id`);
 
 --
+-- Indexes for table `candidate_profiles`
+--
+ALTER TABLE `candidate_profiles`
+  ADD PRIMARY KEY (`user_id`);
+
+--
 -- Indexes for table `candidate_projects`
 --
 ALTER TABLE `candidate_projects`
@@ -1067,6 +1211,15 @@ ALTER TABLE `certifications`
 ALTER TABLE `companies`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `companies_name_unique` (`name`);
+
+--
+-- Indexes for table `company_reviews`
+--
+ALTER TABLE `company_reviews`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `company_id` (`company_id`),
+  ADD KEY `candidate_id` (`candidate_id`),
+  ADD KEY `company_id_candidate_id` (`company_id`,`candidate_id`);
 
 --
 -- Indexes for table `course_lessons`
@@ -1208,6 +1361,21 @@ ALTER TABLE `recruiter_candidate_notes`
   ADD KEY `recruiter_id` (`recruiter_id`);
 
 --
+-- Indexes for table `recruiter_company_map`
+--
+ALTER TABLE `recruiter_company_map`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `recruiter_company_map_unique` (`recruiter_user_id`,`company_id`),
+  ADD KEY `recruiter_user_id` (`recruiter_user_id`),
+  ADD KEY `company_id` (`company_id`);
+
+--
+-- Indexes for table `recruiter_profiles`
+--
+ALTER TABLE `recruiter_profiles`
+  ADD PRIMARY KEY (`user_id`);
+
+--
 -- Indexes for table `reschedule_history`
 --
 ALTER TABLE `reschedule_history`
@@ -1265,7 +1433,7 @@ ALTER TABLE `applications`
 -- AUTO_INCREMENT for table `candidate_github_stats`
 --
 ALTER TABLE `candidate_github_stats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `candidate_interests`
@@ -1308,6 +1476,12 @@ ALTER TABLE `certifications`
 --
 ALTER TABLE `companies`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+
+--
+-- AUTO_INCREMENT for table `company_reviews`
+--
+ALTER TABLE `company_reviews`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `course_lessons`
@@ -1355,7 +1529,7 @@ ALTER TABLE `interview_slots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
 
 --
 -- AUTO_INCREMENT for table `job_alerts`
@@ -1379,19 +1553,19 @@ ALTER TABLE `job_suggestions`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_actions`
 --
 ALTER TABLE `recruiter_candidate_actions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_messages`
@@ -1404,6 +1578,12 @@ ALTER TABLE `recruiter_candidate_messages`
 --
 ALTER TABLE `recruiter_candidate_notes`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `recruiter_company_map`
+--
+ALTER TABLE `recruiter_company_map`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `reschedule_history`
@@ -1433,7 +1613,7 @@ ALTER TABLE `stage_history`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `work_experiences`
@@ -1457,6 +1637,12 @@ ALTER TABLE `applications`
 --
 ALTER TABLE `candidate_interests`
   ADD CONSTRAINT `candidate_interests_ibfk_1` FOREIGN KEY (`candidate_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `candidate_profiles`
+--
+ALTER TABLE `candidate_profiles`
+  ADD CONSTRAINT `candidate_profiles_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `candidate_projects`
@@ -1489,6 +1675,13 @@ ALTER TABLE `career_transitions`
 --
 ALTER TABLE `certifications`
   ADD CONSTRAINT `certifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `company_reviews`
+--
+ALTER TABLE `company_reviews`
+  ADD CONSTRAINT `company_reviews_candidate_id_foreign` FOREIGN KEY (`candidate_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `company_reviews_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `course_lessons`
@@ -1566,6 +1759,19 @@ ALTER TABLE `recruiter_candidate_messages`
 ALTER TABLE `recruiter_candidate_notes`
   ADD CONSTRAINT `recruiter_candidate_notes_candidate_id_foreign` FOREIGN KEY (`candidate_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `recruiter_candidate_notes_recruiter_id_foreign` FOREIGN KEY (`recruiter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `recruiter_company_map`
+--
+ALTER TABLE `recruiter_company_map`
+  ADD CONSTRAINT `recruiter_company_map_company_fk` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `recruiter_company_map_user_fk` FOREIGN KEY (`recruiter_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `recruiter_profiles`
+--
+ALTER TABLE `recruiter_profiles`
+  ADD CONSTRAINT `recruiter_profiles_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `saved_jobs`

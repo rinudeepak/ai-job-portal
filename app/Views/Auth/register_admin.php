@@ -103,6 +103,16 @@
 
                         <div class="row form-group">
                             <div class="col-md-12">
+                                <label class="text-black" for="designation">Designation</label>
+                                <input type="text" id="designation" name="designation" class="form-control" value="<?= old('designation') ?>" placeholder="e.g., Talent Acquisition Specialist" required>
+                                <?php if (session('validation') && session('validation')->hasError('designation')): ?>
+                                    <small class="text-danger"><?= session('validation')->getError('designation') ?></small>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="row form-group">
+                            <div class="col-md-12">
                                 <label class="text-black" for="email">Email Address</label>
                                 <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" required>
                                 <small class="text-muted">Use company domain email only (free providers are blocked).</small>

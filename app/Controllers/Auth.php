@@ -407,6 +407,7 @@ class Auth extends BaseController
         if (!$this->validate([
             'company_name' => 'required|min_length[2]',
             'name' => 'required|min_length[3]',
+            'designation' => 'required|min_length[2]',
             'email' => 'required|valid_email|is_unique[users.email]',
             'phone' => 'required|numeric|min_length[10]|max_length[15]',
             'password' => 'required|min_length[6]',
@@ -417,6 +418,7 @@ class Auth extends BaseController
 
         $email = strtolower(trim((string) $this->request->getPost('email')));
         $companyName = trim((string) $this->request->getPost('company_name'));
+        $designation = trim((string) $this->request->getPost('designation'));
         $domain = substr(strrchr($email, "@"), 1);
         if ($this->isFreeEmailDomain($domain)) {
             return redirect()->back()->withInput()->with(
@@ -442,7 +444,6 @@ class Auth extends BaseController
         $verificationToken = bin2hex(random_bytes(32));
 
         $model->insert([
-            'company_name' => $companyName,
             'company_id' => $companyId,
             'name' => $this->request->getPost('name'),
             'email' => $email,
@@ -456,6 +457,32 @@ class Auth extends BaseController
         ]);
 
         $newRecruiterId = (int) $model->getInsertID();
+        $model->upsertRecruiterProfile($newRecruiterId, [
+            'name' => (string) $this->request->getPost('name'),
+            'phone' => (string) $this->request->getPost('phone'),
+            'designation' => $designation,
+            'company_name' => $companyName,
+        ]);
+
+        $db = \Config\Database::connect();
+        if ($db->tableExists('recruiter_company_map')) {
+            $exists = $db->table('recruiter_company_map')
+                ->where('recruiter_user_id', $newRecruiterId)
+                ->where('company_id', $companyId)
+                ->get()
+                ->getRowArray();
+
+            if (!$exists) {
+                $db->table('recruiter_company_map')->insert([
+                    'recruiter_user_id' => $newRecruiterId,
+                    'company_id' => $companyId,
+                    'is_admin' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+
         $recruiter = $model->find($newRecruiterId);
         $emailError = null;
         $emailSent = $recruiter ? $this->sendRecruiterVerificationEmail($recruiter, $emailError) : false;

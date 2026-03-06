@@ -42,10 +42,10 @@ class Recruiter extends BaseController
         $openings = (int) $this->request->getPost('openings');
 
         $currentUserId = (int) $session->get('user_id');
-        $user = $userModel->find($currentUserId);
+        $user = $userModel->findRecruiterWithProfile($currentUserId) ?? $userModel->find($currentUserId);
         $companyId = (int) ($user['company_id'] ?? 0);
         $companyRow = $companyId > 0 ? $companyModel->find($companyId) : null;
-        $company = trim((string) ($companyRow['name'] ?? $user['company_name'] ?? ''));
+        $company = trim((string) ($companyRow['name'] ?? ($user['company_name'] ?? '')));
 
         if ($title === '' || $category === '' || $description === '' || $location === '') {
             return redirect()->back()->withInput()->with('error', 'Title, category, description and location are required.');

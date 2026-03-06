@@ -1,16 +1,21 @@
-<?= view('Layouts/recruiter_header', ['title' => 'Skill Leaderboard']) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Candidate Insights']) ?>
 
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="fas fa-trophy"></i> Candidate Skill Leaderboard</h2>
-            <p class="text-muted">Rank candidates by technical and overall performance</p>
+            <h2><i class="fas fa-trophy"></i> Candidate Insights Leaderboard</h2>
+            <p class="text-muted">Compare applicants by fit, scores, and profile signals. Use this page for review, not bulk actions.</p>
         </div>
         <div>
             <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to My Jobs
             </a>
+            <?php if (!empty($selectedJob['id'])): ?>
+                <a href="<?= base_url('recruiter/jobs/' . $selectedJob['id'] . '/applications') ?>" class="btn btn-outline-primary">
+                    <i class="fas fa-users-cog"></i> Open Candidate List
+                </a>
+            <?php endif; ?>
             <a href="<?= base_url('recruiter/dashboard/export-excel?type=leaderboard') ?>" class="btn btn-success">
                 <i class="fas fa-file-excel"></i> Export to Excel
             </a>
@@ -20,7 +25,7 @@
     <!-- Filters -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Filters & Sorting</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Review Filters</h6>
         </div>
         <div class="card-body">
             <?php $leaderboardAction = !empty($selectedJob['id']) ? base_url('recruiter/jobs/' . $selectedJob['id'] . '/leaderboard') : base_url('recruiter/dashboard/leaderboard'); ?>
@@ -111,11 +116,14 @@
     <div class="card shadow">
         <div class="card-header py-3 bg-gradient-primary text-white">
             <h6 class="m-0 font-weight-bold">
-                <i class="fas fa-crown"></i> Top Performers - 
+                <i class="fas fa-crown"></i> Comparison View - 
                 <?= ucwords(str_replace('_', ' ', $filters['sort_by'] ?? 'technical_score')) ?>
             </h6>
         </div>
         <div class="card-body">
+            <div class="alert alert-light border mb-4">
+                <strong>How to use this page:</strong> compare candidate quality here, then open a candidate application to shortlist, reject, or message from the candidate list.
+            </div>
             <?php if (empty($candidates)): ?>
                 <div class="text-center py-5">
                     <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
@@ -130,11 +138,13 @@
                                 <th>Candidate</th>
                                 <th>Job Position</th>
                                 <th>Skills</th>
+                                <th>GitHub Stack</th>
                                 <th class="text-center">Technical</th>
                                 <th class="text-center">Communication</th>
                                 <th class="text-center">Overall Rating</th>
+                                <th class="text-center">ATS</th>
                                 <th class="text-center">Status</th>
-                                <!-- <th>Actions</th> -->
+                                <th class="text-center">Review</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -206,6 +216,27 @@
                                             <?php endif; ?>
                                         </div>
                                     </td>
+                                    <td>
+                                        <?php if (!empty($candidate['github_stack'])): ?>
+                                            <div class="skills-display">
+                                                <div class="mb-2">
+                                                    <small class="text-muted text-uppercase font-weight-bold">GitHub Stack</small>
+                                                </div>
+                                                <div class="required-skills">
+                                                    <?php foreach (array_slice($candidate['github_stack'], 0, 6) as $language): ?>
+                                                        <span class="skill-badge skill-has">
+                                                            <?= esc($language) ?>
+                                                        </span>
+                                                    <?php endforeach; ?>
+                                                    <?php if (count($candidate['github_stack']) > 6): ?>
+                                                        <span class="badge badge-light">+<?= count($candidate['github_stack']) - 6 ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted">No GitHub stack</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-center">
                                         <div class="score-display">
                                             <span class="score-value <?= $candidate['technical_score'] >= 80 ? 'text-success' : ($candidate['technical_score'] >= 60 ? 'text-warning' : 'text-danger') ?>">
@@ -242,6 +273,21 @@
                                         </div>
                                     </td>
                                     <td class="text-center">
+                                        <?php if ($candidate['ats_score'] !== null): ?>
+                                            <div class="score-display">
+                                                <span class="score-value <?= $candidate['ats_score'] >= 80 ? 'text-success' : ($candidate['ats_score'] >= 60 ? 'text-warning' : 'text-danger') ?>">
+                                                    <?= (int) $candidate['ats_score'] ?>
+                                                </span>
+                                                <div class="score-bar">
+                                                    <div class="score-fill" style="width: <?= (int) $candidate['ats_score'] ?>%"></div>
+                                                </div>
+                                                <small class="text-muted d-block mt-1">Fit signal</small>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted">N/A</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
                                         <?php
                                         $statusColors = [
                                             'applied' => 'secondary',
@@ -259,20 +305,11 @@
                                             <?= ucwords(str_replace('_', ' ', $candidate['status'])) ?>
                                         </span>
                                     </td>
-                                    <!-- <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="<?= base_url('recruiter/applications/view/' . $candidate['id']) ?>" 
-                                               class="btn btn-sm btn-primary" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <?php if ($candidate['status'] === 'ai_interview_completed'): ?>
-                                                <a href="<?= base_url('recruiter/applications/shortlist/' . $candidate['id']) ?>" 
-                                                   class="btn btn-sm btn-success" title="Shortlist">
-                                                    <i class="fas fa-check"></i>
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td> -->
+                                    <td class="text-center">
+                                        <a href="<?= base_url('recruiter/candidate/' . $candidate['candidate_id'] . '?application_id=' . $candidate['id'] . '&job_id=' . $candidate['job_id']) ?>" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> View Application
+                                        </a>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -315,7 +352,7 @@
 
                 <!-- Statistics Summary -->
                 <div class="row mt-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h5 class="text-muted">Average Technical Score</h5>
@@ -328,7 +365,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h5 class="text-muted">Average Communication Score</h5>
@@ -341,7 +378,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h5 class="text-muted">Average Overall Rating</h5>
@@ -349,6 +386,20 @@
                                     <?php
                                     $avgOverall = !empty($candidates) ? array_sum(array_column($candidates, 'overall_rating')) / count($candidates) : 0;
                                     echo number_format($avgOverall, 1);
+                                    ?>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-muted">Average ATS Score</h5>
+                                <h3 class="text-info">
+                                    <?php
+                                    $atsScores = array_filter(array_column($candidates, 'ats_score'), static fn ($score) => $score !== null);
+                                    $avgAts = !empty($atsScores) ? array_sum($atsScores) / count($atsScores) : null;
+                                    echo $avgAts !== null ? number_format($avgAts, 1) : 'N/A';
                                     ?>
                                 </h3>
                             </div>

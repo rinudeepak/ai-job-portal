@@ -43,11 +43,29 @@
                         <input type="number" step="0.5" min="0" name="exp_max" class="form-control" value="<?= esc($filters['exp_max'] ?? '') ?>">
                     </div>
                     <div class="col-md-2">
+                        <label class="small text-muted mb-1">Job Role</label>
+                        <select name="job_id" class="form-control">
+                            <option value="">Select Job</option>
+                            <?php foreach (($recruiterJobs ?? []) as $job): ?>
+                                <option value="<?= (int) $job['id'] ?>" <?= (int) ($filters['job_id'] ?? 0) === (int) $job['id'] ? 'selected' : '' ?>>
+                                    <?= esc($job['title']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label class="small text-muted mb-1">Resume</label>
                         <select name="resume" class="form-control">
                             <option value="" <?= ($filters['resume'] ?? '') === '' ? 'selected' : '' ?>>All</option>
                             <option value="yes" <?= ($filters['resume'] ?? '') === 'yes' ? 'selected' : '' ?>>With Resume</option>
                             <option value="no" <?= ($filters['resume'] ?? '') === 'no' ? 'selected' : '' ?>>Without Resume</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="small text-muted mb-1">AI</label>
+                        <select name="ai" class="form-control">
+                            <option value="0" <?= (int) ($filters['ai'] ?? 0) === 0 ? 'selected' : '' ?>>Off</option>
+                            <option value="1" <?= (int) ($filters['ai'] ?? 0) === 1 ? 'selected' : '' ?>>On</option>
                         </select>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
@@ -62,6 +80,57 @@
             </form>
         </div>
     </div>
+
+    <?php if (!empty($selectedJob) && (int) ($filters['ai'] ?? 0) === 1): ?>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-robot"></i> AI Candidate Suggestions for <?= esc($selectedJob['title'] ?? 'Selected Job') ?>
+                </h6>
+            </div>
+            <div class="card-body">
+                <?php if (empty($aiSuggestions)): ?>
+                    <p class="text-muted mb-0">No strong AI matches found with current filters.</p>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Score</th>
+                                    <th>Experience</th>
+                                    <th>Skills</th>
+                                    <th>AI Reason</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($aiSuggestions as $candidate): ?>
+                                    <tr>
+                                        <td>
+                                            <strong><?= esc($candidate['name'] ?? '-') ?></strong><br>
+                                            <small class="text-muted"><?= esc($candidate['email'] ?? '-') ?></small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-success"><?= esc((string) ($candidate['match_score'] ?? 0)) ?>%</span>
+                                        </td>
+                                        <td><?= esc($candidate['experience_display'] ?? '-') ?></td>
+                                        <td><small><?= esc($candidate['skill_name'] ?? '-') ?></small></td>
+                                        <td><small><?= esc($candidate['match_reason'] ?? '-') ?></small></td>
+                                        <td>
+                                            <a href="<?= base_url('recruiter/candidate/' . $candidate['id']) ?>" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-user"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <div class="card shadow">
         <div class="card-header py-3">

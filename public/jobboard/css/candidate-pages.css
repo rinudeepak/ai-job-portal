@@ -1726,6 +1726,186 @@ mark { background: #fef9c3; padding: 0 2px; border-radius: 3px; }
     background-color: #f8f9fa !important;
 }
 
+.companies-directory-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.companies-directory-stat {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    padding: 18px;
+    color: #fff;
+    text-align: center;
+    backdrop-filter: blur(6px);
+}
+
+.companies-directory-stat strong {
+    display: block;
+    font-size: 1.8rem;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.companies-directory-stat span {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.companies-directory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.companies-directory-card {
+    background: #fff;
+    border: 1px solid #e6ebf3;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 14px 36px rgba(17, 24, 39, 0.06);
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.companies-directory-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.companies-directory-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #eef6ff 0%, #f6fbf4 100%);
+    border: 1px solid #dce7f5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f4bb8;
+}
+
+.companies-directory-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.companies-directory-title {
+    font-size: 1.1rem;
+    margin: 0 0 4px;
+}
+
+.companies-directory-title a {
+    color: #14213d;
+    text-decoration: none;
+}
+
+.companies-directory-title a:hover {
+    color: #1f4bb8;
+}
+
+.companies-directory-meta {
+    color: #6b7280;
+    font-size: 0.94rem;
+}
+
+.companies-directory-description {
+    color: #4b5563;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    flex-grow: 1;
+}
+
+.companies-directory-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    color: #51607a;
+    font-size: 0.92rem;
+    margin-bottom: 18px;
+}
+
+.companies-directory-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.companies-directory-page .pagination-wrap {
+    margin-top: 22px;
+}
+
+.companies-directory-page .custom-pagination a {
+    border-radius: 8px;
+}
+
+.company-review-summary {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: #5b6474;
+    font-size: 0.92rem;
+}
+
+.company-review-summary strong {
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #111827;
+}
+
+.company-review-list {
+    display: grid;
+    gap: 16px;
+}
+
+.company-review-item {
+    border: 1px solid #e6ebf3;
+    border-radius: 16px;
+    padding: 16px 18px;
+    background: #fbfcfe;
+}
+
+.company-review-rating {
+    font-size: 1rem;
+    color: #f59e0b;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.company-review-pros-cons {
+    display: grid;
+    gap: 8px;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 991.98px) {
+    .companies-directory-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .companies-directory-hero-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .companies-directory-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 
 

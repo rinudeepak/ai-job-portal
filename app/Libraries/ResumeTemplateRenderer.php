@@ -100,8 +100,20 @@ class ResumeTemplateRenderer
 
     public function createPdfFile(string $content, array $fallback, string $filenameBase): string
     {
-        require_once APPPATH . '../vendor/autoload.php';
         $resume = $this->decodeStoredContent($content, $fallback);
+        $filename = $this->sanitizeFilename($filenameBase) . '.pdf';
+        $directory = WRITEPATH . 'uploads/resume_versions/';
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filepath = $directory . $filename;
+
+        if ($this->createBrowserPdfFile($resume, $filepath, $filenameBase)) {
+            return $filepath;
+        }
+
+        require_once APPPATH . '../vendor/autoload.php';
 
         $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $pdf->SetCreator('AI Job Portal');
@@ -114,17 +126,71 @@ class ResumeTemplateRenderer
         $pdf->AddPage();
         $pdf->SetFont('helvetica', '', 10);
         $pdf->writeHTML($this->renderPdfHtml($resume), true, false, true, false, '');
-
-        $directory = WRITEPATH . 'uploads/resume_versions/';
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $filename = $this->sanitizeFilename($filenameBase) . '.pdf';
-        $filepath = $directory . $filename;
         $pdf->Output($filepath, 'F');
 
         return $filepath;
+    }
+
+    private function createBrowserPdfFile(array $resume, string $pdfPath, string $filenameBase): bool
+    {
+        $browserPath = $this->findBrowserPdfExecutable();
+        if ($browserPath === null) {
+            return false;
+        }
+
+        $tempDir = WRITEPATH . 'uploads/resume_versions/browser_pdf/';
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $htmlPath = $tempDir . $this->sanitizeFilename($filenameBase) . '.html';
+        file_put_contents($htmlPath, $this->renderDocument(json_encode($resume, JSON_UNESCAPED_UNICODE), [
+            'name' => (string) ($resume['name'] ?? 'Candidate'),
+            'target_role' => (string) ($resume['target_role'] ?? ''),
+            'summary' => (string) ($resume['summary'] ?? ''),
+            'highlight_skills' => (array) ($resume['highlight_skills'] ?? []),
+        ]));
+
+        $fileUrl = 'file:///' . str_replace(DIRECTORY_SEPARATOR, '/', ltrim($htmlPath, '\\/'));
+        $command = escapeshellarg($browserPath)
+            . ' --headless=new --disable-gpu --allow-file-access-from-files --print-to-pdf-no-header --no-pdf-header-footer'
+            . ' --print-to-pdf=' . escapeshellarg($pdfPath)
+            . ' ' . escapeshellarg($fileUrl);
+
+        @exec($command, $output, $status);
+
+        if ($status === 0 && is_file($pdfPath) && filesize($pdfPath) > 0) {
+            @unlink($htmlPath);
+            return true;
+        }
+
+        @unlink($htmlPath);
+        return false;
+    }
+
+    private function findBrowserPdfExecutable(): ?string
+    {
+        $candidates = array_filter([
+            env('resume.chromePath'),
+            env('RESUME_PDF_CHROME_PATH'),
+            'C:\Program Files\Google\Chrome\Application\chrome.exe',
+            'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+            'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
+            'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
+            '/usr/bin/google-chrome',
+            '/usr/bin/chromium-browser',
+            '/usr/bin/chromium',
+            '/usr/bin/microsoft-edge',
+        ]);
+
+        foreach ($candidates as $candidate) {
+            $candidate = trim((string) $candidate);
+            if ($candidate !== '' && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     private function renderPdfHtml(array $resume): string
@@ -247,6 +313,12 @@ class ResumeTemplateRenderer
         $html .= '<div style="font-family:helvetica;color:#0f172a;">';
         $html .= $this->renderPdfHeader($resume, $accent, true);
 
+        if (trim((string) ($resume['summary'] ?? '')) !== '') {
+            $html .= '<div style="margin:4px 0 12px 14px;font-size:10pt;line-height:1.72;color:#334155;">'
+                . nl2br(esc((string) $resume['summary']))
+                . '</div>';
+        }
+
         if (!empty($sections['skills']['groups'])) {
             $html .= $this->renderPdfSkills((array) $sections['skills'], $accent, true);
         }
@@ -274,8 +346,8 @@ class ResumeTemplateRenderer
         $html = '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:10px;">';
         $html .= '<tr>';
         if ($withAccentBar) {
-            $html .= '<td width="3%" style="border-left:4px solid ' . esc($accent) . ';">&nbsp;</td>';
-            $html .= '<td width="67%" style="padding-left:10px;">';
+            $html .= '<td width="2%" style="border-left:4px solid ' . esc($accent) . ';">&nbsp;</td>';
+            $html .= '<td width="98%" style="padding-left:12px;">';
         } else {
             $html .= '<td width="70%">';
         }
@@ -286,13 +358,15 @@ class ResumeTemplateRenderer
                 . '</div>';
         }
         $html .= '</td>';
-        $html .= '<td width="30%" align="right" style="font-size:9.5pt;color:#475569;">';
-        if (!empty($resume['highlight_skills']) && !$withAccentBar) {
-            $html .= esc(implode(' | ', (array) $resume['highlight_skills']));
-        } else {
-            $html .= '&nbsp;';
+        if (!$withAccentBar) {
+            $html .= '<td width="30%" align="right" style="font-size:9.5pt;color:#475569;">';
+            if (!empty($resume['highlight_skills'])) {
+                $html .= esc(implode(' | ', (array) $resume['highlight_skills']));
+            } else {
+                $html .= '&nbsp;';
+            }
+            $html .= '</td>';
         }
-        $html .= '</td>';
         $html .= '</tr>';
         $html .= '</table>';
 
@@ -396,8 +470,8 @@ class ResumeTemplateRenderer
             }
 
             $html .= '<tr>';
-            $html .= '<td width="27%" style="font-size:9.5pt;font-weight:bold;color:' . esc($accent) . ';border-bottom:1px solid #eef2f7;">' . esc($label) . '</td>';
-            $html .= '<td width="73%" style="font-size:9.8pt;color:#334155;border-bottom:1px solid #eef2f7;">' . esc(implode(' | ', $items)) . '</td>';
+            $html .= '<td width="28%" valign="top" style="font-size:9.5pt;font-weight:bold;color:' . esc($accent) . ';border-bottom:1px solid #eef2f7;">' . esc($label) . '</td>';
+            $html .= '<td width="72%" valign="top" style="font-size:9.8pt;color:#334155;border-bottom:1px solid #eef2f7;">' . esc(implode(' | ', $items)) . '</td>';
             $html .= '</tr>';
         }
         $html .= '</table>';
@@ -420,11 +494,11 @@ class ResumeTemplateRenderer
 
             $html .= '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:10px;">';
             $html .= '<tr>';
-            $html .= '<td width="66%" style="font-size:12pt;font-weight:bold;color:#111827;">' . esc($headline) . '</td>';
-            $html .= '<td width="34%" align="right" style="font-size:9.4pt;color:#64748b;">' . esc($meta) . '</td>';
+            $html .= '<td width="64%" valign="top" style="font-size:12pt;font-weight:bold;color:#111827;">' . esc($headline) . '</td>';
+            $html .= '<td width="36%" valign="top" align="right" style="font-size:9.4pt;color:#64748b;">' . esc($meta) . '</td>';
             $html .= '</tr>';
             if ($subhead !== '') {
-                $html .= '<tr><td colspan="2" style="font-size:10pt;color:' . esc($accent) . ';font-weight:bold;padding-top:3px;">' . esc($subhead) . '</td></tr>';
+                $html .= '<tr><td colspan="2" style="font-size:10pt;color:' . esc($accent) . ';font-weight:bold;padding-top:4px;">' . esc($subhead) . '</td></tr>';
             }
             $html .= '</table>';
 
@@ -761,6 +835,7 @@ class ResumeTemplateRenderer
     private function documentStyles(): string
     {
         return '
+            @page{margin:18mm 16mm}
             body{margin:0;padding:26px;background:#edf2f7;font-family:Segoe UI,Arial,sans-serif;color:#0f172a}
             .resume-template-shell{background:#fff;border-radius:28px;padding:40px 38px;box-shadow:0 24px 70px rgba(15,23,42,.1);max-width:980px;margin:0 auto}
             .template-modern{background:linear-gradient(180deg,#ffffff 0%,#f9fbff 100%)}
@@ -801,6 +876,10 @@ class ResumeTemplateRenderer
             .template-tech .resume-section{margin-top:20px}
             .template-tech .resume-section h3{font-size:.78rem;color:#059669;background:#ecfdf5;padding:9px 14px;border-radius:6px}
             .template-tech .resume-item{padding:14px 0}
+            @media print{
+                body{padding:0;background:#fff}
+                .resume-template-shell{max-width:none;margin:0;border-radius:0;box-shadow:none;padding:0}
+            }
         ';
     }
 

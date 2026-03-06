@@ -11,6 +11,10 @@ class RecruiterApplications extends BaseController
 {
     public function index()
     {
+        if (session()->get('role') !== 'recruiter') {
+            return redirect()->to(base_url('candidate/dashboard'))->with('error', 'Access denied.');
+        }
+        
         return redirect()->to(base_url('recruiter/jobs'));
     }
 
@@ -84,8 +88,9 @@ class RecruiterApplications extends BaseController
         $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
         // Get applications for this job with optional filters
         $builder = $applicationModel
-            ->select('applications.*, users.name, users.email, users.location as candidate_location, users.resume_path, MAX(interview_sessions.overall_rating) as overall_rating, candidate_skills.skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months, recruiter_candidate_notes.tags as recruiter_tags, recruiter_candidate_notes.notes as recruiter_notes')
+            ->select('applications.*, users.name, users.email, candidate_profiles.location as candidate_location, candidate_profiles.resume_path as resume_path, MAX(interview_sessions.overall_rating) as overall_rating, candidate_skills.skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months, recruiter_candidate_notes.tags as recruiter_tags, recruiter_candidate_notes.notes as recruiter_notes')
             ->join('users', 'users.id = applications.candidate_id', 'left')
+            ->join('candidate_profiles', 'candidate_profiles.user_id = applications.candidate_id', 'left')
             ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
             ->join('candidate_skills', 'candidate_skills.candidate_id = applications.candidate_id', 'left')
             ->join(
@@ -110,7 +115,11 @@ class RecruiterApplications extends BaseController
         }
 
         if ($filters['location'] !== '') {
-            $builder->like('users.location', $filters['location']);
+            $builder->where(
+                'candidate_profiles.location LIKE ' . $builder->db->escape('%' . $filters['location'] . '%'),
+                null,
+                false
+            );
         }
 
         if ($filters['status'] !== '') {

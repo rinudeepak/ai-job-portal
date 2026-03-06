@@ -20,7 +20,7 @@ class Applications extends BaseController
         
         // Check if resume is uploaded
         $userModel = model('UserModel');
-        $user = $userModel->find($candidateId);
+        $user = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         
         if (empty($user['resume_path'])) {
             return redirect()->to(base_url('candidate/profile'))->with('error', 'Please upload your resume to continue your job application. You have been redirected to your profile page.');

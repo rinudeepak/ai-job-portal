@@ -46,8 +46,9 @@
     <div class="card shadow">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-users"></i> Applications (<?= count($applications) ?>)
+                <i class="fas fa-users-cog"></i> Candidate List & Actions (<?= count($applications) ?>)
             </h6>
+            <small class="text-muted d-block mt-1">Use this page to shortlist, reject, and message candidates. For score comparison and fit review, use the leaderboard.</small>
         </div>
         <div class="card-body">
             <form method="get" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="mb-4">
@@ -108,10 +109,16 @@
                     <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="btn btn-outline-secondary btn-sm ml-2">
                         Clear
                     </a>
+                    <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/leaderboard') ?>" class="btn btn-outline-primary btn-sm ml-2">
+                        <i class="fas fa-chart-line"></i> Open Leaderboard
+                    </a>
                 </div>
             </form>
 
             <?php if (!empty($applications)): ?>
+                <div class="alert alert-light border">
+                    <strong>Decision workspace:</strong> bulk actions and per-candidate decisions are handled here. The leaderboard is kept read-focused for comparison only.
+                </div>
                 <form method="post" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications/bulk') ?>" id="bulkActionForm" class="mb-3">
                     <?= csrf_field() ?>
                     <div class="d-flex flex-wrap align-items-center" style="gap: 10px;">

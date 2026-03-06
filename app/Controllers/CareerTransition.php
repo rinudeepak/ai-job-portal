@@ -12,6 +12,10 @@ class CareerTransition extends BaseController
 {
     public function index()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $candidateId = session()->get('user_id');
         $transitionModel = new CareerTransitionModel();
         $taskModel = new DailyTaskModel();
@@ -57,6 +61,10 @@ class CareerTransition extends BaseController
 
     public function create()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $currentRole = trim($this->request->getPost('current_role'));
         $targetRole  = trim($this->request->getPost('target_role'));
         $candidateId = (int) session()->get('user_id');
@@ -184,6 +192,10 @@ class CareerTransition extends BaseController
 
     public function course()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $candidateId = session()->get('user_id');
         $transitionModel = new CareerTransitionModel();
         $moduleModel = new CourseModuleModel();
@@ -194,6 +206,10 @@ class CareerTransition extends BaseController
 
     public function module($moduleId)
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $candidateId = session()->get('user_id');
         $transitionModel = new CareerTransitionModel();
         $moduleModel = new CourseModuleModel();
@@ -234,6 +250,10 @@ class CareerTransition extends BaseController
 
     public function history()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $candidateId = session()->get('user_id');
         $transitionModel = new CareerTransitionModel();
         $transitions = $transitionModel
@@ -246,6 +266,10 @@ class CareerTransition extends BaseController
 
     public function reactivate($transitionId)
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $candidateId = session()->get('user_id');
         $transitionModel = new CareerTransitionModel();
         $db = \Config\Database::connect();

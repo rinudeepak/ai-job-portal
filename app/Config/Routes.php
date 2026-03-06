@@ -32,10 +32,12 @@ $routes->get('recruiter/verify-email/(:any)', 'Auth::verifyRecruiterEmail/$1');
 $routes->post('recruiter/verify-phone', 'Auth::verifyRecruiterPhone');
 $routes->post('recruiter/resend-verification-email', 'Auth::resendRecruiterVerificationEmail');
 $routes->get('company/(:num)', 'CompanyProfile::show/$1', ['filter' => 'auth']);
+$routes->post('company/(:num)/review', 'CompanyProfile::submitReview/$1', ['filter' => 'candidate']);
+$routes->get('companies', 'CompanyProfile::index', ['filter' => 'candidate']);
 
 // $routes->get('dashboard', 'Auth::dashboard');
 // Candidate Dashboard Routes
-$routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
+$routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'candidate'], function($routes) {
     $routes->get('dashboard', 'CandidateDashboardController::index');
     $routes->get('/', 'CandidateDashboardController::index'); // Default route
     $routes->get('applications', 'CandidateDashboardController::applications');
@@ -49,7 +51,7 @@ $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'auth
 });
 
 // Career Transition AI Routes
-$routes->group('career-transition', ['filter' => 'auth'], function($routes) {
+$routes->group('career-transition', ['filter' => 'candidate'], function($routes) {
     $routes->get('/', 'CareerTransition::index');
     $routes->post('create', 'CareerTransition::create');
     $routes->post('complete/(:num)', 'CareerTransition::completeTask/$1');
@@ -59,12 +61,12 @@ $routes->group('career-transition', ['filter' => 'auth'], function($routes) {
     $routes->get('reset', 'CareerTransition::reset');
 });
 // NEW: PDF Download Route
-$routes->get('career-transition/download-pdf', 'CareerTransitionPDF_TCPDF::downloadCoursePDF');
+$routes->get('career-transition/download-pdf', 'CareerTransitionPDF_TCPDF::downloadCoursePDF', ['filter' => 'candidate']);
 // Career Transition History Routes
-$routes->get('career-transition/history', 'CareerTransition::history');
-$routes->get('career-transition/reactivate/(:num)', 'CareerTransition::reactivate/$1');
+$routes->get('career-transition/history', 'CareerTransition::history', ['filter' => 'candidate']);
+$routes->get('career-transition/reactivate/(:num)', 'CareerTransition::reactivate/$1', ['filter' => 'candidate']);
 // Dashboard Routes (Admin)
-$routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
+$routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'recruiter'], function($routes) {
     
     // Main Dashboard
     $routes->get('dashboard', 'DashboardController::index');
@@ -95,52 +97,53 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'auth
     $routes->post('company-profile', 'CompanyProfile::update');
 });
 
-$routes->get('jobs', 'Jobs::index', ['filter' => 'auth']);
-$routes->get('job/(:num)', 'Jobs::jobDetail/$1', ['filter' => 'auth']);
-$routes->post('job/apply/(:num)', 'Applications::apply/$1', ['filter' => 'auth']);
-$routes->post('candidate/applications/withdraw/(:num)', 'Applications::withdraw/$1', ['filter' => 'auth']);
-$routes->get('job/save/(:num)', 'SavedJobs::save/$1', ['filter' => 'auth']);
-$routes->get('job/unsave/(:num)', 'SavedJobs::unsave/$1', ['filter' => 'auth']);
+$routes->get('jobs', 'Jobs::index', ['filter' => 'candidate']);
+$routes->get('job/(:num)', 'Jobs::jobDetail/$1', ['filter' => 'candidate']);
+$routes->post('job/apply/(:num)', 'Applications::apply/$1', ['filter' => 'candidate']);
+$routes->post('candidate/applications/withdraw/(:num)', 'Applications::withdraw/$1', ['filter' => 'candidate']);
+$routes->get('job/save/(:num)', 'SavedJobs::save/$1', ['filter' => 'candidate']);
+$routes->get('job/unsave/(:num)', 'SavedJobs::unsave/$1', ['filter' => 'candidate']);
 
-$routes->get('recruiter/post_job', 'Recruiter::postJob', ['filter' => 'auth']);
-$routes->post('recruiter/post_job', 'Recruiter::saveJob', ['filter' => 'auth']);
+$routes->get('recruiter/post_job', 'Recruiter::postJob', ['filter' => 'recruiter']);
+$routes->post('recruiter/post_job', 'Recruiter::saveJob', ['filter' => 'recruiter']);
 
-$routes->get('candidate/profile', 'Candidate::profile', ['filter' => 'auth']);
-$routes->get('candidate/resume-studio', 'Candidate::resumeStudio', ['filter' => 'auth']);
-$routes->post('candidate/resume_upload', 'Candidate::resumeUpload', ['filter' => 'auth']);
-$routes->post('candidate/resume/generate', 'Candidate::generateAiResume', ['filter' => 'auth']);
-$routes->post('candidate/resume/sync-transition', 'Candidate::syncResumeFromTransition', ['filter' => 'auth']);
-$routes->post('candidate/resume-version/(:num)/primary', 'Candidate::setPrimaryResumeVersion/$1', ['filter' => 'auth']);
-$routes->post('candidate/resume-version/(:num)/delete', 'Candidate::deleteResumeVersion/$1', ['filter' => 'auth']);
-$routes->get('candidate/resume-version/(:num)/download', 'Candidate::downloadResumeVersion/$1', ['filter' => 'auth']);
-$routes->get('candidate/resume-version/(:num)/preview', 'Candidate::previewResumeVersion/$1', ['filter' => 'auth']);
-$routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills', ['filter' => 'auth']);
-$routes->get('candidate/download-resume', 'Candidate::downloadResume', ['filter' => 'auth']);
-$routes->get('candidate/preview-resume', 'Candidate::previewResume', ['filter' => 'auth']);
-$routes->get('candidate/serve-resume', 'Candidate::serveResume', ['filter' => 'auth']);
-$routes->post('candidate/add-skill', 'Candidate::addSkill', ['filter' => 'auth']);
-$routes->post('candidate/update_personal', 'Candidate::updatePersonal', ['filter' => 'auth']);
-$routes->post('candidate/upload-photo', 'Candidate::uploadPhoto', ['filter' => 'auth']);
-$routes->post('candidate/remove-photo', 'Candidate::removePhoto', ['filter' => 'auth']);
-$routes->post('candidate/add-work-experience', 'Candidate::addWorkExperience', ['filter' => 'auth']);
-$routes->get('candidate/delete-work-experience/(:num)', 'Candidate::deleteWorkExperience/$1', ['filter' => 'auth']);
-$routes->post('candidate/add-education', 'Candidate::addEducation', ['filter' => 'auth']);
-$routes->get('candidate/delete-education/(:num)', 'Candidate::deleteEducation/$1', ['filter' => 'auth']);
-$routes->post('candidate/add-certification', 'Candidate::addCertification', ['filter' => 'auth']);
-$routes->get('candidate/delete-certification/(:num)', 'Candidate::deleteCertification/$1', ['filter' => 'auth']);
-$routes->post('candidate/add-project', 'Candidate::addProject', ['filter' => 'auth']);
-$routes->get('candidate/delete-project/(:num)', 'Candidate::deleteProject/$1', ['filter' => 'auth']);
-$routes->post('candidate/add-interest', 'Candidate::addInterest', ['filter' => 'auth']);
-$routes->get('candidate/delete-interest/(:any)', 'Candidate::deleteInterest/$1', ['filter' => 'auth']);
+$routes->get('candidate/profile', 'Candidate::profile', ['filter' => 'candidate']);
+$routes->get('candidate/resume-studio', 'Candidate::resumeStudio', ['filter' => 'candidate']);
+$routes->post('candidate/resume_upload', 'Candidate::resumeUpload', ['filter' => 'candidate']);
+$routes->post('candidate/resume/generate', 'Candidate::generateAiResume', ['filter' => 'candidate']);
+$routes->post('candidate/resume/sync-transition', 'Candidate::syncResumeFromTransition', ['filter' => 'candidate']);
+$routes->post('candidate/resume-version/(:num)/primary', 'Candidate::setPrimaryResumeVersion/$1', ['filter' => 'candidate']);
+$routes->post('candidate/resume-version/(:num)/delete', 'Candidate::deleteResumeVersion/$1', ['filter' => 'candidate']);
+$routes->get('candidate/resume-version/(:num)/download', 'Candidate::downloadResumeVersion/$1', ['filter' => 'candidate']);
+$routes->get('candidate/resume-version/(:num)/preview', 'Candidate::previewResumeVersion/$1', ['filter' => 'candidate']);
+$routes->post('candidate/analyze_github', 'Candidate::analyzeGithubSkills', ['filter' => 'candidate']);
+$routes->get('candidate/download-resume', 'Candidate::downloadResume', ['filter' => 'candidate']);
+$routes->get('candidate/preview-resume', 'Candidate::previewResume', ['filter' => 'candidate']);
+$routes->get('candidate/serve-resume', 'Candidate::serveResume', ['filter' => 'candidate']);
+$routes->post('candidate/add-skill', 'Candidate::addSkill', ['filter' => 'candidate']);
+$routes->post('candidate/update_personal', 'Candidate::updatePersonal', ['filter' => 'candidate']);
+$routes->post('candidate/update-career-details', 'Candidate::updateCareerDetails', ['filter' => 'candidate']);
+$routes->post('candidate/upload-photo', 'Candidate::uploadPhoto', ['filter' => 'candidate']);
+$routes->post('candidate/remove-photo', 'Candidate::removePhoto', ['filter' => 'candidate']);
+$routes->post('candidate/add-work-experience', 'Candidate::addWorkExperience', ['filter' => 'candidate']);
+$routes->get('candidate/delete-work-experience/(:num)', 'Candidate::deleteWorkExperience/$1', ['filter' => 'candidate']);
+$routes->post('candidate/add-education', 'Candidate::addEducation', ['filter' => 'candidate']);
+$routes->get('candidate/delete-education/(:num)', 'Candidate::deleteEducation/$1', ['filter' => 'candidate']);
+$routes->post('candidate/add-certification', 'Candidate::addCertification', ['filter' => 'candidate']);
+$routes->get('candidate/delete-certification/(:num)', 'Candidate::deleteCertification/$1', ['filter' => 'candidate']);
+$routes->post('candidate/add-project', 'Candidate::addProject', ['filter' => 'candidate']);
+$routes->get('candidate/delete-project/(:num)', 'Candidate::deleteProject/$1', ['filter' => 'candidate']);
+$routes->post('candidate/add-interest', 'Candidate::addInterest', ['filter' => 'candidate']);
+$routes->get('candidate/delete-interest/(:any)', 'Candidate::deleteInterest/$1', ['filter' => 'candidate']);
 
-$routes->get('recruiter/candidate/(:num)', 'RecruiterCandidates::viewProfile/$1', ['filter' => 'auth']);
-$routes->get('recruiter/candidate/(:num)/view-contact', 'RecruiterCandidates::viewContact/$1', ['filter' => 'auth']);
-$routes->get('recruiter/candidate/(:num)/download-resume', 'RecruiterCandidates::downloadResume/$1', ['filter' => 'auth']);
-$routes->post('recruiter/candidate/(:num)/send-message', 'RecruiterCandidates::sendMessage/$1', ['filter' => 'auth']);
-$routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::saveNotes/$1', ['filter' => 'auth']);
+$routes->get('recruiter/candidate/(:num)', 'RecruiterCandidates::viewProfile/$1', ['filter' => 'recruiter']);
+$routes->get('recruiter/candidate/(:num)/view-contact', 'RecruiterCandidates::viewContact/$1', ['filter' => 'recruiter']);
+$routes->get('recruiter/candidate/(:num)/download-resume', 'RecruiterCandidates::downloadResume/$1', ['filter' => 'recruiter']);
+$routes->post('recruiter/candidate/(:num)/send-message', 'RecruiterCandidates::sendMessage/$1', ['filter' => 'recruiter']);
+$routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::saveNotes/$1', ['filter' => 'recruiter']);
 
 // AI Interview Routes
-$routes->group('interview', ['filter' => 'auth'], function($routes) {
+$routes->group('interview', ['filter' => 'candidate'], function($routes) {
     $routes->get('start/(:num)', 'AiInterview::start/$1');
     $routes->post('begin/(:num)', 'AiInterview::begin/$1');
     $routes->get('chat/(:num)', 'AiInterview::chat/$1');
@@ -158,7 +161,7 @@ $routes->group('notifications', ['filter' => 'auth'], function($routes) {
 });
 
 // Interview Slot Booking Routes
-$routes->group('candidate', ['filter' => 'auth'], function($routes) {
+$routes->group('candidate', ['filter' => 'candidate'], function($routes) {
     $routes->get('book-slot/(:num)', 'SlotBookingController::bookSlot/$1');
     $routes->post('process-booking', 'SlotBookingController::processBooking');
     $routes->get('reschedule-slot/(:num)', 'SlotBookingController::rescheduleSlot/$1');
@@ -167,7 +170,7 @@ $routes->group('candidate', ['filter' => 'auth'], function($routes) {
 });
 
 // Interview Slot Management Routes (Admin)
-$routes->group('recruiter', ['filter' => 'auth'], function($routes) {
+$routes->group('recruiter', ['filter' => 'recruiter'], function($routes) {
     
     // Slot Management
     $routes->get('slots', 'SlotManagementController::index');

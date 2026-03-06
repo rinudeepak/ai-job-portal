@@ -56,12 +56,14 @@
     $isApplicationStatusActive = $pathEndsWith('/candidate/applications');
     $isSavedJobsActive = $pathEndsWith('/candidate/saved-jobs');
     $isJobAlertsActive = $pathEndsWith('/candidate/job-alerts');
+    $isCompaniesActive = $pathEndsWith('/companies') || str_contains($currentPath, '/company/');
     $isJobsRoot = $isJobsListActive || $isSavedJobsActive || $isJobDetailsActive;
     $isJobsActive = $isJobsRoot || $isApplicationStatusActive || $isJobAlertsActive;
     $isCareerTransitionActive = str_contains($currentPath, '/career-transition');
 
     $homeNavClass = $isHomeActive ? 'nav-link active' : 'nav-link';
     $jobsNavClass = $isJobsActive ? 'nav-link active' : 'nav-link';
+    $companiesNavClass = $isCompaniesActive ? 'nav-link active' : 'nav-link';
     $careerNavClass = $isCareerTransitionActive ? 'nav-link active' : 'nav-link';
     $recommendedClass = $isRecommendedActive ? 'active' : '';
     $applicationStatusClass = $isApplicationStatusActive ? 'active' : '';
@@ -69,7 +71,7 @@
     $jobAlertsClass = $isJobAlertsActive ? 'active' : '';
 
     if ($candidatePhoto === '' && $candidateId > 0) {
-        $candidateRecord = model('UserModel')->select('profile_photo')->find($candidateId);
+        $candidateRecord = model('UserModel')->findCandidateWithProfile($candidateId);
         $candidatePhoto = (string) ($candidateRecord['profile_photo'] ?? '');
     }
     ?>
@@ -103,6 +105,7 @@
                                 <li><a href="<?= base_url('candidate/job-alerts') ?>" class="<?= $jobAlertsClass ?>">Job Alerts</a></li>
                             </ul>
                         </li>
+                        <li><a href="<?= base_url('companies') ?>" class="<?= $companiesNavClass ?>">Companies</a></li>
                         <li><a href="<?= base_url('career-transition') ?>" class="<?= $careerNavClass ?>">Career Transition AI</a></li>
                     </ul>
                 </nav>

@@ -31,9 +31,13 @@ class Candidate extends BaseController
 
     public function profile()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $userId = session()->get('user_id');
         $userModel = model('UserModel');
-        $user = $userModel->find($userId);
+        $user = $userModel->findCandidateWithProfile((int) $userId) ?? $userModel->find($userId);
         $githubModel = model('GithubAnalysisModel');
         $github = $githubModel->where('candidate_id', $userId)->first();
         $skillsModel = model('CandidateSkillsModel');
@@ -109,8 +113,13 @@ class Candidate extends BaseController
 
     public function resumeStudio()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $userId = (int) session()->get('user_id');
-        $user = (new UserModel())->find($userId) ?? [];
+        $userModel = new UserModel();
+        $user = $userModel->findCandidateWithProfile($userId) ?? $userModel->find($userId) ?? [];
 
         $studioData = $this->buildResumeStudioData($userId, $user);
 
@@ -158,9 +167,10 @@ class Candidate extends BaseController
         $filePath = $uploadPath . $file->getName();
 
         $candidateModel = new UserModel();
-        $candidateModel->update($candidateId, [
+        $resumeData = [
             'resume_path' => 'uploads/resumes/' . $file->getName()
-        ]);
+        ];
+        $candidateModel->upsertCandidateProfile((int) $candidateId, $resumeData);
 
         $parser = new ResumeParser();
         $result = $parser->parse($filePath);
@@ -452,7 +462,7 @@ class Candidate extends BaseController
     {
         $userId = session()->get('user_id');
         $userModel = model('UserModel');
-        $user = $userModel->find($userId);
+        $user = $userModel->findCandidateWithProfile((int) $userId) ?? $userModel->find($userId);
         
         if (!$user || empty($user['resume_path'])) {
             return redirect()->back()->with('error', 'No resume found');
@@ -471,7 +481,7 @@ class Candidate extends BaseController
     {
         $userId = session()->get('user_id');
         $userModel = model('UserModel');
-        $user = $userModel->find($userId);
+        $user = $userModel->findCandidateWithProfile((int) $userId) ?? $userModel->find($userId);
         
         if (!$user || empty($user['resume_path'])) {
             return $this->response->setJSON(['error' => 'No resume found']);
@@ -501,7 +511,7 @@ class Candidate extends BaseController
     {
         $userId = session()->get('user_id');
         $userModel = model('UserModel');
-        $user = $userModel->find($userId);
+        $user = $userModel->findCandidateWithProfile((int) $userId) ?? $userModel->find($userId);
         
         if (!$user || empty($user['resume_path'])) {
             throw new \CodeIgniter\Exceptions\PageNotFoundException('Resume not found');
@@ -526,7 +536,7 @@ class Candidate extends BaseController
         $userId = session()->get('user_id');
         $userModel = model('UserModel');
         
-        $data = [
+        $baseData = [
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
             'phone' => $this->request->getPost('phone'),
@@ -534,11 +544,36 @@ class Candidate extends BaseController
             'bio' => $this->request->getPost('bio'),
             'work_experience' => $this->request->getPost('work_experience')
         ];
-        
-        $userModel->update($userId, $data);
-        session()->set('user_name', $data['name']);
+
+        $userModel->update($userId, [
+            'name' => $baseData['name'],
+            'email' => $baseData['email'],
+            'phone' => $baseData['phone'],
+        ]);
+        $userModel->upsertCandidateProfile((int) $userId, [
+            'location' => $baseData['location'],
+            'bio' => $baseData['bio'],
+        ]);
+        session()->set('user_name', (string) $baseData['name']);
         
         return redirect()->back()->with('personal_success', 'Personal information updated successfully');
+    }
+
+    public function updateCareerDetails()
+    {
+        $userId = session()->get('user_id');
+        $userModel = model('UserModel');
+        
+        $data = [
+            'resume_headline' => $this->request->getPost('resume_headline'),
+            'preferred_locations' => $this->request->getPost('preferred_locations'),
+            'current_salary' => $this->request->getPost('current_salary') ?: null,
+            'expected_salary' => $this->request->getPost('expected_salary') ?: null,
+            'notice_period' => $this->request->getPost('notice_period')
+        ];
+        $userModel->upsertCandidateProfile((int) $userId, $data);
+        
+        return redirect()->back()->with('career_success', 'Career details updated successfully');
     }
 
     public function uploadPhoto()
@@ -570,7 +605,7 @@ class Candidate extends BaseController
         
         $userModel = model('UserModel');
         $photoPath = 'uploads/profiles/' . $newName;
-        $userModel->update($userId, ['profile_photo' => $photoPath]);
+        $userModel->upsertCandidateProfile((int) $userId, ['profile_photo' => $photoPath]);
         session()->set('profile_photo', $photoPath);
         
         return redirect()->back()->with('success', 'Profile photo updated successfully');
@@ -580,7 +615,7 @@ class Candidate extends BaseController
     {
         $userId = (int) session()->get('user_id');
         $userModel = model('UserModel');
-        $user = $userModel->find($userId);
+        $user = $userModel->findCandidateWithProfile($userId) ?? $userModel->find($userId);
 
         if (!$user) {
             return redirect()->back()->with('error', 'User not found');
@@ -599,7 +634,7 @@ class Candidate extends BaseController
             }
         }
 
-        $userModel->update($userId, ['profile_photo' => '']);
+        $userModel->upsertCandidateProfile((int) $userId, ['profile_photo' => '']);
         session()->remove('profile_photo');
 
         return redirect()->back()->with('success', 'Profile photo removed successfully');
@@ -883,7 +918,8 @@ class Candidate extends BaseController
 
     private function buildResumeProfileSnapshot(int $candidateId): array
     {
-        $user = (new UserModel())->find($candidateId) ?? [];
+        $userModel = new UserModel();
+        $user = $userModel->findCandidateWithProfile($candidateId) ?? $userModel->find($candidateId) ?? [];
         $skillsRow = (new CandidateSkillsModel())->where('candidate_id', $candidateId)->first();
         $interestsRow = (new CandidateInterestsModel())->where('candidate_id', $candidateId)->first();
         $githubRow = (new GithubAnalysisModel())->where('candidate_id', $candidateId)->first();

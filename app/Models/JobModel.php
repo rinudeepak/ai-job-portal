@@ -28,7 +28,9 @@ class JobModel extends Model
         'ai_interview_policy',
         'openings',
         'status',
-        'employment_type'
+        'employment_type',
+        'salary_range',
+        'application_deadline'
     ];
 
     public static function normalizeAiPolicy(?string $policy): string

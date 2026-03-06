@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\CompanyModel;
+use App\Models\CompanyReviewModel;
 use App\Models\JobModel;
 use App\Models\UserModel;
 
@@ -10,10 +11,71 @@ class CompanyProfile extends BaseController
 {
     private const MAX_BRANDING_PHOTOS = 6;
 
+    public function index()
+    {
+        $companyModel = new CompanyModel();
+        $jobModel = new JobModel();
+
+        $query = trim((string) $this->request->getGet('q'));
+        $industry = trim((string) $this->request->getGet('industry'));
+        $location = trim((string) $this->request->getGet('location'));
+
+        $builder = $companyModel
+            ->select('companies.*, COUNT(DISTINCT jobs.id) as open_jobs_count')
+            ->join('jobs', "jobs.company_id = companies.id AND jobs.status = 'open'", 'left')
+            ->groupBy('companies.id')
+            ->orderBy('open_jobs_count', 'DESC')
+            ->orderBy('companies.name', 'ASC');
+
+        if ($query !== '') {
+            $builder->groupStart()
+                ->like('companies.name', $query)
+                ->orLike('companies.short_description', $query)
+                ->orLike('companies.what_we_do', $query)
+                ->groupEnd();
+        }
+
+        if ($industry !== '') {
+            $builder->like('companies.industry', $industry);
+        }
+
+        if ($location !== '') {
+            $builder->groupStart()
+                ->like('companies.hq', $location)
+                ->orLike('companies.branches', $location)
+                ->groupEnd();
+        }
+
+        $companies = $builder->paginate(12);
+        $pager = $companyModel->pager;
+
+        $industries = $companyModel
+            ->select('industry')
+            ->where('industry IS NOT NULL')
+            ->where('industry !=', '')
+            ->groupBy('industry')
+            ->orderBy('industry', 'ASC')
+            ->findAll();
+
+        return view('company/index', [
+            'companies' => $companies,
+            'pager' => $pager,
+            'filters' => [
+                'q' => $query,
+                'industry' => $industry,
+                'location' => $location,
+            ],
+            'industries' => array_values(array_filter(array_map(static fn (array $row): string => trim((string) ($row['industry'] ?? '')), $industries))),
+            'totalCompanies' => $companyModel->countAllResults(),
+            'totalOpenJobs' => $jobModel->where('status', 'open')->countAllResults(),
+        ]);
+    }
+
     public function show(int $id)
     {
         $userModel = new UserModel();
         $companyModel = new CompanyModel();
+        $companyReviewModel = new CompanyReviewModel();
         $jobModel = new JobModel();
 
         // First treat route param as company_id (new model).
@@ -22,7 +84,7 @@ class CompanyProfile extends BaseController
 
         // Backward compatibility: if not found, treat it as recruiter_id.
         if (!$company) {
-            $recruiter = $userModel->where('id', $id)->where('role', 'recruiter')->first();
+            $recruiter = $userModel->findRecruiterWithProfile((int) $id);
             if (!$recruiter) {
                 return redirect()->back()->with('error', 'Company profile not found.');
             }
@@ -40,12 +102,176 @@ class CompanyProfile extends BaseController
 
         $openJobs = $jobModel->where('company_id', $companyId)->where('status', 'open')->orderBy('created_at', 'DESC')->findAll(5);
         $openJobsCount = $jobModel->where('company_id', $companyId)->where('status', 'open')->countAllResults();
+        $reviews = $companyReviewModel
+            ->select('company_reviews.*, users.name as candidate_name')
+            ->join('users', 'users.id = company_reviews.candidate_id', 'left')
+            ->where('company_reviews.company_id', $companyId)
+            ->where('company_reviews.status', 'published')
+            ->orderBy('company_reviews.updated_at', 'DESC')
+            ->findAll(8);
+
+        $reviewSummary = $companyReviewModel
+            ->select('COUNT(*) as total_reviews, AVG(rating) as average_rating')
+            ->where('company_id', $companyId)
+            ->where('status', 'published')
+            ->first();
+
+        $currentUserReview = null;
+        $reviewEligibility = [
+            'canInterviewReview' => false,
+            'canEmployeeReview' => false,
+        ];
+        if ((string) session()->get('role') === 'candidate' && (int) session()->get('user_id') > 0) {
+            $candidateId = (int) session()->get('user_id');
+            $currentUserReview = $companyReviewModel
+                ->where('company_id', $companyId)
+                ->where('candidate_id', $candidateId)
+                ->first();
+            $reviewEligibility = [
+                'canInterviewReview' => $this->hasInterviewEligibility($candidateId, $companyId),
+                'canEmployeeReview' => $this->hasEmployeeEligibility($candidateId, $companyId),
+            ];
+        }
 
         return view('company/profile', [
             'company' => $company,
             'openJobs' => $openJobs,
             'openJobsCount' => $openJobsCount,
+            'reviews' => $reviews,
+            'reviewSummary' => $reviewSummary,
+            'currentUserReview' => $currentUserReview,
+            'reviewEligibility' => $reviewEligibility,
         ]);
+    }
+
+    public function submitReview(int $companyId)
+    {
+        $session = session();
+        if (!$session->get('logged_in') || $session->get('role') !== 'candidate') {
+            return redirect()->to(base_url('login'))->with('error', 'Candidate login required.');
+        }
+
+        $companyModel = new CompanyModel();
+        $companyReviewModel = new CompanyReviewModel();
+
+        $company = $companyModel->find($companyId);
+        if (!$company) {
+            return redirect()->back()->with('error', 'Company not found.');
+        }
+
+        $rating = (int) $this->request->getPost('rating');
+        $reviewType = trim((string) $this->request->getPost('review_type'));
+        $headline = trim((string) $this->request->getPost('headline'));
+        $reviewText = trim((string) $this->request->getPost('review_text'));
+        $pros = trim((string) $this->request->getPost('pros'));
+        $cons = trim((string) $this->request->getPost('cons'));
+        $candidateId = (int) $session->get('user_id');
+
+        if ($rating < 1 || $rating > 5) {
+            return redirect()->back()->withInput()->with('error', 'Please select a rating between 1 and 5.');
+        }
+
+        if (!in_array($reviewType, ['interview', 'employee'], true)) {
+            return redirect()->back()->withInput()->with('error', 'Please choose a review type.');
+        }
+
+        $canInterviewReview = $this->hasInterviewEligibility($candidateId, $companyId);
+        $canEmployeeReview = $this->hasEmployeeEligibility($candidateId, $companyId);
+
+        if (!$canInterviewReview) {
+            return redirect()->back()->withInput()->with('error', 'You can review this company only after applying or interviewing with them.');
+        }
+
+        if ($reviewType === 'employee' && !$canEmployeeReview) {
+            return redirect()->back()->withInput()->with('error', 'Employee reviews are available only for candidates with a selected or hired outcome at this company.');
+        }
+
+        if ($headline === '' || mb_strlen($headline) < 4) {
+            return redirect()->back()->withInput()->with('error', 'Review headline must be at least 4 characters.');
+        }
+
+        if ($reviewText === '' || mb_strlen($reviewText) < 20) {
+            return redirect()->back()->withInput()->with('error', 'Review text must be at least 20 characters.');
+        }
+
+        $payload = [
+            'company_id' => $companyId,
+            'candidate_id' => $candidateId,
+            'review_type' => $reviewType,
+            'rating' => $rating,
+            'headline' => $headline,
+            'review_text' => $reviewText,
+            'pros' => $pros,
+            'cons' => $cons,
+            'status' => 'published',
+        ];
+
+        $existingReview = $companyReviewModel
+            ->where('company_id', $companyId)
+            ->where('candidate_id', $candidateId)
+            ->first();
+
+        if ($existingReview) {
+            $updated = $companyReviewModel->update((int) $existingReview['id'], $payload);
+            if (!$updated) {
+                $errorText = implode(' ', $companyReviewModel->errors());
+                if ($errorText === '') {
+                    $dbError = $companyReviewModel->db->error();
+                    $errorText = trim((string) ($dbError['message'] ?? 'Unable to update your review right now.'));
+                }
+
+                return redirect()->to(base_url('company/' . $companyId) . '#write-review')
+                    ->withInput()
+                    ->with('error', $errorText);
+            }
+
+            return redirect()->to(base_url('company/' . $companyId) . '#company-reviews')
+                ->with('success', 'Your review has been updated.');
+        }
+
+        $inserted = $companyReviewModel->insert($payload);
+        if ($inserted === false) {
+            $errorText = implode(' ', $companyReviewModel->errors());
+            if ($errorText === '') {
+                $dbError = $companyReviewModel->db->error();
+                $errorText = trim((string) ($dbError['message'] ?? 'Unable to publish your review right now.'));
+            }
+
+            return redirect()->to(base_url('company/' . $companyId) . '#write-review')
+                ->withInput()
+                ->with('error', $errorText);
+        }
+
+        return redirect()->to(base_url('company/' . $companyId) . '#company-reviews')
+            ->with('success', 'Your review has been published.');
+    }
+
+    private function hasInterviewEligibility(int $candidateId, int $companyId): bool
+    {
+        $db = \Config\Database::connect();
+
+        $count = $db->table('applications')
+            ->join('jobs', 'jobs.id = applications.job_id', 'inner')
+            ->where('applications.candidate_id', $candidateId)
+            ->where('jobs.company_id', $companyId)
+            ->where('applications.status !=', 'withdrawn')
+            ->countAllResults();
+
+        return $count > 0;
+    }
+
+    private function hasEmployeeEligibility(int $candidateId, int $companyId): bool
+    {
+        $db = \Config\Database::connect();
+
+        $count = $db->table('applications')
+            ->join('jobs', 'jobs.id = applications.job_id', 'inner')
+            ->where('applications.candidate_id', $candidateId)
+            ->where('jobs.company_id', $companyId)
+            ->whereIn('applications.status', ['selected', 'hired'])
+            ->countAllResults();
+
+        return $count > 0;
     }
 
     public function edit()
@@ -59,7 +285,7 @@ class CompanyProfile extends BaseController
         $companyModel = new CompanyModel();
         $recruiterId = (int) $session->get('user_id');
 
-        $recruiter = $userModel->find($recruiterId);
+        $recruiter = $userModel->findRecruiterWithProfile($recruiterId) ?? $userModel->find($recruiterId);
         if (!$recruiter) {
             return redirect()->to(base_url('login'))->with('error', 'User not found.');
         }
@@ -80,7 +306,7 @@ class CompanyProfile extends BaseController
         $userId = (int) $session->get('user_id');
         $userModel = new UserModel();
         $companyModel = new CompanyModel();
-        $recruiter = $userModel->find($userId);
+        $recruiter = $userModel->findRecruiterWithProfile($userId) ?? $userModel->find($userId);
         if (!$recruiter) {
             return redirect()->to(base_url('login'))->with('error', 'User not found.');
         }
@@ -216,11 +442,32 @@ class CompanyProfile extends BaseController
             }
         }
 
-        // Keep users.company_name snapshot and foreign key in sync.
+        // Keep recruiter foreign key and recruiter profile snapshot in sync.
         $userModel->update($userId, [
-            'company_name' => $data['name'],
             'company_id' => $companyId > 0 ? $companyId : null,
         ]);
+        $userModel->upsertRecruiterProfile($userId, [
+            'company_name' => $data['name'],
+        ]);
+
+        $db = \Config\Database::connect();
+        if ($db->tableExists('recruiter_company_map') && $companyId > 0) {
+            $exists = $db->table('recruiter_company_map')
+                ->where('recruiter_user_id', $userId)
+                ->where('company_id', $companyId)
+                ->get()
+                ->getRowArray();
+
+            if (!$exists) {
+                $db->table('recruiter_company_map')->insert([
+                    'recruiter_user_id' => $userId,
+                    'company_id' => $companyId,
+                    'is_admin' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
 
         // Keep existing jobs snapshot + company_id aligned for this recruiter's old posts.
         model('JobModel')

@@ -111,6 +111,11 @@ $cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
                                     <span class="icon-clock-o mr-2"></span>
                                     <span class="text-primary"><?= esc(ucwords(str_replace('-', ' ', $job['employment_type'] ?? 'Full Time'))) ?></span>
                                 </span>
+                                <?php if (!empty(trim((string) ($job['salary_range'] ?? '')))): ?>
+                                    <span class="m-2 d-inline-block">
+                                        <span class="icon-attach_money mr-2"></span><?= esc($job['salary_range']) ?>
+                                    </span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -265,8 +270,20 @@ $cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
                         <ul class="list-unstyled pl-3 mb-0">
                             <li class="mb-2"><strong class="text-black">Published on:</strong> <?= date('d M Y', strtotime($job['created_at'])) ?></li>
                             <li class="mb-2"><strong class="text-black">Company:</strong> <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a></li>
+                            <?php if (!empty(trim((string) ($job['category'] ?? '')))): ?>
+                                <li class="mb-2"><strong class="text-black">Category:</strong> <?= esc($job['category']) ?></li>
+                            <?php endif; ?>
                             <li class="mb-2"><strong class="text-black">Employment Status:</strong> <?= esc(ucwords(str_replace('-', ' ', $job['employment_type'] ?? 'Full Time'))) ?></li>
                             <li class="mb-2"><strong class="text-black">Experience:</strong> <?= esc($job['experience_level'] ?? 'Not specified') ?></li>
+                            <?php if (!empty(trim((string) ($job['salary_range'] ?? '')))): ?>
+                                <li class="mb-2"><strong class="text-black">Salary Range:</strong> <?= esc($job['salary_range']) ?></li>
+                            <?php endif; ?>
+                            <?php if (!empty(trim((string) ($job['application_deadline'] ?? '')))): ?>
+                                <li class="mb-2"><strong class="text-black">Application Deadline:</strong> <?= date('d M Y', strtotime((string) $job['application_deadline'])) ?></li>
+                            <?php endif; ?>
+                            <?php if (!empty($job['openings'])): ?>
+                                <li class="mb-2"><strong class="text-black">Openings:</strong> <?= esc((string) $job['openings']) ?></li>
+                            <?php endif; ?>
                             <li class="mb-2"><strong class="text-black">Job Location:</strong> <?= esc($job['location']) ?></li>
                         </ul>
                     </div>

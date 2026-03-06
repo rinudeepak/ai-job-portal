@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\AiCandidateMatcher;
 use App\Libraries\ResumeTemplateRenderer;
 use App\Models\UserModel;
 use App\Models\ApplicationModel;
@@ -34,6 +35,8 @@ class RecruiterCandidates extends BaseController
             'exp_min' => trim((string) $this->request->getGet('exp_min')),
             'exp_max' => trim((string) $this->request->getGet('exp_max')),
             'resume' => trim((string) $this->request->getGet('resume')),
+            'job_id' => (int) ($this->request->getGet('job_id') ?? 0),
+            'ai' => (int) ($this->request->getGet('ai') ?? 0),
         ];
 
         $expMinYears = is_numeric($filters['exp_min']) ? max(0, (float) $filters['exp_min']) : null;
@@ -47,12 +50,39 @@ class RecruiterCandidates extends BaseController
         if (!in_array($filters['resume'], ['', 'yes', 'no'], true)) {
             $filters['resume'] = '';
         }
+        if (!in_array($filters['ai'], [0, 1], true)) {
+            $filters['ai'] = 0;
+        }
+
+        $jobModel = model('JobModel');
+        $recruiterId = (int) session()->get('user_id');
+        $recruiterJobs = $jobModel
+            ->select('id, title, category, location, required_skills, experience_level, employment_type, status')
+            ->where('recruiter_id', $recruiterId)
+            ->where('status', 'open')
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        $selectedJob = null;
+        if ($filters['job_id'] > 0) {
+            foreach ($recruiterJobs as $job) {
+                if ((int) ($job['id'] ?? 0) === $filters['job_id']) {
+                    $selectedJob = $job;
+                    break;
+                }
+            }
+            if ($selectedJob === null) {
+                $filters['job_id'] = 0;
+                $filters['ai'] = 0;
+            }
+        }
 
         $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
 
         $builder = $userModel
-            ->select('users.id, users.name, users.email, users.location, users.resume_path, users.profile_photo, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
+            ->select('users.id, users.name, users.email, candidate_profiles.location as location, candidate_profiles.resume_path as resume_path, candidate_profiles.profile_photo as profile_photo, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
             ->join('candidate_skills', 'candidate_skills.candidate_id = users.id', 'left')
+            ->join('candidate_profiles', 'candidate_profiles.user_id = users.id', 'left')
             ->join($experienceSubQuery, 'candidate_experience.user_id = users.id', 'left', false)
             ->where('users.role', 'candidate')
             ->groupBy('users.id')
@@ -71,7 +101,11 @@ class RecruiterCandidates extends BaseController
         }
 
         if ($filters['location'] !== '') {
-            $builder->like('users.location', $filters['location']);
+            $builder->where(
+                'candidate_profiles.location LIKE ' . $builder->db->escape('%' . $filters['location'] . '%'),
+                null,
+                false
+            );
         }
 
         if ($expMinMonths !== null) {
@@ -83,12 +117,12 @@ class RecruiterCandidates extends BaseController
         }
 
         if ($filters['resume'] === 'yes') {
-            $builder->where('users.resume_path IS NOT NULL', null, false)
-                ->where('users.resume_path <>', '');
+            $builder->where('candidate_profiles.resume_path IS NOT NULL', null, false)
+                ->where('candidate_profiles.resume_path <>', '');
         } elseif ($filters['resume'] === 'no') {
             $builder->groupStart()
-                ->where('users.resume_path IS NULL', null, false)
-                ->orWhere('users.resume_path =', '')
+                ->where('candidate_profiles.resume_path IS NULL', null, false)
+                ->orWhere('candidate_profiles.resume_path =', '')
                 ->groupEnd();
         }
 
@@ -100,9 +134,70 @@ class RecruiterCandidates extends BaseController
         }
         unset($candidate);
 
+        $aiSuggestions = [];
+        if ($selectedJob && $filters['ai'] === 1) {
+            $suggestionBuilder = $userModel
+                ->select('users.id, users.name, users.email, candidate_profiles.location as location, candidate_profiles.resume_path as resume_path, candidate_profiles.profile_photo as profile_photo, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
+                ->join('candidate_skills', 'candidate_skills.candidate_id = users.id', 'left')
+                ->join('candidate_profiles', 'candidate_profiles.user_id = users.id', 'left')
+                ->join($experienceSubQuery, 'candidate_experience.user_id = users.id', 'left', false)
+                ->where('users.role', 'candidate')
+                ->groupBy('users.id')
+                ->orderBy('users.created_at', 'DESC');
+
+            if ($filters['keyword'] !== '') {
+                $suggestionBuilder->groupStart()
+                    ->like('users.name', $filters['keyword'])
+                    ->orLike('users.email', $filters['keyword'])
+                    ->orLike('candidate_skills.skill_name', $filters['keyword'])
+                    ->groupEnd();
+            }
+
+            if ($filters['skills'] !== '') {
+                $suggestionBuilder->like('candidate_skills.skill_name', $filters['skills']);
+            }
+
+            if ($filters['location'] !== '') {
+                $suggestionBuilder->where(
+                    'candidate_profiles.location LIKE ' . $suggestionBuilder->db->escape('%' . $filters['location'] . '%'),
+                    null,
+                    false
+                );
+            }
+
+            if ($expMinMonths !== null) {
+                $suggestionBuilder->where('COALESCE(candidate_experience.total_experience_months, 0) >= ' . $expMinMonths, null, false);
+            }
+
+            if ($expMaxMonths !== null) {
+                $suggestionBuilder->where('COALESCE(candidate_experience.total_experience_months, 0) <= ' . $expMaxMonths, null, false);
+            }
+
+            if ($filters['resume'] === 'yes') {
+                $suggestionBuilder->where('candidate_profiles.resume_path IS NOT NULL', null, false)
+                    ->where('candidate_profiles.resume_path <>', '');
+            } elseif ($filters['resume'] === 'no') {
+                $suggestionBuilder->groupStart()
+                    ->where('candidate_profiles.resume_path IS NULL', null, false)
+                    ->orWhere('candidate_profiles.resume_path =', '')
+                    ->groupEnd();
+            }
+
+            $candidatePool = $suggestionBuilder->limit(120)->findAll();
+            foreach ($candidatePool as &$poolRow) {
+                $poolRow['experience_display'] = $this->formatExperienceDisplay((int) ($poolRow['total_experience_months'] ?? 0));
+            }
+            unset($poolRow);
+
+            $aiSuggestions = (new AiCandidateMatcher())->rankCandidatesForJob($selectedJob, $candidatePool, 20);
+        }
+
         return view('recruiter/candidates/index', [
             'candidates' => $candidates,
             'pager' => $pager,
+            'recruiterJobs' => $recruiterJobs,
+            'selectedJob' => $selectedJob,
+            'aiSuggestions' => $aiSuggestions,
             'filters' => [
                 'keyword' => $filters['keyword'],
                 'skills' => $filters['skills'],
@@ -110,6 +205,8 @@ class RecruiterCandidates extends BaseController
                 'exp_min' => $expMinYears !== null ? (string) $expMinYears : '',
                 'exp_max' => $expMaxYears !== null ? (string) $expMaxYears : '',
                 'resume' => $filters['resume'],
+                'job_id' => $filters['job_id'],
+                'ai' => $filters['ai'],
             ],
         ]);
     }
@@ -121,7 +218,7 @@ class RecruiterCandidates extends BaseController
         }
 
         $userModel = new UserModel();
-        $candidate = $userModel->find($candidateId);
+        $candidate = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         
         if (!$candidate || $candidate['role'] !== 'candidate') {
             return redirect()->back()->with('error', 'Candidate not found');
@@ -191,7 +288,8 @@ class RecruiterCandidates extends BaseController
             return redirect()->to(base_url('login'))->with('error', 'Unauthorized');
         }
 
-        $candidate = (new UserModel())->find($candidateId);
+        $userModel = new UserModel();
+        $candidate = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         if (!$candidate || $candidate['role'] !== 'candidate') {
             return redirect()->back()->with('error', 'Candidate not found');
         }
@@ -233,7 +331,8 @@ class RecruiterCandidates extends BaseController
             return redirect()->to(base_url('login'))->with('error', 'Unauthorized');
         }
 
-        $candidate = (new UserModel())->find($candidateId);
+        $userModel = new UserModel();
+        $candidate = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         if (!$candidate || $candidate['role'] !== 'candidate') {
             return redirect()->back()->with('error', 'Resume not found.');
         }
@@ -292,7 +391,8 @@ class RecruiterCandidates extends BaseController
             return redirect()->to(base_url('login'))->with('error', 'Unauthorized');
         }
 
-        $candidate = (new UserModel())->find($candidateId);
+        $userModel = new UserModel();
+        $candidate = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         if (!$candidate || $candidate['role'] !== 'candidate') {
             return redirect()->back()->with('error', 'Candidate not found');
         }
@@ -346,7 +446,8 @@ class RecruiterCandidates extends BaseController
             return redirect()->to(base_url('login'))->with('error', 'Unauthorized');
         }
 
-        $candidate = (new UserModel())->find($candidateId);
+        $userModel = new UserModel();
+        $candidate = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         if (!$candidate || $candidate['role'] !== 'candidate') {
             return redirect()->back()->with('error', 'Candidate not found');
         }

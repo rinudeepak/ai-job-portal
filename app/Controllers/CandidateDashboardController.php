@@ -11,6 +11,10 @@ class CandidateDashboardController extends BaseController
 {
     public function index()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $candidateId = session()->get('user_id');
         
         if (!$candidateId) {
@@ -237,7 +241,7 @@ class CandidateDashboardController extends BaseController
         
         // Check for profile completion
         $userModel = model('UserModel');
-        $user = $userModel->find($candidateId);
+        $user = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         
         if (empty($user['resume_path']) || empty($user['phone']) || empty($user['bio']) || empty($user['email'])) {
             $actions[] = [
@@ -353,6 +357,10 @@ class CandidateDashboardController extends BaseController
      */
     public function applications()
     {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $candidateId = session()->get('user_id');
         
         if (!$candidateId) {

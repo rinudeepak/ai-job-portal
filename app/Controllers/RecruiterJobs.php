@@ -49,19 +49,77 @@ class RecruiterJobs extends BaseController
             return redirect()->to('recruiter/jobs')->with('error', 'Job not found');
         }
 
+        $title = trim((string) $this->request->getPost('title'));
+        $category = trim((string) $this->request->getPost('category'));
+        $description = trim((string) $this->request->getPost('description'));
+        $location = trim((string) $this->request->getPost('location'));
+        $requiredSkills = trim((string) $this->request->getPost('required_skills'));
+        $experienceLevel = trim((string) $this->request->getPost('experience_level'));
+        $employmentType = trim((string) $this->request->getPost('employment_type'));
+        $salaryRange = trim((string) $this->request->getPost('salary_range'));
+        $applicationDeadlineRaw = trim((string) $this->request->getPost('application_deadline'));
+        $openings = (int) $this->request->getPost('openings');
+        $minAiCutoffRaw = trim((string) $this->request->getPost('min_ai_cutoff_score'));
+        $minAiCutoff = $minAiCutoffRaw === '' ? null : (int) $minAiCutoffRaw;
+
+        if ($title === '' || $category === '' || $description === '' || $location === '') {
+            return redirect()->back()->withInput()->with('error', 'Title, category, description and location are required.');
+        }
+
+        if ($openings <= 0) {
+            return redirect()->back()->withInput()->with('error', 'Openings must be greater than 0.');
+        }
+
+        $applicationDeadline = null;
+        if ($applicationDeadlineRaw !== '') {
+            $parsedDate = \DateTime::createFromFormat('Y-m-d', $applicationDeadlineRaw);
+            $dateErrors = \DateTime::getLastErrors();
+            if (!$parsedDate || ($dateErrors['warning_count'] ?? 0) > 0 || ($dateErrors['error_count'] ?? 0) > 0) {
+                return redirect()->back()->withInput()->with('error', 'Application deadline must be a valid date.');
+            }
+            $applicationDeadline = $parsedDate->format('Y-m-d');
+        }
+
         $data = [
-            'title' => $this->request->getPost('title'),
-            'description' => $this->request->getPost('description'),
-            'location' => $this->request->getPost('location'),
-            'salary' => $this->request->getPost('salary'),
-            'required_skills' => $this->request->getPost('required_skills'),
-            'openings' => $this->request->getPost('openings')
+            'title' => $title,
+            'category' => $category,
+            'description' => $description,
+            'location' => $location,
+            'required_skills' => $requiredSkills,
+            'experience_level' => $experienceLevel,
+            'employment_type' => $employmentType,
+            'openings' => $openings
         ];
 
         // Keep backward compatibility if DB is not migrated yet.
         $db = \Config\Database::connect();
         if ($db->fieldExists('ai_interview_policy', 'jobs')) {
-            $data['ai_interview_policy'] = JobModel::normalizeAiPolicy($this->request->getPost('ai_interview_policy'));
+            $aiInterviewPolicy = JobModel::normalizeAiPolicy($this->request->getPost('ai_interview_policy'));
+
+            if ($aiInterviewPolicy !== JobModel::AI_POLICY_OFF) {
+                if ($minAiCutoff === null) {
+                    return redirect()->back()->withInput()->with('error', 'Minimum AI cutoff score is required when AI interview is enabled.');
+                }
+
+                if ($minAiCutoff < 0 || $minAiCutoff > 100) {
+                    return redirect()->back()->withInput()->with('error', 'Minimum AI cutoff score must be between 0 and 100.');
+                }
+            } else {
+                $minAiCutoff = 0;
+            }
+
+            $data['ai_interview_policy'] = $aiInterviewPolicy;
+            if ($db->fieldExists('min_ai_cutoff_score', 'jobs')) {
+                $data['min_ai_cutoff_score'] = $minAiCutoff;
+            }
+        }
+
+        if ($db->fieldExists('salary_range', 'jobs')) {
+            $data['salary_range'] = $salaryRange !== '' ? $salaryRange : null;
+        }
+
+        if ($db->fieldExists('application_deadline', 'jobs')) {
+            $data['application_deadline'] = $applicationDeadline;
         }
 
         $jobModel->update($jobId, $data);

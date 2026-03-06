@@ -60,6 +60,30 @@
                                         <small class="text-danger" id="experience_level-error"></small>
                                     </div>
                                 </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <select class="form-control" name="employment_type" id="employment_type">
+                                            <option value="Full-time" <?= old('employment_type') === 'Full-time' ? 'selected' : '' ?>>Full-time</option>
+                                            <option value="Part-time" <?= old('employment_type') === 'Part-time' ? 'selected' : '' ?>>Part-time</option>
+                                            <option value="Contract" <?= old('employment_type') === 'Contract' ? 'selected' : '' ?>>Contract</option>
+                                            <option value="Internship" <?= old('employment_type') === 'Internship' ? 'selected' : '' ?>>Internship</option>
+                                        </select>
+                                        <small class="text-danger" id="employment_type-error"></small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <input class="form-control" name="salary_range" id="salary_range" type="text" value="<?= old('salary_range') ?>" placeholder="Salary Range (e.g., 5-8 LPA)">
+                                        <small class="text-danger" id="salary_range-error"></small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <input class="form-control" name="application_deadline" id="application_deadline" type="date" value="<?= old('application_deadline') ?>" title="Application Deadline">
+                                        <small class="text-muted">Application deadline (optional)</small>
+                                        <small class="text-danger" id="application_deadline-error"></small>
+                                    </div>
+                                </div>
                                 <?php $selectedPolicy = old('ai_interview_policy', 'REQUIRED_HARD'); ?>
                                 <div class="col-sm-6">
                                     <div class="form-group">

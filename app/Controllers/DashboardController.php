@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\JobModel;
 
 class DashboardController extends BaseController
 {
@@ -221,14 +222,19 @@ class DashboardController extends BaseController
         }
 
         // Build query
+        $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
+
         $builder = $applicationModel
-            ->select('applications.*, users.name, users.email, jobs.title as job_title, jobs.required_skills,
+            ->select('applications.*, users.name, users.email, candidate_profiles.resume_path as resume_path, jobs.title as job_title, jobs.required_skills, jobs.experience_level, jobs.ai_interview_policy,
+                    COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months,
                     MAX(COALESCE(interview_sessions.overall_rating, 0)) as overall_rating,
                     MAX(COALESCE(interview_sessions.technical_score, 0)) as technical_score,
                     MAX(COALESCE(interview_sessions.communication_score, 0)) as communication_score')
             ->join('users', 'users.id = applications.candidate_id', 'left')
+            ->join('candidate_profiles', 'candidate_profiles.user_id = applications.candidate_id', 'left')
             ->join('jobs', 'jobs.id = applications.job_id', 'left')
             ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
+            ->join($experienceSubQuery, 'candidate_experience.user_id = applications.candidate_id', 'left', false)
             ->groupBy('applications.id');
         // Filter by recruiter's jobs only
         if (!empty($jobIds)) {
@@ -270,6 +276,8 @@ class DashboardController extends BaseController
                 $candidate['candidate_skills'],
                 $candidate['required_skills']
             );
+            $candidate['github_stack'] = $this->getGithubStack($candidate['candidate_id']);
+            $candidate['ats_score'] = $this->calculateLeaderboardAtsScore($candidate);
         }
 
         // Get unique skills for filter
@@ -301,6 +309,10 @@ class DashboardController extends BaseController
      */
     public function exportExcel()
     {
+        if (session()->get('role') !== 'recruiter') {
+            return redirect()->to(base_url('candidate/dashboard'))->with('error', 'Access denied.');
+        }
+        
         $type = $this->request->getGet('type') ?? 'overview';
         // Get current recruiter/admin ID and role
         $currentUserId = session()->get('user_id');
@@ -576,6 +588,143 @@ class DashboardController extends BaseController
 
         $matched = array_intersect($candidateSkills, $requiredSkills);
         return round((count($matched) / count($requiredSkills)) * 100);
+    }
+
+    private function getGithubStack(int $candidateId): array
+    {
+        $db = \Config\Database::connect();
+
+        $row = $db->table('candidate_github_stats')
+            ->select('languages_used')
+            ->where('candidate_id', $candidateId)
+            ->orderBy('created_at', 'DESC')
+            ->get()
+            ->getRowArray();
+
+        if (!$row || empty($row['languages_used'])) {
+            return [];
+        }
+
+        $languages = json_decode($row['languages_used'], true);
+        if (is_array($languages)) {
+            $values = [];
+            foreach ($languages as $key => $value) {
+                if (is_string($key) && $key !== '') {
+                    $values[] = trim($key);
+                    continue;
+                }
+
+                if (is_string($value) && trim($value) !== '') {
+                    $values[] = trim($value);
+                }
+            }
+
+            return array_values(array_unique(array_filter($values)));
+        }
+
+        $parts = preg_split('/[,|\\/]+/', (string) $row['languages_used']) ?: [];
+        $languages = [];
+        foreach ($parts as $part) {
+            $value = trim($part);
+            if ($value !== '') {
+                $languages[] = $value;
+            }
+        }
+
+        return array_values(array_unique($languages));
+    }
+
+    private function calculateLeaderboardAtsScore(array $candidate): ?int
+    {
+        $requiredSkills = $this->normalizeSkillTokens($candidate['required_skills'] ?? '');
+        $requiredMonths = $this->extractRequiredExperienceMonths((string) ($candidate['experience_level'] ?? ''));
+        $aiPolicy = JobModel::normalizeAiPolicy($candidate['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
+
+        $hasMeaningfulInputs = !empty($requiredSkills)
+            || ($requiredMonths !== null && $requiredMonths > 0)
+            || $aiPolicy !== JobModel::AI_POLICY_OFF;
+
+        if (!$hasMeaningfulInputs) {
+            return null;
+        }
+
+        $candidateSkills = $this->normalizeSkillTokens($candidate['candidate_skills'] ?? []);
+
+        if (empty($requiredSkills)) {
+            $skillScore = 60;
+        } else {
+            $matched = 0;
+            foreach ($requiredSkills as $requiredSkill) {
+                if (in_array($requiredSkill, $candidateSkills, true)) {
+                    $matched++;
+                }
+            }
+            $skillScore = (int) round(($matched / max(1, count($requiredSkills))) * 60);
+        }
+
+        $candidateMonths = max(0, (int) ($candidate['total_experience_months'] ?? 0));
+        if ($requiredMonths === null || $requiredMonths <= 0) {
+            $experienceScore = 20;
+        } else {
+            $experienceScore = (int) round(min(1, $candidateMonths / $requiredMonths) * 20);
+        }
+
+        $rating = array_key_exists('overall_rating', $candidate) ? (float) $candidate['overall_rating'] : null;
+        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
+            $aiScore = 15;
+        } elseif ($rating <= 0) {
+            $aiScore = 0;
+        } else {
+            $aiScore = (int) round(min(10, max(0, $rating)) / 10 * 15);
+        }
+
+        $profileScore = !empty($candidate['resume_path']) ? 5 : 0;
+
+        return max(0, min(100, $skillScore + $experienceScore + $aiScore + $profileScore));
+    }
+
+    private function normalizeSkillTokens($skills): array
+    {
+        if (is_array($skills)) {
+            $tokens = [];
+            foreach ($skills as $skill) {
+                $value = strtolower(trim((string) $skill));
+                if ($value !== '') {
+                    $tokens[] = $value;
+                }
+            }
+
+            return array_values(array_unique($tokens));
+        }
+
+        $parts = preg_split('/[,|\\/]+/', strtolower($skills)) ?: [];
+        $tokens = [];
+        foreach ($parts as $part) {
+            $value = trim($part);
+            if ($value !== '') {
+                $tokens[] = $value;
+            }
+        }
+
+        return array_values(array_unique($tokens));
+    }
+
+    private function extractRequiredExperienceMonths(string $experienceLevel): ?int
+    {
+        $value = strtolower(trim($experienceLevel));
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/', $value, $matches)) {
+            return (int) round(((float) $matches[1]) * 12);
+        }
+
+        if (preg_match('/(\d+(?:\.\d+)?)/', $value, $matches)) {
+            return (int) round(((float) $matches[1]) * 12);
+        }
+
+        return null;
     }
 
 
