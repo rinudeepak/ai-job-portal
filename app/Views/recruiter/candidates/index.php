@@ -61,13 +61,6 @@
                             <option value="no" <?= ($filters['resume'] ?? '') === 'no' ? 'selected' : '' ?>>Without Resume</option>
                         </select>
                     </div>
-                    <div class="col-md-1">
-                        <label class="small text-muted mb-1">AI</label>
-                        <select name="ai" class="form-control">
-                            <option value="0" <?= (int) ($filters['ai'] ?? 0) === 0 ? 'selected' : '' ?>>Off</option>
-                            <option value="1" <?= (int) ($filters['ai'] ?? 0) === 1 ? 'selected' : '' ?>>On</option>
-                        </select>
-                    </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary btn-block">
                             <i class="fas fa-search"></i>
@@ -81,7 +74,7 @@
         </div>
     </div>
 
-    <?php if (!empty($selectedJob) && (int) ($filters['ai'] ?? 0) === 1): ?>
+    <?php if (!empty($selectedJob)): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-success">
@@ -90,7 +83,7 @@
             </div>
             <div class="card-body">
                 <?php if (empty($aiSuggestions)): ?>
-                    <p class="text-muted mb-0">No strong AI matches found with current filters.</p>
+                    <p class="text-muted mb-0">No suitable candidates found for this role.</p>
                 <?php else: ?>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
@@ -132,6 +125,8 @@
         </div>
     <?php endif; ?>
 
+    <?php $aiModeForJob = !empty($selectedJob); ?>
+    <?php if (!$aiModeForJob): ?>
     <div class="card shadow">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-users"></i> Candidates (<?= count($candidates ?? []) ?> on this page)</h6>
@@ -210,6 +205,7 @@
             <?php endif; ?>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>

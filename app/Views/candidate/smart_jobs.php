@@ -1,27 +1,41 @@
 <?= view('Layouts/candidate_header', ['title' => 'Find Jobs']) ?>
 <?php
-// Safe defaults — prevents undefined variable errors if old controller is used
-$activeTab          = $activeTab          ?? 'all';
-$filters            = $filters            ?? [];
-$suggestedJobs      = $suggestedJobs      ?? [];
-$candidateSkills    = $candidateSkills    ?? [];
-$candidateInterests = $candidateInterests ?? [];
-$behavior           = $behavior           ?? [];
-$useAi              = $useAi              ?? false;
-$totalJobs          = $totalJobs          ?? 0;
-$jobs               = $jobs               ?? [];
-$locations          = $locations          ?? [];
-$categories         = $categories         ?? [];
-$experienceLevels   = $experienceLevels   ?? [];
-$employmentTypes    = $employmentTypes    ?? [];
-$savedJobIds        = $savedJobIds        ?? [];
+$activeTab                  = $activeTab ?? 'recommended';
+$recommendationType         = $recommendationType ?? 'skills';
+$filters                    = $filters ?? [];
+$suggestedJobs              = $suggestedJobs ?? [];
+$suggestedJobsByApplies     = $suggestedJobsByApplies ?? [];
+$suggestedJobsBySkills      = $suggestedJobsBySkills ?? [];
+$suggestedJobsByPreferences = $suggestedJobsByPreferences ?? [];
+$suggestedJobsByAi          = $suggestedJobsByAi ?? [];
+$candidateSkills            = $candidateSkills ?? [];
+$candidateInterests         = $candidateInterests ?? [];
+$behavior                   = $behavior ?? [];
+$showFilters                = $showFilters ?? false;
+$totalJobs                  = $totalJobs ?? 0;
+$jobs                       = $jobs ?? [];
+$locations                  = $locations ?? [];
+$categories                 = $categories ?? [];
+$experienceLevels           = $experienceLevels ?? [];
+$employmentTypes            = $employmentTypes ?? [];
+$savedJobIds                = $savedJobIds ?? [];
+
+$recommendationSets = [
+    'applies' => $suggestedJobsByApplies,
+    'skills' => $suggestedJobsBySkills,
+    'preferences' => $suggestedJobsByPreferences,
+    'ai' => $suggestedJobsByAi,
+];
+if (!array_key_exists($recommendationType, $recommendationSets)) {
+    $recommendationType = 'skills';
+}
+$activeRecommendedJobs = $recommendationSets[$recommendationType];
 ?>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- ── SEARCH HERO ── -->
 <div class="jobs-page-jobboard">
 <section class="section-hero overlay inner-page bg-image jobs-hero" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
     <div class="container">
@@ -33,7 +47,7 @@ $savedJobIds        = $savedJobIds        ?? [];
                     <span class="mx-2 slash">/</span>
                     <span class="text-white"><strong>Jobs</strong></span>
                 </div>
-                <p>Filter by skills, type, and location. Get AI-matched suggestions.</p>
+                <p><?= $showFilters ? 'Search and filter jobs from the results.' : 'Get recommendations by applications, skills, preferences, and AI ranking.' ?></p>
             </div>
         </div>
     </div>
@@ -41,21 +55,20 @@ $savedJobIds        = $savedJobIds        ?? [];
 
 <section class="site-section pt-0">
 <div class="container">
-<!-- Single unified form — search input + all sidebar filters share this form -->
 <form method="GET" action="<?= base_url('jobs') ?>" id="filterForm">
     <input type="hidden" name="search" id="hiddenSearch" value="<?= esc($filters['search'] ?? '') ?>">
-    <input type="hidden" name="tab"    id="activeTabInput" value="<?= esc($activeTab) ?>">
+    <input type="hidden" name="tab" id="activeTabInput" value="<?= esc($activeTab) ?>">
+    <input type="hidden" name="rec" id="recommendationTypeInput" value="<?= esc($recommendationType) ?>">
 
     <div class="jobs-layout">
 
-        <!-- ── SIDEBAR (desktop) ── -->
+        <?php if ($showFilters): ?>
         <div class="sidebar">
             <div class="sidebar-head">
                 <h5><i class="fas fa-sliders-h"></i> Filters</h5>
-                <a href="<?= base_url('jobs?tab=' . esc($activeTab)) ?>" class="clear-link">Clear all</a>
+                <a href="<?= base_url('jobs?tab=all') ?>" class="clear-link">Clear all</a>
             </div>
 
-            <!-- Category -->
             <?php if (!empty($categories)): ?>
             <div class="filter-section">
                 <span class="filter-label">Category</span>
@@ -70,7 +83,6 @@ $savedJobIds        = $savedJobIds        ?? [];
             </div>
             <?php endif; ?>
 
-            <!-- Location -->
             <?php if (!empty($locations)): ?>
             <div class="filter-section">
                 <span class="filter-label">Location</span>
@@ -85,14 +97,13 @@ $savedJobIds        = $savedJobIds        ?? [];
             </div>
             <?php endif; ?>
 
-            <!-- Employment Type -->
             <?php if (!empty($employmentTypes)): ?>
             <div class="filter-section">
                 <span class="filter-label">Job Type</span>
                 <?php foreach ($employmentTypes as $type): ?>
                     <label class="check-item">
                         <input type="checkbox" name="employment_type[]" value="<?= esc($type['employment_type']) ?>"
-                               <?= in_array($type['employment_type'], (array)($filters['employment_type'] ?? [])) ? 'checked' : '' ?>
+                               <?= in_array($type['employment_type'], (array) ($filters['employment_type'] ?? []), true) ? 'checked' : '' ?>
                                onchange="submitFilters()">
                         <span class="check-box"></span>
                         <span class="check-text"><?= esc($type['employment_type']) ?></span>
@@ -101,14 +112,13 @@ $savedJobIds        = $savedJobIds        ?? [];
             </div>
             <?php endif; ?>
 
-            <!-- Experience Level -->
             <?php if (!empty($experienceLevels)): ?>
             <div class="filter-section">
                 <span class="filter-label">Experience</span>
                 <?php foreach ($experienceLevels as $exp): ?>
                     <label class="check-item">
                         <input type="checkbox" name="experience_level[]" value="<?= esc($exp['experience_level']) ?>"
-                               <?= in_array($exp['experience_level'], (array)($filters['experience_level'] ?? [])) ? 'checked' : '' ?>
+                               <?= in_array($exp['experience_level'], (array) ($filters['experience_level'] ?? []), true) ? 'checked' : '' ?>
                                onchange="submitFilters()">
                         <span class="check-box"></span>
                         <span class="check-text"><?= esc($exp['experience_level']) ?></span>
@@ -117,7 +127,6 @@ $savedJobIds        = $savedJobIds        ?? [];
             </div>
             <?php endif; ?>
 
-            <!-- Posted Within -->
             <div class="filter-section">
                 <span class="filter-label">Posted Within</span>
                 <?php foreach (['' => 'Any time', '1' => 'Today', '3' => 'Last 3 days', '7' => 'Last week', '14' => 'Last 2 weeks'] as $val => $label): ?>
@@ -130,19 +139,17 @@ $savedJobIds        = $savedJobIds        ?? [];
                     </label>
                 <?php endforeach; ?>
             </div>
-
         </div>
+        <?php endif; ?>
 
-        <!-- ── MAIN CONTENT ── -->
         <div class="jobs-main">
 
-            <!-- Mobile filter toggle -->
+            <?php if ($showFilters): ?>
             <button type="button" class="mobile-filter-toggle" onclick="toggleMobileFilters()">
                 <span><i class="fas fa-sliders-h" style="margin-right:8px"></i>Filters</span>
                 <i class="fas fa-chevron-down" id="mobileFilterIcon"></i>
             </button>
 
-            <!-- Mobile filter drawer -->
             <div class="mobile-filter-drawer" id="mobileFilterDrawer">
                 <div style="padding:20px;">
                     <div class="row">
@@ -173,7 +180,7 @@ $savedJobIds        = $savedJobIds        ?? [];
                             <select id="mobileExperience" class="form-control" style="font-size:.85rem">
                                 <option value="">All</option>
                                 <?php foreach ($experienceLevels as $exp): ?>
-                                    <option value="<?= esc($exp['experience_level']) ?>" <?= in_array($exp['experience_level'], (array)($filters['experience_level'] ?? []), true) ? 'selected' : '' ?>>
+                                    <option value="<?= esc($exp['experience_level']) ?>" <?= in_array($exp['experience_level'], (array) ($filters['experience_level'] ?? []), true) ? 'selected' : '' ?>>
                                         <?= esc($exp['experience_level']) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -184,7 +191,7 @@ $savedJobIds        = $savedJobIds        ?? [];
                             <select id="mobileEmploymentType" class="form-control" style="font-size:.85rem">
                                 <option value="">All</option>
                                 <?php foreach ($employmentTypes as $type): ?>
-                                    <option value="<?= esc($type['employment_type']) ?>" <?= in_array($type['employment_type'], (array)($filters['employment_type'] ?? []), true) ? 'selected' : '' ?>>
+                                    <option value="<?= esc($type['employment_type']) ?>" <?= in_array($type['employment_type'], (array) ($filters['employment_type'] ?? []), true) ? 'selected' : '' ?>>
                                         <?= esc($type['employment_type']) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -193,29 +200,13 @@ $savedJobIds        = $savedJobIds        ?? [];
                     </div>
                     <div class="d-flex gap-2">
                         <button type="button" onclick="applyMobileFilters()" style="flex:1;background:var(--ink);color:white;border:none;border-radius:8px;padding:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Apply</button>
-                        <a href="<?= base_url('jobs?tab=' . esc($activeTab)) ?>" style="flex:1;background:var(--smoke);color:var(--ink);border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:'Syne',sans-serif;font-weight:700;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">Clear</a>
+                        <a href="<?= base_url('jobs?tab=all') ?>" style="flex:1;background:var(--smoke);color:var(--ink);border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:'Syne',sans-serif;font-weight:700;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">Clear</a>
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
-            <!-- Tabs -->
-            <div class="tabs-row">
-                <div class="tab-pills">
-                    <button type="button" class="tab-pill <?= $activeTab === 'all' ? 'active' : '' ?>"
-                            onclick="switchTab('all', event)">
-                        <i class="fas fa-briefcase"></i> All Jobs
-                        <span class="pill-count"><?= $totalJobs ?></span>
-                    </button>
-                    <button type="button" class="tab-pill <?= $activeTab === 'suggested' ? 'active' : '' ?>"
-                            onclick="switchTab('suggested', event)">
-                        <i class="fas fa-star"></i> For You
-                        <span class="pill-count"><?= count($suggestedJobs) ?></span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Career transition alert -->
-            <?php if (session()->getFlashdata('career_suggestion')): 
+            <?php if (session()->getFlashdata('career_suggestion')):
                 $suggestion = session()->getFlashdata('career_suggestion'); ?>
             <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
                 <div>
@@ -228,14 +219,18 @@ $savedJobIds        = $savedJobIds        ?? [];
             </div>
             <?php endif; ?>
 
-
-            <!-- ════ ALL JOBS TAB ════ -->
+            <?php if ($showFilters): ?>
             <div id="tab-all" class="<?= $activeTab !== 'all' ? 'd-none' : '' ?>">
+                <?php if (!$showFilters): ?>
+                <div class="results-bar">
+                    <span class="results-count">Use the header search bar to open filters for refining job results.</span>
+                </div>
+                <?php endif; ?>
 
                 <div class="results-bar">
                     <span class="results-count">
                         <?php if (!empty($filters['search'])): ?>
-                            Results for <strong>"<?= esc($filters['search']) ?>"</strong> ·
+                            Results for <strong>"<?= esc($filters['search']) ?>"</strong> -
                         <?php endif; ?>
                         <strong><?= $totalJobs ?></strong> job<?= $totalJobs != 1 ? 's' : '' ?> found
                     </span>
@@ -245,13 +240,10 @@ $savedJobIds        = $savedJobIds        ?? [];
                     <ul class="job-listings mb-4">
                     <?php foreach ($jobs as $job): ?>
                         <?php
-                            $score   = $job['match_score'] ?? 0;
-                            $cls     = $score >= 70 ? 'high' : ($score >= 40 ? 'mid' : 'low');
-                            $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
+                            $initial = strtoupper(substr((string) ($job['company'] ?? 'J'), 0, 1));
                             $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center"
-                            >
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
                             <a href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
                             <div class="job-listing-logo">
                                 <?php if (!empty($job['company_logo'])): ?>
@@ -335,12 +327,11 @@ $savedJobIds        = $savedJobIds        ?? [];
                     </div>
                 <?php endif; ?>
             </div>
+            <?php endif; ?>
 
+            <?php if (!$showFilters): ?>
+            <div id="tab-recommended" class="<?= $activeTab !== 'recommended' ? 'd-none' : '' ?>">
 
-            <!-- ════ FOR YOU TAB ════ -->
-            <div id="tab-suggested" class="<?= $activeTab !== 'suggested' ? 'd-none' : '' ?>">
-
-                <!-- Profile strip -->
                 <?php if (!empty($candidateSkills) || !empty($candidateInterests)): ?>
                 <div class="profile-strip">
                     <?php if (!empty($candidateSkills)): ?>
@@ -359,33 +350,43 @@ $savedJobIds        = $savedJobIds        ?? [];
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
-                    <?php if (!empty($behavior['top_categories'])): ?>
-                    <div class="profile-strip-section">
-                        <div class="strip-label">Your Pattern</div>
-                        <?php foreach (array_slice($behavior['top_categories'], 0, 3) as $cat): ?>
-                            <span class="pattern-chip"><?= esc($cat['category']) ?></span>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
 
-                <?php if (!empty($suggestedJobs)): ?>
+                <div class="tabs-row" style="margin-top:12px;">
+                    <div class="tab-pills">
+                        <button type="button" class="tab-pill <?= $recommendationType === 'applies' ? 'active' : '' ?>" onclick="switchRecommendation('applies', event)">
+                            <i class="fas fa-history"></i> Based On Applies
+                            <span class="pill-count"><?= count($suggestedJobsByApplies) ?></span>
+                        </button>
+                        <button type="button" class="tab-pill <?= $recommendationType === 'skills' ? 'active' : '' ?>" onclick="switchRecommendation('skills', event)">
+                            <i class="fas fa-tools"></i> Based On Skills
+                            <span class="pill-count"><?= count($suggestedJobsBySkills) ?></span>
+                        </button>
+                        <button type="button" class="tab-pill <?= $recommendationType === 'preferences' ? 'active' : '' ?>" onclick="switchRecommendation('preferences', event)">
+                            <i class="fas fa-heart"></i> Preferences / Interests
+                            <span class="pill-count"><?= count($suggestedJobsByPreferences) ?></span>
+                        </button>
+                        <button type="button" class="tab-pill <?= $recommendationType === 'ai' ? 'active' : '' ?>" onclick="switchRecommendation('ai', event)">
+                            <i class="fas fa-brain"></i> Other Recommendations
+                            <span class="pill-count"><?= count($suggestedJobsByAi) ?></span>
+                        </button>
+                    </div>
+                </div>
+
+                <?php if (!empty($activeRecommendedJobs)): ?>
                     <div class="results-bar">
-                        <span class="results-count"><strong><?= count($suggestedJobs) ?></strong> jobs matched for you</span>
+                        <span class="results-count"><strong><?= count($activeRecommendedJobs) ?></strong> jobs matched in this recommendation view</span>
                     </div>
 
                     <ul class="job-listings mb-4">
-                    <?php foreach ($suggestedJobs as $index => $job): ?>
+                    <?php foreach ($activeRecommendedJobs as $index => $job): ?>
                         <?php
-                            $score   = $job['match_score'] ?? 0;
-                            $cls     = $score >= 70 ? 'high' : ($score >= 40 ? 'mid' : 'low');
-                            $isTop   = $index < 3;
-                            $initial = strtoupper(substr($job['company'] ?? 'J', 0, 1));
+                            $score = $job['match_score'] ?? 0;
+                            $initial = strtoupper(substr((string) ($job['company'] ?? 'J'), 0, 1));
                             $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center"
-                            >
+                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
                             <a href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
                             <div class="job-listing-logo">
                                 <?php if (!empty($job['company_logo'])): ?>
@@ -413,7 +414,7 @@ $savedJobIds        = $savedJobIds        ?? [];
                                         $typeBadge = str_contains($type, 'part') ? 'badge-danger' : 'badge-success';
                                     ?>
                                     <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                    <div class="mt-1 small text-muted"><?= round($score) ?>% match</div>
+                                    <div class="mt-1 small text-muted"><?= round((float) $score) ?>% match</div>
                                     <div class="mt-2">
                                         <button
                                             type="button"
@@ -433,103 +434,58 @@ $savedJobIds        = $savedJobIds        ?? [];
                 <?php else: ?>
                     <div class="empty-state">
                         <i class="fas fa-star"></i>
-                        <h5>No suggestions yet</h5>
-                        <p>Add skills and interests to your profile to get personalized job matches</p>
-                        <a href="<?= base_url('candidate/profile') ?>" style="display:inline-block;margin-top:12px;background:var(--green);color:var(--ink);padding:10px 24px;border-radius:8px;text-decoration:none;font-family:'Syne',sans-serif;font-weight:700;">Update Profile</a>
+                        <h5>No suitable jobs found</h5>
+                        <p>No matches available in this recommendation view right now.</p>
                     </div>
                 <?php endif; ?>
             </div>
+            <?php endif; ?>
 
-        </div><!-- /jobs-main -->
-    </div><!-- /jobs-layout -->
+        </div>
+    </div>
 </form>
-</div><!-- /container -->
+</div>
 </section>
 </div>
 
 <script>
-function resetLeftFilterOptions() {
-    const form = document.getElementById('filterForm');
-    if (!form) return;
-
-    form.querySelectorAll('select[name="category"], select[name="location"]').forEach(function (el) {
-        el.value = '';
-    });
-
-    form.querySelectorAll('input[name="employment_type[]"], input[name="experience_level[]"]').forEach(function (el) {
-        el.checked = false;
-    });
-
-    const postedAny = form.querySelector('input[name="posted_within"][value=""]');
-    if (postedAny) postedAny.checked = true;
-
-    const mobileCategory = document.getElementById('mobileCategory');
-    const mobileLocation = document.getElementById('mobileLocation');
-    const mobileExperience = document.getElementById('mobileExperience');
-    const mobileEmploymentType = document.getElementById('mobileEmploymentType');
-    if (mobileCategory) mobileCategory.value = '';
-    if (mobileLocation) mobileLocation.value = '';
-    if (mobileExperience) mobileExperience.value = '';
-    if (mobileEmploymentType) mobileEmploymentType.value = '';
-}
-
-function resetAllJobsFilters() {
-    const form = document.getElementById('filterForm');
-    if (!form) return;
-
-    const hiddenSearch = document.getElementById('hiddenSearch');
-    if (hiddenSearch) hiddenSearch.value = '';
-
-    form.querySelectorAll('select[name="category"], select[name="location"]').forEach(function (el) {
-        el.value = '';
-    });
-
-    form.querySelectorAll('input[name="employment_type[]"], input[name="experience_level[]"]').forEach(function (el) {
-        el.checked = false;
-    });
-
-    const postedAny = form.querySelector('input[name="posted_within"][value=""]');
-    if (postedAny) postedAny.checked = true;
-}
-
 function switchTab(tab, e) {
     if (e) e.preventDefault();
 
-    const jobsUrl = '<?= base_url('jobs') ?>';
-    const url = new URL(window.location.href);
-    const aiParam = url.searchParams.get('ai');
+    const url = new URL('<?= base_url('jobs') ?>', window.location.origin);
+    const recInput = document.getElementById('recommendationTypeInput');
+    const recType = recInput ? recInput.value : 'skills';
 
-    if (tab === 'suggested') {
-        // Suggested tab should not carry search/filter state from All Jobs.
-        resetAllJobsFilters();
-        const nextUrl = new URL(jobsUrl);
-        nextUrl.searchParams.set('tab', 'suggested');
-        if (aiParam) nextUrl.searchParams.set('ai', aiParam);
-        window.location.href = nextUrl.toString();
+    if (tab === 'recommended') {
+        url.searchParams.set('tab', 'recommended');
+        url.searchParams.set('rec', recType || 'skills');
+        window.location.href = url.toString();
         return;
     }
 
-    // Returning to All tab should open clean All Jobs list by default.
-    const nextUrl = new URL(jobsUrl);
-    nextUrl.searchParams.set('tab', 'all');
-    if (aiParam) nextUrl.searchParams.set('ai', aiParam);
-    window.location.href = nextUrl.toString();
+    url.searchParams.set('tab', 'all');
+    window.location.href = url.toString();
+}
+
+function switchRecommendation(recType, e) {
+    if (e) e.preventDefault();
+
+    const url = new URL('<?= base_url('jobs') ?>', window.location.origin);
+    url.searchParams.set('tab', 'recommended');
+    url.searchParams.set('rec', recType);
+    window.location.href = url.toString();
 }
 
 function submitFilters() {
-    // Filters are for All Jobs tab only.
     document.getElementById('activeTabInput').value = 'all';
-
-    // Keep behavior: applying left filters clears text-search query.
-    const hiddenSearch = document.querySelector('#filterForm input[name="search"]');
-    if (hiddenSearch) hiddenSearch.value = '';
-
     document.getElementById('filterForm').submit();
 }
 
 function toggleMobileFilters() {
     const drawer = document.getElementById('mobileFilterDrawer');
-    const icon   = document.getElementById('mobileFilterIcon');
+    const icon = document.getElementById('mobileFilterIcon');
+    if (!drawer || !icon) return;
+
     const isOpen = drawer.classList.contains('open');
     drawer.classList.toggle('open', !isOpen);
     icon.className = isOpen ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
@@ -560,9 +516,6 @@ function applyMobileFilters() {
     document.getElementById('activeTabInput').value = 'all';
     submitFilters();
 }
-
 </script>
 
 <?= view('Layouts/candidate_footer') ?>
-
-

@@ -36,7 +36,6 @@ class RecruiterCandidates extends BaseController
             'exp_max' => trim((string) $this->request->getGet('exp_max')),
             'resume' => trim((string) $this->request->getGet('resume')),
             'job_id' => (int) ($this->request->getGet('job_id') ?? 0),
-            'ai' => (int) ($this->request->getGet('ai') ?? 0),
         ];
 
         $expMinYears = is_numeric($filters['exp_min']) ? max(0, (float) $filters['exp_min']) : null;
@@ -50,10 +49,6 @@ class RecruiterCandidates extends BaseController
         if (!in_array($filters['resume'], ['', 'yes', 'no'], true)) {
             $filters['resume'] = '';
         }
-        if (!in_array($filters['ai'], [0, 1], true)) {
-            $filters['ai'] = 0;
-        }
-
         $jobModel = model('JobModel');
         $recruiterId = (int) session()->get('user_id');
         $recruiterJobs = $jobModel
@@ -73,7 +68,6 @@ class RecruiterCandidates extends BaseController
             }
             if ($selectedJob === null) {
                 $filters['job_id'] = 0;
-                $filters['ai'] = 0;
             }
         }
 
@@ -135,7 +129,7 @@ class RecruiterCandidates extends BaseController
         unset($candidate);
 
         $aiSuggestions = [];
-        if ($selectedJob && $filters['ai'] === 1) {
+        if ($selectedJob) {
             $suggestionBuilder = $userModel
                 ->select('users.id, users.name, users.email, candidate_profiles.location as location, candidate_profiles.resume_path as resume_path, candidate_profiles.profile_photo as profile_photo, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
                 ->join('candidate_skills', 'candidate_skills.candidate_id = users.id', 'left')
@@ -206,7 +200,6 @@ class RecruiterCandidates extends BaseController
                 'exp_max' => $expMaxYears !== null ? (string) $expMaxYears : '',
                 'resume' => $filters['resume'],
                 'job_id' => $filters['job_id'],
-                'ai' => $filters['ai'],
             ],
         ]);
     }

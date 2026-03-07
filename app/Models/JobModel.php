@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Models;
 
@@ -30,7 +30,7 @@ class JobModel extends Model
         'status',
         'employment_type',
         'salary_range',
-        'application_deadline'
+        'application_deadline',
     ];
 
     public static function normalizeAiPolicy(?string $policy): string
@@ -45,188 +45,201 @@ class JobModel extends Model
 
         return in_array($value, $allowed, true) ? $value : self::AI_POLICY_REQUIRED_HARD;
     }
-    // Count open jobs
+
     public function getTotalOpenJobs()
     {
         return $this->where('status', 'open')->countAllResults();
     }
 
-   /**
- * Get candidate's application behavior profile
- * Analyzes past applications to understand preferences
- */
-public function getCandidateBehaviorProfile($candidateId)
-{
-    $db = \Config\Database::connect();
+    /**
+     * Get candidate's application behavior profile.
+     */
+    public function getCandidateBehaviorProfile($candidateId)
+    {
+        $db = \Config\Database::connect();
 
-    // Get categories they've applied to most
-    $topCategories = $db->query("
-        SELECT j.category, COUNT(*) as apply_count
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.id
-        WHERE a.candidate_id = ?
-        GROUP BY j.category
-        ORDER BY apply_count DESC
-        LIMIT 5
-    ", [$candidateId])->getResultArray();
+        $topCategories = $db->query("\n            SELECT j.category, COUNT(*) as apply_count\n            FROM applications a\n            JOIN jobs j ON a.job_id = j.id\n            WHERE a.candidate_id = ?\n            GROUP BY j.category\n            ORDER BY apply_count DESC\n            LIMIT 5\n        ", [$candidateId])->getResultArray();
 
-    // Get experience levels they target
-    $topExperienceLevels = $db->query("
-        SELECT j.experience_level, COUNT(*) as apply_count
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.id
-        WHERE a.candidate_id = ?
-        GROUP BY j.experience_level
-        ORDER BY apply_count DESC
-        LIMIT 3
-    ", [$candidateId])->getResultArray();
+        $topExperienceLevels = $db->query("\n            SELECT j.experience_level, COUNT(*) as apply_count\n            FROM applications a\n            JOIN jobs j ON a.job_id = j.id\n            WHERE a.candidate_id = ?\n            GROUP BY j.experience_level\n            ORDER BY apply_count DESC\n            LIMIT 3\n        ", [$candidateId])->getResultArray();
 
-    // Get employment types they prefer
-    $topEmploymentTypes = $db->query("
-        SELECT j.employment_type, COUNT(*) as apply_count
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.id
-        WHERE a.candidate_id = ?
-        GROUP BY j.employment_type
-        ORDER BY apply_count DESC
-        LIMIT 3
-    ", [$candidateId])->getResultArray();
+        $topEmploymentTypes = $db->query("\n            SELECT j.employment_type, COUNT(*) as apply_count\n            FROM applications a\n            JOIN jobs j ON a.job_id = j.id\n            WHERE a.candidate_id = ?\n            GROUP BY j.employment_type\n            ORDER BY apply_count DESC\n            LIMIT 3\n        ", [$candidateId])->getResultArray();
 
-    // Get locations they prefer
-    $topLocations = $db->query("
-        SELECT j.location, COUNT(*) as apply_count
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.id
-        WHERE a.candidate_id = ?
-        GROUP BY j.location
-        ORDER BY apply_count DESC
-        LIMIT 5
-    ", [$candidateId])->getResultArray();
+        $topLocations = $db->query("\n            SELECT j.location, COUNT(*) as apply_count\n            FROM applications a\n            JOIN jobs j ON a.job_id = j.id\n            WHERE a.candidate_id = ?\n            GROUP BY j.location\n            ORDER BY apply_count DESC\n            LIMIT 5\n        ", [$candidateId])->getResultArray();
 
-    // Get common skills in jobs they applied to
-    $appliedSkills = $db->query("
-        SELECT j.required_skills
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.id
-        WHERE a.candidate_id = ?
-        ORDER BY a.applied_at DESC
-        LIMIT 20
-    ", [$candidateId])->getResultArray();
+        $appliedSkills = $db->query("\n            SELECT j.required_skills\n            FROM applications a\n            JOIN jobs j ON a.job_id = j.id\n            WHERE a.candidate_id = ?\n            ORDER BY a.applied_at DESC\n            LIMIT 20\n        ", [$candidateId])->getResultArray();
 
-    // Extract and count skill frequency
-    $skillFrequency = [];
-    foreach ($appliedSkills as $row) {
-        $skills = array_map('trim', explode(',', $row['required_skills']));
-        foreach ($skills as $skill) {
-            if (!empty($skill)) {
-                $skill = strtolower($skill);
-                $skillFrequency[$skill] = ($skillFrequency[$skill] ?? 0) + 1;
+        $skillFrequency = [];
+        foreach ($appliedSkills as $row) {
+            $skills = array_map('trim', explode(',', (string) ($row['required_skills'] ?? '')));
+            foreach ($skills as $skill) {
+                if ($skill !== '') {
+                    $normalized = strtolower($skill);
+                    $skillFrequency[$normalized] = ($skillFrequency[$normalized] ?? 0) + 1;
+                }
             }
         }
-    }
-    arsort($skillFrequency);
+        arsort($skillFrequency);
 
-    return [
-        'top_categories'       => $topCategories,
-        'top_experience_levels'=> $topExperienceLevels,
-        'top_employment_types' => $topEmploymentTypes,
-        'top_locations'        => $topLocations,
-        'applied_skill_frequency' => array_slice($skillFrequency, 0, 15, true),
-    ];
-}
-
-/**
- * Basic skill + behavior scoring (non-AI fallback)
- *
- * FIX 1: candidate_skills stores ALL skills in ONE row as comma-separated string.
- *         array_column(...,'skill_name') returns ["PHP,MySQL,JavaScript"] not ["PHP","MySQL","JavaScript"]
- *         Must explode the string into individual skills first.
- *
- * FIX 2: HAVING match_score > 0 drops everyone with no behavior history.
- *         Use HAVING match_score >= 0 and ORDER BY score so new candidates
- *         still see jobs (sorted by recency as fallback).
- */
-public function getSuggestedJobsBasic($candidateId, $limit = 10)
-{
-    $skillsModel    = new \App\Models\CandidateSkillsModel();
-    $interestsModel = new \App\Models\CandidateInterestsModel();
-
-    // ── FIX 1: Correctly parse comma-separated skills from single row ──
-    $skillRow = $skillsModel->where('candidate_id', $candidateId)->first();
-    $skills   = [];
-    if ($skillRow && !empty($skillRow['skill_name'])) {
-        // Explode the comma-separated string into individual skills
-        $skills = array_filter(array_map('trim', explode(',', $skillRow['skill_name'])));
+        return [
+            'top_categories' => $topCategories,
+            'top_experience_levels' => $topExperienceLevels,
+            'top_employment_types' => $topEmploymentTypes,
+            'top_locations' => $topLocations,
+            'applied_skill_frequency' => array_slice($skillFrequency, 0, 15, true),
+        ];
     }
 
-    // Interests stored as one comma-separated row per candidate
-    $interestRow = $interestsModel->where('candidate_id', $candidateId)->first();
-    $interests   = [];
-    if ($interestRow && !empty($interestRow['interest'])) {
-        $interests = array_values(array_filter(array_map('trim', explode(',', $interestRow['interest']))));
+    /**
+     * Normalized matching (0-100):
+     * skills 60%, experience 20%, location 10%, employment type 10%.
+     */
+    public function getSuggestedJobsBasic($candidateId, $limit = 10)
+    {
+        $skillsModel = new \App\Models\CandidateSkillsModel();
+        $userModel = new \App\Models\UserModel();
+        $db = \Config\Database::connect();
+
+        $skillRow = $skillsModel->where('candidate_id', $candidateId)->first();
+        $candidateSkills = $this->tokenizeCsv((string) ($skillRow['skill_name'] ?? ''));
+        if (empty($candidateSkills)) {
+            return [];
+        }
+
+        $profile = $userModel->findCandidateWithProfile((int) $candidateId) ?? [];
+        $preferredLocations = $this->tokenizeCsv((string) ($profile['preferred_locations'] ?? ''));
+
+        $experienceRow = $db->query(
+            "SELECT SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, ''), CURDATE()))) AS total_experience_months\n             FROM work_experiences\n             WHERE user_id = ?",
+            [(int) $candidateId]
+        )->getRowArray();
+        $candidateMonths = (int) ($experienceRow['total_experience_months'] ?? 0);
+
+        $behavior = $this->getCandidateBehaviorProfile($candidateId);
+        $preferredEmploymentTypes = array_map(
+            static fn (array $row): string => strtolower(trim((string) ($row['employment_type'] ?? ''))),
+            (array) ($behavior['top_employment_types'] ?? [])
+        );
+        $preferredEmploymentTypes = array_values(array_filter(array_unique($preferredEmploymentTypes)));
+
+        $jobs = $this->where('status', 'open')
+            ->whereNotIn('id', static function ($builder) use ($candidateId) {
+                return $builder->select('job_id')->from('applications')->where('candidate_id', (int) $candidateId);
+            })
+            ->orderBy('created_at', 'DESC')
+            ->findAll(200);
+
+        $ranked = [];
+        foreach ($jobs as $job) {
+            $requiredSkills = $this->tokenizeCsv((string) ($job['required_skills'] ?? ''));
+            if (empty($requiredSkills)) {
+                continue;
+            }
+
+            $matchedSkills = $this->countTokenOverlap($requiredSkills, $candidateSkills);
+            if ($matchedSkills <= 0) {
+                continue;
+            }
+
+            $skillCoverage = $matchedSkills / max(1, count($requiredSkills));
+            $skillScore = $skillCoverage * 60.0;
+
+            $requiredMonths = $this->extractRequiredExperienceMonths((string) ($job['experience_level'] ?? ''));
+            if ($requiredMonths === null || $requiredMonths <= 0) {
+                $experienceFit = 1.0;
+            } else {
+                $experienceFit = min(1.0, $candidateMonths / max(1, $requiredMonths));
+            }
+            $experienceScore = $experienceFit * 20.0;
+
+            $locationScore = 0.0;
+            $jobLocation = strtolower(trim((string) ($job['location'] ?? '')));
+            if ($jobLocation === '' || empty($preferredLocations)) {
+                $locationScore = 5.0;
+            } else {
+                foreach ($preferredLocations as $preferredLocation) {
+                    if ($preferredLocation !== '' && (str_contains($jobLocation, $preferredLocation) || str_contains($preferredLocation, $jobLocation))) {
+                        $locationScore = 10.0;
+                        break;
+                    }
+                }
+            }
+
+            $employmentScore = 0.0;
+            $jobEmploymentType = strtolower(trim((string) ($job['employment_type'] ?? '')));
+            if ($jobEmploymentType === '' || empty($preferredEmploymentTypes)) {
+                $employmentScore = 5.0;
+            } else {
+                $employmentScore = in_array($jobEmploymentType, $preferredEmploymentTypes, true) ? 10.0 : 0.0;
+            }
+
+            $matchPercent = (float) round(max(0, min(100, $skillScore + $experienceScore + $locationScore + $employmentScore)), 1);
+            if ($matchPercent <= 0) {
+                continue;
+            }
+
+            $job['match_score'] = $matchPercent;
+            $job['match_reason'] = 'Matched ' . $matchedSkills . '/' . count($requiredSkills) . ' required skills';
+            $ranked[] = $job;
+        }
+
+        usort($ranked, static fn (array $a, array $b): int => ((float) ($b['match_score'] ?? 0.0)) <=> ((float) ($a['match_score'] ?? 0.0)));
+        return array_slice($ranked, 0, $limit);
     }
 
-    $behavior = $this->getCandidateBehaviorProfile($candidateId);
+    /** @return array<int, string> */
+    private function tokenizeCsv(string $value): array
+    {
+        $parts = preg_split('/[,|\\/]+/', strtolower($value)) ?: [];
+        $tokens = [];
+        foreach ($parts as $part) {
+            $token = trim($part);
+            if ($token !== '') {
+                $tokens[] = $token;
+            }
+        }
 
-    $scoreParts = [];
-
-    // Skill match scoring (weight: 3 per skill)
-    foreach ($skills as $skill) {
-        if (empty(trim($skill))) continue;
-        $escaped      = $this->db->escape(trim($skill));
-        $scoreParts[] = "(CASE WHEN LOWER(required_skills) LIKE LOWER(CONCAT('%', {$escaped}, '%')) THEN 3 ELSE 0 END)";
+        return array_values(array_unique($tokens));
     }
 
-    // Interest match scoring (weight: 2 per interest)
-    foreach ($interests as $interest) {
-        if (empty(trim($interest))) continue;
-        $escaped      = $this->db->escape(trim($interest));
-        $scoreParts[] = "(CASE WHEN LOWER(category)    LIKE LOWER(CONCAT('%', {$escaped}, '%'))
-                              OR LOWER(title)           LIKE LOWER(CONCAT('%', {$escaped}, '%'))
-                              OR LOWER(description)     LIKE LOWER(CONCAT('%', {$escaped}, '%')) THEN 2 ELSE 0 END)";
+    /** @param array<int, string> $a @param array<int, string> $b */
+    private function countTokenOverlap(array $a, array $b): int
+    {
+        $matched = [];
+        foreach ($a as $left) {
+            foreach ($b as $right) {
+                if ($left === $right) {
+                    $matched[$left] = true;
+                    break;
+                }
+                if (strlen($left) >= 4 && str_contains($right, $left)) {
+                    $matched[$left] = true;
+                    break;
+                }
+                if (strlen($right) >= 4 && str_contains($left, $right)) {
+                    $matched[$left] = true;
+                    break;
+                }
+            }
+        }
+
+        return count($matched);
     }
 
-    // Behavior: preferred categories (weight: 2)
-    foreach ($behavior['top_categories'] as $cat) {
-        $escaped      = $this->db->escape($cat['category']);
-        $scoreParts[] = "(CASE WHEN LOWER(category) = LOWER({$escaped}) THEN 2 ELSE 0 END)";
+    private function extractRequiredExperienceMonths(string $experience): ?int
+    {
+        $value = strtolower(trim($experience));
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/', $value, $matches)) {
+            return (int) round(((float) $matches[1]) * 12);
+        }
+
+        if (preg_match('/(\d+(?:\.\d+)?)/', $value, $matches)) {
+            return (int) round(((float) $matches[1]) * 12);
+        }
+
+        return null;
     }
-
-    // Behavior: preferred experience level (weight: 1)
-    foreach ($behavior['top_experience_levels'] as $exp) {
-        $escaped      = $this->db->escape($exp['experience_level']);
-        $scoreParts[] = "(CASE WHEN experience_level = {$escaped} THEN 1 ELSE 0 END)";
-    }
-
-    // Behavior: preferred employment type (weight: 1)
-    foreach ($behavior['top_employment_types'] as $emp) {
-        $escaped      = $this->db->escape($emp['employment_type']);
-        $scoreParts[] = "(CASE WHEN employment_type = {$escaped} THEN 1 ELSE 0 END)";
-    }
-
-    // If no scoring signals at all (no skills, no interests, no behavior),
-    // return empty — nothing to match against.
-    if (empty($scoreParts)) {
-        return [];
-    }
-
-    $scoreSQL = implode(' + ', $scoreParts);
-
-    // Only return jobs that actually match at least one signal (match_score > 0)
-    $db = \Config\Database::connect();
-    return $db->query("
-        SELECT jobs.*, ({$scoreSQL}) AS match_score
-        FROM jobs
-        WHERE status = 'open'
-          AND id NOT IN (
-              SELECT job_id FROM applications WHERE candidate_id = ?
-          )
-        HAVING match_score > 0
-        ORDER BY match_score DESC, created_at DESC
-        LIMIT {$limit}
-    ", [$candidateId])->getResultArray();
-}
-
-
-
 }

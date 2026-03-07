@@ -6,6 +6,7 @@ class AiCandidateMatcher
 {
     private string $apiKey;
     private string $apiUrl = 'https://api.openai.com/v1/chat/completions';
+    private float $minMatchScore = 60.0;
 
     public function __construct()
     {
@@ -26,10 +27,11 @@ class AiCandidateMatcher
 
         $aiRanked = $this->rankWithAi($job, $candidates, $limit);
         if (!empty($aiRanked)) {
-            return $aiRanked;
+            return $this->applyQualityGate($job, $aiRanked, $limit);
         }
 
-        return $this->rankWithFallback($job, $candidates, $limit);
+        $fallbackRanked = $this->rankWithFallback($job, $candidates, $limit);
+        return $this->applyQualityGate($job, $fallbackRanked, $limit);
     }
 
     /**
@@ -170,6 +172,165 @@ class AiCandidateMatcher
             return 'Good experience fit for this role.';
         }
         return 'Partial match based on available profile signals.';
+    }
+
+    /**
+     * Quality gate:
+     * - Hide candidates below minimum score.
+     * - Require at least one required-skill overlap when job has required skills.
+     *
+     * @param array<int, array<string, mixed>> $ranked
+     * @return array<int, array<string, mixed>>
+     */
+    private function applyQualityGate(array $job, array $ranked, int $limit): array
+    {
+        $requiredSkills = $this->tokenize((string) ($job['required_skills'] ?? ''));
+        $jobKeywords = $requiredSkills;
+        if (empty($jobKeywords)) {
+            $jobKeywords = $this->extractJobKeywords(
+                (string) ($job['title'] ?? ''),
+                (string) ($job['category'] ?? '')
+            );
+        }
+        $mustHaveSkillOverlap = !empty($jobKeywords);
+
+        $requiredOverlapCount = $this->getRequiredOverlapCount(count($requiredSkills), count($jobKeywords));
+
+        $filtered = array_values(array_filter($ranked, function (array $candidate) use ($jobKeywords, $mustHaveSkillOverlap, $requiredOverlapCount): bool {
+            $score = (float) ($candidate['match_score'] ?? 0);
+            if ($score < $this->minMatchScore) {
+                return false;
+            }
+
+            if (!$mustHaveSkillOverlap) {
+                return true;
+            }
+
+            $candidateSkills = $this->tokenize((string) ($candidate['skill_name'] ?? ''));
+            $overlapCount = $this->countSkillOverlap($jobKeywords, $candidateSkills);
+            return $overlapCount >= $requiredOverlapCount;
+        }));
+
+        usort($filtered, static fn (array $a, array $b): int => ((float) ($b['match_score'] ?? 0)) <=> ((float) ($a['match_score'] ?? 0)));
+        return array_slice($filtered, 0, $limit);
+    }
+
+    /**
+     * @param array<int, string> $requiredSkills
+     * @param array<int, string> $candidateSkills
+     */
+    private function hasSkillOverlap(array $requiredSkills, array $candidateSkills): bool
+    {
+        foreach ($requiredSkills as $requiredSkill) {
+            $required = strtolower(trim((string) $requiredSkill));
+            if ($required === '') {
+                continue;
+            }
+
+            foreach ($candidateSkills as $candidateSkill) {
+                $candidate = strtolower(trim((string) $candidateSkill));
+                if ($candidate === '') {
+                    continue;
+                }
+
+                if ($required === $candidate) {
+                    return true;
+                }
+
+                // Support simple partial matches like "react" vs "reactjs".
+                if (strlen($required) >= 4 && str_contains($candidate, $required)) {
+                    return true;
+                }
+                if (strlen($candidate) >= 4 && str_contains($required, $candidate)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function getRequiredOverlapCount(int $requiredSkillsCount, int $jobKeywordsCount): int
+    {
+        if ($requiredSkillsCount >= 4) {
+            return 2;
+        }
+        if ($requiredSkillsCount >= 1) {
+            return 1;
+        }
+
+        // When no explicit required skills are present, be stricter on role keywords.
+        if ($jobKeywordsCount >= 4) {
+            return 2;
+        }
+        return 1;
+    }
+
+    private function countSkillOverlap(array $requiredSkills, array $candidateSkills): int
+    {
+        $matchedRequired = [];
+        foreach ($requiredSkills as $requiredSkill) {
+            $required = strtolower(trim((string) $requiredSkill));
+            if ($required === '') {
+                continue;
+            }
+
+            foreach ($candidateSkills as $candidateSkill) {
+                $candidate = strtolower(trim((string) $candidateSkill));
+                if ($candidate === '') {
+                    continue;
+                }
+
+                if ($required === $candidate) {
+                    $matchedRequired[$required] = true;
+                    break;
+                }
+
+                if (strlen($required) >= 4 && str_contains($candidate, $required)) {
+                    $matchedRequired[$required] = true;
+                    break;
+                }
+                if (strlen($candidate) >= 4 && str_contains($required, $candidate)) {
+                    $matchedRequired[$required] = true;
+                    break;
+                }
+            }
+        }
+
+        return count($matchedRequired);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function extractJobKeywords(string $title, string $category): array
+    {
+        $text = strtolower(trim($title . ' ' . $category));
+        if ($text === '') {
+            return [];
+        }
+
+        $parts = preg_split('/[^a-z0-9+#.]+/', $text) ?: [];
+        $stopWords = [
+            'developer', 'engineer', 'specialist', 'associate', 'senior', 'junior',
+            'lead', 'role', 'job', 'full', 'time', 'part', 'contract', 'internship',
+            'for', 'and', 'with', 'the', 'a', 'an', 'in', 'of', 'to',
+        ];
+        $stopMap = array_fill_keys($stopWords, true);
+
+        $keywords = [];
+        foreach ($parts as $part) {
+            $word = trim($part);
+            if ($word === '' || strlen($word) < 3) {
+                continue;
+            }
+            if (isset($stopMap[$word])) {
+                continue;
+            }
+            $keywords[] = $word;
+        }
+
+        return array_values(array_unique($keywords));
     }
 
     private function extractRequiredExperienceMonths(string $experience): ?int
