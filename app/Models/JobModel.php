@@ -114,12 +114,7 @@ class JobModel extends Model
         )->getRowArray();
         $candidateMonths = (int) ($experienceRow['total_experience_months'] ?? 0);
 
-        $behavior = $this->getCandidateBehaviorProfile($candidateId);
-        $preferredEmploymentTypes = array_map(
-            static fn (array $row): string => strtolower(trim((string) ($row['employment_type'] ?? ''))),
-            (array) ($behavior['top_employment_types'] ?? [])
-        );
-        $preferredEmploymentTypes = array_values(array_filter(array_unique($preferredEmploymentTypes)));
+        $preferredEmploymentTypes = $this->tokenizeCsv((string) ($profile['preferred_employment_type'] ?? ''));
 
         $jobs = $this->where('status', 'open')
             ->whereNotIn('id', static function ($builder) use ($candidateId) {

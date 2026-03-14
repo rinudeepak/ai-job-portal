@@ -95,9 +95,15 @@
                                 </div>
                             </div>
 
-                            <p class="companies-directory-description">
-                                <?= esc($company['short_description'] ?: ($company['what_we_do'] ?: 'Company details will be updated soon.')) ?>
-                            </p>
+                            <?php
+                            $companyDescription = trim((string) ($company['short_description'] ?? ''));
+                            if ($companyDescription === '') {
+                                $companyDescription = trim((string) ($company['what_we_do'] ?? ''));
+                            }
+                            ?>
+                            <?php if ($companyDescription !== ''): ?>
+                                <p class="companies-directory-description"><?= esc($companyDescription) ?></p>
+                            <?php endif; ?>
 
                             <div class="companies-directory-info">
                                 <span><i class="fas fa-briefcase mr-1"></i><?= (int) ($company['open_jobs_count'] ?? 0) ?> open jobs</span>

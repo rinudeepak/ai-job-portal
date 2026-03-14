@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\CandidateOnboardingService;
 use App\Models\CompanyModel;
 use App\Models\UserModel;
 
@@ -17,7 +18,10 @@ class Auth extends BaseController
         if ($session->get('logged_in')) {
             $default = $session->get('role') === 'recruiter'
                 ? base_url('recruiter/dashboard')
-                : base_url('candidate/dashboard');
+                : $this->resolveCandidateTarget([
+                    'id' => (int) $session->get('user_id'),
+                    'role' => 'candidate',
+                ]);
 
             return redirect()->to($this->resolveNextUrl($next, $default));
         }
@@ -65,7 +69,7 @@ class Auth extends BaseController
 
         $defaultTarget = ($user['role'] === 'recruiter')
             ? base_url('recruiter/dashboard')
-            : base_url('candidate/dashboard');
+            : $this->resolveCandidateTarget($user);
 
         $next = (string) $this->request->getPost('next');
 
@@ -227,10 +231,21 @@ class Auth extends BaseController
                 $this->request->getPost('password'),
                 PASSWORD_DEFAULT
             ),
-            'role' => 'candidate'
+            'role' => 'candidate',
+            'onboarding_completed' => 0,
+            'onboarding_step' => 'personal',
         ]);
 
-        return redirect()->to(base_url('login'));
+        $userId = (int) $model->getInsertID();
+        session()->regenerate();
+        session()->set([
+            'user_id' => $userId,
+            'user_name' => (string) $this->request->getPost('name'),
+            'role' => 'candidate',
+            'logged_in' => true,
+        ]);
+
+        return redirect()->to(base_url('candidate/onboarding/personal'));
     }
 
 
@@ -372,6 +387,8 @@ class Auth extends BaseController
                 'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
                 'role' => 'candidate',
                 'google_id' => $googleId,
+                'onboarding_completed' => 0,
+                'onboarding_step' => 'personal',
             ];
 
             $userModel->insert($insertData);
@@ -392,7 +409,7 @@ class Auth extends BaseController
             'logged_in' => true,
         ]);
 
-        return redirect()->to(base_url('candidate/dashboard'));
+        return redirect()->to($this->resolveCandidateTarget($user));
     }
     /* ================= ADMIN REGISTRATION ================= */
 
@@ -915,6 +932,21 @@ class Auth extends BaseController
         }
 
         return $default;
+    }
+
+    private function resolveCandidateTarget(array $user): string
+    {
+        $candidateId = (int) ($user['id'] ?? 0);
+        if ($candidateId <= 0) {
+            return base_url('candidate/dashboard');
+        }
+
+        $onboarding = new CandidateOnboardingService();
+        if (!$onboarding->isComplete($candidateId)) {
+            return base_url('candidate/onboarding/' . $onboarding->getNextStep($candidateId));
+        }
+
+        return base_url('candidate/dashboard');
     }
 }
 

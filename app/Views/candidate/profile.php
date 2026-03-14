@@ -65,6 +65,70 @@
                 pointer-events: none;
                 opacity: .85;
             }
+            .profile-edit-toggle {
+                border: 1px solid #d9e2ec;
+                background: #fff;
+                color: #334155;
+                width: 36px;
+                height: 36px;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .profile-edit-toggle:hover {
+                background: #f8fafc;
+                color: #0f172a;
+                text-decoration: none;
+            }
+            .profile-edit-toggle i {
+                font-size: 14px;
+                color: #334155;
+                line-height: 1;
+            }
+            .profile-edit-toggle-text {
+                font-size: 16px;
+                font-weight: 700;
+                color: #334155;
+                line-height: 1;
+            }
+            .profile-readonly-field {
+                padding: 10px 12px;
+                min-height: 44px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                background: #f8fafc;
+                color: #0f172a;
+            }
+            .profile-readonly-field.is-empty {
+                color: #94a3b8;
+            }
+            .profile-edit-form {
+                display: none;
+            }
+            .profile-section.is-editing .profile-read-view {
+                display: none;
+            }
+            .profile-section.is-editing .profile-edit-form {
+                display: block;
+            }
+            .profile-edit-actions {
+                display: none;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .profile-section.is-editing .profile-edit-actions {
+                display: flex;
+            }
+            .profile-edit-controls {
+                display: none;
+            }
+            .profile-section.is-editing .profile-edit-controls {
+                display: block;
+            }
+            .profile-section.is-editing .profile-header-add {
+                display: inline-flex !important;
+            }
         </style>
         <!-- Profile Completion Progress -->
         <div class="row mb-4">
@@ -151,6 +215,8 @@
                         <h6 class="card-title"><i class="fas fa-link"></i> Quick Links</h6>
                         <div class="list-group list-group-flush">
                             <a href="#personal" class="list-group-item list-group-item-action px-0 py-2">Personal Information</a>
+                            <a href="#career-details" class="list-group-item list-group-item-action px-0 py-2">Career Details</a>
+                            <a href="#preferences" class="list-group-item list-group-item-action px-0 py-2">Preferences</a>
                             <a href="#resume" class="list-group-item list-group-item-action px-0 py-2">Resume</a>
                             <a href="<?= base_url('candidate/resume-studio') ?>" class="list-group-item list-group-item-action px-0 py-2">AI Resume Studio</a>
                             <a href="#github" class="list-group-item list-group-item-action px-0 py-2">GitHub</a>
@@ -191,8 +257,11 @@
                 <div id="profileSections">
                     <div class="profile-section mb-4" id="personal">
                         <div class="card shadow-sm">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-user"></i> Personal Information</h5>
+                                <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Personal Information">
+                                    <span class="profile-edit-toggle-text">&#9998;</span>
+                                </button>
                             </div>
                             <div class="card-body">
                                 <?php if (session()->getFlashdata('personal_success')): ?>
@@ -203,8 +272,41 @@
                                         </button>
                                     </div>
                                 <?php endif; ?>
-                                
-                                <form method="post" action="<?= base_url('candidate/update_personal') ?>">
+
+                                <div class="profile-read-view">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-user"></i> Full Name</label>
+                                            <div class="profile-readonly-field<?= empty(session()->get('user_name')) ? ' is-empty' : '' ?>"><?= !empty(session()->get('user_name')) ? esc(session()->get('user_name')) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                                            <div class="profile-readonly-field<?= empty($user['email']) ? ' is-empty' : '' ?>"><?= !empty($user['email']) ? esc($user['email']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-phone"></i> Phone</label>
+                                            <div class="profile-readonly-field<?= empty($user['phone']) ? ' is-empty' : '' ?>"><?= !empty($user['phone']) ? esc($user['phone']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
+                                            <div class="profile-readonly-field<?= empty($user['location']) ? ' is-empty' : '' ?>"><?= !empty($user['location']) ? esc($user['location']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+                                            <div class="profile-readonly-field<?= empty($user['gender']) ? ' is-empty' : '' ?>"><?= !empty($user['gender']) ? esc($user['gender']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-calendar-alt"></i> Date of Birth</label>
+                                            <div class="profile-readonly-field<?= empty($user['date_of_birth']) ? ' is-empty' : '' ?>"><?= !empty($user['date_of_birth']) ? esc($user['date_of_birth']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-12 mb-3">
+                                            <label class="form-label"><i class="fas fa-info-circle"></i> Bio</label>
+                                            <div class="profile-readonly-field<?= empty($user['bio']) ? ' is-empty' : '' ?>"><?= !empty($user['bio']) ? nl2br(esc($user['bio'])) : 'Not provided' ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form method="post" action="<?= base_url('candidate/update_personal') ?>" class="profile-edit-form">
                                     <?= csrf_field() ?>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
@@ -223,12 +325,29 @@
                                             <label class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
                                             <input type="text" name="location" class="form-control" value="<?= esc($user['location'] ?? '') ?>">
                                         </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+                                            <select name="gender" class="form-control">
+                                                <option value="">Select gender</option>
+                                                <option value="Male" <?= ($user['gender'] ?? '') === 'Male' ? 'selected' : '' ?>>Male</option>
+                                                <option value="Female" <?= ($user['gender'] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+                                                <option value="Other" <?= ($user['gender'] ?? '') === 'Other' ? 'selected' : '' ?>>Other</option>
+                                                <option value="Prefer not to say" <?= ($user['gender'] ?? '') === 'Prefer not to say' ? 'selected' : '' ?>>Prefer not to say</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-calendar-alt"></i> Date of Birth</label>
+                                            <input type="date" name="date_of_birth" class="form-control" value="<?= esc($user['date_of_birth'] ?? '') ?>">
+                                        </div>
                                         <div class="col-12 mb-3">
                                             <label class="form-label"><i class="fas fa-info-circle"></i> Bio</label>
                                             <textarea name="bio" class="form-control" rows="4" placeholder="Tell us about yourself..."><?= esc($user['bio'] ?? '') ?></textarea>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                                    <div class="profile-edit-actions">
+                                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                                        <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Cancel</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -236,8 +355,11 @@
 
                     <div class="profile-section mb-4" id="career-details">
                         <div class="card shadow-sm">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-briefcase"></i> Career Details</h5>
+                                <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Career Details">
+                                    <span class="profile-edit-toggle-text">&#9998;</span>
+                                </button>
                             </div>
                             <div class="card-body">
                                 <?php if (session()->getFlashdata('career_success')): ?>
@@ -248,19 +370,31 @@
                                         </button>
                                     </div>
                                 <?php endif; ?>
-                                
-                                <form method="post" action="<?= base_url('candidate/update-career-details') ?>">
+
+                                <div class="profile-read-view">
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            <label class="form-label"><i class="fas fa-heading"></i> Resume Headline</label>
+                                            <div class="profile-readonly-field<?= empty($user['resume_headline']) ? ' is-empty' : '' ?>"><?= !empty($user['resume_headline']) ? esc($user['resume_headline']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-clock"></i> Notice Period</label>
+                                            <div class="profile-readonly-field<?= empty($user['notice_period']) ? ' is-empty' : '' ?>"><?= !empty($user['notice_period']) ? esc($user['notice_period']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-rupee-sign"></i> Current Salary (LPA)</label>
+                                            <div class="profile-readonly-field<?= empty($user['current_salary']) ? ' is-empty' : '' ?>"><?= !empty($user['current_salary']) ? esc($user['current_salary']) : 'Not provided' ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form method="post" action="<?= base_url('candidate/update-career-details') ?>" class="profile-edit-form">
                                     <?= csrf_field() ?>
                                     <div class="row">
                                         <div class="col-12 mb-3">
                                             <label class="form-label"><i class="fas fa-heading"></i> Resume Headline</label>
                                             <input type="text" name="resume_headline" class="form-control" value="<?= esc($user['resume_headline'] ?? '') ?>" placeholder="e.g. Senior Full Stack Developer with 5+ years experience" maxlength="255">
                                             <small class="text-muted">A one-line professional summary that appears at the top of your profile</small>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label"><i class="fas fa-map-marker-alt"></i> Preferred Locations</label>
-                                            <input type="text" name="preferred_locations" class="form-control" value="<?= esc($user['preferred_locations'] ?? '') ?>" placeholder="Bangalore, Mumbai, Remote">
-                                            <small class="text-muted">Comma-separated locations where you want to work</small>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label"><i class="fas fa-clock"></i> Notice Period</label>
@@ -278,13 +412,89 @@
                                             <input type="number" name="current_salary" class="form-control" value="<?= esc($user['current_salary'] ?? '') ?>" placeholder="e.g. 8.5" step="0.01" min="0">
                                             <small class="text-muted">Your current annual salary in Lakhs</small>
                                         </div>
+                                    </div>
+                                    <div class="profile-edit-actions">
+                                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Career Details</button>
+                                        <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section mb-4" id="preferences">
+                        <div class="card shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-sliders-h"></i> Preferences</h5>
+                                <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Preferences">
+                                    <span class="profile-edit-toggle-text">&#9998;</span>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <?php if (session()->getFlashdata('preferences_success')): ?>
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle"></i> <?= session()->getFlashdata('preferences_success') ?>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="profile-read-view">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-bullseye"></i> Preferred Job Titles</label>
+                                            <div class="profile-readonly-field<?= empty($user['preferred_job_titles']) ? ' is-empty' : '' ?>"><?= !empty($user['preferred_job_titles']) ? esc($user['preferred_job_titles']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-map-marker-alt"></i> Preferred Locations</label>
+                                            <div class="profile-readonly-field<?= empty($user['preferred_locations']) ? ' is-empty' : '' ?>"><?= !empty($user['preferred_locations']) ? esc($user['preferred_locations']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-briefcase"></i> Preferred Employment Type</label>
+                                            <div class="profile-readonly-field<?= empty($user['preferred_employment_type']) ? ' is-empty' : '' ?>"><?= !empty($user['preferred_employment_type']) ? esc($user['preferred_employment_type']) : 'Not provided' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-rupee-sign"></i> Expected Salary (LPA)</label>
+                                            <div class="profile-readonly-field<?= empty($user['expected_salary']) ? ' is-empty' : '' ?>"><?= !empty($user['expected_salary']) ? esc($user['expected_salary']) : 'Not provided' ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form method="post" action="<?= base_url('candidate/update-preferences') ?>" class="profile-edit-form">
+                                    <?= csrf_field() ?>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-bullseye"></i> Preferred Job Titles</label>
+                                            <input type="text" name="preferred_job_titles" class="form-control" value="<?= esc($user['preferred_job_titles'] ?? '') ?>" placeholder="Backend Developer, PHP Developer, API Engineer">
+                                            <small class="text-muted">Used as the main role preference for alerts and recommendations.</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-map-marker-alt"></i> Preferred Locations</label>
+                                            <input type="text" name="preferred_locations" class="form-control" value="<?= esc($user['preferred_locations'] ?? '') ?>" placeholder="Bangalore, Mumbai, Remote">
+                                            <small class="text-muted">Used for job alerts and preference-based recommendations.</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-briefcase"></i> Preferred Employment Type</label>
+                                            <?php $preferredEmploymentType = (string) ($user['preferred_employment_type'] ?? ''); ?>
+                                            <select name="preferred_employment_type" class="form-control">
+                                                <option value="">Select employment type</option>
+                                                <?php foreach (['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'] as $employmentTypeOption): ?>
+                                                    <option value="<?= esc($employmentTypeOption) ?>" <?= $preferredEmploymentType === $employmentTypeOption ? 'selected' : '' ?>><?= esc($employmentTypeOption) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <small class="text-muted">This preference is also used by job alerts and recommendation ranking.</small>
+                                        </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label"><i class="fas fa-rupee-sign"></i> Expected Salary (LPA)</label>
                                             <input type="number" name="expected_salary" class="form-control" value="<?= esc($user['expected_salary'] ?? '') ?>" placeholder="e.g. 12" step="0.01" min="0">
-                                            <small class="text-muted">Your expected annual salary in Lakhs</small>
+                                            <small class="text-muted">Used as part of your preference profile and job alert criteria.</small>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Career Details</button>
+                                    <div class="profile-edit-actions">
+                                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Preferences</button>
+                                        <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Cancel</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -292,8 +502,11 @@
 
                     <div class="profile-section mb-4" id="resume">
                         <div class="card shadow-sm">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-file-alt"></i> Resume Management</h5>
+                                <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Resume">
+                                    <span class="profile-edit-toggle-text">&#9998;</span>
+                                </button>
                             </div>
                             <div class="card-body">
                                 <?php if (session()->getFlashdata('upload_success')): ?>
@@ -305,53 +518,71 @@
                                     </div>
                                 <?php endif; ?>
 
-                                <?php if (!empty($user['resume_path'])): ?>
-                                    <div class="current-resume mb-4">
-                                        <div class="d-flex align-items-center p-3 border rounded bg-light">
-                                            <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-1">Current Resume</h6>
-                                                <small class="text-muted"><?= esc($user['resume_path']) ?></small>
-                                            </div>
-                                            <div>
-                                                <button class="btn btn-outline-primary btn-sm me-2" onclick="previewResume()"><i class="fas fa-eye"></i> Preview</button>
-                                                <a href="<?= base_url('candidate/download-resume') ?>" class="btn btn-outline-success btn-sm"><i class="fas fa-download"></i> Download</a>
+                                <div class="profile-read-view">
+                                    <?php if (!empty($user['resume_path'])): ?>
+                                        <div class="current-resume mb-4">
+                                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                                <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">Current Resume</h6>
+                                                    <small class="text-muted"><?= esc($user['resume_path']) ?></small>
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn-outline-primary btn-sm me-2" onclick="previewResume()"><i class="fas fa-eye"></i> Preview</button>
+                                                    <a href="<?= base_url('candidate/download-resume') ?>" class="btn btn-outline-success btn-sm"><i class="fas fa-download"></i> Download</a>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php else: ?>
+                                        <div class="profile-readonly-field is-empty mb-4">No resume uploaded</div>
+                                    <?php endif; ?>
 
-                                <form method="post" action="<?= base_url('candidate/resume_upload') ?>" enctype="multipart/form-data">
+                                    <div class="border rounded p-4 mt-4 bg-light">
+                                        <div class="d-flex justify-content-between align-items-start flex-wrap" style="gap: 12px;">
+                                            <div>
+                                                <h6 class="mb-1"><i class="fas fa-magic"></i> AI Resume Studio</h6>
+                                                <p class="text-muted mb-0">Create premium AI resume versions, choose templates, manage job-specific resumes, and export polished PDFs from a dedicated page.</p>
+                                            </div>
+                                            <a href="<?= base_url('candidate/resume-studio') ?>" class="btn btn-dark btn-sm">
+                                                <i class="fas fa-arrow-right"></i> Open Studio
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form method="post" action="<?= base_url('candidate/resume_upload') ?>" enctype="multipart/form-data" class="profile-edit-form" data-loading-form>
                                     <?= csrf_field() ?>
                                     <div class="upload-area border-2 border-dashed rounded p-4 text-center mb-3" style="border-color: #dee2e6;">
                                         <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                        <h6>Drag & Drop your resume here</h6>
-                                        <p class="text-muted mb-3">or click to browse files</p>
+                                        <h6><?= !empty($user['resume_path']) ? 'Replace your resume' : 'Upload your resume' ?></h6>
+                                        <p class="text-muted mb-3">Choose a new file only when you want to update it</p>
                                         <input type="file" name="resume" class="form-control" accept=".pdf,.doc,.docx" required>
                                         <small class="text-muted">Supported formats: PDF, DOC, DOCX (Max 5MB)</small>
                                     </div>
-                                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Resume</button>
-                                </form>
-
-                                <div class="border rounded p-4 mt-4 bg-light">
-                                    <div class="d-flex justify-content-between align-items-start flex-wrap" style="gap: 12px;">
-                                        <div>
-                                            <h6 class="mb-1"><i class="fas fa-magic"></i> AI Resume Studio</h6>
-                                            <p class="text-muted mb-0">Create premium AI resume versions, choose templates, manage job-specific resumes, and export polished PDFs from a dedicated page.</p>
+                                    <?php if (!empty($user['resume_path'])): ?>
+                                        <div class="mb-3">
+                                            <small class="text-muted d-block">Current file: <?= esc($user['resume_path']) ?></small>
                                         </div>
-                                        <a href="<?= base_url('candidate/resume-studio') ?>" class="btn btn-dark btn-sm">
-                                            <i class="fas fa-arrow-right"></i> Open Studio
-                                        </a>
+                                    <?php endif; ?>
+                                    <div class="profile-edit-actions">
+                                        <button type="submit" class="btn btn-primary" data-loading-button>
+                                            <span class="btn-submit-text"><i class="fas fa-upload"></i> Update Resume</span>
+                                            <span class="btn-loading-state"><i class="fas fa-spinner fa-spin"></i> Uploading...</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Cancel</button>
                                     </div>
-                                </div>
+                                </form>
                             </div>
                         </div>
                     </div>
 
                     <div class="profile-section mb-4" id="github">
                         <div class="card shadow-sm">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fab fa-github"></i> GitHub Integration</h5>
+                                <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit GitHub Integration">
+                                    <span class="profile-edit-toggle-text">&#9998;</span>
+                                </button>
                             </div>
                             <div class="card-body">
                                 <?php if (session()->getFlashdata('profile_success')): ?>
@@ -363,7 +594,16 @@
                                     </div>
                                 <?php endif; ?>
 
-                                <form method="post" action="<?= base_url('candidate/analyze_github') ?>" data-loading-form>
+                                <div class="profile-read-view">
+                                    <div class="mb-3">
+                                        <label class="form-label"><i class="fab fa-github"></i> GitHub Username</label>
+                                        <div class="profile-readonly-field<?= empty($github['github_username']) ? ' is-empty' : '' ?>">
+                                            <?= !empty($github['github_username']) ? 'github.com/' . esc($github['github_username']) : 'Not connected' ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form method="post" action="<?= base_url('candidate/analyze_github') ?>" data-loading-form class="profile-edit-form">
                                     <?= csrf_field() ?>
                                     <div class="mb-3">
                                         <label class="form-label"><i class="fab fa-github"></i> GitHub Username</label>
@@ -373,14 +613,17 @@
                                         </div>
                                         <small class="text-muted">We'll analyze your repositories to extract skills automatically</small>
                                     </div>
-                                    <button type="submit" class="btn btn-primary" data-loading-button>
-                                        <span class="btn-submit-text">
-                                            <i class="fas fa-sync"></i> Analyze GitHub
-                                        </span>
-                                        <span class="btn-loading-state" aria-hidden="true">
-                                            <i class="fas fa-spinner fa-spin"></i> Analyzing...
-                                        </span>
-                                    </button>
+                                    <div class="profile-edit-actions">
+                                        <button type="submit" class="btn btn-primary" data-loading-button>
+                                            <span class="btn-submit-text">
+                                                <i class="fas fa-sync"></i> Analyze GitHub
+                                            </span>
+                                            <span class="btn-loading-state" aria-hidden="true">
+                                                <i class="fas fa-spinner fa-spin"></i> Analyzing...
+                                            </span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Cancel</button>
+                                    </div>
                                 </form>
 
                                 <?php if (!empty($github['github_username'])): ?>
@@ -429,8 +672,11 @@
 
                     <div class="profile-section mb-4" id="skills">
                         <div class="card shadow-sm">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-code"></i> Skills & Technologies</h5>
+                                <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Skills">
+                                    <span class="profile-edit-toggle-text">&#9998;</span>
+                                </button>
                             </div>
                             <div class="card-body">
                                 <?php if (!empty($skills['skill_name'])): ?>
@@ -485,7 +731,7 @@
                                     </div>
                                 <?php endif; ?>
 
-                                <div class="skills-section mt-4">
+                                <div class="skills-section mt-4 profile-edit-controls">
                                     <h6><i class="fas fa-plus-circle"></i> Add Custom Skills</h6>
                                     <form method="post" action="<?= base_url('candidate/add-skill') ?>" class="d-flex">
                                         <?= csrf_field() ?>
@@ -493,14 +739,20 @@
                                         <button type="submit" class="btn btn-outline-primary"><i class="fas fa-plus"></i> Add</button>
                                     </form>
                                 </div>
+                                <div class="profile-edit-actions">
+                                    <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Done</button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="profile-section mb-4" id="interests">
                         <div class="card shadow-sm">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-heart"></i> Job Interests</h5>
+                                <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Interests">
+                                    <span class="profile-edit-toggle-text">&#9998;</span>
+                                </button>
                             </div>
                             <div class="card-body">
                                 <p class="text-muted mb-3">
@@ -517,13 +769,15 @@
                                             <?php foreach ($interests as $interest): ?>
                                                 <span class="badge bg-success d-inline-flex align-items-center gap-1 px-3 py-2" style="font-size:.85rem;">
                                                     <?= esc($interest) ?>
-                                                    <a href="<?= base_url('candidate/delete-interest/' . urlencode($interest)) ?>"
-                                                       onclick="return confirm('Remove this interest?')"
-                                                       class="text-white ms-1"
-                                                       title="Remove"
-                                                       style="text-decoration:none;line-height:1;">
-                                                        &times;
-                                                    </a>
+                                                    <span class="profile-edit-controls">
+                                                        <a href="<?= base_url('candidate/delete-interest/' . urlencode($interest)) ?>"
+                                                           onclick="return confirm('Remove this interest?')"
+                                                           class="text-white ms-1"
+                                                           title="Remove"
+                                                           style="text-decoration:none;line-height:1;">
+                                                            &times;
+                                                        </a>
+                                                    </span>
                                                 </span>
                                             <?php endforeach; ?>
                                         </div>
@@ -536,7 +790,7 @@
                                 <?php endif; ?>
 
                                 <!-- Add interest form -->
-                                <div class="mt-2">
+                                <div class="mt-2 profile-edit-controls">
                                     <h6><i class="fas fa-plus-circle"></i> Add an Interest</h6>
                                     <form method="post" action="<?= base_url('candidate/add-interest') ?>" class="d-flex gap-2">
                                         <?= csrf_field() ?>
@@ -549,7 +803,7 @@
                                 </div>
 
                                 <!-- Suggestions -->
-                                <div class="mt-4">
+                                <div class="mt-4 profile-edit-controls">
                                     <h6 class="text-muted"><i class="fas fa-lightbulb"></i> Popular interests — click to add</h6>
                                     <div class="d-flex flex-wrap gap-2">
                                         <?php
@@ -581,6 +835,9 @@
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="interest" id="quickInterestValue">
                                 </form>
+                                <div class="profile-edit-actions">
+                                    <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Done</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -589,7 +846,12 @@
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-briefcase"></i> Work Experience</h5>
-                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addExperienceModal"><i class="fas fa-plus"></i> Add</button>
+                                <div class="d-flex align-items-center" style="gap: 10px;">
+                                    <button type="button" class="btn btn-sm btn-primary profile-header-add" data-toggle="modal" data-target="#addExperienceModal" style="display:none;"><i class="fas fa-plus"></i> Add</button>
+                                    <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Work Experience">
+                                        <span class="profile-edit-toggle-text">&#9998;</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <?php if (!empty($workExperiences)): ?>
@@ -603,7 +865,7 @@
                                                 <?php if($exp['location']): ?><p class="mb-1 text-muted"><i class="fas fa-map-marker-alt"></i> <?= esc($exp['location']) ?></p><?php endif; ?>
                                                 <?php if($exp['description']): ?><p class="mt-2"><?= nl2br(esc($exp['description'])) ?></p><?php endif; ?>
                                             </div>
-                                            <div>
+                                            <div class="profile-edit-controls">
                                                 <button class="btn btn-sm btn-outline-primary me-1" onclick='editExperience(<?= json_encode($exp) ?>)'><i class="fas fa-edit"></i></button>
                                                 <a href="<?= base_url('candidate/delete-work-experience/'.$exp['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this experience?')"><i class="fas fa-trash"></i></a>
                                             </div>
@@ -613,6 +875,9 @@
                                 <?php else: ?>
                                     <p class="text-muted text-center py-4">No work experience added yet</p>
                                 <?php endif; ?>
+                                <div class="profile-edit-actions">
+                                    <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Done</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -621,7 +886,12 @@
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Education</h5>
-                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addEducationModal"><i class="fas fa-plus"></i> Add</button>
+                                <div class="d-flex align-items-center" style="gap: 10px;">
+                                    <button type="button" class="btn btn-sm btn-primary profile-header-add" data-toggle="modal" data-target="#addEducationModal" style="display:none;"><i class="fas fa-plus"></i> Add</button>
+                                    <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Education">
+                                        <span class="profile-edit-toggle-text">&#9998;</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <?php if (!empty($education)): ?>
@@ -635,7 +905,7 @@
                                                 <p class="mb-1 text-muted"><i class="fas fa-calendar"></i> <?= esc($edu['start_year']) ?> - <?= esc($edu['end_year']) ?></p>
                                                 <?php if($edu['grade']): ?><p class="mb-1 text-muted"><i class="fas fa-award"></i> Grade: <?= esc($edu['grade']) ?></p><?php endif; ?>
                                             </div>
-                                            <div>
+                                            <div class="profile-edit-controls">
                                                 <button class="btn btn-sm btn-outline-primary me-1" onclick='editEducation(<?= json_encode($edu) ?>)'><i class="fas fa-edit"></i></button>
                                                 <a href="<?= base_url('candidate/delete-education/'.$edu['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this education?')"><i class="fas fa-trash"></i></a>
                                             </div>
@@ -645,6 +915,9 @@
                                 <?php else: ?>
                                     <p class="text-muted text-center py-4">No education added yet</p>
                                 <?php endif; ?>
+                                <div class="profile-edit-actions">
+                                    <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Done</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -653,7 +926,12 @@
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-diagram-project"></i> Projects</h5>
-                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addProjectModal"><i class="fas fa-plus"></i> Add</button>
+                                <div class="d-flex align-items-center" style="gap: 10px;">
+                                    <button type="button" class="btn btn-sm btn-primary profile-header-add" data-toggle="modal" data-target="#addProjectModal" style="display:none;"><i class="fas fa-plus"></i> Add</button>
+                                    <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Projects">
+                                        <span class="profile-edit-toggle-text">&#9998;</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <?php if (!empty($projects)): ?>
@@ -678,7 +956,7 @@
                                                     <p class="mb-0"><a href="<?= esc($project['project_url']) ?>" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View Project</a></p>
                                                 <?php endif; ?>
                                             </div>
-                                            <div>
+                                            <div class="profile-edit-controls">
                                                 <button class="btn btn-sm btn-outline-primary me-1" onclick='editProject(<?= json_encode($project) ?>)'><i class="fas fa-edit"></i></button>
                                                 <a href="<?= base_url('candidate/delete-project/' . $project['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this project?')"><i class="fas fa-trash"></i></a>
                                             </div>
@@ -688,6 +966,9 @@
                                 <?php else: ?>
                                     <p class="text-muted text-center py-4">No projects added yet</p>
                                 <?php endif; ?>
+                                <div class="profile-edit-actions">
+                                    <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Done</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -696,7 +977,12 @@
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-certificate"></i> Certifications</h5>
-                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addCertificationModal"><i class="fas fa-plus"></i> Add</button>
+                                <div class="d-flex align-items-center" style="gap: 10px;">
+                                    <button type="button" class="btn btn-sm btn-primary profile-header-add" data-toggle="modal" data-target="#addCertificationModal" style="display:none;"><i class="fas fa-plus"></i> Add</button>
+                                    <button type="button" class="profile-edit-toggle" data-edit-toggle title="Edit Certifications">
+                                        <span class="profile-edit-toggle-text">&#9998;</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <?php if (!empty($certifications)): ?>
@@ -710,7 +996,7 @@
                                                 <?php if($cert['credential_id']): ?><p class="mb-1 text-muted"><i class="fas fa-id-card"></i> ID: <?= esc($cert['credential_id']) ?></p><?php endif; ?>
                                                 <?php if($cert['credential_url']): ?><p class="mb-1"><a href="<?= esc($cert['credential_url']) ?>" target="_blank"><i class="fas fa-external-link-alt"></i> View Credential</a></p><?php endif; ?>
                                             </div>
-                                            <div>
+                                            <div class="profile-edit-controls">
                                                 <button class="btn btn-sm btn-outline-primary me-1" onclick='editCertification(<?= json_encode($cert) ?>)'><i class="fas fa-edit"></i></button>
                                                 <a href="<?= base_url('candidate/delete-certification/'.$cert['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this certification?')"><i class="fas fa-trash"></i></a>
                                             </div>
@@ -720,6 +1006,9 @@
                                 <?php else: ?>
                                     <p class="text-muted text-center py-4">No certifications added yet</p>
                                 <?php endif; ?>
+                                <div class="profile-edit-actions">
+                                    <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Done</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -970,6 +1259,7 @@ function editProject(project) {
 
 document.addEventListener('DOMContentLoaded', function () {
     var loadingForms = document.querySelectorAll('form[data-loading-form]');
+    var editableSections = document.querySelectorAll('.profile-section');
 
     loadingForms.forEach(function (form) {
         form.addEventListener('submit', function () {
@@ -992,6 +1282,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadingState.style.display = 'inline-flex';
             }
         });
+    });
+
+    editableSections.forEach(function (section) {
+        var toggle = section.querySelector('[data-edit-toggle]');
+        var cancel = section.querySelector('[data-edit-cancel]');
+
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                section.classList.add('is-editing');
+            });
+        }
+
+        if (cancel) {
+            cancel.addEventListener('click', function () {
+                section.classList.remove('is-editing');
+            });
+        }
     });
 });
 </script>

@@ -71,6 +71,55 @@
                     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                     gap: 18px;
                 }
+                .generation-mode-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 14px;
+                    margin-bottom: 18px;
+                }
+                .generation-mode-option {
+                    position: relative;
+                }
+                .generation-mode-option input {
+                    position: absolute;
+                    opacity: 0;
+                    pointer-events: none;
+                }
+                .generation-mode-card {
+                    display: block;
+                    border: 1px solid #dbe3ee;
+                    border-radius: 16px;
+                    padding: 16px 18px;
+                    background: #fff;
+                    cursor: pointer;
+                    transition: .18s ease;
+                    min-height: 100px;
+                }
+                .generation-mode-card:hover {
+                    border-color: #93c5fd;
+                    box-shadow: 0 10px 20px rgba(59, 130, 246, .10);
+                }
+                .generation-mode-option input:checked + .generation-mode-card {
+                    border-color: #2563eb;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+                    background: #f8fbff;
+                }
+                .generation-mode-card strong {
+                    display: block;
+                    font-size: 1rem;
+                    color: #0f172a;
+                    margin-bottom: 6px;
+                }
+                .generation-mode-card small {
+                    color: #64748b;
+                    line-height: 1.5;
+                }
+                .generation-panel {
+                    display: none;
+                }
+                .generation-panel.is-active {
+                    display: block;
+                }
                 .template-option {
                     position: relative;
                 }
@@ -78,6 +127,9 @@
                     position: absolute;
                     opacity: 0;
                     pointer-events: none;
+                }
+                .template-option.is-disabled {
+                    opacity: .72;
                 }
                 .template-card {
                     display: block;
@@ -98,6 +150,21 @@
                     border-color: #2563eb;
                     box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
                     background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+                }
+                .template-option.is-disabled .template-card,
+                .template-option.is-disabled .template-card:hover {
+                    cursor: not-allowed;
+                    border-color: #d7dee8;
+                    box-shadow: none;
+                    transform: none;
+                    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+                }
+                .template-disabled-note {
+                    display: block;
+                    margin-top: 10px;
+                    font-size: .82rem;
+                    line-height: 1.45;
+                    color: #b45309;
                 }
                 .template-preview {
                     display: block;
@@ -253,31 +320,56 @@
                     <form method="post" action="<?= base_url('candidate/resume/generate') ?>" data-loading-form>
                         <?= csrf_field() ?>
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label d-block">Choose Generation Mode</label>
+                                <div class="generation-mode-grid">
+                                    <label class="generation-mode-option">
+                                        <input type="radio" name="generation_mode" value="role" checked>
+                                        <span class="generation-mode-card">
+                                            <strong>Generate By Role</strong>
+                                            <small>Create a resume for a target role you enter manually.</small>
+                                        </span>
+                                    </label>
+                                    <label class="generation-mode-option">
+                                        <input type="radio" name="generation_mode" value="job">
+                                        <span class="generation-mode-card">
+                                            <strong>Generate For Specific Job</strong>
+                                            <small>Create a version tailored to one selected job posting.</small>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3 generation-panel is-active" data-generation-panel="role-field">
                                 <label class="form-label">Target Role</label>
                                 <input type="text" name="target_role" class="form-control" placeholder="e.g. Product Designer, PHP Developer">
-                                <small class="text-muted">Required unless you pick a job below.</small>
+                                <small class="text-muted">Used only for role-based generation.</small>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-12 mb-3 generation-panel" data-generation-panel="job">
                                 <label class="form-label">Specific Job Version</label>
                                 <select name="job_id" class="form-control">
-                                    <option value="">No specific job</option>
+                                    <option value="">Select a job</option>
                                     <?php foreach (($resumeTargets ?? []) as $target): ?>
                                         <option value="<?= (int) $target['job_id'] ?>"><?= esc($target['title']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                                <small class="text-muted">Used only for job-specific generation.</small>
                             </div>
                             <div class="col-md-12 mb-3">
                                 <label class="form-label d-block">Choose Template</label>
                                 <div class="template-grid">
                                     <?php foreach (($resumeTemplates ?? []) as $templateKey => $template): ?>
+                                        <?php $disabledMessage = (string) ($blockedResumeTemplates[$templateKey] ?? ''); ?>
+                                        <?php $isTemplateDisabled = $disabledMessage !== ''; ?>
                                         <?php $previewClass = (string) ($template['preview_class'] ?? 'modern'); ?>
-                                        <label class="template-option">
-                                            <input type="radio" name="template_key" value="<?= esc($templateKey) ?>" <?= $templateKey === 'modern_professional' ? 'checked' : '' ?>>
+                                        <label class="template-option <?= $isTemplateDisabled ? 'is-disabled' : '' ?>">
+                                            <input type="radio" name="template_key" value="<?= esc($templateKey) ?>" <?= $templateKey === 'modern_professional' ? 'checked' : '' ?> <?= $isTemplateDisabled ? 'disabled' : '' ?>>
                                             <span class="template-card">
                                                 <span class="template-preview <?= esc($previewClass) ?>"></span>
                                                 <strong class="d-block mb-1"><?= esc($template['label']) ?></strong>
                                                 <small class="text-muted d-block"><?= esc($template['description']) ?></small>
+                                                <?php if ($isTemplateDisabled): ?>
+                                                    <small class="template-disabled-note"><i class="fas fa-info-circle"></i> <?= esc($disabledMessage) ?></small>
+                                                <?php endif; ?>
                                             </span>
                                         </label>
                                     <?php endforeach; ?>
@@ -372,6 +464,40 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var loadingForms = document.querySelectorAll('form[data-loading-form]');
+    var generationModeInputs = document.querySelectorAll('input[name="generation_mode"]');
+    var generationPanels = document.querySelectorAll('[data-generation-panel]');
+    var targetRoleInput = document.querySelector('input[name="target_role"]');
+    var jobSelectInput = document.querySelector('select[name="job_id"]');
+
+    function syncGenerationMode(mode) {
+        generationPanels.forEach(function (panel) {
+            panel.classList.toggle('is-active', panel.getAttribute('data-generation-panel') === mode);
+        });
+
+        if (targetRoleInput) {
+            if (mode === 'role') {
+                targetRoleInput.disabled = false;
+            } else {
+                targetRoleInput.value = '';
+                targetRoleInput.disabled = true;
+            }
+        }
+
+        generationPanels.forEach(function (panel) {
+            if (panel.getAttribute('data-generation-panel') === 'role-field') {
+                panel.classList.toggle('is-active', mode === 'role');
+            }
+        });
+
+        if (jobSelectInput) {
+            if (mode === 'job') {
+                jobSelectInput.disabled = false;
+            } else {
+                jobSelectInput.value = '';
+                jobSelectInput.disabled = true;
+            }
+        }
+    }
 
     loadingForms.forEach(function (form) {
         form.addEventListener('submit', function () {
@@ -395,6 +521,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    generationModeInputs.forEach(function (input) {
+        input.addEventListener('change', function () {
+            if (input.checked) {
+                syncGenerationMode(input.value);
+            }
+        });
+    });
+
+    var initialMode = 'role';
+    generationModeInputs.forEach(function (input) {
+        if (input.checked) {
+            initialMode = input.value;
+        }
+    });
+    syncGenerationMode(initialMode);
 });
 
 function previewResumeVersion(versionId) {

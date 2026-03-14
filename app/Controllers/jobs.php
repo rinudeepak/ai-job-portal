@@ -370,7 +370,7 @@ class Jobs extends BaseController
             }
 
             $job['match_score'] = round(min(100, $score), 1);
-            $job['match_reason'] = 'Based on your recent application patterns';
+            $job['match_reason'] = '';
             $ranked[] = $job;
         }
 
@@ -384,8 +384,21 @@ class Jobs extends BaseController
         $userModel = new \App\Models\UserModel();
 
         $profile = $userModel->findCandidateWithProfile($candidateId) ?? [];
+        $preferredJobTitles = array_values(array_filter(array_map(
+            'trim',
+            array_map(
+                'strtolower',
+                preg_split('/[,|\\/]+/', (string) ($profile['preferred_job_titles'] ?? '')) ?: []
+            )
+        )));
         $preferredLocations = array_filter(array_map('trim', explode(',', strtolower((string) ($profile['preferred_locations'] ?? '')))));
-        $preferredEmploymentTypes = array_map('strtolower', array_column((array) ($behavior['top_employment_types'] ?? []), 'employment_type'));
+        $preferredEmploymentTypes = array_values(array_filter(array_map(
+            'trim',
+            array_map(
+                'strtolower',
+                preg_split('/[,|\\/]+/', (string) ($profile['preferred_employment_type'] ?? '')) ?: []
+            )
+        )));
         $interests = array_values(array_filter(array_map('strtolower', array_map('trim', $candidateInterests))));
 
         $jobs = $jobModel->where('status', 'open')
@@ -399,6 +412,13 @@ class Jobs extends BaseController
         foreach ($jobs as $job) {
             $score = 0.0;
             $blob = strtolower(trim((string) ($job['title'] ?? '') . ' ' . (string) ($job['category'] ?? '') . ' ' . (string) ($job['description'] ?? '')));
+            $jobTitle = strtolower(trim((string) ($job['title'] ?? '')));
+            foreach ($preferredJobTitles as $preferredJobTitle) {
+                if ($preferredJobTitle !== '' && (str_contains($jobTitle, $preferredJobTitle) || str_contains($preferredJobTitle, $jobTitle))) {
+                    $score += 35;
+                    break;
+                }
+            }
             foreach ($interests as $interest) {
                 if ($interest !== '' && str_contains($blob, $interest)) {
                     $score += 25;
@@ -423,7 +443,7 @@ class Jobs extends BaseController
             }
 
             $job['match_score'] = round(min(100, $score), 1);
-            $job['match_reason'] = 'Matched your profile interests and preferences';
+            $job['match_reason'] = '';
             $ranked[] = $job;
         }
 
@@ -477,7 +497,6 @@ class Jobs extends BaseController
         $jobModel = new JobModel();
         $companyModel = new CompanyModel();
         $applicationModel = model('ApplicationModel');
-        $interviewModel = model('InterviewSessionModel');
 
         $job = $jobModel
             ->where('id', $id)
@@ -497,14 +516,6 @@ class Jobs extends BaseController
 
         $alreadyApplied = $application ? true : false;
         $interviewId = null;
-
-        if ($application) {
-            $interview = $interviewModel
-                ->where('application_id', $application['id'])
-                ->first();
-
-            $interviewId = $interview ? $interview['id'] : null;
-        }
 
         $isSaved = (bool) (new SavedJobModel())
             ->where('candidate_id', (int) session()->get('user_id'))

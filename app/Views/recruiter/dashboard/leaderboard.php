@@ -292,8 +292,6 @@
                                         $statusColors = [
                                             'applied' => 'secondary',
                                             'pending' => 'secondary',
-                                            'ai_interview_started' => 'info',
-                                            'ai_interview_completed' => 'info',
                                             'shortlisted' => 'primary',
                                             'interview_slot_booked' => 'warning',
                                             'selected' => 'success',

@@ -37,7 +37,7 @@
                     <small><?= esc($policyMeta['hint']) ?></small>
                 </div>
                 <?php if (!empty($isAiCompulsory)): ?>
-                    <small class="text-muted ml-2">Recruiter decision enabled only after AI interview completion.</small>
+                    <small class="text-muted ml-2">Recruiter decision follows application pipeline rules.</small>
                 <?php endif; ?>
             </div>
         </div>
@@ -201,8 +201,6 @@
                                         $statusColors = [
                                             'pending' => 'warning',
                                             'applied' => 'warning',
-                                            'ai_interview_started' => 'info',
-                                            'ai_interview_completed' => 'primary',
                                             'shortlisted' => 'success',
                                             'interview_slot_booked' => 'success',
                                             'selected' => 'success',
@@ -212,8 +210,6 @@
                                         $statusLabels = [
                                             'pending' => 'Applied',
                                             'applied' => 'Applied',
-                                            'ai_interview_started' => 'AI Interview In Progress',
-                                            'ai_interview_completed' => 'AI Interviewed',
                                             'shortlisted' => 'Shortlisted',
                                             'interview_slot_booked' => 'Interview Booked',
                                             'selected' => 'Selected',
@@ -266,7 +262,7 @@
                                                     </button>
                                                 </form>
                                             <?php elseif (($app['status'] ?? '') !== 'interview_slot_booked' && ($app['status'] ?? '') !== 'selected'): ?>
-                                                <small class="text-muted d-block mt-1">Awaiting AI interview completion</small>
+                                                <small class="text-muted d-block mt-1">Not eligible for recruiter action yet</small>
                                             <?php endif; ?>
                                         </div>
                                     </td>

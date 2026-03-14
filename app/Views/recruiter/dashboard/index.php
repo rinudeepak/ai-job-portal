@@ -13,10 +13,6 @@
         $normalized = strtolower(trim((string) $raw));
         $map = [
             'applied' => 'Applied',
-            'ai interview started' => 'AI Interview Started',
-            'ai interview completed' => 'AI Interview Completed',
-            'ai interview evaluated' => 'AI Evaluated',
-            'ai review pending recruiter decision' => 'Recruiter Decision Pending',
             'shortlisted (recruiter override)' => 'Shortlisted',
             'rejected (recruiter override)' => 'Rejected',
             'shortlisted' => 'Shortlisted',
@@ -75,7 +71,7 @@
             <span class="badge badge-warning"><?= $pendingActions['pending_screening'] ?></span> applications to screen, 
         <?php endif; ?>
         <?php if ($pendingActions['ai_interviews_to_review'] > 0): ?>
-            <span class="badge badge-info"><?= $pendingActions['ai_interviews_to_review'] ?></span> AI interviews to review, 
+            <span class="badge badge-info"><?= $pendingActions['ai_interviews_to_review'] ?></span> screening reviews pending, 
         <?php endif; ?>
         <?php if ($pendingActions['hr_interviews_today'] > 0): ?>
             <span class="badge badge-primary"><?= $pendingActions['hr_interviews_today'] ?></span> HR interviews today
@@ -249,14 +245,15 @@
                                 <p class="text-muted mb-0">Applications</p>
                             </div>
                         </div>
+                        <?php $screeningCompleted = (int) ($funnel['shortlisted'] ?? 0) + (int) ($funnel['rejected'] ?? 0); ?>
                         <div class="col-3">
                             <div class="pipeline-stat">
                                 <div class="stat-icon bg-info">
                                     <i class="fas fa-robot"></i>
                                 </div>
-                                <h3><?= number_format($funnel['ai_interview_completed']) ?></h3>
-                                <p class="text-muted mb-0">AI Screened</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($funnel['ai_interview_completed'] / $funnel['total_applications']) * 100, 1) : 0 ?>% from applications</small>
+                                <h3><?= number_format($screeningCompleted) ?></h3>
+                                <p class="text-muted mb-0">Screening Completed</p>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($screeningCompleted / $funnel['total_applications']) * 100, 1) : 0 ?>% from applications</small>
                             </div>
                         </div>
                         <div class="col-3">
@@ -266,7 +263,7 @@
                                 </div>
                                 <h3><?= number_format($funnel['shortlisted']) ?></h3>
                                 <p class="text-muted mb-0">Shortlisted</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['ai_interview_completed'] > 0 ? round(($funnel['shortlisted'] / $funnel['ai_interview_completed']) * 100, 1) : 0 ?>% from AI screened</small>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $screeningCompleted > 0 ? round(($funnel['shortlisted'] / $screeningCompleted) * 100, 1) : 0 ?>% from screened</small>
                             </div>
                         </div>
                         <div class="col-3">

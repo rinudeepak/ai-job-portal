@@ -240,7 +240,6 @@ class NotificationModel extends Model
         // Map status to notification type
         $statusToType = [
             'applied' => 'ai_not_started',
-            'ai_interview_started' => 'ai_incomplete',
             'shortlisted' => 'slot_not_booked',
             'reschedule_required' => 'reschedule_required',
             'interview_scheduled' => 'interview_scheduled'
@@ -270,7 +269,6 @@ class NotificationModel extends Model
         // Map status to notification type
         $statusToType = [
             'applied' => 'ai_not_started',
-            'ai_interview_started' => 'ai_incomplete',
             'shortlisted' => 'slot_not_booked',
             'reschedule_required' => 'reschedule_required',
             'interview_scheduled' => 'interview_scheduled'
@@ -297,16 +295,6 @@ class NotificationModel extends Model
                     'ai_not_started',
                     'Start your AI technical interview to move forward.',
                     base_url('interview/start/'.$applicationId)
-                );
-                break;
-
-            case 'ai_interview_started':
-                $this->createNotification(
-                    $userId,
-                    $applicationId,
-                    'ai_incomplete',
-                    'Your AI interview is incomplete.',
-                    base_url('interview/chat/'.$applicationId)
                 );
                 break;
 

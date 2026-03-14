@@ -22,11 +22,19 @@ use App\Models\CertificationModel;
 
 class Candidate extends BaseController
 {
-    public function markNotificationRead($id)
+    public function settings()
     {
-        $notificationModel = model('NotificationModel');
-        $notificationModel->markAsRead($id);
-        return redirect()->back();
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+
+        $userId = (int) session()->get('user_id');
+        $userModel = model('UserModel');
+        $user = $userModel->findCandidateWithProfile($userId) ?? $userModel->find($userId) ?? [];
+
+        return view('candidate/settings', [
+            'user' => $user,
+        ]);
     }
 
     public function profile()
@@ -191,6 +199,8 @@ class Candidate extends BaseController
             ]);
         }
 
+        model('JobAlertModel')->syncFromCandidateProfile((int) $candidateId);
+
         return redirect()->back()->with('upload_success', 'Resume Uploaded Successfully');
     }
 
@@ -201,24 +211,42 @@ class Candidate extends BaseController
             return redirect()->back()->with('error', 'Resume version storage is not ready yet. Run the latest migrations first.');
         }
 
+        $generationMode = trim((string) $this->request->getPost('generation_mode'));
         $targetRole = trim((string) $this->request->getPost('target_role'));
         $jobId = (int) ($this->request->getPost('job_id') ?? 0);
         $makePrimary = (int) ($this->request->getPost('make_primary') ?? 0) === 1;
         $templateKey = trim((string) $this->request->getPost('template_key'));
 
+        if (!in_array($generationMode, ['role', 'job'], true)) {
+            return redirect()->back()->with('error', 'Choose either Generate By Role or Generate For Specific Job.');
+        }
+
         $job = null;
-        if ($jobId > 0) {
+        if ($generationMode === 'job' && $jobId > 0) {
             $job = (new JobModel())->find($jobId);
-            if ($job && $targetRole === '') {
-                $targetRole = trim((string) ($job['title'] ?? ''));
+            $targetRole = trim((string) ($job['title'] ?? ''));
+        }
+
+        if ($generationMode === 'role') {
+            if ($targetRole === '') {
+                return redirect()->back()->with('error', 'Target role is required for Generate By Role.');
+            }
+            if ($jobId > 0) {
+                return redirect()->back()->with('error', 'Choose only one source. Role-based generation cannot use a specific job at the same time.');
             }
         }
 
-        if ($targetRole === '') {
-            return redirect()->back()->with('error', 'Target role is required to generate an AI resume.');
+        if ($generationMode === 'job') {
+            if ($jobId <= 0 || !$job) {
+                return redirect()->back()->with('error', 'Select a specific job for Generate For Specific Job.');
+            }
         }
 
         $profile = $this->buildResumeProfileSnapshot($candidateId);
+        $blockedTemplates = $this->getBlockedResumeTemplates($profile);
+        if ($templateKey !== '' && isset($blockedTemplates[$templateKey])) {
+            return redirect()->back()->with('error', $blockedTemplates[$templateKey]);
+        }
         $currentRole = $this->detectCurrentRole($profile);
         $resume = (new AiResumeBuilder())->buildResume($profile, $targetRole, [
             'current_role' => $currentRole,
@@ -290,7 +318,7 @@ class Candidate extends BaseController
         $resume = (new AiResumeBuilder())->buildResume($profile, $targetRole, [
             'current_role' => $currentRole,
             'transition_summary' => $transitionSummary,
-            'template_key' => 'executive_sidebar',
+            'template_key' => (int) ($profile['is_fresher_candidate'] ?? 0) === 1 ? 'tech_compact' : 'executive_sidebar',
         ]);
 
         $resumeVersionModel = new CandidateResumeVersionModel();
@@ -542,6 +570,8 @@ class Candidate extends BaseController
             'phone' => $this->request->getPost('phone'),
             'location' => $this->request->getPost('location'),
             'bio' => $this->request->getPost('bio'),
+            'gender' => $this->request->getPost('gender'),
+            'date_of_birth' => $this->request->getPost('date_of_birth'),
             'work_experience' => $this->request->getPost('work_experience')
         ];
 
@@ -553,6 +583,8 @@ class Candidate extends BaseController
         $userModel->upsertCandidateProfile((int) $userId, [
             'location' => $baseData['location'],
             'bio' => $baseData['bio'],
+            'gender' => $baseData['gender'],
+            'date_of_birth' => $baseData['date_of_birth'],
         ]);
         session()->set('user_name', (string) $baseData['name']);
         
@@ -566,14 +598,60 @@ class Candidate extends BaseController
         
         $data = [
             'resume_headline' => $this->request->getPost('resume_headline'),
-            'preferred_locations' => $this->request->getPost('preferred_locations'),
-            'current_salary' => $this->request->getPost('current_salary') ?: null,
-            'expected_salary' => $this->request->getPost('expected_salary') ?: null,
+            'current_salary' => $this->normalizeSalaryToLpa($this->request->getPost('current_salary')),
             'notice_period' => $this->request->getPost('notice_period')
         ];
         $userModel->upsertCandidateProfile((int) $userId, $data);
         
         return redirect()->back()->with('career_success', 'Career details updated successfully');
+    }
+
+    public function updatePreferences()
+    {
+        $userId = session()->get('user_id');
+        $userModel = model('UserModel');
+
+        $data = [
+            'preferred_job_titles' => trim((string) $this->request->getPost('preferred_job_titles')),
+            'preferred_locations' => trim((string) $this->request->getPost('preferred_locations')),
+            'preferred_employment_type' => trim((string) $this->request->getPost('preferred_employment_type')),
+            'expected_salary' => $this->normalizeSalaryToLpa($this->request->getPost('expected_salary')),
+        ];
+        $userModel->upsertCandidateProfile((int) $userId, $data);
+        model('JobAlertModel')->syncFromCandidateProfile((int) $userId);
+
+        return redirect()->back()->with('preferences_success', 'Preferences updated successfully');
+    }
+
+    public function updateSettings()
+    {
+        $userId = (int) session()->get('user_id');
+        $userModel = model('UserModel');
+
+        $data = [
+            'allow_public_recruiter_visibility' => $this->request->getPost('allow_public_recruiter_visibility') === '1' ? 1 : 0,
+        ];
+
+        $userModel->upsertCandidateProfile($userId, $data);
+
+        return redirect()->to(base_url('candidate/settings'))->with('settings_success', 'Settings updated successfully');
+    }
+
+    public function updateNotificationSettings()
+    {
+        $userId = (int) session()->get('user_id');
+        $userModel = model('UserModel');
+
+        $data = [
+            'job_alerts_enabled' => $this->request->getPost('job_alerts_enabled') === '1' ? 1 : 0,
+            'job_alert_notify_in_app' => $this->request->getPost('job_alert_notify_in_app') === '1' ? 1 : 0,
+            'job_alert_notify_email' => $this->request->getPost('job_alert_notify_email') === '1' ? 1 : 0,
+        ];
+
+        $userModel->upsertCandidateProfile($userId, $data);
+        model('JobAlertModel')->syncFromCandidateProfile($userId);
+
+        return redirect()->to(base_url('candidate/settings?tab=notifications'))->with('settings_success', 'Notification settings updated successfully');
     }
 
     public function uploadPhoto()
@@ -665,6 +743,8 @@ class Candidate extends BaseController
                 'skill_name' => trim($skillName)
             ]);
         }
+
+        model('JobAlertModel')->syncFromCandidateProfile((int) $userId);
         
         return redirect()->back()->with('success', 'Skill added successfully');
     }
@@ -973,12 +1053,32 @@ class Candidate extends BaseController
         return $value === '' ? null : $value;
     }
 
+    private function normalizeSalaryToLpa($value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $salary = (float) $value;
+        if ($salary <= 0) {
+            return null;
+        }
+
+        if ($salary > 1000) {
+            $salary = $salary / 100000;
+        }
+
+        return round($salary, 2);
+    }
+
     private function buildResumeStudioData(int $userId, array $user): array
     {
         $db = \Config\Database::connect();
         $transitionModel = new CareerTransitionModel();
         $jobModel = new JobModel();
         $templateRenderer = new ResumeTemplateRenderer();
+        $profileSnapshot = $this->buildResumeProfileSnapshot($userId);
+        $blockedResumeTemplates = $this->getBlockedResumeTemplates($profileSnapshot);
 
         $resumeVersions = $db->tableExists('candidate_resume_versions')
             ? (new CandidateResumeVersionModel())->getForCandidate($userId)
@@ -1036,6 +1136,22 @@ class Candidate extends BaseController
             'resumeTargets' => array_values($resumeTargets),
             'activeTransition' => $transitionModel->getActiveTransition($userId),
             'resumeTemplates' => $templateRenderer->getTemplates(),
+            'blockedResumeTemplates' => $blockedResumeTemplates,
         ];
+    }
+
+    private function getBlockedResumeTemplates(array $profile): array
+    {
+        $workExperiences = array_values(array_filter((array) ($profile['work_experiences'] ?? [])));
+        $projects = array_values(array_filter((array) ($profile['projects'] ?? [])));
+        $isFresher = (int) ($profile['is_fresher_candidate'] ?? 0) === 1;
+        $hasThinExperienceContent = count($workExperiences) === 0 || (count($workExperiences) === 1 && count($projects) === 0);
+
+        $blocked = [];
+        if ($isFresher || $hasThinExperienceContent) {
+            $blocked['executive_sidebar'] = 'Executive Sidebar is unavailable for fresher or limited-experience profiles. Use Modern Professional or Tech Focus instead.';
+        }
+
+        return $blocked;
     }
 }

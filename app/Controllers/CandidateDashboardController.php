@@ -69,10 +69,10 @@ class CandidateDashboardController extends BaseController
                 jobs.company,
                 ' . $resumeSelect . '
                 ' . $policySelect . ',
-                interview_sessions.technical_score,
-                interview_sessions.communication_score,
-                interview_sessions.overall_rating,
-                interview_sessions.completed_at as ai_interview_completed
+                0 as technical_score,
+                0 as communication_score,
+                0 as overall_rating,
+                NULL as ai_interview_completed
             ')
             ->join('jobs', 'jobs.id = applications.job_id', 'left');
 
@@ -81,7 +81,6 @@ class CandidateDashboardController extends BaseController
         }
 
         $applications = $builder
-            ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
             ->where('applications.candidate_id', $candidateId)
             ->orderBy('applications.applied_at', 'DESC')
             ->findAll();
@@ -142,17 +141,7 @@ class CandidateDashboardController extends BaseController
             ->countAllResults();
         
         // Average AI score
-        $db = \Config\Database::connect();
-        $query = "
-            SELECT AVG(interview_sessions.overall_rating) as avg_score
-            FROM applications
-            INNER JOIN interview_sessions ON interview_sessions.application_id = applications.id
-            WHERE applications.candidate_id = ?
-            AND interview_sessions.overall_rating IS NOT NULL
-        ";
-        
-        $result = $db->query($query, [$candidateId])->getRow();
-        $averageAIScore = $result ? round($result->avg_score, 1) : 0;
+        $averageAIScore = 0;
         
         // Unread notifications
         $unreadNotifications = $notificationModel
@@ -178,22 +167,21 @@ class CandidateDashboardController extends BaseController
         $applicationModel = model('ApplicationModel');
         $bookingModel = model('InterviewBookingModel');
         
-        // AI interview work is pending while application is applied or interview already started.
+        // Python interview flow starts from applied state as needed.
         $aiInterviewsPending = $applicationModel
             ->select('applications.*, jobs.title as job_title, jobs.ai_interview_policy')
             ->join('jobs', 'jobs.id = applications.job_id', 'left')
             ->where('applications.candidate_id', $candidateId)
-            ->whereIn('applications.status', ['applied', 'ai_interview_started'])
+            ->where('applications.status', 'applied')
             ->where('jobs.ai_interview_policy !=', JobModel::AI_POLICY_OFF)
             ->findAll();
         
         foreach ($aiInterviewsPending as $app) {
-            $isStarted = ($app['status'] ?? '') === 'ai_interview_started';
             $actions[] = [
-                'title' => $isStarted ? 'Continue AI Interview' : 'AI Interview Pending',
-                'description' => ($isStarted ? 'Continue' : 'Start') . ' your AI interview for ' . $app['job_title'],
+                'title' => 'AI Interview Pending',
+                'description' => 'Start your AI interview for ' . $app['job_title'],
                 'link' => base_url('interview/start/' . $app['id']),
-                'button_text' => $isStarted ? 'Continue Interview' : 'Start Interview',
+                'button_text' => 'Start Interview',
                 'priority' => 'high'
             ];
         }
@@ -323,12 +311,6 @@ class CandidateDashboardController extends BaseController
                     ? 'Your application is under recruiter review.'
                     : 'Start your AI interview to move forward.';
 
-            case 'ai_interview_started':
-                return 'Continue your AI interview to proceed to the next stage.';
-                
-            case 'ai_interview_completed':
-                return 'Your AI interview has been completed. Waiting for review.';
-                
             case 'shortlisted':
                 return 'Congratulations! You\'ve been shortlisted. Book your HR interview slot.';
                 

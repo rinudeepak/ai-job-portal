@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 06, 2026 at 11:37 AM
+-- Generation Time: Mar 07, 2026 at 10:03 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -34,7 +34,6 @@ CREATE TABLE `applications` (
   `job_id` int(11) DEFAULT NULL,
   `status` enum('applied','ai_interview_started','ai_interview_completed','ai_evaluated','shortlisted','rejected','interview_slot_booked','selected','hired','withdrawn') DEFAULT NULL,
   `interview_slot` datetime DEFAULT NULL,
-  `ai_interview_id` int(11) DEFAULT NULL,
   `booking_id` int(11) DEFAULT NULL,
   `applied_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -43,14 +42,8 @@ CREATE TABLE `applications` (
 -- Dumping data for table `applications`
 --
 
-INSERT INTO `applications` (`id`, `candidate_id`, `resume_version_id`, `job_id`, `status`, `interview_slot`, `ai_interview_id`, `booking_id`, `applied_at`) VALUES
-(74, 47, NULL, 56, 'applied', NULL, NULL, NULL, '2026-02-21 10:51:48'),
-(75, 47, NULL, 57, 'rejected', NULL, NULL, NULL, '2026-02-23 07:15:19'),
-(76, 49, NULL, 56, 'shortlisted', NULL, NULL, NULL, '2026-02-23 11:30:51'),
-(77, 66, NULL, 60, 'applied', NULL, NULL, NULL, '2026-02-26 09:30:54'),
-(78, 67, NULL, 62, 'selected', NULL, NULL, NULL, '2026-02-27 07:43:26'),
-(79, 47, 1, 62, 'withdrawn', NULL, NULL, NULL, '2026-02-28 06:18:56'),
-(80, 67, NULL, 60, 'selected', NULL, NULL, NULL, '2026-03-02 06:59:41');
+INSERT INTO `applications` (`id`, `candidate_id`, `resume_version_id`, `job_id`, `status`, `interview_slot`, `booking_id`, `applied_at`) VALUES
+(1, 2, NULL, 6, 'applied', NULL, NULL, '2026-03-07 06:29:46');
 
 -- --------------------------------------------------------
 
@@ -74,9 +67,7 @@ CREATE TABLE `candidate_github_stats` (
 --
 
 INSERT INTO `candidate_github_stats` (`id`, `candidate_id`, `github_username`, `repo_count`, `commit_count`, `languages_used`, `github_score`, `created_at`) VALUES
-(2, 67, 'rinudeepak', 3, 59, 'HTML,PHP,CSS,JavaScript,Hack', 3, '2026-02-27 06:51:04'),
-(4, 68, 'rinudeepak', 3, 59, 'HTML,PHP,CSS,JavaScript,Hack', 3, '2026-02-28 07:12:26'),
-(5, 47, 'younisyousaf', 31, 278, 'JavaScript,EJS,CSS,HTML,Vue,PHP,Blade,TypeScript,C#,Dart,C++,CMake,Swift,C,Dockerfile,Shell,Kotlin,Objective-C,Python,SCSS', 10, '2026-03-04 10:36:38');
+(1, 2, 'rinudeepak', 3, 62, 'HTML,PHP,CSS,JavaScript,Hack', 3, '2026-03-06 12:02:32');
 
 -- --------------------------------------------------------
 
@@ -95,9 +86,7 @@ CREATE TABLE `candidate_interests` (
 --
 
 INSERT INTO `candidate_interests` (`id`, `candidate_id`, `interest`) VALUES
-(1, 47, 'UI/UX Design, Backend Development, Full Stack'),
-(2, 68, 'Web Development'),
-(3, 67, 'Backend Development');
+(1, 2, 'Backend Development');
 
 -- --------------------------------------------------------
 
@@ -126,11 +115,7 @@ CREATE TABLE `candidate_profiles` (
 --
 
 INSERT INTO `candidate_profiles` (`user_id`, `headline`, `location`, `bio`, `resume_path`, `profile_photo`, `key_skills`, `preferred_locations`, `current_salary`, `expected_salary`, `notice_period`, `created_at`, `updated_at`) VALUES
-(47, NULL, 'BANGALORE', '', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'uploads/profiles/47_1771671062.jpg', NULL, NULL, NULL, NULL, NULL, '2026-02-21 15:39:46', '2026-03-06 15:34:07'),
-(49, NULL, 'BANGALORE', '', 'uploads/resumes/Rinu_George_Resume_15.pdf', '', NULL, NULL, NULL, NULL, NULL, '2026-02-23 16:58:13', '2026-03-06 15:34:07'),
-(66, NULL, NULL, NULL, 'uploads/resumes/Rinu-George-Resume.pdf', NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-26 14:55:26', '2026-03-06 15:34:07'),
-(67, NULL, '', '', 'uploads/resumes/Rinu-George-Resume_1.pdf', '', NULL, NULL, NULL, NULL, NULL, '2026-02-27 12:19:18', '2026-03-06 15:34:07'),
-(68, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-28 12:21:19', '2026-03-06 15:34:07');
+(2, '', NULL, NULL, 'uploads/resumes/Rinu_George_Resume_16.pdf', NULL, NULL, 'Bangalore', 3.30, 4.00, 'Immediate', '2026-03-06 12:01:26', '2026-03-07 04:46:01');
 
 -- --------------------------------------------------------
 
@@ -152,13 +137,6 @@ CREATE TABLE `candidate_projects` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Dumping data for table `candidate_projects`
---
-
-INSERT INTO `candidate_projects` (`id`, `user_id`, `project_name`, `role_name`, `tech_stack`, `project_url`, `project_summary`, `impact_metrics`, `start_date`, `end_date`, `created_at`, `updated_at`) VALUES
-(1, 68, 'HireMatrix', 'Lead Developer', '', 'https://jobportalrinu.allytechcourses.com/', 'This project is a Job Portal System designed to help candidates search for jobs and transition into new career roles based on their skills and interests.', '', NULL, NULL, '2026-02-28 07:31:01', '2026-02-28 07:31:01');
 
 -- --------------------------------------------------------
 
@@ -186,16 +164,6 @@ CREATE TABLE `candidate_resume_versions` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- Dumping data for table `candidate_resume_versions`
---
-
-INSERT INTO `candidate_resume_versions` (`id`, `candidate_id`, `job_id`, `application_id`, `career_transition_id`, `title`, `target_role`, `source_role`, `generation_source`, `base_resume_path`, `summary`, `highlight_skills`, `content`, `is_primary`, `last_synced_at`, `created_at`, `updated_at`) VALUES
-(1, 47, NULL, NULL, NULL, 'Web Developer', 'PHP Developer', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Dynamic Web Developer with a focus on PHP and backend technologies. Proven ability to deliver high-quality applications and enhance user experiences. Currently seeking to leverage expertise in PHP development.', 'PHP, MySQL', '{\"template_key\":\"executive_sidebar\",\"name\":\"Manju Aravind\",\"target_role\":\"PHP Developer\",\"title\":\"Web Developer\",\"summary\":\"Dynamic Web Developer with a focus on PHP and backend technologies. Proven ability to deliver high-quality applications and enhance user experiences. Currently seeking to leverage expertise in PHP development.\",\"highlight_skills\":[\"PHP\",\"MySQL\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC Company\",\"meta\":\"Dec 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL, improving load times by 30%.\",\"Collaborated with UI/UX designers to enhance user experience, resulting in a 25% increase in user engagement.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-03-04 06:08:14', '2026-02-28 06:00:22', '2026-03-04 06:08:14'),
-(6, 68, NULL, NULL, NULL, 'Web Developer Transitioning to Data Scientist', 'Data Sccientist', 'Web Developer', 'role_based', '', 'Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.', 'Web Development, Software Development, Data Analysis', '{\"template_key\":\"minimal_timeline\",\"name\":\"Praveen \",\"target_role\":\"Data Sccientist\",\"title\":\"Web Developer Transitioning to Data Scientist\",\"summary\":\"Detail-oriented web developer with a strong foundation in software development and a keen interest in data science. Proven track record of delivering high-quality web applications and eager to leverage analytical skills in data-driven environments.\",\"highlight_skills\":[\"Web Development\",\"Software Development\",\"Data Analysis\"],\"sections\":{\"experience\":{\"title\":\"Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"KJP Digital Solutions Pvt Ltd\",\"meta\":\"June 2023 - Present | Location Not Specified\",\"bullets\":[\"Developed responsive web applications, enhancing user engagement by 30%.\",\"Collaborated with cross-functional teams to deliver projects ahead of deadlines.\"]},{\"headline\":\"Software Developer\",\"subhead\":\"SANDS Lab\",\"meta\":\"February 2021 - December 2026 | Location Not Specified\",\"bullets\":[\"Designed and implemented software solutions that improved operational efficiency by 25%.\",\"Contributed to the development of a data management system, streamlining data processes.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"MBA in Marketing\",\"subhead\":\"Adi Shankara Institute of Engineering and Technology, Kalady\",\"meta\":\"2015 - 2017\",\"bullets\":[]},{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 1, '2026-02-28 07:08:19', '2026-02-28 07:08:19', '2026-02-28 07:08:19'),
-(9, 67, NULL, NULL, NULL, 'PHP Developer Resume', 'PHP Developer', 'Candidate', 'role_based', 'uploads/resumes/Rinu-George-Resume_1.pdf', 'Results-driven PHP Developer with a strong foundation in backend development and a passion for creating efficient, scalable applications. Adept at leveraging modern frameworks to enhance user experience and optimize performance.', 'PHP, Backend Development', '{\"template_key\":\"modern_professional\",\"name\":\"rinu george\",\"target_role\":\"PHP Developer\",\"title\":\"PHP Developer Resume\",\"summary\":\"Results-driven PHP Developer with a strong foundation in backend development and a passion for creating efficient, scalable applications. Adept at leveraging modern frameworks to enhance user experience and optimize performance.\",\"highlight_skills\":[\"PHP\",\"Backend Development\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"HTML\",\"CSS\",\"Hack\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[]},\"projects\":{\"title\":\"Projects\",\"items\":[]},\"education\":{\"title\":\"Education\",\"items\":[]},\"certifications\":{\"title\":\"Certifications\",\"items\":[]}}}', 1, '2026-03-03 10:17:43', '2026-03-03 10:17:43', '2026-03-03 10:17:43'),
-(10, 47, NULL, NULL, NULL, 'Web Developer', 'php', 'Web Developer', 'role_based', 'uploads/resumes/Rinu_George_Resume_14.pdf', 'Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.', 'PHP, MySQL, JavaScript', '{\"template_key\":\"elegant_classic\",\"name\":\"Manju Aravind\",\"target_role\":\"php\",\"title\":\"Web Developer\",\"summary\":\"Results-driven Web Developer with a strong foundation in PHP and MySQL, seeking to leverage expertise in backend development to create efficient and scalable applications. Passionate about UI/UX design and full-stack solutions.\",\"highlight_skills\":[\"PHP\",\"MySQL\",\"JavaScript\"],\"sections\":{\"skills\":{\"title\":\"Technical Skills\",\"groups\":[{\"label\":\"Languages\",\"items\":[\"PHP\",\"JavaScript\",\"MySQL\"]},{\"label\":\"Frameworks\",\"items\":[]}]},\"experience\":{\"title\":\"Professional Experience\",\"items\":[{\"headline\":\"Web Developer\",\"subhead\":\"ABC Company\",\"meta\":\"December 2025 | Bangalore\",\"bullets\":[\"Developed and maintained web applications using PHP and MySQL.\",\"Collaborated with design teams to enhance user experience.\"]}]},\"education\":{\"title\":\"Education\",\"items\":[{\"headline\":\"B.Sc. in Computer Science\",\"subhead\":\"Prajyoti Niketan College, Pudukad, Thrissur\",\"meta\":\"2012 - 2015\",\"bullets\":[]}]}}}', 0, '2026-03-03 10:38:15', '2026-03-03 10:38:15', '2026-03-04 06:08:14');
-
 -- --------------------------------------------------------
 
 --
@@ -214,10 +182,7 @@ CREATE TABLE `candidate_skills` (
 --
 
 INSERT INTO `candidate_skills` (`id`, `candidate_id`, `skill_name`, `created_at`) VALUES
-(1, 47, 'PHP, MySQL, JavaScript', '2026-02-21 10:51:33'),
-(2, 49, 'PHP, MySQL, JavaScript', '2026-02-23 11:30:35'),
-(3, 66, 'PHP', '2026-02-26 09:29:47'),
-(4, 67, 'PHP', '2026-02-27 06:50:39');
+(2, 2, 'PHP, MySQL, JavaScript', '2026-03-07 04:46:03');
 
 -- --------------------------------------------------------
 
@@ -241,15 +206,6 @@ CREATE TABLE `career_transitions` (
   `updated_at` datetime DEFAULT NULL,
   `course_status` enum('pending','processing','completed','failed') DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `career_transitions`
---
-
-INSERT INTO `career_transitions` (`id`, `candidate_id`, `current_role`, `target_role`, `skill_gaps`, `learning_roadmap`, `status`, `progress_percentage`, `created_at`, `deactivated_at`, `reactivated_at`, `reactivation_count`, `updated_at`, `course_status`) VALUES
-(171, 66, 'PHP', 'job3', '[\"JavaScript\",\"Node.js\",\"React\"]', '[{\"phase\":\"Phase 1\",\"duration\":\"4 weeks\",\"focus\":\"Learn JavaScript fundamentals and ES6 features\"},{\"phase\":\"Phase 2\",\"duration\":\"4 weeks\",\"focus\":\"Get hands-on with Node.js and Express.js for backend development\"},{\"phase\":\"Phase 3\",\"duration\":\"4 weeks\",\"focus\":\"Learn React for frontend development and build a portfolio project\"}]', 'inactive', 0, '2026-02-26 10:37:35', '2026-02-26 17:23:40', NULL, 0, '2026-02-26 10:37:35', 'pending'),
-(172, 66, 'PHP', 'Python Developer', '[\"Understanding Python syntax and semantics\",\"Familiarity with Python libraries (e.g., NumPy, Pandas)\",\"Experience with Python web frameworks (e.g., Django, Flask)\"]', '[{\"phase\":\"Phase 1\",\"duration\":\"2 weeks\",\"focus\":\"Learn Python basics and syntax\"},{\"phase\":\"Phase 2\",\"duration\":\"3 weeks\",\"focus\":\"Explore Python libraries and frameworks\"},{\"phase\":\"Phase 3\",\"duration\":\"3 weeks\",\"focus\":\"Build projects to apply Python skills\"}]', 'active', 0, '2026-02-26 11:55:35', NULL, NULL, 0, '2026-02-26 11:55:35', 'pending'),
-(173, 68, 'Web Developer', 'Data Scientist', '[\"statistical analysis\",\"machine learning algorithms\",\"data visualization\"]', '[{\"phase\":\"Phase 1\",\"duration\":\"4 weeks\",\"focus\":\"Foundational knowledge in statistics and programming in Python\"},{\"phase\":\"Phase 2\",\"duration\":\"4 weeks\",\"focus\":\"Advanced data analysis techniques and introduction to machine learning\"},{\"phase\":\"Phase 3\",\"duration\":\"4 weeks\",\"focus\":\"Practical application of data science concepts through projects\"}]', 'active', 0, '2026-02-28 07:02:44', NULL, NULL, 0, '2026-02-28 07:02:44', 'pending');
 
 -- --------------------------------------------------------
 
@@ -303,35 +259,8 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `industry`, `size`, `hq`, `branches`, `short_description`, `what_we_do`, `mission_values`, `culture_summary`, `employee_benefits`, `workplace_photos`, `contact_email`, `contact_phone`, `contact_public`, `created_at`, `updated_at`) VALUES
-(1, 'TechNova Solutions', 'uploads/company_logos/1771669764_20d47a35f4f9596afa95.jpg', 'https://www.technovasolutions.com', 'IT Services', '50-200', 'Bangalore, India', 'Kochi, Chennai', 'We build scalable digital solutions for modern businesses.', 'We develop web applications, mobile apps, and cloud solutions for startups and enterprises.', 'Innovation, Transparency, Customer Success', '', '', '[\"uploads\\/company_branding\\/1772532582_98db5085fdfb539e31d4.jpg\",\"uploads\\/company_branding\\/1772532582_d7626ea5b495cce35001.jpg\",\"uploads\\/company_branding\\/1772532582_76a2461c46c599c189b6.jpg\"]', 'hr@technovasolutions.com', '+91-9876543210', 1, '2026-02-21 09:27:53', '2026-03-03 10:09:42'),
-(3, 'CodeCraft Technologies', NULL, 'https://www.codecrafttech.com/', 'Software', '10-50', '', 'Bangalore', '', 'Based in the Silicon Valley of India, CodeCraft is a digital transformation company for enterprises. We provide robust, reliable, and scalable solutions across Mobility, web, cloud, and design. Provide custom experiences and engage with your customers more with our mobility solutions on iOS and Android. Whether its Finance, IoT, Energy, Health care, we have domain expertise on your business vertical. Unleash the power of the cloud for your business by making data available for your customers anytime, anywhere all presented with our Award-winning UI/UX designs. Explore our cloud solutions and discover how you can improve your bottom line with our SaaS and PaaS services', '', '', '', '[\"uploads\\/company_branding\\/1772696134_3e0869fe4ca51cef3ea6.jpg\"]', '', '', 0, '2026-02-21 09:27:53', '2026-03-05 07:35:34'),
-(4, 'PixelSoft Pvt Ltd', NULL, 'https://pixelsoft.tech/', '', '', 'Bangalore', 'Bangalore', '', 'PixelSoft is a blooming and winning digital organization which stands to serve its clients and uplift their brand values by offering them state-of-art and cost ...', '', '', '', NULL, '', '', 0, '2026-02-21 09:27:53', '2026-03-05 07:40:05'),
-(5, 'Innova Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(6, 'NextGen IT Services', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(7, 'BlueSky Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(8, 'CloudNova Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(9, 'DesignHub Studio', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(10, 'InfraTech Solutions', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(11, 'Insight Analytics', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(12, 'AlgoSoft Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(13, 'WebSpark IT Services', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(14, 'TalentBridge HR', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(15, 'TestPro Labs', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(16, 'MarketScope Consulting', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(17, 'Infotech Systems', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(18, 'company1', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(19, 'AppWave Solutions', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(20, 'SecureNet Pvt Ltd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:53', '2026-02-21 09:27:53'),
-(21, 'WriteSmart Media', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(22, 'Creative Pixel Studio', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(23, 'SkyHost Technologies', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(24, 'InnovateHub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(25, 'GreenLeaf Finance', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-21 09:27:54', '2026-02-21 09:27:54'),
-(26, 'GreenLeaf Industries', NULL, 'https://www.greenleafindustries.com', 'Manufacturing', '200-500', 'Coimbatore, India', 'Hyderabad, Pune', 'Sustainable manufacturing for a better tomorrow.', 'We manufacture eco-friendly packaging products and export globally.', 'Sustainability, Integrity, Quality', 'We are at our best when we work with clients to build stable teams, stable products, and stable support for their operations.We apply our frameworks, platforms, and services coupled with intelligent automation to eliminate the risk associated with technology assessment and implementation, talent shortages, and operational inefficiencies. We use our culture of honesty, integrity, teamwork, and perseverance to create value for clients.', 'Health Insurance , PF', '[\"uploads\\/company_branding\\/1772519389_642438e16877a39df672.jpg\",\"uploads\\/company_branding\\/1772519389_dc33b0635b5ce1c7d4f9.jpg\",\"uploads\\/company_branding\\/1772519389_2f3b82a38c3b976e534c.jpg\"]', 'careers@greenleafindustries.com', '', 1, '2026-02-21 10:40:17', '2026-03-03 07:18:04'),
-(27, 'SERP Hawk', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 09:20:38', '2026-02-25 09:20:38'),
-(28, 'SANDS Lab', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-25 10:49:16', '2026-02-25 10:49:16'),
-(29, 'xxx', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 05:49:32', '2026-02-26 05:49:32'),
-(30, 'bbb', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-02-26 07:37:05', '2026-02-26 07:37:05');
+(1, 'TechNova Solutions', 'uploads/company_logos/1772797666_1de3e808ef5b10255dc2.jpg', '', '', '', 'Bangalore', 'Bangalore, Kochi, Pune, Hyderabad, Chennai', '', '', '', '', '', '[\"uploads\\/company_branding\\/1772797666_bbda61ca6960368af974.jpg\",\"uploads\\/company_branding\\/1772797666_69ee990c60d9e2e4a4d0.jpg\",\"uploads\\/company_branding\\/1772797666_9589276903dce23ee7f1.jpg\"]', '', '', 0, '2026-03-06 11:41:11', '2026-03-06 11:47:46'),
+(2, 'PrecisionTech Industries', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-03-06 11:52:06', '2026-03-06 11:52:06');
 
 -- --------------------------------------------------------
 
@@ -354,14 +283,6 @@ CREATE TABLE `company_reviews` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- Dumping data for table `company_reviews`
---
-
-INSERT INTO `company_reviews` (`id`, `company_id`, `candidate_id`, `review_type`, `rating`, `headline`, `review_text`, `pros`, `cons`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, 47, 'interview', 4, 'good team environment', 'good company, good team, good culture', '', '', 'published', '2026-03-04 12:01:54', '2026-03-04 12:01:54'),
-(2, 1, 67, 'employee', 5, 'Team', 'Very supporting team, very good culture', '', '', 'published', '2026-03-05 07:23:42', '2026-03-05 07:23:42');
-
 -- --------------------------------------------------------
 
 --
@@ -379,30 +300,6 @@ CREATE TABLE `course_lessons` (
   `is_completed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `course_lessons`
---
-
-INSERT INTO `course_lessons` (`id`, `module_id`, `lesson_number`, `title`, `content`, `resources`, `exercises`, `is_completed`) VALUES
-(1, 283, 1, 'Understanding JavaScript Basics', '## Overview\nJavaScript is a versatile programming language primarily used for web development. It allows you to create interactive user interfaces and is essential for full-stack development. Learning JavaScript will help you bridge the gap between your PHP backend skills and front-end technologies.\n\n## Step-by-Step Guide\n### Step 1: Setting Up Your Environment\n1. **Install Node.js** – Download and install Node.js from [nodejs.org](https://nodejs.org/). This will allow you to run JavaScript on your machine.\n2. **Choose a Code Editor** – Use Visual Studio Code, which is popular among JavaScript developers. Download it from [code.visualstudio.com](https://code.visualstudio.com/).\n\n### Step 2: Write Your First JavaScript Code\n1. Open Visual Studio Code and create a new file named `app.js`.\n2. Add the following code:\n   javascript\n   console.log(\'Hello, World!\');\n   \n3. Save the file and run it in your terminal using the command:\n   bash\n   node app.js\n   \n4. You should see `Hello, World!` printed in your terminal.\n\n## Real-World Application\nJavaScript is used for everything from simple website enhancements to complex web applications. For example, if you’re building a dynamic web dashboard, JavaScript can handle user interactions and update the UI without needing to refresh the page.\n\n## Common Challenges\n- **Scope and Hoisting**: Understanding how variable scope works in JavaScript can be tricky. Remember that variables declared with `var` are function-scoped, while `let` and `const` are block-scoped.\n- **Asynchronous Programming**: JavaScript is non-blocking by nature. Familiarize yourself with callbacks, promises, and async/await to handle asynchronous operations effectively.\n\n## Key Takeaways\n- JavaScript is essential for web development.\n- Setting up your environment is the first step to start coding.\n- Writing and executing simple scripts lays the foundation for more complex applications.', '[\"https:\\/\\/developer.mozilla.org\\/en-US\\/docs\\/Web\\/JavaScript\\/Guide\",\"https:\\/\\/javascript.info\\/\"]', '[\"Create a simple JavaScript program that takes user input and displays it in the console.\",\"Experiment with different JavaScript data types and console log their types.\"]', 0),
-(2, 283, 2, 'Working with Functions and DOM Manipulation', '## Overview\nFunctions are the building blocks of JavaScript applications. Understanding how to manipulate the Document Object Model (DOM) will enable you to create interactive web applications.\n\n## Step-by-Step Guide\n### Step 1: Creating Functions\n1. Open your existing `app.js` file.\n2. Add a function that takes a name as input and logs a greeting:\n   javascript\n   function greet(name) {\n       console.log(\'Hello, \' + name + \'!\');\n   }\n   greet(\'Alice\'); // Should print \'Hello, Alice!\'\n   \n3. Save and run your script using `node app.js`.\n\n### Step 2: Manipulating the DOM\n1. Create an HTML file named `index.html` and add the following code:\n   html\n   <!DOCTYPE html>\n   <html lang=\"en\">\n   <head>\n       <meta charset=\"UTF-8\">\n       <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n       <title>DOM Manipulation Example</title>\n   </head>\n   <body>\n       <h1 id=\"greeting\"></h1>\n       <script src=\"app.js\"></script>\n   </body>\n   </html>\n   \n2. In your `app.js`, add code to change the content of the heading:\n   javascript\n   document.getElementById(\'greeting\').innerText = \'Welcome to JavaScript!\';\n   \n3. Open `index.html` in your browser to see the result.\n\n## Real-World Application\nFunctions allow you to modularize your code, making it reusable and easier to maintain. DOM manipulation is key for creating responsive applications that react to user inputs, such as forms and buttons.\n\n## Common Challenges\n- **Understanding Scope**: Functions can have access to variables defined within their scope. Ensure you understand how variable scope works in functions.\n- **Event Listeners**: Adding interactivity requires understanding how to attach event listeners to DOM elements. Start with simple events like click events.\n\n## Key Takeaways\n- Functions encapsulate logic that can be reused.\n- Manipulating the DOM is essential for creating interactive web applications.\n- Always test your code in the browser to see real-time results.', '[\"https:\\/\\/developer.mozilla.org\\/en-US\\/docs\\/Web\\/JavaScript\\/Guide\\/Functions\",\"https:\\/\\/www.w3schools.com\\/js\\/js_htmldom.asp\"]', '[\"Create a function that takes two numbers and returns their sum. Use it in your HTML to display the result.\",\"Add a button in your HTML that changes the background color of the page when clicked.\"]', 0),
-(3, 284, 1, 'Setting Up a Node.js Server', '## Overview\nNode.js is a runtime environment that allows you to run JavaScript on the server side. Learning Node.js will empower you to create backend applications and APIs.\n\n## Step-by-Step Guide\n### Step 1: Create a Simple Server\n1. In your project folder, create a file named `server.js`.\n2. Add the following code:\n   javascript\n   const http = require(\'http\');\n\n   const server = http.createServer((req, res) => {\n       res.statusCode = 200;\n       res.setHeader(\'Content-Type\', \'text/plain\');\n       res.end(\'Hello, Node.js!\n\');\n   });\n\n   server.listen(3000, () => {\n       console.log(\'Server running at http://localhost:3000/\');\n   });\n   \n3. Run your server using the command:\n   bash\n   node server.js\n   \n4. Visit `http://localhost:3000/` in your browser to see the message.\n\n### Step 2: Understanding Routing\n1. Modify your server code to handle different routes:\n   javascript\n   const server = http.createServer((req, res) => {\n       if (req.url === \'/\') {\n           res.end(\'Home Page\');\n       } else if (req.url === \'/about\') {\n           res.end(\'About Page\');\n       } else {\n           res.statusCode = 404;\n           res.end(\'Page Not Found\');\n       }\n   });\n   \n2. Test the different routes by visiting `/` and `/about` in your browser.\n\n## Real-World Application\nNode.js is widely used for building scalable web applications and APIs. For example, you can create a REST API that your React front-end communicates with to fetch or send data.\n\n## Common Challenges\n- **Asynchronous Code**: Node.js is non-blocking, which means you need to understand callbacks and promises to manage asynchronous operations.\n- **Error Handling**: Ensure you handle errors gracefully in your application to enhance the user experience.\n\n## Key Takeaways\n- Node.js allows you to run JavaScript on the server side.\n- Setting up a basic server is the first step in backend development.\n- Routing is essential for handling different requests in your application.', '[\"https:\\/\\/nodejs.dev\\/learn\",\"https:\\/\\/www.freecodecamp.org\\/news\\/nodejs-tutorial-for-beginners\\/\"]', '[\"Create a new route that returns a JSON object when accessed.\",\"Implement error handling in your server for undefined routes.\"]', 0),
-(4, 284, 2, 'Building RESTful APIs with Express', '## Overview\nExpress.js is a web application framework for Node.js that simplifies the process of building RESTful APIs. Learning Express will enable you to create robust and maintainable server-side applications.\n\n## Step-by-Step Guide\n### Step 1: Installing Express\n1. In your project folder, run:\n   bash\n   npm init -y\n   npm install express\n   \n2. Create a new file named `app.js`.\n\n### Step 2: Building a Basic API\n1. In `app.js`, add the following code to set up a basic Express server:\n   javascript\n   const express = require(\'express\');\n   const app = express();\n\n   app.get(\'/\', (req, res) => {\n       res.send(\'Welcome to the Express API!\');\n   });\n\n   const PORT = 3000;\n   app.listen(PORT, () => {\n       console.log(`Server running on http://localhost:${PORT}`);\n   });\n   \n2. Run your server using:\n   bash\n   node app.js\n   \n3. Visit `http://localhost:3000/` in your browser to see the API response.\n\n### Step 3: Creating API Endpoints\n1. Add a new endpoint to return a list of users:\n   javascript\n   const users = [{ id: 1, name: \'Alice\' }, { id: 2, name: \'Bob\' }];\n\n   app.get(\'/users\', (req, res) => {\n       res.json(users);\n   });\n   \n2. Test the `/users` endpoint in your browser or using Postman.\n\n## Real-World Application\nRESTful APIs are crucial for web applications, allowing different services to communicate. Your React front end will make HTTP requests to this API to retrieve and update data.\n\n## Common Challenges\n- **Middleware Understanding**: Middleware functions are used in Express for processing requests. Familiarize yourself with how middleware works.\n- **Versioning APIs**: As your application grows, you may need to version your APIs. Plan how you’ll manage different versions of your API.\n\n## Key Takeaways\n- Express.js simplifies building RESTful APIs.\n- Setting up routes and handling requests is crucial for API development.\n- Understanding middleware is key to managing request processing.', '[\"https:\\/\\/expressjs.com\\/en\\/starter\\/installing.html\",\"https:\\/\\/www.taniarascia.com\\/node-express-server-rest-api\\/\"]', '[\"Create an endpoint to add a new user to the users array using POST requests.\",\"Implement middleware that logs the request method and URL for each request.\"]', 0),
-(5, 285, 1, 'Getting Started with React', '## Overview\nReact is a powerful library for building dynamic user interfaces. It allows developers to create reusable UI components, making development more efficient.\n\n## Step-by-Step Guide\n### Step 1: Setting Up a React App\n1. Make sure you have Node.js and npm installed. Create a new React app using Create React App:\n   bash\n   npx create-react-app my-app\n   cd my-app\n   npm start\n   \n2. Open your browser and navigate to `http://localhost:3000/` to see your new React app.\n\n### Step 2: Understanding Components\n1. Open `src/App.js` and modify it to create a simple functional component:\n   javascript\n   function Welcome() {\n       return <h2>Welcome to React!</h2>;\n   }\n\n   function App() {\n       return (\n           <div>\n               <Welcome />\n           </div>\n       );\n   }\n\n   export default App;\n   \n2. Save the changes and see the output update in the browser.\n\n## Real-World Application\nReact is commonly used for front-end development in modern web applications. It allows you to create single-page applications (SPAs) that load quickly and provide a smooth user experience.\n\n## Common Challenges\n- **JSX Syntax**: React uses JSX, which may be unfamiliar. Practice translating HTML into JSX syntax.\n- **State Management**: As applications grow, managing component state can become complex. Consider using React\'s `useState` and `useEffect` hooks for state management.\n\n## Key Takeaways\n- React allows for building reusable UI components.\n- Understanding how to create and use components is fundamental to working with React.\n- The Create React App tool sets up a React environment quickly.', '[\"https:\\/\\/reactjs.org\\/docs\\/getting-started.html\",\"https:\\/\\/reactjs.org\\/tutorial\\/tutorial.html\"]', '[\"Create additional components to display a list of items.\",\"Experiment with props by passing data from a parent component to a child component.\"]', 0),
-(6, 285, 2, 'State Management and Effects in React', '## Overview\nManaging state and handling side effects are crucial for creating interactive applications in React. This lesson will cover how to use state and side effects effectively.\n\n## Step-by-Step Guide\n### Step 1: Using State with Hooks\n1. Modify your `App.js` to include state using the `useState` hook:\n   javascript\n   import React, { useState } from \'react\';\n\n   function App() {\n       const [count, setCount] = useState(0);\n\n       return (\n           <div>\n               <h1>Count: {count}</h1>\n               <button onClick={() => setCount(count + 1)}>Increment</button>\n           </div>\n       );\n   }\n\n   export default App;\n   \n2. This creates a simple counter application. Test it by clicking the button to increment the count.\n\n### Step 2: Handling Side Effects with useEffect\n1. Add an effect to log the count each time it changes:\n   javascript\n   import React, { useState, useEffect } from \'react\';\n\n   function App() {\n       const [count, setCount] = useState(0);\n\n       useEffect(() => {\n           console.log(`Count updated: ${count}`);\n       }, [count]);\n\n       return (\n           <div>\n               <h1>Count: {count}</h1>\n               <button onClick={() => setCount(count + 1)}>Increment</button>\n           </div>\n       );\n   }\n\n   export default App;\n   \n2. Each time the count is updated, you should see a log in the console.\n\n## Real-World Application\nManaging state and side effects effectively is crucial in applications where user interactions are frequent. For instance, fetching data from an API and storing it in the component state to render it.\n\n## Common Challenges\n- **State Updates**: Remember that updates to state are asynchronous. Make sure you understand how to manage state updates properly.\n- **Dependency Arrays**: When using `useEffect`, be cautious about what you include in the dependency array to avoid unnecessary re-renders.\n\n## Key Takeaways\n- React\'s `useState` and `useEffect` hooks are essential for managing state and side effects.\n- Understanding these concepts will help you build dynamic applications.', '[\"https:\\/\\/reactjs.org\\/docs\\/hooks-state.html\",\"https:\\/\\/reactjs.org\\/docs\\/hooks-effect.html\"]', '[\"Create a component that fetches data from an API and displays it.\",\"Implement a feature that resets the count to zero when a button is clicked.\"]', 0),
-(7, 286, 1, 'Understanding Core Concepts', 'Begin your journey by understanding the fundamental principles that define Python Developer. This role requires a solid grasp of Understanding Python syntax and semantics, Familiarity with Python libraries (e.g., NumPy, Pandas), Experience with Python web frameworks (e.g., Django, Flask).\n\nKey Concepts:\n\nFirst, research industry standards and best practices. Understanding the landscape is crucial - study what makes professionals successful in this role. Read official documentation, follow industry leaders on social media, and join relevant online communities.\n\nSecond, understand how these skills interconnect. No skill exists in isolation - they work together to solve real-world problems. For example, if you\'re learning a new programming language, understand how it integrates with databases, APIs, and frontend frameworks.\n\nThird, build a strong theoretical foundation before diving into practical applications. While hands-on practice is important, understanding the \'why\' behind concepts will make you a better problem-solver. Study design patterns, architectural principles, and the reasoning behind best practices.\n\nPractical Approach:\n\nCreate a personal knowledge base documenting key concepts, terminologies, and best practices. Use tools like Notion, Obsidian, or even a simple markdown file in GitHub. This becomes your reference throughout the learning journey.\n\nStudy real-world use cases and analyze how professionals approach problem-solving. Look at open-source projects, read technical blogs, and watch conference talks. Pay attention to how experienced developers structure their code and make decisions.\n\nFinally, practice explaining concepts in simple terms. If you can teach something, you truly understand it. Write blog posts, create tutorials, or explain concepts to friends. This reinforces your learning and builds your personal brand.', '[\"https:\\/\\/www.coursera.org\\/courses?query=Python+Developer\",\"https:\\/\\/www.udemy.com\\/courses\\/search\\/?q=Python+Developer\",\"https:\\/\\/roadmap.sh\\/\"]', '[\"Create a comprehensive mind map of key concepts in Python Developer\",\"Write a 500-word summary explaining the role requirements to a beginner\",\"List 10 companies hiring for this role and analyze their common requirements\"]', 0),
-(8, 286, 2, 'Hands-on Practice', 'Theory alone is insufficient - practical application is crucial for mastering Python Developer.\n\nSetting Up Your Environment:\n\nStart by setting up a proper development environment. Install necessary tools, configure your IDE, and familiarize yourself with the ecosystem. Don\'t skip this step - a well-configured environment saves hours of frustration later.\n\nUse version control (Git) from day one. Even for small projects, commit regularly with meaningful messages. This builds good habits and creates a portfolio of your progress. Push your code to GitHub to make it accessible and shareable.\n\nBuilding Projects:\n\nBegin with tutorials but don\'t just copy-paste code. Type everything manually and experiment with modifications. Ask yourself: \'What happens if I change this?\' Breaking things and fixing them is how you truly learn.\n\nGradually increase project complexity. Start with a simple \'Hello World\', then build a calculator, then a todo app, then something more complex. Each project should challenge you slightly beyond your current comfort zone.\n\nFocus on writing clean, maintainable code following industry best practices. Use meaningful variable names, write comments for complex logic, and structure your code logically. Bad habits formed early are hard to break.\n\nLearning from Others:\n\nJoin online communities like Stack Overflow, Reddit, or Discord servers related to your target role. Don\'t just ask questions - answer them too. Teaching others reinforces your own understanding.\n\nParticipate in code reviews. Share your projects and ask for feedback. Be open to criticism - every critique is an opportunity to improve. Similarly, review others\' code to learn different approaches.\n\nBuild at least 3-5 small projects that demonstrate your understanding. Document each project thoroughly with README files explaining your approach, challenges faced, and solutions implemented. This becomes your portfolio.', '[\"https:\\/\\/github.com\\/topics\\/python+developer\",\"https:\\/\\/stackoverflow.com\\/\",\"https:\\/\\/www.freecodecamp.org\\/\"]', '[\"Complete 10 beginner-level coding challenges on LeetCode or HackerRank\",\"Build a simple project using your new skills and deploy it online\",\"Contribute to an open-source project on GitHub (even fixing typos counts!)\"]', 0),
-(9, 287, 1, 'Advanced Technical Skills', 'Now that you have a foundation, it\'s time to dive deeper into advanced topics that separate beginners from professionals in Python Developer.\n\nDesign Patterns and Architecture:\n\nStudy common design patterns like Singleton, Factory, Observer, and Strategy. These aren\'t just academic concepts - they\'re proven solutions to recurring problems. Understanding when and how to apply them is crucial.\n\nLearn about architectural principles like SOLID, DRY (Don\'t Repeat Yourself), and KISS (Keep It Simple, Stupid). These principles guide you in writing maintainable, scalable code that other developers can understand and extend.\n\nUnderstand different architectural styles: MVC, microservices, serverless, event-driven architecture. Each has its use cases, advantages, and trade-offs. Know when to use which approach.\n\nPerformance and Optimization:\n\nLearn about performance optimization techniques. Understand time and space complexity (Big O notation). Profile your applications to identify bottlenecks. Remember: premature optimization is the root of all evil, but knowing how to optimize when needed is essential.\n\nStudy caching strategies, database indexing, and query optimization. Many performance issues stem from inefficient database operations. Learn to write efficient queries and use appropriate indexes.\n\nTesting and Quality:\n\nMaster testing methodologies: unit tests, integration tests, end-to-end tests. Write tests before or alongside your code (TDD/BDD). Tests are documentation that never goes out of date and give you confidence to refactor.\n\nUnderstand debugging techniques. Learn to use debuggers effectively, read stack traces, and systematically isolate issues. Good debugging skills save countless hours.\n\nContinuous Learning:\n\nRead source code of popular libraries and frameworks. This exposes you to professional coding standards and advanced techniques. Don\'t just use libraries - understand how they work internally.\n\nAttend webinars, watch conference talks, and follow industry experts. Technology evolves rapidly - staying current is part of the job. Subscribe to newsletters, podcasts, and blogs in your field.', '[\"https:\\/\\/refactoring.guru\\/design-patterns\",\"https:\\/\\/www.patterns.dev\\/\",\"https:\\/\\/martinfowler.com\\/\"]', '[\"Refactor an existing project using at least 3 design patterns\",\"Write comprehensive unit tests achieving 80%+ code coverage\",\"Optimize a slow application and document the improvements with benchmarks\"]', 0),
-(10, 287, 2, 'Production-Ready Applications', 'Professional developers build applications that are maintainable, scalable, and production-ready. This lesson covers what it takes to deploy and maintain real-world applications.\n\nCI/CD and DevOps:\n\nLearn about Continuous Integration and Continuous Deployment. Set up automated pipelines that run tests, check code quality, and deploy automatically. Tools like GitHub Actions, Jenkins, or GitLab CI make this accessible.\n\nUnderstand containerization with Docker. Containers ensure your application runs consistently across different environments. Learn to write Dockerfiles and use docker-compose for multi-container applications.\n\nExplore orchestration with Kubernetes if working with microservices. While complex, Kubernetes is industry-standard for managing containerized applications at scale.\n\nCloud Platforms:\n\nStudy major cloud platforms: AWS, Azure, or Google Cloud. You don\'t need to master all services, but understand core offerings: compute (EC2, Lambda), storage (S3), databases (RDS), and networking (VPC).\n\nLearn Infrastructure as Code (IaC) using tools like Terraform or CloudFormation. Managing infrastructure through code makes it reproducible, version-controlled, and easier to maintain.\n\nMonitoring and Observability:\n\nImplement logging using structured logging libraries. Good logs are invaluable for debugging production issues. Log meaningful information but avoid logging sensitive data.\n\nSet up error tracking with tools like Sentry or Rollbar. Know when things break in production before users complain. Configure alerts for critical errors.\n\nImplement performance monitoring and APM (Application Performance Monitoring). Tools like New Relic or DataDog help identify performance bottlenecks in production.\n\nSecurity Best Practices:\n\nUnderstand common security vulnerabilities (OWASP Top 10): SQL injection, XSS, CSRF, etc. Learn how to prevent them. Security isn\'t optional - it\'s fundamental.\n\nImplement proper authentication and authorization. Use established libraries and frameworks rather than rolling your own. Understand OAuth, JWT, and session management.\n\nPractice defense in depth: validate all inputs, sanitize outputs, use HTTPS, keep dependencies updated, and follow the principle of least privilege.', '[\"https:\\/\\/12factor.net\\/\",\"https:\\/\\/aws.amazon.com\\/getting-started\\/\",\"https:\\/\\/owasp.org\\/www-project-top-ten\\/\"]', '[\"Deploy an application to a cloud platform with proper CI\\/CD pipeline\",\"Set up monitoring, logging, and alerting for a production application\",\"Implement authentication and authorization with proper security measures\"]', 0),
-(11, 288, 1, 'Building Your Portfolio', 'Your portfolio is your professional showcase - it\'s often more important than your resume for technical roles.\n\nCreating Your Portfolio Website:\n\nBuild a personal website that highlights your projects, skills, and achievements. Keep it simple, fast, and mobile-responsive. Your portfolio itself demonstrates your technical skills.\n\nInclude an \'About Me\' section that tells your story. Why are you transitioning to Python Developer? What drives you? Make it personal and authentic.\n\nShowcase 3-5 of your best projects. Quality over quantity - it\'s better to have three polished projects than ten half-finished ones.\n\nProject Case Studies:\n\nFor each project, write a detailed case study explaining:\n- The problem you were solving\n- Your approach and technical decisions\n- Challenges faced and how you overcame them\n- The impact or results\n- Technologies used and why\n\nInclude screenshots, diagrams, and code snippets. Make it easy for recruiters to understand your work even if they\'re not technical.\n\nProvide links to live demos and GitHub repositories. Ensure your code is clean, well-documented, and includes a comprehensive README.\n\nGitHub Profile Optimization:\n\nYour GitHub profile is your technical resume. Ensure it\'s polished:\n- Complete profile with photo and bio\n- Pinned repositories showcasing your best work\n- Consistent commit history (shows you code regularly)\n- Well-documented repositories with clear README files\n- Meaningful commit messages\n\nContribute to open-source projects. Even small contributions (documentation, bug fixes) demonstrate collaboration skills and initiative.\n\nContent Creation:\n\nWrite technical blog posts about your learning journey. Share insights, tutorials, or solutions to problems you\'ve solved. This demonstrates communication skills and helps others.\n\nCreate video demos of your projects. A 2-3 minute walkthrough showing functionality and explaining technical decisions is powerful.\n\nBe active on LinkedIn. Share your projects, write posts about what you\'re learning, and engage with the community. Networking is crucial for career transitions.', '[\"https:\\/\\/github.com\\/topics\\/portfolio-website\",\"https:\\/\\/dev.to\\/\",\"https:\\/\\/www.linkedin.com\\/\"]', '[\"Create a professional portfolio website and deploy it\",\"Write 3 technical blog posts about your learning journey\",\"Record a 5-minute video demo of your best project\"]', 0),
-(12, 288, 2, 'Interview Preparation', 'Preparing systematically for technical interviews is crucial for successfully transitioning to Python Developer.\n\nTechnical Interview Preparation:\n\nPractice coding challenges daily on platforms like LeetCode, HackerRank, or CodeSignal. Start with easy problems and gradually increase difficulty. Aim to solve at least 100-150 problems.\n\nFocus on data structures and algorithms: arrays, linked lists, trees, graphs, sorting, searching, dynamic programming. These form the foundation of technical interviews.\n\nUnderstand time and space complexity (Big O notation). You\'ll be asked to analyze the efficiency of your solutions. Practice explaining your thought process clearly.\n\nSystem Design Interviews:\n\nFor senior roles, study system design. Learn to design scalable systems: load balancers, caching, databases, microservices, message queues.\n\nPractice explaining trade-offs. There\'s rarely one \'correct\' answer in system design - it\'s about understanding pros and cons of different approaches.\n\nStudy real-world architectures: how does Twitter handle millions of tweets? How does Netflix stream video globally? Learn from these examples.\n\nBehavioral Interviews:\n\nPrepare stories using the STAR method (Situation, Task, Action, Result). Have examples ready for:\n- Challenging projects you\'ve worked on\n- Times you\'ve failed and what you learned\n- Conflicts with team members and how you resolved them\n- Leadership and initiative\n\nBe honest about your career transition. Frame it positively - you\'re not running from something, you\'re running toward something. Explain what excites you about the new role.\n\nJob Search Strategy:\n\nResearch companies thoroughly before applying. Tailor your resume and cover letter for each position. Generic applications rarely succeed.\n\nNetwork actively. Many jobs are filled through referrals before they\'re even posted. Attend meetups, conferences, and online events. Connect with people in your target role.\n\nPrepare thoughtful questions to ask interviewers. This shows genuine interest and helps you evaluate if the company is right for you.\n\nMock Interviews:\n\nPractice mock interviews with peers or use platforms like Pramp. Getting comfortable with the interview format is crucial.\n\nRecord yourself explaining technical concepts. Watch the recordings to improve your communication.\n\nStay Positive:\n\nRejections are part of the process. Each interview is practice for the next one. Learn from feedback and keep improving.\n\nKeep track of applications in a spreadsheet. Follow up professionally after interviews. Persistence pays off.', '[\"https:\\/\\/leetcode.com\\/\",\"https:\\/\\/www.pramp.com\\/\",\"https:\\/\\/www.glassdoor.com\\/Interview\\/\"]', '[\"Solve 50 coding problems on LeetCode (mix of easy, medium, hard)\",\"Complete 5 mock interviews with peers or online platforms\",\"Apply to 20 relevant job positions with tailored resumes\"]', 0),
-(13, 289, 1, 'Understanding Core Concepts', 'Begin your journey by understanding the fundamental principles that define Data Scientist. This role requires a solid grasp of statistical analysis, machine learning algorithms, data visualization.\n\nKey Concepts:\n\nFirst, research industry standards and best practices. Understanding the landscape is crucial - study what makes professionals successful in this role. Read official documentation, follow industry leaders on social media, and join relevant online communities.\n\nSecond, understand how these skills interconnect. No skill exists in isolation - they work together to solve real-world problems. For example, if you\'re learning a new programming language, understand how it integrates with databases, APIs, and frontend frameworks.\n\nThird, build a strong theoretical foundation before diving into practical applications. While hands-on practice is important, understanding the \'why\' behind concepts will make you a better problem-solver. Study design patterns, architectural principles, and the reasoning behind best practices.\n\nPractical Approach:\n\nCreate a personal knowledge base documenting key concepts, terminologies, and best practices. Use tools like Notion, Obsidian, or even a simple markdown file in GitHub. This becomes your reference throughout the learning journey.\n\nStudy real-world use cases and analyze how professionals approach problem-solving. Look at open-source projects, read technical blogs, and watch conference talks. Pay attention to how experienced developers structure their code and make decisions.\n\nFinally, practice explaining concepts in simple terms. If you can teach something, you truly understand it. Write blog posts, create tutorials, or explain concepts to friends. This reinforces your learning and builds your personal brand.', '[\"https:\\/\\/www.coursera.org\\/courses?query=Data+Scientist\",\"https:\\/\\/www.udemy.com\\/courses\\/search\\/?q=Data+Scientist\",\"https:\\/\\/roadmap.sh\\/\"]', '[\"Create a comprehensive mind map of key concepts in Data Scientist\",\"Write a 500-word summary explaining the role requirements to a beginner\",\"List 10 companies hiring for this role and analyze their common requirements\"]', 0),
-(14, 289, 2, 'Hands-on Practice', 'Theory alone is insufficient - practical application is crucial for mastering Data Scientist.\n\nSetting Up Your Environment:\n\nStart by setting up a proper development environment. Install necessary tools, configure your IDE, and familiarize yourself with the ecosystem. Don\'t skip this step - a well-configured environment saves hours of frustration later.\n\nUse version control (Git) from day one. Even for small projects, commit regularly with meaningful messages. This builds good habits and creates a portfolio of your progress. Push your code to GitHub to make it accessible and shareable.\n\nBuilding Projects:\n\nBegin with tutorials but don\'t just copy-paste code. Type everything manually and experiment with modifications. Ask yourself: \'What happens if I change this?\' Breaking things and fixing them is how you truly learn.\n\nGradually increase project complexity. Start with a simple \'Hello World\', then build a calculator, then a todo app, then something more complex. Each project should challenge you slightly beyond your current comfort zone.\n\nFocus on writing clean, maintainable code following industry best practices. Use meaningful variable names, write comments for complex logic, and structure your code logically. Bad habits formed early are hard to break.\n\nLearning from Others:\n\nJoin online communities like Stack Overflow, Reddit, or Discord servers related to your target role. Don\'t just ask questions - answer them too. Teaching others reinforces your own understanding.\n\nParticipate in code reviews. Share your projects and ask for feedback. Be open to criticism - every critique is an opportunity to improve. Similarly, review others\' code to learn different approaches.\n\nBuild at least 3-5 small projects that demonstrate your understanding. Document each project thoroughly with README files explaining your approach, challenges faced, and solutions implemented. This becomes your portfolio.', '[\"https:\\/\\/github.com\\/topics\\/data+scientist\",\"https:\\/\\/stackoverflow.com\\/\",\"https:\\/\\/www.freecodecamp.org\\/\"]', '[\"Complete 10 beginner-level coding challenges on LeetCode or HackerRank\",\"Build a simple project using your new skills and deploy it online\",\"Contribute to an open-source project on GitHub (even fixing typos counts!)\"]', 0),
-(15, 290, 1, 'Advanced Technical Skills', 'Now that you have a foundation, it\'s time to dive deeper into advanced topics that separate beginners from professionals in Data Scientist.\n\nDesign Patterns and Architecture:\n\nStudy common design patterns like Singleton, Factory, Observer, and Strategy. These aren\'t just academic concepts - they\'re proven solutions to recurring problems. Understanding when and how to apply them is crucial.\n\nLearn about architectural principles like SOLID, DRY (Don\'t Repeat Yourself), and KISS (Keep It Simple, Stupid). These principles guide you in writing maintainable, scalable code that other developers can understand and extend.\n\nUnderstand different architectural styles: MVC, microservices, serverless, event-driven architecture. Each has its use cases, advantages, and trade-offs. Know when to use which approach.\n\nPerformance and Optimization:\n\nLearn about performance optimization techniques. Understand time and space complexity (Big O notation). Profile your applications to identify bottlenecks. Remember: premature optimization is the root of all evil, but knowing how to optimize when needed is essential.\n\nStudy caching strategies, database indexing, and query optimization. Many performance issues stem from inefficient database operations. Learn to write efficient queries and use appropriate indexes.\n\nTesting and Quality:\n\nMaster testing methodologies: unit tests, integration tests, end-to-end tests. Write tests before or alongside your code (TDD/BDD). Tests are documentation that never goes out of date and give you confidence to refactor.\n\nUnderstand debugging techniques. Learn to use debuggers effectively, read stack traces, and systematically isolate issues. Good debugging skills save countless hours.\n\nContinuous Learning:\n\nRead source code of popular libraries and frameworks. This exposes you to professional coding standards and advanced techniques. Don\'t just use libraries - understand how they work internally.\n\nAttend webinars, watch conference talks, and follow industry experts. Technology evolves rapidly - staying current is part of the job. Subscribe to newsletters, podcasts, and blogs in your field.', '[\"https:\\/\\/refactoring.guru\\/design-patterns\",\"https:\\/\\/www.patterns.dev\\/\",\"https:\\/\\/martinfowler.com\\/\"]', '[\"Refactor an existing project using at least 3 design patterns\",\"Write comprehensive unit tests achieving 80%+ code coverage\",\"Optimize a slow application and document the improvements with benchmarks\"]', 0),
-(16, 290, 2, 'Production-Ready Applications', 'Professional developers build applications that are maintainable, scalable, and production-ready. This lesson covers what it takes to deploy and maintain real-world applications.\n\nCI/CD and DevOps:\n\nLearn about Continuous Integration and Continuous Deployment. Set up automated pipelines that run tests, check code quality, and deploy automatically. Tools like GitHub Actions, Jenkins, or GitLab CI make this accessible.\n\nUnderstand containerization with Docker. Containers ensure your application runs consistently across different environments. Learn to write Dockerfiles and use docker-compose for multi-container applications.\n\nExplore orchestration with Kubernetes if working with microservices. While complex, Kubernetes is industry-standard for managing containerized applications at scale.\n\nCloud Platforms:\n\nStudy major cloud platforms: AWS, Azure, or Google Cloud. You don\'t need to master all services, but understand core offerings: compute (EC2, Lambda), storage (S3), databases (RDS), and networking (VPC).\n\nLearn Infrastructure as Code (IaC) using tools like Terraform or CloudFormation. Managing infrastructure through code makes it reproducible, version-controlled, and easier to maintain.\n\nMonitoring and Observability:\n\nImplement logging using structured logging libraries. Good logs are invaluable for debugging production issues. Log meaningful information but avoid logging sensitive data.\n\nSet up error tracking with tools like Sentry or Rollbar. Know when things break in production before users complain. Configure alerts for critical errors.\n\nImplement performance monitoring and APM (Application Performance Monitoring). Tools like New Relic or DataDog help identify performance bottlenecks in production.\n\nSecurity Best Practices:\n\nUnderstand common security vulnerabilities (OWASP Top 10): SQL injection, XSS, CSRF, etc. Learn how to prevent them. Security isn\'t optional - it\'s fundamental.\n\nImplement proper authentication and authorization. Use established libraries and frameworks rather than rolling your own. Understand OAuth, JWT, and session management.\n\nPractice defense in depth: validate all inputs, sanitize outputs, use HTTPS, keep dependencies updated, and follow the principle of least privilege.', '[\"https:\\/\\/12factor.net\\/\",\"https:\\/\\/aws.amazon.com\\/getting-started\\/\",\"https:\\/\\/owasp.org\\/www-project-top-ten\\/\"]', '[\"Deploy an application to a cloud platform with proper CI\\/CD pipeline\",\"Set up monitoring, logging, and alerting for a production application\",\"Implement authentication and authorization with proper security measures\"]', 0),
-(17, 291, 1, 'Building Your Portfolio', 'Your portfolio is your professional showcase - it\'s often more important than your resume for technical roles.\n\nCreating Your Portfolio Website:\n\nBuild a personal website that highlights your projects, skills, and achievements. Keep it simple, fast, and mobile-responsive. Your portfolio itself demonstrates your technical skills.\n\nInclude an \'About Me\' section that tells your story. Why are you transitioning to Data Scientist? What drives you? Make it personal and authentic.\n\nShowcase 3-5 of your best projects. Quality over quantity - it\'s better to have three polished projects than ten half-finished ones.\n\nProject Case Studies:\n\nFor each project, write a detailed case study explaining:\n- The problem you were solving\n- Your approach and technical decisions\n- Challenges faced and how you overcame them\n- The impact or results\n- Technologies used and why\n\nInclude screenshots, diagrams, and code snippets. Make it easy for recruiters to understand your work even if they\'re not technical.\n\nProvide links to live demos and GitHub repositories. Ensure your code is clean, well-documented, and includes a comprehensive README.\n\nGitHub Profile Optimization:\n\nYour GitHub profile is your technical resume. Ensure it\'s polished:\n- Complete profile with photo and bio\n- Pinned repositories showcasing your best work\n- Consistent commit history (shows you code regularly)\n- Well-documented repositories with clear README files\n- Meaningful commit messages\n\nContribute to open-source projects. Even small contributions (documentation, bug fixes) demonstrate collaboration skills and initiative.\n\nContent Creation:\n\nWrite technical blog posts about your learning journey. Share insights, tutorials, or solutions to problems you\'ve solved. This demonstrates communication skills and helps others.\n\nCreate video demos of your projects. A 2-3 minute walkthrough showing functionality and explaining technical decisions is powerful.\n\nBe active on LinkedIn. Share your projects, write posts about what you\'re learning, and engage with the community. Networking is crucial for career transitions.', '[\"https:\\/\\/github.com\\/topics\\/portfolio-website\",\"https:\\/\\/dev.to\\/\",\"https:\\/\\/www.linkedin.com\\/\"]', '[\"Create a professional portfolio website and deploy it\",\"Write 3 technical blog posts about your learning journey\",\"Record a 5-minute video demo of your best project\"]', 0),
-(18, 291, 2, 'Interview Preparation', 'Preparing systematically for technical interviews is crucial for successfully transitioning to Data Scientist.\n\nTechnical Interview Preparation:\n\nPractice coding challenges daily on platforms like LeetCode, HackerRank, or CodeSignal. Start with easy problems and gradually increase difficulty. Aim to solve at least 100-150 problems.\n\nFocus on data structures and algorithms: arrays, linked lists, trees, graphs, sorting, searching, dynamic programming. These form the foundation of technical interviews.\n\nUnderstand time and space complexity (Big O notation). You\'ll be asked to analyze the efficiency of your solutions. Practice explaining your thought process clearly.\n\nSystem Design Interviews:\n\nFor senior roles, study system design. Learn to design scalable systems: load balancers, caching, databases, microservices, message queues.\n\nPractice explaining trade-offs. There\'s rarely one \'correct\' answer in system design - it\'s about understanding pros and cons of different approaches.\n\nStudy real-world architectures: how does Twitter handle millions of tweets? How does Netflix stream video globally? Learn from these examples.\n\nBehavioral Interviews:\n\nPrepare stories using the STAR method (Situation, Task, Action, Result). Have examples ready for:\n- Challenging projects you\'ve worked on\n- Times you\'ve failed and what you learned\n- Conflicts with team members and how you resolved them\n- Leadership and initiative\n\nBe honest about your career transition. Frame it positively - you\'re not running from something, you\'re running toward something. Explain what excites you about the new role.\n\nJob Search Strategy:\n\nResearch companies thoroughly before applying. Tailor your resume and cover letter for each position. Generic applications rarely succeed.\n\nNetwork actively. Many jobs are filled through referrals before they\'re even posted. Attend meetups, conferences, and online events. Connect with people in your target role.\n\nPrepare thoughtful questions to ask interviewers. This shows genuine interest and helps you evaluate if the company is right for you.\n\nMock Interviews:\n\nPractice mock interviews with peers or use platforms like Pramp. Getting comfortable with the interview format is crucial.\n\nRecord yourself explaining technical concepts. Watch the recordings to improve your communication.\n\nStay Positive:\n\nRejections are part of the process. Each interview is practice for the next one. Learn from feedback and keep improving.\n\nKeep track of applications in a spreadsheet. Follow up professionally after interviews. Persistence pays off.', '[\"https:\\/\\/leetcode.com\\/\",\"https:\\/\\/www.pramp.com\\/\",\"https:\\/\\/www.glassdoor.com\\/Interview\\/\"]', '[\"Solve 50 coding problems on LeetCode (mix of easy, medium, hard)\",\"Complete 5 mock interviews with peers or online platforms\",\"Apply to 20 relevant job positions with tailored resumes\"]', 0);
-
 -- --------------------------------------------------------
 
 --
@@ -418,21 +315,6 @@ CREATE TABLE `course_modules` (
   `duration_weeks` int(11) DEFAULT 1,
   `content` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `course_modules`
---
-
-INSERT INTO `course_modules` (`id`, `transition_id`, `module_number`, `title`, `description`, `duration_weeks`, `content`) VALUES
-(283, 171, 1, 'JavaScript Fundamentals for Full Stack Development', 'In this module, you\'ll learn the essentials of JavaScript, which is crucial for working with frameworks like React and Node.js.', 2, NULL),
-(284, 171, 2, 'Node.js and Backend Development', 'In this module, you will learn how to set up a basic server using Node.js and work with APIs.', 2, NULL),
-(285, 171, 3, 'Building Frontend Applications with React', 'In this module, you will learn the fundamentals of React, a popular JavaScript library for building user interfaces.', 2, NULL),
-(286, 172, 1, 'Foundation Skills for Python Developer', 'Master the fundamental concepts required for transitioning to Python Developer', 4, NULL),
-(287, 172, 2, 'Advanced Techniques', 'Deepen your expertise with advanced concepts', 4, NULL),
-(288, 172, 3, 'Career Preparation', 'Prepare for job interviews and build portfolio', 4, NULL),
-(289, 173, 1, 'Foundation Skills for Data Scientist', 'Master the fundamental concepts required for transitioning to Data Scientist', 4, NULL),
-(290, 173, 2, 'Advanced Techniques', 'Deepen your expertise with advanced concepts', 4, NULL),
-(291, 173, 3, 'Career Preparation', 'Prepare for job interviews and build portfolio', 4, NULL);
 
 -- --------------------------------------------------------
 
@@ -452,30 +334,6 @@ CREATE TABLE `daily_tasks` (
   `is_completed` tinyint(1) DEFAULT 0,
   `completed_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `daily_tasks`
---
-
-INSERT INTO `daily_tasks` (`id`, `transition_id`, `task_title`, `task_description`, `duration_minutes`, `day_number`, `module_number`, `lesson_number`, `is_completed`, `completed_at`) VALUES
-(1, 171, 'Module 1 - Lesson 1', 'Complete lesson', 10, 1, 1, 1, 1, '2026-02-26 10:37:45'),
-(2, 171, 'Module 1 - Lesson 2', 'Complete lesson', 10, 2, 1, 2, 0, NULL),
-(3, 171, 'Module 2 - Lesson 1', 'Complete lesson', 10, 3, 2, 1, 0, NULL),
-(4, 171, 'Module 2 - Lesson 2', 'Complete lesson', 10, 4, 2, 2, 0, NULL),
-(5, 171, 'Module 3 - Lesson 1', 'Complete lesson', 10, 5, 3, 1, 0, NULL),
-(6, 171, 'Module 3 - Lesson 2', 'Complete lesson', 10, 6, 3, 2, 0, NULL),
-(7, 172, 'Module 1 - Understanding Core Concepts', 'Complete lesson: Understanding Core Concepts', 10, 1, 1, 1, 0, NULL),
-(8, 172, 'Module 1 - Hands-on Practice', 'Complete lesson: Hands-on Practice', 10, 2, 1, 2, 0, NULL),
-(9, 172, 'Module 2 - Advanced Technical Skills', 'Complete lesson: Advanced Technical Skills', 10, 3, 2, 1, 0, NULL),
-(10, 172, 'Module 2 - Production-Ready Applications', 'Complete lesson: Production-Ready Applications', 10, 4, 2, 2, 0, NULL),
-(11, 172, 'Module 3 - Building Your Portfolio', 'Complete lesson: Building Your Portfolio', 10, 5, 3, 1, 0, NULL),
-(12, 172, 'Module 3 - Interview Preparation', 'Complete lesson: Interview Preparation', 10, 6, 3, 2, 0, NULL),
-(13, 173, 'Module 1 - Understanding Core Concepts', 'Complete lesson: Understanding Core Concepts', 10, 1, 1, 1, 0, NULL),
-(14, 173, 'Module 1 - Hands-on Practice', 'Complete lesson: Hands-on Practice', 10, 2, 1, 2, 0, NULL),
-(15, 173, 'Module 2 - Advanced Technical Skills', 'Complete lesson: Advanced Technical Skills', 10, 3, 2, 1, 0, NULL),
-(16, 173, 'Module 2 - Production-Ready Applications', 'Complete lesson: Production-Ready Applications', 10, 4, 2, 2, 0, NULL),
-(17, 173, 'Module 3 - Building Your Portfolio', 'Complete lesson: Building Your Portfolio', 10, 5, 3, 1, 0, NULL),
-(18, 173, 'Module 3 - Interview Preparation', 'Complete lesson: Interview Preparation', 10, 6, 3, 2, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -501,9 +359,7 @@ CREATE TABLE `education` (
 --
 
 INSERT INTO `education` (`id`, `user_id`, `degree`, `field_of_study`, `institution`, `start_year`, `end_year`, `grade`, `created_at`, `updated_at`) VALUES
-(1, 47, 'B.Sc.', 'Computer Science', 'Prajyoti Niketan College, Pudukad, Thrissur', '2012', '2015', '', '2026-02-23 01:24:40', '2026-02-23 01:24:40'),
-(2, 68, 'B.Sc.', 'Computer Science', 'Prajyoti Niketan College, Pudukad, Thrissur', '2012', '2015', '', '2026-02-28 01:25:44', '2026-02-28 01:25:44'),
-(3, 68, 'MBA', 'Marketing', 'Adi Shankara Institute of Engineering and Technology, Kalady', '2015', '2017', '', '2026-02-28 01:26:38', '2026-02-28 01:26:38');
+(1, 2, 'B.Sc.', 'Computer Science', 'Prajyoti Niketan College, Pudukad, Thrissur', '2012', '2015', '', '2026-03-06 06:34:14', '2026-03-06 06:34:14');
 
 -- --------------------------------------------------------
 
@@ -525,35 +381,6 @@ CREATE TABLE `interview_bookings` (
   `booked_at` datetime NOT NULL,
   `last_rescheduled_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `interview_sessions`
---
-
-CREATE TABLE `interview_sessions` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `user_id` int(11) UNSIGNED NOT NULL,
-  `application_id` int(11) NOT NULL,
-  `session_id` varchar(100) NOT NULL,
-  `position` varchar(255) NOT NULL,
-  `conversation_history` longtext NOT NULL,
-  `turn` int(11) NOT NULL DEFAULT 1,
-  `max_turns` int(11) NOT NULL DEFAULT 10,
-  `status` enum('active','completed','evaluated') NOT NULL DEFAULT 'active',
-  `evaluation_data` longtext DEFAULT NULL,
-  `technical_score` decimal(5,2) DEFAULT NULL,
-  `communication_score` decimal(5,2) DEFAULT NULL,
-  `problem_solving_score` decimal(5,2) DEFAULT NULL,
-  `adaptability_score` decimal(5,2) DEFAULT NULL,
-  `enthusiasm_score` decimal(5,2) DEFAULT NULL,
-  `overall_rating` decimal(5,2) DEFAULT NULL,
-  `ai_decision` enum('shortlisted','rejected') DEFAULT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------
 
@@ -606,21 +433,17 @@ CREATE TABLE `jobs` (
 --
 
 INSERT INTO `jobs` (`id`, `recruiter_id`, `company_id`, `title`, `category`, `company`, `location`, `description`, `required_skills`, `experience_level`, `openings`, `min_ai_cutoff_score`, `ai_interview_policy`, `status`, `created_at`, `employment_type`, `salary_range`, `application_deadline`) VALUES
-(56, 46, 1, 'PHP Developer', 'Software Development', 'TechNova Solutions', 'Bangalore', 'We are looking for a PHP Developer to build and maintain web applications.', 'Core PHP, MySQL, HTML, CSS, JavaScript', '2-3 years', 3, 85, 'OPTIONAL', 'open', '2026-02-21 15:35:28', 'Part-time', '2-5 LPA', '2026-03-26'),
-(57, 46, 1, 'Mechanical Engineer', 'Engineering', 'TechNova Solutions', 'Coimbatore, India', 'Responsible for maintaining and improving manufacturing machinery', 'AutoCAD, SolidWorks, Machine Maintenance', '1-3 Years', 2, 80, 'REQUIRED_HARD', 'open', '2026-02-21 16:07:59', 'Full-time', NULL, NULL),
-(58, 48, 26, 'Quality Inspector', 'Manufacturing', 'GreenLeaf Industries', 'Pune, India', 'Ensure product quality and compliance with standards.', 'Quality Control, Inspection, ISO Standards', '2-5 Years', 1, 70, 'REQUIRED_HARD', 'open', '2026-02-21 16:15:54', 'Full-time', NULL, NULL),
-(59, 46, 1, 'job2', 'Manufacturing', 'TechNova Solutions', 'Thrissur, Kerala', 'aaaaa', 'tool n die', '2-3 years', 3, 45, 'REQUIRED_HARD', 'open', '2026-02-24 14:07:09', 'Full-time', NULL, NULL),
-(60, 46, 1, 'job3', 'information tachnology', 'TechNova Solutions', 'Bangalore, Karnataka', 'aaaaa', '', '', 3, 80, 'REQUIRED_HARD', 'open', '2026-02-24 14:14:47', 'Full-time', NULL, NULL),
-(61, 46, 1, 'job 4', 'IT', 'TechNova Solutions', 'BANGALORE', 'aaa   .......', '', '', 2, 0, 'OFF', 'closed', '2026-02-26 12:17:54', 'Full-time', NULL, NULL),
-(62, 48, 26, 'PHP Developer', 'Software Developemnet', 'GreenLeaf Industries', 'Bangalore', 'aaaaaaaa', 'Core Php', '', 4, 0, 'OFF', 'open', '2026-02-27 12:25:16', 'Full-time', NULL, NULL),
-(63, 46, 1, 'Software Tester', 'Software support', 'TechNova Solutions', 'Bangalore', 'ahgshagshag', '', '', 1, 0, 'OFF', 'open', '2026-03-03 10:37:50', 'Full-time', NULL, NULL),
-(64, 46, 1, 'PHP Developer', 'IT', 'TechNova Solutions', 'Bangalore', 'aaaaa', 'Core PHP, MySQL', '3-5 years', 1, 82, 'OPTIONAL', 'closed', '2026-03-03 11:15:27', 'Full-time', '2-5 LPA', '2026-03-17'),
-(65, 48, 26, 'Software Tester', 'IT', 'GreenLeaf Industries', 'Bangalore', 'aaaa', 'Manual Testing, Selenium, Test Cases', '', 1, 80, 'REQUIRED_HARD', 'open', '2026-03-03 11:22:17', 'Full-time', NULL, NULL),
-(66, 79, 3, 'Quality Inspector', 'Manufacturing', 'CodeCraft Technologies', 'Pune, India', 'Inspect manufactured products and ensure they meet quality standards. Identify defects and improve production quality.', 'Quality Control, Inspection Tools, Documentation, ISO Standards', '1-2 Years', 4, 75, 'OPTIONAL', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
-(67, 79, 3, 'Frontend Developer', 'IT / Software', 'CodeCraft Technologies', 'Hyderabad, India', 'Develop responsive web interfaces and collaborate with backend developers to build modern web applications.', 'HTML, CSS, JavaScript, Bootstrap, React', '2-4 Years', 2, 82, 'OPTIONAL', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
-(68, 80, 4, 'Data Analyst', 'Analytics', 'PixelSoft Pvt Ltd', 'Chennai, India', 'Analyze business data, identify trends, and create reports for decision making.', 'Python, SQL, Excel, Power BI', '1-3 Years', 3, 80, 'REQUIRED_SOFT', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
-(69, 80, 4, 'HR Executive', 'Human Resources', 'PixelSoft Pvt Ltd', 'Kochi, India', 'Handle recruitment processes, employee engagement, and HR documentation.', 'Recruitment, Communication, HRMS, Interview Coordination', '1-2 Years', 1, 70, 'OPTIONAL', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL),
-(70, 80, 4, 'DevOps Engineer', 'IT / Cloud', 'PixelSoft Pvt Ltd', 'Bangalore, India', 'Manage CI/CD pipelines, cloud infrastructure, and deployment automation.', 'Docker, Kubernetes, AWS, CI/CD, Linux', '3-5 Years', 2, 85, 'REQUIRED_HARD', 'open', '2026-03-05 13:13:41', 'Full-time', NULL, NULL);
+(1, 1, 1, 'Quality Inspector', 'Manufacturing', 'TechNova Solutions', 'Pune, India', 'Inspect manufactured products and ensure they meet quality standards. Identify defects and improve production quality.', 'Quality Control, Inspection Tools, Documentation, ISO Standards', '1-2 Years', 4, 75, 'OPTIONAL', 'open', '2026-03-06 17:14:15', 'Full-time', NULL, NULL),
+(2, 1, 1, 'Frontend Developer', 'IT / Software', 'TechNova Solutions', 'Hyderabad, India', 'Develop responsive web interfaces and collaborate with backend developers to build modern web applications.', 'HTML, CSS, JavaScript, Bootstrap, React', '2-4 Years', 2, 82, 'OPTIONAL', 'open', '2026-03-06 17:14:15', 'Full-time', NULL, NULL),
+(3, 1, 1, 'Data Analyst', 'Analytics', 'TechNova Solutions', 'Chennai, India', 'Analyze business data, identify trends, and create reports for decision making.', 'Python, SQL, Excel, Power BI', '1-3 Years', 3, 80, 'REQUIRED_SOFT', 'open', '2026-03-06 17:14:15', 'Full-time', NULL, NULL),
+(4, 1, 1, 'HR Executive', 'Human Resources', 'TechNova Solutions', 'Kochi, India', 'Handle recruitment processes, employee engagement, and HR documentation.', 'Recruitment, Communication, HRMS, Interview Coordination', '1-2 Years', 1, 70, 'OPTIONAL', 'open', '2026-03-06 17:14:15', 'Full-time', NULL, NULL),
+(5, 1, 1, 'DevOps Engineer', 'IT / Cloud', 'TechNova Solutions', 'Bangalore, India', 'Manage CI/CD pipelines, cloud infrastructure, and deployment automation.', 'Docker, Kubernetes, AWS, CI/CD, Linux', '3-5 Years', 2, 85, 'REQUIRED_HARD', 'open', '2026-03-06 17:14:15', 'Full-time', NULL, NULL),
+(6, 3, 2, 'Backend Developer', 'IT / Software', 'PrecisionTech Industries', 'Bangalore, India', 'Develop and maintain server-side logic and APIs for scalable web applications.', 'PHP, Laravel, MySQL, JavaScript', '2-3 years', 1, 80, 'OPTIONAL', 'open', '2026-03-06 17:25:19', 'Full-time', NULL, '2026-03-31'),
+(7, 3, 2, 'Electrical Engineer', 'Engineering', 'PrecisionTech Industries', 'Chennai, India', 'Design, develop, and maintain electrical systems for industrial applications.', 'Circuit Design, PLC, Electrical Testing, AutoCAD', '1-3 Years', 2, 78, 'REQUIRED_HARD', 'open', '2026-03-06 17:28:44', 'Full-time', NULL, NULL),
+(8, 3, 2, 'Digital Marketing Executive', 'Marketing', 'PrecisionTech Industries', 'Chennai, India', 'Plan and execute digital marketing campaigns including SEO, SEM, and social media.', 'SEO, Google Ads, Social Media Marketing, Content Marketing', '1-2 Years', 2, 70, 'OPTIONAL', 'open', '2026-03-06 17:28:44', 'Full-time', NULL, NULL),
+(9, 3, 2, 'UI/UX Designer', 'Design', 'PrecisionTech Industries', 'Chennai, India', 'Design intuitive user interfaces and improve user experience for web and mobile apps.', 'Figma, Adobe XD, Wireframing, Prototyping', '2-3 Years', 1, 75, 'OPTIONAL', 'open', '2026-03-06 17:28:44', 'Full-time', NULL, NULL),
+(10, 3, 2, 'Mechanical Design Engineer', 'Manufacturing', 'PrecisionTech Industries', 'Chennai, India', 'Design mechanical components and develop product prototypes.', 'SolidWorks, AutoCAD, Product Design, Mechanical Analysis', '2-5 Years', 2, 82, 'REQUIRED_HARD', 'open', '2026-03-06 17:28:44', 'Full-time', NULL, NULL),
+(11, 3, 2, 'Python Developer', 'IT / Software', 'PrecisionTech Industries', 'Chennai, India', 'Build backend services and data processing pipelines using Python.', 'Python, Django, Flask, PostgreSQL, REST API', '2-4 Years', 3, 85, 'OPTIONAL', 'open', '2026-03-06 17:28:44', 'Full-time', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -643,14 +466,6 @@ CREATE TABLE `job_alerts` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- Dumping data for table `job_alerts`
---
-
-INSERT INTO `job_alerts` (`id`, `candidate_id`, `role_keywords`, `location_keywords`, `skills_keywords`, `salary_min`, `salary_max`, `notify_email`, `notify_in_app`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 47, 'PHP developer', 'Bangalore', 'Core PHP', NULL, NULL, 1, 1, 1, '2026-02-27 06:46:41', '2026-02-27 06:46:41'),
-(3, 67, 'Software Tester', NULL, NULL, NULL, NULL, 1, 1, 1, '2026-03-03 05:51:37', '2026-03-03 05:51:37');
-
 -- --------------------------------------------------------
 
 --
@@ -667,14 +482,6 @@ CREATE TABLE `job_alert_deliveries` (
   `created_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- Dumping data for table `job_alert_deliveries`
---
-
-INSERT INTO `job_alert_deliveries` (`id`, `job_alert_id`, `job_id`, `candidate_id`, `email_sent_at`, `in_app_sent_at`, `created_at`) VALUES
-(1, 1, 62, 47, '2026-02-27 06:55:22', '2026-02-27 06:55:16', '2026-02-27 06:55:16'),
-(3, 3, 65, 67, '2026-03-03 05:52:26', '2026-03-03 05:52:17', '2026-03-03 05:52:17');
-
 -- --------------------------------------------------------
 
 --
@@ -689,6 +496,23 @@ CREATE TABLE `job_suggestions` (
   `reason` text DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `job_suggestions`
+--
+
+INSERT INTO `job_suggestions` (`id`, `candidate_id`, `job_id`, `score`, `reason`, `created_at`) VALUES
+(1, 2, 6, 95.00, 'Strong skill match in PHP, MySQL, and JavaScript for Backend Development.', '2026-03-07 06:05:41'),
+(2, 2, 2, 70.00, 'Related skills in JavaScript and interest in IT.', '2026-03-07 06:05:41'),
+(3, 2, 11, 60.00, 'Related skills in Python and interest in software development.', '2026-03-07 06:05:41'),
+(4, 2, 3, 50.00, 'Some related skills in SQL and interest in analytics.', '2026-03-07 06:05:41'),
+(5, 2, 1, 20.00, 'No relevant skills but a full-time opportunity.', '2026-03-07 06:05:41'),
+(6, 2, 4, 15.00, 'No relevant skills but a full-time opportunity.', '2026-03-07 06:05:41'),
+(7, 2, 5, 10.00, 'No relevant skills but a full-time opportunity.', '2026-03-07 06:05:41'),
+(8, 2, 9, 5.00, 'No relevant skills but a full-time opportunity.', '2026-03-07 06:05:41'),
+(9, 2, 10, 5.00, 'No relevant skills but a full-time opportunity.', '2026-03-07 06:05:41'),
+(10, 2, 8, 5.00, 'No relevant skills but a full-time opportunity.', '2026-03-07 06:05:41'),
+(11, 2, 7, 5.00, 'No relevant skills but a full-time opportunity.', '2026-03-07 06:05:41');
 
 -- --------------------------------------------------------
 
@@ -739,7 +563,9 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (26, '2026-03-06-120000', 'App\\Database\\Migrations\\AddSalaryRangeAndDeadlineToJobs', 'default', 'App', 1772786015, 23),
 (27, '2026-03-06-130000', 'App\\Database\\Migrations\\CreateNormalizedUserProfileTables', 'default', 'App', 1772791448, 24),
 (28, '2026-03-06-140000', 'App\\Database\\Migrations\\DropDeprecatedCandidateColumnsFromUsers', 'default', 'App', 1772792504, 25),
-(29, '2026-03-06-150000', 'App\\Database\\Migrations\\DropDeprecatedRecruiterCompanyNameFromUsers', 'default', 'App', 1772792771, 26);
+(29, '2026-03-06-150000', 'App\\Database\\Migrations\\DropDeprecatedRecruiterCompanyNameFromUsers', 'default', 'App', 1772792771, 26),
+(30, '2026-03-06-160000', 'App\\Database\\Migrations\\DropPreferredLanguageFromUsers', 'default', 'App', 1772796868, 27),
+(31, '2026-03-07-170000', 'App\\Database\\Migrations\\CleanupLegacyPhpInterviewArtifacts', 'default', 'App', 1772867685, 28);
 
 -- --------------------------------------------------------
 
@@ -765,27 +591,8 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `user_id`, `application_id`, `type`, `title`, `message`, `action_link`, `is_read`, `created_at`, `read_at`) VALUES
-(1, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-23 07:24:59', '2026-02-23 07:30:26'),
-(2, 47, 75, '', 'Contact Viewed', 'Rohith Kumar viewed your contact details.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-23 07:31:07', '2026-02-23 07:33:03'),
-(3, 47, 75, '', 'Message from Recruiter', 'Rohith Kumar: Hi,\r\n\r\nThanks for applying. To proceed, please complete this short screening form:\r\n\r\n???? https://forms.gle/J38gwfPmk2gSqsEN7\r\n\r\nWe only review applicants who submit this form.\r\n\r\nThanks', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-23 10:29:58', '2026-02-23 10:30:31'),
-(4, 47, 75, '', 'Message from Recruiter', 'Rohith Kumar: Hello,\r\n\r\nThank you for your interest in our Full Stack Engineer / Intern - C# opportunity, please fill the below form.\r\n\r\nhttps://forms.gle/xYjoWAxPBhjcXS5U7\r\n\r\nThanks and Regards\r\nHarshitha J', 'http://localhost/ai-job-portal/public/candidate/messages/46?application_id=75', 1, '2026-02-23 10:37:59', '2026-02-23 10:38:37'),
-(5, 47, 75, '', 'Message from Recruiter', 'Rohith Kumar sent you a message. Open conversation to read it.', 'http://localhost/ai-job-portal/public/candidate/messages/46?application_id=75', 1, '2026-02-23 10:43:19', '2026-02-23 10:43:37'),
-(6, 46, 75, '', 'Candidate Replied', 'Manju Aravind replied to your message.', 'http://localhost/ai-job-portal/public/recruiter/candidate/47?application_id=75&show_contact=1', 1, '2026-02-23 10:47:02', '2026-02-23 10:47:28'),
-(7, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-23 10:47:29', '2026-02-24 06:38:44'),
-(12, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-24 08:28:08', NULL),
-(13, 49, 76, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-25 11:44:47', NULL),
-(14, 47, 74, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-26 04:40:32', '2026-03-03 11:50:11'),
-(15, 66, NULL, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-02-27 06:17:47', NULL),
-(16, 47, NULL, '', 'Job Alert Match', 'New matching job: PHP Developer - Bangalore', 'http://localhost/ai-job-portal/public/job/62', 1, '2026-02-27 06:55:16', '2026-03-03 11:50:00'),
-(17, 67, NULL, '', 'Job Alert Match', 'New matching job: PHP Developer - Bangalore', 'http://localhost/ai-job-portal/public/job/62', 1, '2026-02-27 06:55:22', '2026-02-27 06:56:06'),
-(18, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:05:20', '2026-03-03 11:50:50'),
-(19, 47, 75, '', 'Resume Downloaded', 'Rohith Kumar downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:05:58', '2026-03-03 11:49:51'),
-(20, 47, 79, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:21:52', '2026-03-03 11:49:44'),
-(21, 47, 79, '', 'Resume Downloaded', 'Asha Govind downloaded your resume.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-02-28 06:21:58', '2026-03-03 11:49:32'),
-(22, 67, NULL, '', 'Job Alert Match', 'New matching job: Software Tester - Bangalore', 'http://localhost/ai-job-portal/public/job/65', 1, '2026-03-03 05:52:17', '2026-03-03 09:57:59'),
-(23, 68, NULL, '', 'Profile Viewed', 'Asha Govind viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-03 05:53:34', NULL),
-(24, 47, 75, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-04 10:32:29', NULL),
-(25, 49, 76, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-04 11:01:39', NULL);
+(1, 2, NULL, '', 'Contact Viewed', 'Rohith Kumar viewed your contact details.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-03-07 04:29:14', '2026-03-07 08:30:49'),
+(2, 2, NULL, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-07 04:29:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -808,24 +615,8 @@ CREATE TABLE `recruiter_candidate_actions` (
 --
 
 INSERT INTO `recruiter_candidate_actions` (`id`, `candidate_id`, `recruiter_id`, `application_id`, `job_id`, `action_type`, `created_at`) VALUES
-(11, 47, 46, 75, 57, 'profile_viewed', '2026-02-23 07:24:59'),
-(12, 47, 46, 75, 57, 'contact_viewed', '2026-02-23 07:31:07'),
-(13, 47, 46, 75, NULL, 'profile_viewed', '2026-02-23 10:47:29'),
-(14, 49, 46, 76, 56, 'profile_viewed', '2026-02-23 11:31:09'),
-(15, 49, 46, 76, 56, 'contact_viewed', '2026-02-23 11:31:13'),
-(16, 49, 46, 76, 56, 'resume_downloaded', '2026-02-24 06:09:41'),
-(17, 47, 46, 75, 57, 'resume_downloaded', '2026-02-24 06:17:03'),
-(18, 47, 46, 75, 57, 'profile_viewed', '2026-02-24 08:28:08'),
-(19, 49, 46, 76, 56, 'profile_viewed', '2026-02-25 11:44:47'),
-(20, 47, 46, 74, 56, 'profile_viewed', '2026-02-26 04:40:32'),
-(21, 66, 46, NULL, NULL, 'profile_viewed', '2026-02-27 06:17:46'),
-(22, 47, 46, 75, 57, 'profile_viewed', '2026-02-28 06:05:20'),
-(23, 47, 46, 75, 57, 'resume_downloaded', '2026-02-28 06:05:58'),
-(24, 47, 48, 79, 62, 'profile_viewed', '2026-02-28 06:21:52'),
-(25, 47, 48, 79, 62, 'resume_downloaded', '2026-02-28 06:21:58'),
-(26, 68, 48, NULL, NULL, 'profile_viewed', '2026-03-03 05:53:34'),
-(27, 47, 46, 75, 57, 'profile_viewed', '2026-03-04 10:32:29'),
-(28, 49, 46, 76, 56, 'profile_viewed', '2026-03-04 11:01:39');
+(1, 2, 1, NULL, NULL, 'contact_viewed', '2026-03-07 04:29:14'),
+(2, 2, 1, NULL, NULL, 'profile_viewed', '2026-03-07 04:29:17');
 
 -- --------------------------------------------------------
 
@@ -845,19 +636,6 @@ CREATE TABLE `recruiter_candidate_messages` (
   `created_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- Dumping data for table `recruiter_candidate_messages`
---
-
-INSERT INTO `recruiter_candidate_messages` (`id`, `candidate_id`, `recruiter_id`, `application_id`, `job_id`, `sender_id`, `sender_role`, `message`, `created_at`) VALUES
-(1, 47, 46, 75, 57, 46, 'recruiter', 'Hello,\r\n\r\nThank you for your interest in our Full Stack Engineer / Intern - C# opportunity, please fill the below form.\r\n\r\nhttps://forms.gle/xYjoWAxPBhjcXS5U7\r\n\r\nThanks and Regards\r\nHarshitha J', '2026-02-23 10:37:59'),
-(2, 47, 46, 75, NULL, 47, 'candidate', 'Okey mam. i will fill and update you soon', '2026-02-23 10:39:17'),
-(3, 47, 46, 75, NULL, 47, 'candidate', 'Okey mam. i will fill and update you soon', '2026-02-23 10:39:18'),
-(4, 47, 46, 75, NULL, 47, 'candidate', 'yes i updated', '2026-02-23 10:39:54'),
-(5, 47, 46, 75, 57, 46, 'recruiter', 'ok iwill check and update', '2026-02-23 10:43:19'),
-(6, 47, 46, 75, NULL, 47, 'candidate', 'thankyou', '2026-02-23 10:43:49'),
-(7, 47, 46, 75, NULL, 47, 'candidate', 'mam, have any update?', '2026-02-23 10:47:02');
-
 -- --------------------------------------------------------
 
 --
@@ -873,14 +651,6 @@ CREATE TABLE `recruiter_candidate_notes` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Dumping data for table `recruiter_candidate_notes`
---
-
-INSERT INTO `recruiter_candidate_notes` (`id`, `candidate_id`, `recruiter_id`, `tags`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 49, 46, 'Strong communication', 'can be interviewed', '2026-02-25 12:22:26', '2026-02-25 12:22:26'),
-(2, 47, 48, 'Immediate joiner', '', '2026-02-28 06:40:41', '2026-02-28 06:40:41');
 
 -- --------------------------------------------------------
 
@@ -902,15 +672,9 @@ CREATE TABLE `recruiter_company_map` (
 --
 
 INSERT INTO `recruiter_company_map` (`id`, `recruiter_user_id`, `company_id`, `is_admin`, `created_at`, `updated_at`) VALUES
-(1, 46, 1, 1, '2026-02-21 15:25:05', '2026-03-06 15:34:07'),
-(2, 48, 26, 1, '2026-02-21 16:10:17', '2026-03-06 15:34:07'),
-(3, 60, 28, 1, '2026-02-25 16:30:57', '2026-03-06 15:34:07'),
-(4, 62, 27, 1, '2026-02-25 17:13:10', '2026-03-06 15:34:07'),
-(5, 64, 29, 1, '2026-02-26 11:21:16', '2026-03-06 15:34:07'),
-(6, 65, 30, 1, '2026-02-26 13:07:06', '2026-03-06 15:34:07'),
-(7, 77, 27, 1, '2026-03-02 17:14:39', '2026-03-06 15:34:07'),
-(8, 79, 3, 1, '2026-03-05 13:02:03', '2026-03-06 15:34:07'),
-(9, 80, 4, 1, '2026-03-05 13:07:55', '2026-03-06 15:34:07');
+(1, 1, 1, 1, '2026-03-06 11:41:11', '2026-03-06 11:41:11'),
+(2, 3, 2, 1, '2026-03-06 11:52:06', '2026-03-06 11:52:06'),
+(3, 4, 1, 1, '2026-03-07 08:57:52', '2026-03-07 08:57:52');
 
 -- --------------------------------------------------------
 
@@ -933,15 +697,9 @@ CREATE TABLE `recruiter_profiles` (
 --
 
 INSERT INTO `recruiter_profiles` (`user_id`, `full_name`, `phone`, `designation`, `company_name_snapshot`, `created_at`, `updated_at`) VALUES
-(46, 'Rohith Kumar', '+919544104305', NULL, 'TechNova Solutions', '2026-02-21 15:25:05', '2026-03-06 15:34:07'),
-(48, 'Asha Govind', '+919544104305', NULL, 'GreenLeaf Industries', '2026-02-21 16:10:17', '2026-03-06 15:34:07'),
-(60, 'rinu george', '+919544104305', NULL, 'SANDS Lab', '2026-02-25 16:30:57', '2026-03-06 15:34:07'),
-(62, 'rinu george', '+919544104305', NULL, 'SERP Hawk', '2026-02-25 17:13:10', '2026-03-06 15:34:07'),
-(64, 'John', '+919544104305', NULL, 'xxx', '2026-02-26 11:21:16', '2026-03-06 15:34:07'),
-(65, 'kiran', '+919544104305', NULL, 'bbb', '2026-02-26 13:07:06', '2026-03-06 15:34:07'),
-(77, 'rinu george', '+919544104305', NULL, 'SERP Hawk', '2026-03-02 17:14:39', '2026-03-06 15:34:07'),
-(79, 'Athira', '+919544104305', NULL, 'CodeCraft Technologies', '2026-03-05 13:02:03', '2026-03-06 15:34:07'),
-(80, 'Sajay', '+919544104305', NULL, 'PixelSoft Pvt Ltd', '2026-03-05 13:07:55', '2026-03-06 15:34:07');
+(1, 'Rohith Kumar', '+919544104305', 'Talent Aquisition Specialist', 'TechNova Solutions', '2026-03-06 11:41:11', '2026-03-06 11:47:46'),
+(3, 'Arun Mohan', '+919544104305', 'HR Executive', 'PrecisionTech Industries', '2026-03-06 11:52:06', '2026-03-06 11:52:06'),
+(4, 'Manu', '+919544104305', 'HR Manager', 'TechNova Solutions', '2026-03-07 08:57:52', '2026-03-07 08:57:52');
 
 -- --------------------------------------------------------
 
@@ -974,14 +732,6 @@ CREATE TABLE `saved_jobs` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Dumping data for table `saved_jobs`
---
-
-INSERT INTO `saved_jobs` (`id`, `candidate_id`, `job_id`, `created_at`, `updated_at`) VALUES
-(2, 47, 56, '2026-02-23 06:25:45', '2026-02-23 06:25:45'),
-(3, 49, 58, '2026-02-23 12:40:01', '2026-02-23 12:40:01');
 
 -- --------------------------------------------------------
 
@@ -1041,22 +791,7 @@ CREATE TABLE `stage_history` (
 --
 
 INSERT INTO `stage_history` (`id`, `application_id`, `stage_name`, `start_time`, `end_time`) VALUES
-(1, 74, 'Applied', '2026-02-21 10:51:48', NULL),
-(2, 75, 'Applied', '2026-02-23 07:15:19', '2026-02-23 12:21:42'),
-(3, 76, 'Applied', '2026-02-23 11:30:52', '2026-02-23 12:21:32'),
-(4, 76, 'Shortlisted (Recruiter Override)', '2026-02-23 12:21:32', NULL),
-(5, 75, 'Shortlisted (Recruiter Override)', '2026-02-23 12:21:42', '2026-02-26 09:20:02'),
-(6, 75, 'Rejected (Recruiter Override)', '2026-02-26 09:20:02', NULL),
-(7, 77, 'Applied', '2026-02-26 09:30:54', NULL),
-(8, 78, 'Applied', '2026-02-27 07:43:26', '2026-02-27 07:43:26'),
-(9, 78, 'Shortlisted (AI Policy OFF)', '2026-02-27 07:43:26', NULL),
-(10, 79, 'Applied', '2026-02-28 06:18:56', '2026-02-28 06:18:56'),
-(11, 79, 'Shortlisted (AI Policy OFF)', '2026-02-28 06:18:56', '2026-03-02 05:25:40'),
-(12, 79, 'Withdrawn by Candidate', '2026-03-02 05:25:40', '2026-03-02 05:27:03'),
-(13, 79, 'Withdrawn by Candidate', '2026-03-02 05:27:03', '2026-03-02 05:50:16'),
-(14, 79, 'Withdrawn by Candidate', '2026-03-02 05:50:16', '2026-03-02 05:51:16'),
-(15, 79, 'Withdrawn by Candidate', '2026-03-02 05:51:16', NULL),
-(16, 80, 'Applied', '2026-03-02 06:59:41', NULL);
+(1, 1, 'Applied', '2026-03-07 06:29:46', NULL);
 
 -- --------------------------------------------------------
 
@@ -1069,7 +804,6 @@ CREATE TABLE `users` (
   `name` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `google_id` varchar(191) DEFAULT NULL,
-  `preferred_language` varchar(5) DEFAULT 'en',
   `phone` varchar(15) DEFAULT NULL,
   `role` enum('candidate','recruiter') NOT NULL,
   `company_id` int(11) DEFAULT NULL,
@@ -1086,21 +820,11 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `preferred_language`, `phone`, `role`, `company_id`, `email_verification_token`, `email_verified_at`, `password_reset_token`, `password_reset_expires_at`, `phone_verified_at`, `password`, `created_at`) VALUES
-(46, 'Rohith Kumar', 'rohith@technova.com', NULL, 'en', '+919544104305', 'recruiter', 1, NULL, NULL, NULL, NULL, '2026-02-21 09:55:45', '$2y$10$tE9gbIZsmrhYj3JT0GUUr.Ra9rusYsib3.sglY1aTUA/80Qe4ENwi', '2026-02-21 15:25:05'),
-(47, 'Manju Aravind', 'manju@gmail.com', NULL, 'en', '1234567890', 'candidate', NULL, NULL, NULL, '3ed8f3bdf75bb188a0dfa5ad53014f64e0fac172c767dedf0cfafb7a01ee90b3', '2026-03-02 07:00:58', NULL, '$2y$10$NyfTmre9jA2XQ7YQyaA5dOFUht/7z2AYgaVvOQn0O/JnFz.oULaTe', '2026-02-21 15:39:46'),
-(48, 'Asha Govind', 'asha@greenleaf.com', NULL, 'en', '+919544104305', 'recruiter', 26, NULL, NULL, NULL, NULL, '2026-02-21 10:40:38', '$2y$10$vnhHNHOsFGO3BoRU8ORdkO7scVwwPBJZWKAXD7907xXQsYdujrAfe', '2026-02-21 16:10:17'),
-(49, 'rinu george', 'rinugeorge@gmail.com', '110489513847967949727', 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$aX/2kGvTsL77jRiGRl9c9uF3csUzIulWshhaTrNuGDzASo4EJtY1q', '2026-02-23 16:58:13'),
-(60, 'rinu george', 'rinu@sandslab.com', NULL, 'en', '+919544104305', 'recruiter', 28, NULL, NULL, NULL, NULL, '2026-02-25 11:01:11', '$2y$10$AYu/RrcrjVoevRK19XM/PuCnSi2qjah40.HOoHEqkE08n5ULW4bza', '2026-02-25 16:30:57'),
-(62, 'rinu george', 'rinu@ser.com', NULL, 'en', '+919544104305', 'recruiter', 27, NULL, NULL, NULL, NULL, '2026-02-25 11:43:19', '$2y$10$NQlgJesfIGrMFNJO1FPm5.Bi7Fr4Rn7od7csn/jZyGPecBxED1wla', '2026-02-25 17:13:10'),
-(64, 'John', 'john@xxx.com', NULL, 'en', '+919544104305', 'recruiter', 29, NULL, NULL, NULL, NULL, '2026-02-26 05:51:30', '$2y$10$jjsjSTk6Td8eBNZpW/HzwO7eDIjwTyFNLoDnlj.vDjZJC7jMN9ImO', '2026-02-26 11:21:16'),
-(65, 'kiran', 'kiran@bbb.com', NULL, 'en', '+919544104305', 'recruiter', 30, NULL, NULL, NULL, NULL, '2026-02-26 07:37:39', '$2y$10$IgxgjmtIcQzz/vj7u2c2Buet0SLEdbquuEP1huQaSVNUn6n4IWRoa', '2026-02-26 13:07:06'),
-(66, 'Rajeev', 'rajeev@gmail.com', NULL, 'en', '1472586900', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$oWudCosjq5bAfx3P7kipMuJ.xcaiojdg42fL0801NEjGs2ZKAIBjC', '2026-02-26 14:55:26'),
-(67, 'rinu george', 'rinugeorgep@gmail.com', NULL, 'en', '09747751235', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$t8XNiY/tAuV5tOGCVxPvfO9.DcUppHKclVI4lEdzkQaD2AXTZzq9.', '2026-02-27 12:19:18'),
-(68, 'Praveen ', 'praveen@gmail.com', NULL, 'en', '3692581470', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$ZmcxQa6iLxLXydNTcRYXJu7ryIIN3VU0nFmAZ/5oYfsfNmkd6aiN6', '2026-02-28 12:21:19'),
-(77, 'rinu george', 'rinu@serphawk.com', NULL, 'en', '+919544104305', 'recruiter', 27, NULL, '2026-03-02 11:47:51', NULL, NULL, '2026-03-02 11:48:07', '$2y$10$YT2rL3jkDnCPDmCa8Eyp9u43pvvAuQEm5QKRId4z9Sp1ReRjCXPGK', '2026-03-02 17:14:39'),
-(79, 'Athira', 'athira@codecraft.com', NULL, 'en', '+919544104305', 'recruiter', 3, NULL, '2026-03-05 07:32:06', NULL, NULL, '2026-03-05 07:32:19', '$2y$10$BOtC8XNj9HMoAxyLvE/LUeAvfAHtpes.B94csDchy.5lHriewWoj.', '2026-03-05 13:02:03'),
-(80, 'Sajay', 'sajay@pixelsoft.com', NULL, 'en', '+919544104305', 'recruiter', 4, NULL, '2026-03-05 07:37:58', NULL, NULL, '2026-03-05 07:38:08', '$2y$10$VsCPWaPZM/cXmmgjPxW7pOQnJlzSXqkypAqGVbt6JoaJCqd4HsHxa', '2026-03-05 13:07:55');
+INSERT INTO `users` (`id`, `name`, `email`, `google_id`, `phone`, `role`, `company_id`, `email_verification_token`, `email_verified_at`, `password_reset_token`, `password_reset_expires_at`, `phone_verified_at`, `password`, `created_at`) VALUES
+(1, 'Rohith Kumar', 'rohith@technova.com', NULL, '+919544104305', 'recruiter', 1, NULL, '2026-03-06 11:41:15', NULL, NULL, '2026-03-06 11:41:29', '$2y$10$NdHPUx9Hxg4qfk3G2k2/oebDnZR0.SRgwBHLCwH4WF6HU4p6trfCO', '2026-03-06 17:11:11'),
+(2, 'Manju Aravind', 'manju@gmail.com', NULL, '1234567890', 'candidate', NULL, NULL, NULL, NULL, NULL, NULL, '$2y$10$3ZtTFBBLs9HtT00GtL/GMeCbFrNFMTUEOKWyXnuWmxlvXhiOjrxVy', '2026-03-06 17:19:18'),
+(3, 'Arun Mohan', 'arun@precisiontech.com', NULL, '+919544104305', 'recruiter', 2, NULL, '2026-03-06 11:52:11', NULL, NULL, '2026-03-06 11:52:21', '$2y$10$7VF7V5LOaW7K/js4HLtFVO2e8PtFrCKYX009kaWQUDGpfC.3DMkA6', '2026-03-06 17:22:06'),
+(4, 'Manu', 'manu@technova.com', NULL, '+919544104305', 'recruiter', 1, NULL, '2026-03-07 08:57:54', NULL, NULL, '2026-03-07 08:58:07', '$2y$10$8dvzoelZOC5mfsC7J9LX3OleovjG6VzbIAS0k6vrUXSH.TkgUd.Ce', '2026-03-07 14:27:51');
 
 -- --------------------------------------------------------
 
@@ -1128,11 +852,8 @@ CREATE TABLE `work_experiences` (
 --
 
 INSERT INTO `work_experiences` (`id`, `user_id`, `job_title`, `company_name`, `employment_type`, `location`, `start_date`, `end_date`, `is_current`, `description`, `created_at`, `updated_at`) VALUES
-(1, 49, 'Software Developer', 'SANDS Lab', 'Full-time', 'Thrissur, Kerala', '2020-02-03', '2022-06-24', 0, '', '2026-02-24 05:08:33', '2026-02-24 05:08:33'),
-(2, 49, 'Web Developer', 'KJP Digital Solutions Pvt Ltd', 'Full-time', 'Thrissur, Kerala', '2023-06-26', '2024-06-28', 0, '', '2026-02-24 05:09:45', '2026-02-24 05:09:45'),
-(3, 47, 'Web Developer', 'ABC company', 'Full-time', '', '2025-12-08', NULL, 1, '', '2026-02-26 00:48:23', '2026-02-26 00:48:23'),
-(4, 68, 'Software Developer', 'SANDS Lab', 'Full-time', '', '2026-02-02', '2021-12-26', 0, '', '2026-02-28 01:23:19', '2026-02-28 01:23:19'),
-(5, 68, 'Web Developer', 'KJP Digital Solutions Pvt Ltd', 'Full-time', '', '2023-06-26', NULL, 1, '', '2026-02-28 01:25:11', '2026-02-28 01:25:11');
+(1, 2, 'Software Developer', 'SANDS Lab', 'Full-time', 'Thrissur, Kerala', '2020-02-03', '2022-06-24', 0, '', '2026-03-06 06:33:51', '2026-03-06 06:33:51'),
+(2, 2, 'Web Developer', 'KJP Digital Solutions Pvt Ltd', 'Full-time', 'Thrissur, Kerala', '2023-06-26', '2024-06-29', 0, '', '2026-03-06 06:34:58', '2026-03-06 06:34:58');
 
 --
 -- Indexes for dumped tables
@@ -1258,17 +979,6 @@ ALTER TABLE `interview_bookings`
   ADD KEY `user_id` (`user_id`),
   ADD KEY `slot_id` (`slot_id`),
   ADD KEY `booking_status` (`booking_status`);
-
---
--- Indexes for table `interview_sessions`
---
-ALTER TABLE `interview_sessions`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `session_id` (`session_id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `status` (`status`),
-  ADD KEY `user_id_status` (`user_id`,`status`),
-  ADD KEY `created_at` (`created_at`);
 
 --
 -- Indexes for table `interview_slots`
@@ -1427,43 +1137,43 @@ ALTER TABLE `work_experiences`
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `candidate_github_stats`
 --
 ALTER TABLE `candidate_github_stats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `candidate_interests`
 --
 ALTER TABLE `candidate_interests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `candidate_projects`
 --
 ALTER TABLE `candidate_projects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `candidate_resume_versions`
 --
 ALTER TABLE `candidate_resume_versions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `candidate_skills`
 --
 ALTER TABLE `candidate_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `career_transitions`
 --
 ALTER TABLE `career_transitions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=174;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `certifications`
@@ -1475,49 +1185,43 @@ ALTER TABLE `certifications`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `company_reviews`
 --
 ALTER TABLE `company_reviews`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `course_lessons`
 --
 ALTER TABLE `course_lessons`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `course_modules`
 --
 ALTER TABLE `course_modules`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=292;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `daily_tasks`
 --
 ALTER TABLE `daily_tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `education`
 --
 ALTER TABLE `education`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `interview_bookings`
 --
 ALTER TABLE `interview_bookings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `interview_sessions`
---
-ALTER TABLE `interview_sessions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `interview_slots`
@@ -1529,61 +1233,61 @@ ALTER TABLE `interview_slots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `job_alerts`
 --
 ALTER TABLE `job_alerts`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `job_alert_deliveries`
 --
 ALTER TABLE `job_alert_deliveries`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `job_suggestions`
 --
 ALTER TABLE `job_suggestions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_actions`
 --
 ALTER TABLE `recruiter_candidate_actions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_messages`
 --
 ALTER TABLE `recruiter_candidate_messages`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `recruiter_candidate_notes`
 --
 ALTER TABLE `recruiter_candidate_notes`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `recruiter_company_map`
 --
 ALTER TABLE `recruiter_company_map`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `reschedule_history`
@@ -1595,7 +1299,7 @@ ALTER TABLE `reschedule_history`
 -- AUTO_INCREMENT for table `saved_jobs`
 --
 ALTER TABLE `saved_jobs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `skills`
@@ -1607,19 +1311,19 @@ ALTER TABLE `skills`
 -- AUTO_INCREMENT for table `stage_history`
 --
 ALTER TABLE `stage_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `work_experiences`
 --
 ALTER TABLE `work_experiences`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables

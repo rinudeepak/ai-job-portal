@@ -15,6 +15,12 @@ if ($benefitsRaw !== '') {
     $benefits = preg_split('/[\r\n,]+/', $benefitsRaw) ?: [];
     $benefits = array_values(array_filter(array_map('trim', $benefits)));
 }
+$cultureText = trim((string) ($company['culture_summary'] ?? ''));
+if ($cultureText === '') {
+    $cultureText = trim((string) ($company['mission_values'] ?? ''));
+}
+$aboutCompanyText = trim((string) ($company['what_we_do'] ?? ''));
+$hasBrandingSection = ($cultureText !== '') || !empty($benefits) || !empty($brandingPhotos);
 
 $averageRating = (float) ($reviewSummary['average_rating'] ?? 0);
 $totalReviews = (int) ($reviewSummary['total_reviews'] ?? 0);
@@ -87,12 +93,14 @@ $reviewEligibility = is_array($reviewEligibility ?? null) ? $reviewEligibility :
                         </div>
                     </div>
 
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5>About Company</h5>
-                            <p class="mb-0"><?= nl2br(esc($company['what_we_do'] ?? 'No description available.')) ?></p>
+                    <?php if ($aboutCompanyText !== ''): ?>
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5>About Company</h5>
+                                <p class="mb-0"><?= nl2br(esc($aboutCompanyText)) ?></p>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <?php if (!empty($company['mission_values'])): ?>
                         <div class="card mb-4">
@@ -103,56 +111,54 @@ $reviewEligibility = is_array($reviewEligibility ?? null) ? $reviewEligibility :
                         </div>
                     <?php endif; ?>
 
-                    <div class="card mb-4 employer-branding-company-card">
-                        <div class="card-body">
-                            <div class="employer-branding-head mb-4">
-                                <div>
-                                    <h5 class="mb-1">Life At <?= esc($company['name'] ?? 'This Company') ?></h5>
-                                    <p class="mb-0 text-muted">Explore the team environment, employee perks, and the workplace setup.</p>
-                                </div>
-                            </div>
-
-                            <div class="employer-branding-grid">
-                                <div class="employer-branding-card">
-                                    <h4>Team Culture</h4>
-                                    <p class="mb-0">
-                                        <?= esc(trim((string) ($company['culture_summary'] ?? '')) !== '' ? $company['culture_summary'] : ($company['mission_values'] ?? 'Culture details will be updated soon.')) ?>
-                                    </p>
+                    <?php if ($hasBrandingSection): ?>
+                        <div class="card mb-4 employer-branding-company-card">
+                            <div class="card-body">
+                                <div class="employer-branding-head mb-4">
+                                    <div>
+                                        <h5 class="mb-1">Life At <?= esc($company['name'] ?? 'This Company') ?></h5>
+                                        <p class="mb-0 text-muted">Explore the team environment, employee perks, and the workplace setup.</p>
+                                    </div>
                                 </div>
 
-                                <div class="employer-branding-card">
-                                    <h4>Perks & Benefits</h4>
-                                    <?php if (!empty($benefits)): ?>
-                                        <div class="branding-benefits-list">
-                                            <?php foreach ($benefits as $benefit): ?>
-                                                <span class="branding-benefit-chip"><?= esc($benefit) ?></span>
-                                            <?php endforeach; ?>
+                                <div class="employer-branding-grid">
+                                    <?php if ($cultureText !== ''): ?>
+                                        <div class="employer-branding-card">
+                                            <h4>Team Culture</h4>
+                                            <p class="mb-0"><?= esc($cultureText) ?></p>
                                         </div>
-                                    <?php else: ?>
-                                        <p class="mb-0">Benefits information will be updated soon.</p>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($benefits)): ?>
+                                        <div class="employer-branding-card">
+                                            <h4>Perks & Benefits</h4>
+                                            <div class="branding-benefits-list">
+                                                <?php foreach ($benefits as $benefit): ?>
+                                                    <span class="branding-benefit-chip"><?= esc($benefit) ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
-                            </div>
 
-                            <div class="employer-branding-card mt-4">
-                                <div class="branding-gallery-head">
-                                    <h4>Office & Team Gallery</h4>
-                                    <span><?= !empty($brandingPhotos) ? count($brandingPhotos) . ' photos' : 'No photos yet' ?></span>
-                                </div>
                                 <?php if (!empty($brandingPhotos)): ?>
-                                    <div class="branding-photo-grid">
-                                        <?php foreach ($brandingPhotos as $photo): ?>
-                                            <a href="<?= base_url($photo) ?>" target="_blank" rel="noopener" class="branding-photo-tile">
-                                                <img src="<?= base_url($photo) ?>" alt="<?= esc(($company['name'] ?? 'Company') . ' workplace photo') ?>">
-                                            </a>
-                                        <?php endforeach; ?>
+                                    <div class="employer-branding-card mt-4">
+                                        <div class="branding-gallery-head">
+                                            <h4>Office & Team Gallery</h4>
+                                            <span><?= count($brandingPhotos) . ' photos' ?></span>
+                                        </div>
+                                        <div class="branding-photo-grid">
+                                            <?php foreach ($brandingPhotos as $photo): ?>
+                                                <a href="<?= base_url($photo) ?>" target="_blank" rel="noopener" class="branding-photo-tile">
+                                                    <img src="<?= base_url($photo) ?>" alt="<?= esc(($company['name'] ?? 'Company') . ' workplace photo') ?>">
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
-                                <?php else: ?>
-                                    <p class="mb-0">No workplace photos uploaded yet.</p>
                                 <?php endif; ?>
                             </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <?php if (!empty($openJobs)): ?>
                         <div class="card">

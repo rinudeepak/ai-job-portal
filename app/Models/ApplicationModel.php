@@ -15,7 +15,6 @@ class ApplicationModel extends Model
         'resume_version_id',
         'status',
         'interview_slot',
-        'ai_interview_id',
         'booking_id',
         'applied_at'
     ];

@@ -16,7 +16,6 @@ class DashboardController extends BaseController
         $userModel = model('UserModel');
         $jobModel = model('JobModel');
         $slotModel = model('InterviewSlotModel');
-        $interviewModel = model('InterviewSessionModel');
 
         // Get current recruiter/admin ID
         $currentUserId = session()->get('user_id');
@@ -67,8 +66,8 @@ class DashboardController extends BaseController
         // Candidate Funnel Overview
         $funnel = [
             'total_applications' => $applicationModel->whereIn('job_id', $jobIds)->countAllResults(),
-            'ai_interview_started' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'ai_interview_started')->countAllResults(),
-            'ai_interview_completed' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'ai_interview_completed')->countAllResults(),
+            'ai_interview_started' => 0,
+            'ai_interview_completed' => 0,
             'shortlisted' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'shortlisted')->countAllResults(),
             'rejected' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'rejected')->countAllResults(),
             'interview_slot_booked' => $applicationModel->whereIn('job_id', $jobIds)->where('status', 'interview_slot_booked')->countAllResults()
@@ -79,12 +78,7 @@ class DashboardController extends BaseController
             'pending_screening' => $applicationModel->where('status', 'pending')
                 ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults(),
-            'ai_interviews_to_review' => $interviewModel
-                ->join('applications', 'applications.id = interview_sessions.application_id')
-                ->where('applications.status', 'ai_interview_completed')
-                ->where('interview_sessions.overall_rating >', 0)
-                ->whereIn('job_id', $jobIds ?: [0])
-                ->countAllResults(),
+            'ai_interviews_to_review' => 0,
 
             'hr_interviews_today' => model('InterviewBookingModel')
                 ->where('slot_datetime', date('Y-m-d'))
@@ -178,6 +172,8 @@ class DashboardController extends BaseController
     {
         $applicationModel = model('ApplicationModel');
         $jobModel = model('JobModel');
+        $db = \Config\Database::connect();
+        $hasInterviewSessions = $db->tableExists('interview_sessions');
 
         // Get current recruiter/admin ID
         $currentUserId = session()->get('user_id');
@@ -224,18 +220,24 @@ class DashboardController extends BaseController
         // Build query
         $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
 
+        $ratingSelect = $hasInterviewSessions
+            ? 'MAX(COALESCE(interview_sessions.overall_rating, 0)) as overall_rating,
+                    MAX(COALESCE(interview_sessions.technical_score, 0)) as technical_score,
+                    MAX(COALESCE(interview_sessions.communication_score, 0)) as communication_score'
+            : '0 as overall_rating, 0 as technical_score, 0 as communication_score';
+
         $builder = $applicationModel
             ->select('applications.*, users.name, users.email, candidate_profiles.resume_path as resume_path, jobs.title as job_title, jobs.required_skills, jobs.experience_level, jobs.ai_interview_policy,
                     COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months,
-                    MAX(COALESCE(interview_sessions.overall_rating, 0)) as overall_rating,
-                    MAX(COALESCE(interview_sessions.technical_score, 0)) as technical_score,
-                    MAX(COALESCE(interview_sessions.communication_score, 0)) as communication_score')
+                    ' . $ratingSelect)
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->join('candidate_profiles', 'candidate_profiles.user_id = applications.candidate_id', 'left')
             ->join('jobs', 'jobs.id = applications.job_id', 'left')
-            ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
             ->join($experienceSubQuery, 'candidate_experience.user_id = applications.candidate_id', 'left', false)
             ->groupBy('applications.id');
+        if ($hasInterviewSessions) {
+            $builder->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left');
+        }
         // Filter by recruiter's jobs only
         if (!empty($jobIds)) {
             $builder->whereIn('applications.job_id', $jobIds);
@@ -438,7 +440,7 @@ class DashboardController extends BaseController
 
 
         // Reset and reapply filter for each query
-        $aiCompleted = $applicationModel->where('status', 'ai_interview_completed');
+        $aiCompleted = $applicationModel->where('status', 'shortlisted');
         if (!empty($jobIds))
             $aiCompleted->whereIn('job_id', $jobIds);
         $aiCompletedCount = $aiCompleted->countAllResults();
@@ -747,24 +749,32 @@ class DashboardController extends BaseController
     private function getLeaderboardExportData($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
+        $db = \Config\Database::connect();
+        $hasInterviewSessions = $db->tableExists('interview_sessions');
+
+        $scoreSelect = $hasInterviewSessions
+            ? 'interview_sessions.technical_score,
+                    interview_sessions.communication_score,
+                    interview_sessions.overall_rating'
+            : '0 as technical_score, 0 as communication_score, 0 as overall_rating';
 
         $builder = $applicationModel
             ->select('applications.*, users.name, users.email, jobs.title as job_title, jobs.required_skills as required_skills,
-                    interview_sessions.technical_score,
-                    interview_sessions.communication_score,
-                    interview_sessions.overall_rating')
+                    ' . $scoreSelect)
             ->join('users', 'users.id = applications.candidate_id', 'left')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
-            ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
-            ->where('interview_sessions.overall_rating IS NOT NULL');
+            ->join('jobs', 'jobs.id = applications.job_id', 'left');
+        if ($hasInterviewSessions) {
+            $builder->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
+                ->where('interview_sessions.overall_rating IS NOT NULL');
+        }
         // Filter by job IDs if provided (for recruiters)
         if (!empty($jobIds)) {
             $builder->whereIn('applications.job_id', $jobIds);
         }
 
-        $candidates = $builder
-            ->orderBy('interview_sessions.overall_rating', 'DESC')
-            ->findAll();
+        $candidates = $hasInterviewSessions
+            ? $builder->orderBy('interview_sessions.overall_rating', 'DESC')->findAll()
+            : $builder->orderBy('applications.applied_at', 'DESC')->findAll();
 
 
         $data = [
@@ -800,12 +810,9 @@ class DashboardController extends BaseController
 
         $stages = [
             'Total Applications',
-            'AI Interview Started',
-            'AI Interview Completed',
             'Shortlisted',
             'Rejected',
             'Interview Slot Booked',
-
         ];
 
         $data = [
@@ -835,13 +842,21 @@ class DashboardController extends BaseController
     private function getDetailedExportData($jobIds = [])
     {
         $applicationModel = model('ApplicationModel');
+        $db = \Config\Database::connect();
+        $hasInterviewSessions = $db->tableExists('interview_sessions');
+
+        $detailedScoreSelect = $hasInterviewSessions
+            ? 'interview_sessions.technical_score, interview_sessions.communication_score, interview_sessions.overall_rating'
+            : '0 as technical_score, 0 as communication_score, 0 as overall_rating';
 
         $builder = $applicationModel
             ->select('applications.*, users.name, users.email, jobs.title as job_title,
-            interview_sessions.overall_rating')
+            ' . $detailedScoreSelect)
             ->join('users', 'users.id = applications.candidate_id', 'left')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
-            ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left');
+            ->join('jobs', 'jobs.id = applications.job_id', 'left');
+        if ($hasInterviewSessions) {
+            $builder->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left');
+        }
         // Filter by job IDs if provided (for recruiters)
         if (!empty($jobIds)) {
             $builder->whereIn('applications.job_id', $jobIds);
@@ -974,10 +989,10 @@ class DashboardController extends BaseController
         $total = $builder->countAllResults(false);
 
         $activeBuilder = clone $builder;
-        $active = $activeBuilder->whereIn('status', 'ai_interview_started')->countAllResults();
+        $active = $activeBuilder->where('status', 'applied')->countAllResults();
 
         $completedBuilder = clone $builder;
-        $completed = $completedBuilder->where('status', 'ai_interview_completed')->countAllResults();
+        $completed = $completedBuilder->where('status', 'shortlisted')->countAllResults();
 
         $selectedBuilder = clone $builder;
         $selected = $selectedBuilder->where('status', 'shortlisted')->countAllResults();
@@ -1073,8 +1088,6 @@ class DashboardController extends BaseController
 
         $statusMap = [
             'Total Applications' => null,
-            'AI Interview Scheduled' => 'ai_interview_started',
-            'AI Interview Completed' => 'ai_interview_completed',
             'Shortlisted' => 'shortlisted',
             'Rejected' => 'rejected',
             'Interview Slot Booked' => 'interview_slot_booked'

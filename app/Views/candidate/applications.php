@@ -213,8 +213,6 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                         <?php
                         $stages = [
                             'applied' => 'Applied',
-                            'ai_interview_started' => 'AI Interview Started',
-                            'ai_interview_completed' => 'AI Interviewed',
                             'shortlisted' => 'Shortlisted',
                             'interview_slot_booked' => 'Interview Booked',
                             'selected' => 'Selected',
@@ -308,8 +306,6 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                                             <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-outline-warning btn-sm"><i class="fas fa-calendar-plus"></i> Book Slot Without AI</a>
                                         <?php endif; ?>
                                     <?php endif; ?>
-                                <?php elseif ($application['status'] === 'ai_interview_completed' && strtoupper($application['ai_interview_policy'] ?? 'REQUIRED_HARD') === 'REQUIRED_SOFT'): ?>
-                                    <span class="badge badge-info p-2">AI done. Recruiter decision pending.</span>
                                 <?php elseif ($application['status'] === 'shortlisted'): ?>
                                     <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-warning btn-sm"><i class="fas fa-calendar-plus"></i> Book Interview Slot</a>
                                 <?php elseif ($application['status'] === 'interview_slot_booked'): ?>
@@ -363,8 +359,6 @@ function getStatusBadgeColor($status)
 {
     $colors = [
         'applied' => 'warning',
-        'ai_interview_started' => 'info',
-        'ai_interview_completed' => 'primary',
         'shortlisted' => 'success',
         'rejected' => 'danger',
         'interview_slot_booked' => 'warning',

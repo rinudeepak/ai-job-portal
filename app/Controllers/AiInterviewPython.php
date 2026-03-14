@@ -6,10 +6,28 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class AiInterviewPython extends BaseController
 {
+    public function start(int $applicationId): ResponseInterface
+    {
+        $baseUrl = trim((string) env('PY_AI_INTERVIEW_WEB_URL'));
+        if ($baseUrl === '') {
+            return redirect()->to('/candidate/applications')
+                ->with('error', 'Python AI interview URL is not configured.');
+        }
+
+        $url = $this->buildExternalInterviewUrl($baseUrl, $applicationId);
+        return redirect()->to($url);
+    }
+
+    public function legacyRedirect(int $applicationId): ResponseInterface
+    {
+        return redirect()->to('/interview/start/' . $applicationId)
+            ->with('info', 'Interview flow moved to Python integration.');
+    }
+
     /**
      * Template entrypoint to forward interview data to Python service.
      */
-    public function startInterview(): ResponseInterface
+    public function startInterview(?int $applicationId = null): ResponseInterface
     {
         // $name = trim((string) $this->request->getPost('name'));
         // $email = trim((string) $this->request->getPost('email'));
@@ -31,7 +49,18 @@ class AiInterviewPython extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'message' => 'AiInterviewPython controller template is ready',
+            'application_id' => $applicationId,
         ]);
+    }
+
+    private function buildExternalInterviewUrl(string $baseUrl, int $applicationId): string
+    {
+        $separator = str_contains($baseUrl, '?') ? '&' : '?';
+        $candidateId = (int) (session()->get('user_id') ?? 0);
+
+        return $baseUrl
+            . $separator . 'application_id=' . rawurlencode((string) $applicationId)
+            . '&candidate_id=' . rawurlencode((string) $candidateId);
     }
 
     /**

@@ -55,20 +55,23 @@
     $isRecommendedActive = $isJobsListActive && $activeTab === 'suggested';
     $isApplicationStatusActive = $pathEndsWith('/candidate/applications');
     $isSavedJobsActive = $pathEndsWith('/candidate/saved-jobs');
-    $isJobAlertsActive = $pathEndsWith('/candidate/job-alerts');
+    $isJobAlertsActive = false;
     $isCompaniesActive = $pathEndsWith('/companies') || str_contains($currentPath, '/company/');
     $isJobsRoot = $isJobsListActive || $isSavedJobsActive || $isJobDetailsActive;
     $isJobsActive = $isJobsRoot || $isApplicationStatusActive || $isJobAlertsActive;
     $isCareerTransitionActive = str_contains($currentPath, '/career-transition');
+    $isResumeStudioActive = $pathEndsWith('/candidate/resume-studio');
+    $isServicesActive = $isCareerTransitionActive || $isResumeStudioActive;
 
     $homeNavClass = $isHomeActive ? 'nav-link active' : 'nav-link';
     $jobsNavClass = $isJobsActive ? 'nav-link active' : 'nav-link';
     $companiesNavClass = $isCompaniesActive ? 'nav-link active' : 'nav-link';
-    $careerNavClass = $isCareerTransitionActive ? 'nav-link active' : 'nav-link';
+    $servicesNavClass = $isServicesActive ? 'nav-link active' : 'nav-link';
     $recommendedClass = $isRecommendedActive ? 'active' : '';
     $applicationStatusClass = $isApplicationStatusActive ? 'active' : '';
     $savedJobsClass = $isSavedJobsActive ? 'active' : '';
-    $jobAlertsClass = $isJobAlertsActive ? 'active' : '';
+    $careerTransitionClass = $isCareerTransitionActive ? 'active' : '';
+    $resumeStudioClass = $isResumeStudioActive ? 'active' : '';
 
     if ($candidatePhoto === '' && $candidateId > 0) {
         $candidateRecord = model('UserModel')->findCandidateWithProfile($candidateId);
@@ -102,11 +105,16 @@
                                 <li><a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $recommendedClass ?>">Recommended Jobs</a></li>
                                 <li><a href="<?= base_url('candidate/applications') ?>" class="<?= $applicationStatusClass ?>">Application Status</a></li>
                                 <li><a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $savedJobsClass ?>">Saved Jobs</a></li>
-                                <li><a href="<?= base_url('candidate/job-alerts') ?>" class="<?= $jobAlertsClass ?>">Job Alerts</a></li>
                             </ul>
                         </li>
                         <li><a href="<?= base_url('companies') ?>" class="<?= $companiesNavClass ?>">Companies</a></li>
-                        <li><a href="<?= base_url('career-transition') ?>" class="<?= $careerNavClass ?>">Career Transition AI</a></li>
+                        <li class="has-children">
+                            <a href="#" class="<?= $servicesNavClass ?>">Services</a>
+                            <ul class="dropdown">
+                                <li><a href="<?= base_url('career-transition') ?>" class="<?= $careerTransitionClass ?>">Career Transition AI</a></li>
+                                <li><a href="<?= base_url('candidate/resume-studio') ?>" class="<?= $resumeStudioClass ?>">Resume Studio</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </nav>
                 <div class="right-cta-menu text-right d-flex justify-content-end align-items-center col-6 col-xl-3">
@@ -187,59 +195,102 @@
                             position: absolute;
                             top: calc(100% + 10px);
                             right: 0;
-                            width: 560px;
-                            max-width: min(560px, calc(100vw - 24px));
+                            width: 880px;
+                            max-width: min(880px, calc(100vw - 24px));
                             background: #fff;
-                            border: 1px solid rgba(0, 0, 0, 0.12);
-                            border-radius: 12px;
-                            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
-                            padding: 14px;
+                            border: 1px solid #d9e2ec;
+                            border-radius: 999px;
+                            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+                            padding: 12px 14px;
                             z-index: 1200;
                             display: none;
                         }
                         .header-job-search-panel.is-open {
                             display: block;
                         }
-                        .header-job-search-grid {
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            gap: 10px;
+                        .header-job-search-form {
+                            display: flex;
+                            align-items: center;
+                            gap: 0;
                         }
-                        .header-job-search-grid input {
+                        .header-job-search-segment {
+                            display: flex;
+                            align-items: center;
+                            min-height: 48px;
+                            padding: 0 16px;
+                            border-right: 1px solid #e2e8f0;
+                            flex: 1 1 auto;
+                        }
+                        .header-job-search-segment:last-of-type {
+                            border-right: 0;
+                        }
+                        .header-job-search-segment input,
+                        .header-job-search-segment select {
                             width: 100%;
-                            height: 38px;
-                            border: 1px solid #d5d9df;
-                            border-radius: 8px;
-                            padding: 0 10px;
-                            font-size: 13px;
+                            border: 0;
                             outline: none;
+                            background: transparent;
+                            font-size: 15px;
+                            color: #334155;
+                            padding: 0;
+                            height: auto;
+                            box-shadow: none;
+                        }
+                        .header-job-search-segment input::placeholder {
+                            color: #94a3b8;
                         }
                         .header-job-search-actions {
-                            margin-top: 12px;
                             display: flex;
-                            gap: 8px;
-                        }
-                        .header-job-search-actions button,
-                        .header-job-search-actions a {
-                            height: 36px;
-                            border-radius: 8px;
-                            display: inline-flex;
                             align-items: center;
-                            justify-content: center;
-                            padding: 0 12px;
-                            font-size: 13px;
-                            text-decoration: none;
+                            gap: 10px;
+                            padding-left: 14px;
+                            flex-shrink: 0;
                         }
                         .header-job-search-submit {
                             border: 0;
-                            background: #198754;
+                            background: #2563eb;
                             color: #fff;
-                            font-weight: 600;
+                            font-weight: 700;
+                            border-radius: 999px;
+                            height: 44px;
+                            padding: 0 20px;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 8px;
                         }
                         .header-job-search-clear {
-                            border: 1px solid #d5d9df;
-                            background: #fff;
-                            color: #374151;
+                            color: #64748b;
+                            font-size: 13px;
+                            text-decoration: none;
+                            white-space: nowrap;
+                        }
+                        .header-job-search-clear:hover {
+                            color: #0f172a;
+                            text-decoration: none;
+                        }
+                        @media (max-width: 1199.98px) {
+                            .header-job-search-panel {
+                                width: min(720px, calc(100vw - 24px));
+                            }
+                            .header-job-search-form {
+                                flex-wrap: wrap;
+                                gap: 8px;
+                            }
+                            .header-job-search-segment {
+                                border-right: 0;
+                                border: 1px solid #e2e8f0;
+                                border-radius: 12px;
+                                min-width: calc(50% - 4px);
+                            }
+                            .header-job-search-actions {
+                                width: 100%;
+                                justify-content: flex-end;
+                                padding-left: 0;
+                                padding-top: 4px;
+                            }
+                        }
+                        .header-job-search-grid input {
+                            outline: none;
                         }
                         .candidate-avatar-btn {
                             width: 42px;
@@ -282,7 +333,9 @@
                             display: block;
                         }
                         .candidate-avatar-dropdown a {
-                            display: block;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
                             padding: 8px 14px;
                             color: #212529;
                             text-decoration: none;
@@ -292,6 +345,11 @@
                         .candidate-avatar-dropdown a:hover {
                             background: #f8f9fa;
                         }
+                        .candidate-avatar-dropdown a i {
+                            width: 16px;
+                            text-align: center;
+                            color: #64748b;
+                        }
                     </style>
                     <div class="header-job-search-wrap d-none d-lg-inline-flex" id="headerJobSearchWrap">
                         <button type="button" class="header-job-search-trigger" id="headerJobSearchTrigger" aria-expanded="false" aria-haspopup="true">
@@ -299,17 +357,24 @@
                             <span class="fas fa-chevron-down" style="font-size: 12px;"></span>
                         </button>
                         <div class="header-job-search-panel" id="headerJobSearchPanel">
-                            <form action="<?= base_url('jobs') ?>" method="get">
-                                <div class="header-job-search-grid">
-                                    <input type="text" name="designation" placeholder="Designation (e.g. React Developer)" value="<?= esc($headerDesignation) ?>">
-                                    <input type="text" name="company" placeholder="Company" value="<?= esc($headerCompany) ?>">
-                                    <input type="text" name="experience_level" placeholder="Experience (e.g. 2-4 years)" value="<?= esc($headerExperience) ?>">
-                                    <input type="text" name="location" placeholder="Location" value="<?= esc($headerLocation) ?>">
-                                    <input type="text" name="search" placeholder="Keywords (skills, tools)" value="<?= esc($headerSearch) ?>" style="grid-column: 1 / span 2;">
+                            <form action="<?= base_url('jobs') ?>" method="get" class="header-job-search-form">
+                                <div class="header-job-search-segment">
+                                    <input type="text" name="search" placeholder="Enter keyword / designation / companies" value="<?= esc($headerSearch !== '' ? $headerSearch : ($headerDesignation !== '' ? $headerDesignation : $headerCompany)) ?>">
+                                </div>
+                                <div class="header-job-search-segment" style="max-width: 210px;">
+                                    <select name="experience_level">
+                                        <option value="">Select experience</option>
+                                        <?php foreach (['fresher' => 'Fresher', 'junior' => 'Junior', 'mid' => 'Mid-Level', 'senior' => 'Senior'] as $expValue => $expLabel): ?>
+                                            <option value="<?= esc($expValue) ?>" <?= strtolower($headerExperience) === strtolower($expValue) ? 'selected' : '' ?>><?= esc($expLabel) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="header-job-search-segment" style="max-width: 220px;">
+                                    <input type="text" name="location" placeholder="Enter location" value="<?= esc($headerLocation) ?>">
                                 </div>
                                 <div class="header-job-search-actions">
                                     <button type="submit" class="header-job-search-submit">
-                                        <span class="icon-search mr-1"></span> Search
+                                        <span class="icon-search"></span> Search
                                     </button>
                                     <a href="<?= base_url('jobs') ?>" class="header-job-search-clear">Clear</a>
                                 </div>
@@ -331,9 +396,9 @@
                             <?php endif; ?>
                         </button>
                         <div class="candidate-avatar-dropdown" id="candidateAvatarDropdown">
-                            <a href="<?= base_url('candidate/profile') ?>">My Profile</a>
-                            <a href="<?= base_url('account/change-password') ?>">Change Password</a>
-                            <a href="<?= base_url('logout') ?>">Logout</a>
+                            <a href="<?= base_url('candidate/profile') ?>"><i class="fas fa-user"></i><span>My Profile</span></a>
+                            <a href="<?= base_url('candidate/settings') ?>"><i class="fas fa-cog"></i><span>Settings</span></a>
+                            <a href="<?= base_url('logout') ?>"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                         </div>
                     </div>
                     <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3">

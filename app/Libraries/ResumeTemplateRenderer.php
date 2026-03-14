@@ -201,7 +201,7 @@ class ResumeTemplateRenderer
                 . '</div>';
         }
 
-        $templateKey = (string) ($resume['template_key'] ?? 'modern_professional');
+        $templateKey = $this->resolveBestTemplateForContent($resume);
         $template = $this->getTemplates()[$templateKey] ?? $this->getTemplates()['modern_professional'];
         $accent = (string) ($template['accent'] ?? '#2563eb');
         $sections = (array) ($resume['sections'] ?? []);
@@ -516,7 +516,7 @@ class ResumeTemplateRenderer
 
     private function renderHtml(array $resume, bool $fullDocument): string
     {
-        $templateKey = $this->normalizeTemplateKey((string) ($resume['template_key'] ?? 'modern_professional'));
+        $templateKey = $this->resolveBestTemplateForContent($resume);
 
         if ($templateKey === 'executive_sidebar') {
             return $this->renderExecutiveSidebar($resume, $fullDocument);
@@ -551,6 +551,27 @@ class ResumeTemplateRenderer
         $html .= '</div>';
 
         return $html;
+    }
+
+    private function resolveBestTemplateForContent(array $resume): string
+    {
+        $templateKey = $this->normalizeTemplateKey((string) ($resume['template_key'] ?? 'modern_professional'));
+        $sections = (array) ($resume['sections'] ?? []);
+        $experienceCount = count((array) ($sections['experience']['items'] ?? []));
+        $projectCount = count((array) ($sections['projects']['items'] ?? []));
+        $educationCount = count((array) ($sections['education']['items'] ?? []));
+        $certificationCount = count((array) ($sections['certifications']['items'] ?? []));
+
+        if ($templateKey === 'executive_sidebar') {
+            $hasThinMainColumn = $experienceCount === 0 && $projectCount <= 1;
+            $hasFresherProfile = $experienceCount === 0 && ($educationCount > 0 || $projectCount > 0 || $certificationCount > 0);
+
+            if ($hasThinMainColumn || $hasFresherProfile) {
+                return $projectCount > 0 ? 'tech_compact' : 'modern_professional';
+            }
+        }
+
+        return $templateKey;
     }
 
     private function renderExecutiveSidebar(array $resume, bool $fullDocument): string

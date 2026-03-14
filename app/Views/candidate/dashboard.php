@@ -256,8 +256,6 @@ function getStatusBadgeColor($status)
 {
     $colors = [
         'applied' => 'warning',
-        'ai_interview_started' => 'info',
-        'ai_interview_completed' => 'primary',
         'shortlisted' => 'success',
         'rejected' => 'danger',
         'interview_slot_booked' => 'warning',

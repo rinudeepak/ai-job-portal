@@ -76,7 +76,8 @@
         <div class="container pt-4">
             <div class="row justify-content-center">
                 <div class="col-lg-6">
-                    <h2 class="mb-4">Sign Up To HireMatrix</h2>
+                    <h2 class="mb-2">Sign Up To HireMatrix</h2>
+                    <p class="text-muted mb-4">After account creation, you will complete your candidate profile step by step before accessing the portal.</p>
                     <div class="mb-3">
                         <a href="<?= base_url('auth/google') ?>" class="btn btn-google-auth btn-block">
                             <span class="google-g-icon" aria-hidden="true">

@@ -21,7 +21,10 @@ class UserModel extends Model
         'password_reset_expires_at',
         'phone_otp',
         'phone_otp_expires_at',
-        'phone_verified_at'
+        'phone_verified_at',
+        'onboarding_completed',
+        'onboarding_step',
+        'onboarding_completed_at',
     ];
 
     public function findCandidateWithProfile(int $userId): ?array
@@ -30,14 +33,23 @@ class UserModel extends Model
             "users.*,
             candidate_profiles.location AS location,
             candidate_profiles.bio AS bio,
+            candidate_profiles.gender AS gender,
+            candidate_profiles.date_of_birth AS date_of_birth,
             candidate_profiles.resume_path AS resume_path,
             candidate_profiles.profile_photo AS profile_photo,
             candidate_profiles.headline AS resume_headline,
             candidate_profiles.key_skills AS key_skills,
+            candidate_profiles.preferred_job_titles AS preferred_job_titles,
             candidate_profiles.preferred_locations AS preferred_locations,
+            candidate_profiles.preferred_employment_type AS preferred_employment_type,
             candidate_profiles.current_salary AS current_salary,
             candidate_profiles.expected_salary AS expected_salary,
-            candidate_profiles.notice_period AS notice_period"
+            candidate_profiles.notice_period AS notice_period,
+            candidate_profiles.allow_public_recruiter_visibility AS allow_public_recruiter_visibility,
+            candidate_profiles.job_alerts_enabled AS job_alerts_enabled,
+            candidate_profiles.job_alert_notify_in_app AS job_alert_notify_in_app,
+            candidate_profiles.job_alert_notify_email AS job_alert_notify_email,
+            candidate_profiles.is_fresher_candidate AS is_fresher_candidate"
         )
             ->join('candidate_profiles', 'candidate_profiles.user_id = users.id', 'left')
             ->where('users.id', $userId)
@@ -123,13 +135,22 @@ class UserModel extends Model
             'resume_headline' => 'headline',
             'location' => 'location',
             'bio' => 'bio',
+            'gender' => 'gender',
+            'date_of_birth' => 'date_of_birth',
             'resume_path' => 'resume_path',
             'profile_photo' => 'profile_photo',
             'key_skills' => 'key_skills',
+            'preferred_job_titles' => 'preferred_job_titles',
             'preferred_locations' => 'preferred_locations',
+            'preferred_employment_type' => 'preferred_employment_type',
             'current_salary' => 'current_salary',
             'expected_salary' => 'expected_salary',
             'notice_period' => 'notice_period',
+            'allow_public_recruiter_visibility' => 'allow_public_recruiter_visibility',
+            'job_alerts_enabled' => 'job_alerts_enabled',
+            'job_alert_notify_in_app' => 'job_alert_notify_in_app',
+            'job_alert_notify_email' => 'job_alert_notify_email',
+            'is_fresher_candidate' => 'is_fresher_candidate',
         ];
 
         $payload = [];

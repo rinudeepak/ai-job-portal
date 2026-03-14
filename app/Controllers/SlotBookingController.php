@@ -249,7 +249,7 @@ class SlotBookingController extends BaseController
         }
 
         if ($aiPolicy === JobModel::AI_POLICY_OPTIONAL) {
-            return in_array($status, ['applied', 'ai_interview_completed'], true);
+            return $status === 'applied';
         }
 
         if ($aiPolicy === JobModel::AI_POLICY_OFF) {

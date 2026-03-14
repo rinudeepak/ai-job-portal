@@ -11,6 +11,8 @@ use App\Models\WorkExperienceModel;
 use App\Models\EducationModel;
 use App\Models\CertificationModel;
 use App\Models\CandidateSkillsModel;
+use App\Models\CandidateInterestsModel;
+use App\Models\CandidateProjectModel;
 use App\Models\GithubAnalysisModel;
 use App\Models\RecruiterCandidateActionModel;
 use App\Models\NotificationModel;
@@ -74,13 +76,15 @@ class RecruiterCandidates extends BaseController
         $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
 
         $builder = $userModel
-            ->select('users.id, users.name, users.email, candidate_profiles.location as location, candidate_profiles.resume_path as resume_path, candidate_profiles.profile_photo as profile_photo, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
+            ->select('users.id, users.name, users.email, candidate_profiles.location as location, candidate_profiles.resume_path as resume_path, candidate_profiles.profile_photo as profile_photo, candidate_profiles.allow_public_recruiter_visibility as allow_public_recruiter_visibility, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
             ->join('candidate_skills', 'candidate_skills.candidate_id = users.id', 'left')
             ->join('candidate_profiles', 'candidate_profiles.user_id = users.id', 'left')
             ->join($experienceSubQuery, 'candidate_experience.user_id = users.id', 'left', false)
             ->where('users.role', 'candidate')
             ->groupBy('users.id')
             ->orderBy('users.created_at', 'DESC');
+
+        $this->applyRecruiterVisibilityFilter($builder, $recruiterId);
 
         if ($filters['keyword'] !== '') {
             $builder->groupStart()
@@ -131,13 +135,15 @@ class RecruiterCandidates extends BaseController
         $aiSuggestions = [];
         if ($selectedJob) {
             $suggestionBuilder = $userModel
-                ->select('users.id, users.name, users.email, candidate_profiles.location as location, candidate_profiles.resume_path as resume_path, candidate_profiles.profile_photo as profile_photo, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
+                ->select('users.id, users.name, users.email, candidate_profiles.location as location, candidate_profiles.resume_path as resume_path, candidate_profiles.profile_photo as profile_photo, candidate_profiles.allow_public_recruiter_visibility as allow_public_recruiter_visibility, users.created_at, MAX(candidate_skills.skill_name) as skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months')
                 ->join('candidate_skills', 'candidate_skills.candidate_id = users.id', 'left')
                 ->join('candidate_profiles', 'candidate_profiles.user_id = users.id', 'left')
                 ->join($experienceSubQuery, 'candidate_experience.user_id = users.id', 'left', false)
                 ->where('users.role', 'candidate')
                 ->groupBy('users.id')
                 ->orderBy('users.created_at', 'DESC');
+
+            $this->applyRecruiterVisibilityFilter($suggestionBuilder, $recruiterId);
 
             if ($filters['keyword'] !== '') {
                 $suggestionBuilder->groupStart()
@@ -217,6 +223,10 @@ class RecruiterCandidates extends BaseController
             return redirect()->back()->with('error', 'Candidate not found');
         }
 
+        if (!$this->canRecruiterAccessCandidate((int) $candidateId, (int) session()->get('user_id'))) {
+            return redirect()->back()->with('error', 'This candidate profile is private unless they apply to your jobs.');
+        }
+
         $applicationId = (int) ($this->request->getGet('application_id') ?? 0);
         $jobId = (int) ($this->request->getGet('job_id') ?? 0);
         $recruiterId = (int) session()->get('user_id');
@@ -246,13 +256,23 @@ class RecruiterCandidates extends BaseController
         $educationModel = new EducationModel();
         $certificationModel = new CertificationModel();
         $skillsModel = new CandidateSkillsModel();
+        $interestsModel = new CandidateInterestsModel();
         $githubModel = new GithubAnalysisModel();
-        
+        $projectModel = new CandidateProjectModel();
+
         $workExperiences = $workExpModel->getByUser($candidateId);
         $education = $educationModel->getByUser($candidateId);
         $certifications = $certificationModel->getByUser($candidateId);
         $skills = $skillsModel->where('candidate_id', $candidateId)->first();
+        $interestRow = $interestsModel->where('candidate_id', $candidateId)->first();
+        $interests = [];
+        if ($interestRow && !empty($interestRow['interest'])) {
+            $interests = array_values(array_filter(array_map('trim', explode(',', (string) $interestRow['interest']))));
+        }
         $github = $githubModel->where('candidate_id', $candidateId)->first();
+        $projects = \Config\Database::connect()->tableExists('candidate_projects')
+            ? $projectModel->getByUser((int) $candidateId)
+            : [];
         $messages = (new RecruiterCandidateMessageModel())->getThread(
             (int) $candidateId,
             (int) $recruiterId,
@@ -269,7 +289,9 @@ class RecruiterCandidates extends BaseController
             'education' => $education,
             'certifications' => $certifications,
             'skills' => $skills,
+            'interests' => $interests,
             'github' => $github,
+            'projects' => $projects,
             'messages' => $messages,
             'recruiterNote' => $recruiterNote,
         ]);
@@ -285,6 +307,10 @@ class RecruiterCandidates extends BaseController
         $candidate = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         if (!$candidate || $candidate['role'] !== 'candidate') {
             return redirect()->back()->with('error', 'Candidate not found');
+        }
+
+        if (!$this->canRecruiterAccessCandidate((int) $candidateId, (int) session()->get('user_id'))) {
+            return redirect()->back()->with('error', 'This candidate profile is private unless they apply to your jobs.');
         }
 
         $applicationId = (int) ($this->request->getGet('application_id') ?? 0);
@@ -328,6 +354,10 @@ class RecruiterCandidates extends BaseController
         $candidate = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         if (!$candidate || $candidate['role'] !== 'candidate') {
             return redirect()->back()->with('error', 'Resume not found.');
+        }
+
+        if (!$this->canRecruiterAccessCandidate((int) $candidateId, (int) session()->get('user_id'))) {
+            return redirect()->back()->with('error', 'This candidate profile is private unless they apply to your jobs.');
         }
 
         $applicationId = (int) ($this->request->getGet('application_id') ?? 0);
@@ -390,6 +420,10 @@ class RecruiterCandidates extends BaseController
             return redirect()->back()->with('error', 'Candidate not found');
         }
 
+        if (!$this->canRecruiterAccessCandidate((int) $candidateId, (int) session()->get('user_id'))) {
+            return redirect()->back()->with('error', 'This candidate profile is private unless they apply to your jobs.');
+        }
+
         $message = trim((string) $this->request->getPost('message'));
         $applicationId = (int) ($this->request->getPost('application_id') ?? 0);
         $jobId = (int) ($this->request->getPost('job_id') ?? 0);
@@ -446,6 +480,10 @@ class RecruiterCandidates extends BaseController
         }
 
         $recruiterId = (int) session()->get('user_id');
+        if (!$this->canRecruiterAccessCandidate((int) $candidateId, $recruiterId)) {
+            return redirect()->back()->with('error', 'This candidate profile is private unless they apply to your jobs.');
+        }
+
         $rawTags = trim((string) $this->request->getPost('tags'));
         $notes = trim((string) $this->request->getPost('notes'));
 
@@ -505,6 +543,36 @@ class RecruiterCandidates extends BaseController
             'is_read' => 0,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
+    }
+
+    private function applyRecruiterVisibilityFilter($builder, int $recruiterId): void
+    {
+        $builder->groupStart()
+            ->where('COALESCE(candidate_profiles.allow_public_recruiter_visibility, 1) =', 1, false)
+            ->orWhere('users.id IN (SELECT applications.candidate_id FROM applications INNER JOIN jobs ON jobs.id = applications.job_id WHERE jobs.recruiter_id = ' . $recruiterId . ')', null, false)
+            ->groupEnd();
+    }
+
+    private function canRecruiterAccessCandidate(int $candidateId, int $recruiterId): bool
+    {
+        $userModel = new UserModel();
+        $candidate = $userModel->findCandidateWithProfile($candidateId) ?? $userModel->find($candidateId);
+        if (!$candidate || ($candidate['role'] ?? '') !== 'candidate') {
+            return false;
+        }
+
+        if ((int) ($candidate['allow_public_recruiter_visibility'] ?? 1) === 1) {
+            return true;
+        }
+
+        $application = (new ApplicationModel())
+            ->select('applications.id')
+            ->join('jobs', 'jobs.id = applications.job_id')
+            ->where('applications.candidate_id', $candidateId)
+            ->where('jobs.recruiter_id', $recruiterId)
+            ->first();
+
+        return !empty($application);
     }
 
     private function normalizeTags(string $rawTags): string

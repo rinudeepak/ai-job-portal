@@ -98,6 +98,12 @@ class JobAlertService
             return false;
         }
 
+        $employmentType = strtolower(trim((string) ($alert['employment_type'] ?? '')));
+        $jobEmploymentType = strtolower(trim((string) ($job['employment_type'] ?? '')));
+        if ($employmentType !== '' && $jobEmploymentType !== '' && $employmentType !== $jobEmploymentType) {
+            return false;
+        }
+
         $skillKeywords = $this->splitKeywords((string) ($alert['skills_keywords'] ?? ''));
         if (!empty($skillKeywords) && !$this->containsAny($skills . ' ' . $description, $skillKeywords)) {
             return false;

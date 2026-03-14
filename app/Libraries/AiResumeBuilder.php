@@ -187,9 +187,17 @@ class AiResumeBuilder
     private function normalizeResumePayload(array $data, array $profile, string $targetRole, string $templateKey): array
     {
         $sections = is_array($data['sections'] ?? null) ? $data['sections'] : [];
+        $normalizedTemplateKey = $templateKey !== '' ? $templateKey : 'modern_professional';
+        $experienceItems = (array) ($sections['experience']['items'] ?? []);
+        $projectItems = (array) ($sections['projects']['items'] ?? []);
+        $isFresherCandidate = (int) ($profile['is_fresher_candidate'] ?? 0) === 1;
+
+        if ($normalizedTemplateKey === 'executive_sidebar' && ($isFresherCandidate || empty($experienceItems))) {
+            $normalizedTemplateKey = !empty($projectItems) ? 'tech_compact' : 'modern_professional';
+        }
 
         return [
-            'template_key' => $templateKey !== '' ? $templateKey : 'modern_professional',
+            'template_key' => $normalizedTemplateKey,
             'name' => (string) ($profile['name'] ?? 'Candidate'),
             'target_role' => $targetRole,
             'title' => trim((string) ($data['title'] ?? ($targetRole . ' Resume'))),

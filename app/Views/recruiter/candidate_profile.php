@@ -10,6 +10,8 @@
         . '&job_id=' . $jobId;
     $messages = $messages ?? [];
     $recruiterNote = $recruiterNote ?? null;
+    $interests = $interests ?? [];
+    $projects = $projects ?? [];
     ?>
     <style>
         .candidate-summary-card .candidate-name {
@@ -39,6 +41,34 @@
         }
         .candidate-summary-actions .btn:last-child {
             margin-bottom: 0;
+        }
+        .candidate-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .candidate-detail-item {
+            border: 1px solid #e9eef5;
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: #fbfdff;
+        }
+        .candidate-detail-item label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .candidate-detail-item .value-empty {
+            color: #94a3b8;
+        }
+        @media (max-width: 767.98px) {
+            .candidate-detail-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
     <?php if (session()->getFlashdata('success')): ?>
@@ -160,6 +190,82 @@
         </div>
         
         <div class="col-lg-8">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5><i class="fas fa-id-card"></i> Personal Information</h5>
+                    <div class="candidate-detail-grid mt-3">
+                        <div class="candidate-detail-item">
+                            <label>Full Name</label>
+                            <div><?= esc($candidate['name'] ?? '-') ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Email</label>
+                            <div><?= $showContact ? esc($candidate['email'] ?? '-') : 'Hidden until contact is viewed' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Phone</label>
+                            <div><?= $showContact && !empty($candidate['phone']) ? esc($candidate['phone']) : ($showContact ? '-' : 'Hidden until contact is viewed') ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Location</label>
+                            <div class="<?= !empty($candidate['location']) ? '' : 'value-empty' ?>"><?= !empty($candidate['location']) ? esc($candidate['location']) : 'Not provided' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Gender</label>
+                            <div class="<?= !empty($candidate['gender']) ? '' : 'value-empty' ?>"><?= !empty($candidate['gender']) ? esc($candidate['gender']) : 'Not provided' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Date of Birth</label>
+                            <div class="<?= !empty($candidate['date_of_birth']) ? '' : 'value-empty' ?>"><?= !empty($candidate['date_of_birth']) ? esc($candidate['date_of_birth']) : 'Not provided' ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5><i class="fas fa-briefcase"></i> Career Details</h5>
+                    <div class="candidate-detail-grid mt-3">
+                        <div class="candidate-detail-item">
+                            <label>Resume Headline</label>
+                            <div class="<?= !empty($candidate['resume_headline']) ? '' : 'value-empty' ?>"><?= !empty($candidate['resume_headline']) ? esc($candidate['resume_headline']) : 'Not provided' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Notice Period</label>
+                            <div class="<?= !empty($candidate['notice_period']) ? '' : 'value-empty' ?>"><?= !empty($candidate['notice_period']) ? esc($candidate['notice_period']) : 'Not provided' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Current Salary (LPA)</label>
+                            <div class="<?= !empty($candidate['current_salary']) ? '' : 'value-empty' ?>"><?= !empty($candidate['current_salary']) ? esc($candidate['current_salary']) : 'Not provided' ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5><i class="fas fa-sliders-h"></i> Preferences</h5>
+                    <div class="candidate-detail-grid mt-3">
+                        <div class="candidate-detail-item">
+                            <label>Preferred Job Titles</label>
+                            <div class="<?= !empty($candidate['preferred_job_titles']) ? '' : 'value-empty' ?>"><?= !empty($candidate['preferred_job_titles']) ? esc($candidate['preferred_job_titles']) : 'Not provided' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Preferred Locations</label>
+                            <div class="<?= !empty($candidate['preferred_locations']) ? '' : 'value-empty' ?>"><?= !empty($candidate['preferred_locations']) ? esc($candidate['preferred_locations']) : 'Not provided' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Preferred Employment Type</label>
+                            <div class="<?= !empty($candidate['preferred_employment_type']) ? '' : 'value-empty' ?>"><?= !empty($candidate['preferred_employment_type']) ? esc($candidate['preferred_employment_type']) : 'Not provided' ?></div>
+                        </div>
+                        <div class="candidate-detail-item">
+                            <label>Expected Salary (LPA)</label>
+                            <div class="<?= !empty($candidate['expected_salary']) ? '' : 'value-empty' ?>"><?= !empty($candidate['expected_salary']) ? esc($candidate['expected_salary']) : 'Not provided' ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Skills -->
             <?php if (!empty($skills['skill_name']) || !empty($github['languages_used'])): ?>
             <div class="card shadow-sm mb-3">
@@ -184,6 +290,19 @@
                 </div>
             </div>
             <?php endif; ?>
+
+            <?php if (!empty($interests)): ?>
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5><i class="fas fa-heart"></i> Job Interests</h5>
+                    <div class="mt-3">
+                        <?php foreach ($interests as $interest): ?>
+                            <span class="badge bg-success me-1 mb-1"><?= esc($interest) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
             
             <!-- Work Experience -->
             <?php if (!empty($workExperiences)): ?>
@@ -197,6 +316,34 @@
                         <p class="mb-1 text-muted"><i class="fas fa-calendar"></i> <?= date('M Y', strtotime($exp['start_date'])) ?> - <?= $exp['is_current'] ? 'Present' : date('M Y', strtotime($exp['end_date'])) ?></p>
                         <?php if($exp['location']): ?><p class="mb-1 text-muted"><i class="fas fa-map-marker-alt"></i> <?= esc($exp['location']) ?></p><?php endif; ?>
                         <?php if($exp['description']): ?><p class="mt-2"><?= nl2br(esc($exp['description'])) ?></p><?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (!empty($projects)): ?>
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5><i class="fas fa-diagram-project"></i> Projects</h5>
+                    <?php foreach ($projects as $project): ?>
+                    <div class="border-bottom pb-3 mb-3">
+                        <h6 class="mb-1"><?= esc($project['project_name']) ?></h6>
+                        <?php if (!empty($project['role_name'])): ?>
+                            <p class="mb-1 text-muted"><i class="fas fa-user-tie"></i> <?= esc($project['role_name']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($project['tech_stack'])): ?>
+                            <p class="mb-1 text-muted"><i class="fas fa-layer-group"></i> <?= esc($project['tech_stack']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($project['project_summary'])): ?>
+                            <p class="mt-2 mb-1"><?= nl2br(esc($project['project_summary'])) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($project['impact_metrics'])): ?>
+                            <p class="mb-1 text-muted"><strong>Impact:</strong> <?= esc($project['impact_metrics']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($project['project_url'])): ?>
+                            <p class="mb-0"><a href="<?= esc($project['project_url']) ?>" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View Project</a></p>
+                        <?php endif; ?>
                     </div>
                     <?php endforeach; ?>
                 </div>

@@ -30,6 +30,25 @@ if (!array_key_exists($recommendationType, $recommendationSets)) {
     $recommendationType = 'skills';
 }
 $activeRecommendedJobs = $recommendationSets[$recommendationType];
+
+$formatPostedMeta = static function (?string $createdAt): ?string {
+    $raw = trim((string) $createdAt);
+    if ($raw === '') {
+        return null;
+    }
+
+    try {
+        $postedAt = new \DateTime($raw);
+        $postedDay = (clone $postedAt)->setTime(0, 0, 0);
+        $today = new \DateTime('today');
+        $interval = $postedDay->diff($today);
+        $days = $interval->invert === 1 ? 0 : (int) $interval->days;
+        $relative = $days === 0 ? 'today' : ($days === 1 ? '1 day ago' : $days . ' days ago');
+        return 'Posted on ' . $postedAt->format('d M Y') . ' • ' . $relative;
+    } catch (\Throwable $e) {
+        return null;
+    }
+};
 ?>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,11 +82,11 @@ $activeRecommendedJobs = $recommendationSets[$recommendationType];
     <div class="jobs-layout">
 
         <?php if ($showFilters): ?>
-        <div class="sidebar">
-            <div class="sidebar-head">
-                <h5><i class="fas fa-sliders-h"></i> Filters</h5>
-                <a href="<?= base_url('jobs?tab=all') ?>" class="clear-link">Clear all</a>
-            </div>
+            <div class="sidebar">
+                <div class="sidebar-head">
+                    <h5><i class="fas fa-sliders-h"></i> Filters</h5>
+                    <a href="<?= base_url('jobs?tab=all') ?>" class="clear-link">Clear all</a>
+                </div>
 
             <?php if (!empty($categories)): ?>
             <div class="filter-section">
@@ -258,6 +277,10 @@ $activeRecommendedJobs = $recommendationSets[$recommendationType];
                                 <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
                                     <h2><?= esc($job['title']) ?></h2>
                                     <strong><?= esc($job['company']) ?></strong>
+                                    <?php $postedMeta = $formatPostedMeta($job['created_at'] ?? null); ?>
+                                    <?php if ($postedMeta !== null): ?>
+                                        <div class="small text-muted mt-1"><?= esc($postedMeta) ?></div>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
                                     <span class="icon-room"></span> <?= esc($job['location']) ?>
@@ -401,6 +424,10 @@ $activeRecommendedJobs = $recommendationSets[$recommendationType];
                                 <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
                                     <h2><?= esc($job['title']) ?></h2>
                                     <strong><?= esc($job['company']) ?></strong>
+                                    <?php $postedMeta = $formatPostedMeta($job['created_at'] ?? null); ?>
+                                    <?php if ($postedMeta !== null): ?>
+                                        <div class="small text-muted mt-1"><?= esc($postedMeta) ?></div>
+                                    <?php endif; ?>
                                     <?php if (!empty($job['match_reason'])): ?>
                                     <div class="ai-reason mt-2"><i class="fas fa-lightbulb"></i> <?= esc($job['match_reason']) ?></div>
                                     <?php endif; ?>

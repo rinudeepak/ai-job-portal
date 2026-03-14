@@ -590,7 +590,7 @@ class SlotManagementController extends BaseController
         foreach ($applicationIds as $appId) {
             $application = $applicationModel->find($appId);
 
-            if ($application && $application['status'] === 'ai_interview_completed') {
+            if ($application && in_array($application['status'], ['applied', 'shortlisted'], true)) {
                 // Update to shortlisted
                 $applicationModel->update($appId, [
                     'status' => 'shortlisted'

@@ -38,11 +38,15 @@ $routes->get('companies', 'CompanyProfile::index', ['filter' => 'candidate']);
 // $routes->get('dashboard', 'Auth::dashboard');
 // Candidate Dashboard Routes
 $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'candidate'], function($routes) {
+    $routes->get('onboarding', 'CandidateOnboarding::index');
+    $routes->get('onboarding/(:segment)', 'CandidateOnboarding::step/$1');
+    $routes->post('onboarding/(:segment)', 'CandidateOnboarding::save/$1');
     $routes->get('dashboard', 'CandidateDashboardController::index');
     $routes->get('/', 'CandidateDashboardController::index'); // Default route
     $routes->get('applications', 'CandidateDashboardController::applications');
     $routes->get('saved-jobs', 'SavedJobs::index');
     $routes->get('job-alerts', 'JobAlerts::index');
+    $routes->post('job-alerts/settings', 'JobAlerts::updateSettings');
     $routes->post('job-alerts/create', 'JobAlerts::create');
     $routes->get('job-alerts/toggle/(:num)', 'JobAlerts::toggle/$1');
     $routes->get('job-alerts/delete/(:num)', 'JobAlerts::delete/$1');
@@ -108,6 +112,8 @@ $routes->get('recruiter/post_job', 'Recruiter::postJob', ['filter' => 'recruiter
 $routes->post('recruiter/post_job', 'Recruiter::saveJob', ['filter' => 'recruiter']);
 
 $routes->get('candidate/profile', 'Candidate::profile', ['filter' => 'candidate']);
+$routes->get('candidate/settings', 'Candidate::settings', ['filter' => 'candidate']);
+$routes->post('candidate/update-notification-settings', 'Candidate::updateNotificationSettings', ['filter' => 'candidate']);
 $routes->get('candidate/resume-studio', 'Candidate::resumeStudio', ['filter' => 'candidate']);
 $routes->post('candidate/resume_upload', 'Candidate::resumeUpload', ['filter' => 'candidate']);
 $routes->post('candidate/resume/generate', 'Candidate::generateAiResume', ['filter' => 'candidate']);
@@ -123,6 +129,8 @@ $routes->get('candidate/serve-resume', 'Candidate::serveResume', ['filter' => 'c
 $routes->post('candidate/add-skill', 'Candidate::addSkill', ['filter' => 'candidate']);
 $routes->post('candidate/update_personal', 'Candidate::updatePersonal', ['filter' => 'candidate']);
 $routes->post('candidate/update-career-details', 'Candidate::updateCareerDetails', ['filter' => 'candidate']);
+$routes->post('candidate/update-preferences', 'Candidate::updatePreferences', ['filter' => 'candidate']);
+$routes->post('candidate/update-settings', 'Candidate::updateSettings', ['filter' => 'candidate']);
 $routes->post('candidate/upload-photo', 'Candidate::uploadPhoto', ['filter' => 'candidate']);
 $routes->post('candidate/remove-photo', 'Candidate::removePhoto', ['filter' => 'candidate']);
 $routes->post('candidate/add-work-experience', 'Candidate::addWorkExperience', ['filter' => 'candidate']);
@@ -142,14 +150,14 @@ $routes->get('recruiter/candidate/(:num)/download-resume', 'RecruiterCandidates:
 $routes->post('recruiter/candidate/(:num)/send-message', 'RecruiterCandidates::sendMessage/$1', ['filter' => 'recruiter']);
 $routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::saveNotes/$1', ['filter' => 'recruiter']);
 
-// AI Interview Routes
+// AI Interview Routes (Python Integration)
 $routes->group('interview', ['filter' => 'candidate'], function($routes) {
-    $routes->get('start/(:num)', 'AiInterview::start/$1');
-    $routes->post('begin/(:num)', 'AiInterview::begin/$1');
-    $routes->get('chat/(:num)', 'AiInterview::chat/$1');
-    $routes->post('submit/(:num)', 'AiInterview::submitAnswer/$1');
-    $routes->get('trigger-evaluation/(:num)', 'AiInterview::triggerEvaluation/$1');
-    $routes->get('results/(:num)', 'AiInterview::results/$1');
+    $routes->get('start/(:num)', 'AiInterviewPython::start/$1');
+    $routes->post('begin/(:num)', 'AiInterviewPython::startInterview/$1');
+    $routes->get('chat/(:num)', 'AiInterviewPython::legacyRedirect/$1');
+    $routes->post('submit/(:num)', 'AiInterviewPython::legacyRedirect/$1');
+    $routes->get('trigger-evaluation/(:num)', 'AiInterviewPython::legacyRedirect/$1');
+    $routes->get('results/(:num)', 'AiInterviewPython::legacyRedirect/$1');
 });
 
 // Notification Routes

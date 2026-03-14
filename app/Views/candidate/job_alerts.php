@@ -1,6 +1,61 @@
 <?= view('Layouts/candidate_header', ['title' => 'Job Alerts']) ?>
 
 <div class="job-alerts-jobboard">
+    <style>
+        .switch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 0;
+        }
+        .switch-copy {
+            flex: 1;
+        }
+        .switch-toggle {
+            position: relative;
+            width: 42px;
+            height: 24px;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .switch-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .switch-toggle-slider {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+            background: #c7ced8;
+            border-radius: 999px;
+            transition: background .2s ease;
+        }
+        .switch-toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            top: 3px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, .25);
+            transition: transform .2s ease;
+        }
+        .switch-toggle input:checked + .switch-toggle-slider {
+            background: #89ba16;
+        }
+        .switch-toggle input:checked + .switch-toggle-slider::before {
+            transform: translateX(18px);
+        }
+        .switch-toggle input:disabled + .switch-toggle-slider {
+            cursor: not-allowed;
+            opacity: .65;
+        }
+    </style>
     <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
         <div class="container">
             <div class="row align-items-end">
@@ -49,7 +104,44 @@
 
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Create Alert</h5>
+                    <h5 class="mb-0">Alert Status</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="<?= base_url('candidate/job-alerts/settings') ?>">
+                        <?= csrf_field() ?>
+                        <div class="row align-items-end">
+                            <div class="col-md-6 mb-3">
+                                <div class="switch-row">
+                                    <div class="switch-copy">
+                                        <label for="job_alerts_enabled" class="mb-1 d-block">Job Alerts</label>
+                                        <small class="text-muted">Turn job alerts on or off for your account without deleting your saved alert criteria.</small>
+                                    </div>
+                                    <input type="hidden" name="job_alerts_enabled" value="0">
+                                    <label class="switch-toggle" for="job_alerts_enabled">
+                                        <input type="checkbox" name="job_alerts_enabled" id="job_alerts_enabled" value="1" <?= !empty($jobAlertsEnabled) ? 'checked' : '' ?>>
+                                        <span class="switch-toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Alert Status
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <?php if (empty($jobAlertsEnabled)): ?>
+                <div class="alert alert-warning">
+                    Job alerts are currently off. Turn them on above to create or activate alert rules.
+                </div>
+            <?php endif; ?>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Alert Preferences</h5>
                 </div>
                 <div class="card-body">
                     <form method="post" action="<?= base_url('candidate/job-alerts/create') ?>">
@@ -57,37 +149,65 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label>Role Keywords</label>
-                                <input type="text" name="role_keywords" class="form-control" placeholder="PHP Developer, QA Engineer">
+                                <input type="text" name="role_keywords" class="form-control" placeholder="PHP Developer, QA Engineer" value="<?= esc($jobAlertDefaults['role_keywords'] ?? '') ?>" <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
+                                <small class="text-muted">Defaults from your profile headline or latest alert.</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label>Location Keywords</label>
-                                <input type="text" name="location_keywords" class="form-control" placeholder="Bangalore, Remote">
+                                <input type="text" name="location_keywords" class="form-control" placeholder="Bangalore, Remote" value="<?= esc($jobAlertDefaults['location_keywords'] ?? '') ?>" <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
+                                <small class="text-muted">Defaults from your preferred locations when available.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Employment Type</label>
+                                <?php $defaultEmploymentType = (string) ($jobAlertDefaults['employment_type'] ?? ''); ?>
+                                <select name="employment_type" class="form-control" <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
+                                    <option value="">Any employment type</option>
+                                    <?php foreach (['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'] as $employmentTypeOption): ?>
+                                        <option value="<?= esc($employmentTypeOption) ?>" <?= $defaultEmploymentType === $employmentTypeOption ? 'selected' : '' ?>><?= esc($employmentTypeOption) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="text-muted">Defaults from your profile preferences when available.</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label>Skills Keywords</label>
-                                <input type="text" name="skills_keywords" class="form-control" placeholder="PHP, MySQL, React">
+                                <input type="text" name="skills_keywords" class="form-control" placeholder="PHP, MySQL, React" value="<?= esc($jobAlertDefaults['skills_keywords'] ?? '') ?>" <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
+                                <small class="text-muted">Defaults from your key skills or latest alert.</small>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label>Salary Min</label>
-                                <input type="number" name="salary_min" class="form-control" min="0" placeholder="300000">
+                                <input type="number" name="salary_min" class="form-control" min="0" placeholder="300000" value="<?= esc($jobAlertDefaults['salary_min'] ?? '') ?>" <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label>Salary Max</label>
-                                <input type="number" name="salary_max" class="form-control" min="0" placeholder="1200000">
+                                <input type="number" name="salary_max" class="form-control" min="0" placeholder="1200000" value="<?= esc($jobAlertDefaults['salary_max'] ?? '') ?>" <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
                             </div>
                             <div class="col-md-12 mb-3">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="notify_in_app" id="notify_in_app" value="1" checked>
-                                    <label class="form-check-label" for="notify_in_app">In-App Notification</label>
+                                <div class="switch-row">
+                                    <div class="switch-copy">
+                                        <label for="notify_in_app" class="mb-1 d-block">In-App Notification</label>
+                                        <small class="text-muted">Show alert matches inside the portal.</small>
+                                    </div>
+                                    <input type="hidden" name="notify_in_app" value="0">
+                                    <label class="switch-toggle" for="notify_in_app">
+                                        <input type="checkbox" name="notify_in_app" id="notify_in_app" value="1" <?= !empty($jobAlertDefaults['notify_in_app']) ? 'checked' : '' ?> <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
+                                        <span class="switch-toggle-slider"></span>
+                                    </label>
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="notify_email" id="notify_email" value="1" checked>
-                                    <label class="form-check-label" for="notify_email">Email Notification</label>
+                                <div class="switch-row">
+                                    <div class="switch-copy">
+                                        <label for="notify_email" class="mb-1 d-block">Email Notification</label>
+                                        <small class="text-muted">Send matching jobs to your registered email address.</small>
+                                    </div>
+                                    <input type="hidden" name="notify_email" value="0">
+                                    <label class="switch-toggle" for="notify_email">
+                                        <input type="checkbox" name="notify_email" id="notify_email" value="1" <?= !empty($jobAlertDefaults['notify_email']) ? 'checked' : '' ?> <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
+                                        <span class="switch-toggle-slider"></span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Create Alert
+                        <button type="submit" class="btn btn-primary" <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>>
+                            <i class="fas fa-plus"></i> Save Alert Preferences
                         </button>
                     </form>
                 </div>
@@ -107,6 +227,7 @@
                                     <tr>
                                         <th>Role</th>
                                         <th>Location</th>
+                                        <th>Employment Type</th>
                                         <th>Skills</th>
                                         <th>Salary</th>
                                         <th>Channels</th>
@@ -119,6 +240,7 @@
                                         <tr>
                                             <td><?= esc($alert['role_keywords'] ?? '-') ?></td>
                                             <td><?= esc($alert['location_keywords'] ?? '-') ?></td>
+                                            <td><?= esc($alert['employment_type'] ?? '-') ?></td>
                                             <td><?= esc($alert['skills_keywords'] ?? '-') ?></td>
                                             <td>
                                                 <?php
@@ -149,7 +271,7 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="<?= base_url('candidate/job-alerts/toggle/' . (int) $alert['id']) ?>" class="btn btn-sm btn-outline-warning">
+                                                <a href="<?= base_url('candidate/job-alerts/toggle/' . (int) $alert['id']) ?>" class="btn btn-sm btn-outline-warning <?= empty($jobAlertsEnabled) ? 'disabled' : '' ?>" <?= empty($jobAlertsEnabled) ? 'aria-disabled="true" onclick="return false;"' : '' ?>>
                                                     <?= (int) $alert['is_active'] === 1 ? 'Pause' : 'Activate' ?>
                                                 </a>
                                                 <a href="<?= base_url('candidate/job-alerts/delete/' . (int) $alert['id']) ?>"

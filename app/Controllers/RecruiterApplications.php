@@ -73,8 +73,6 @@ class RecruiterApplications extends BaseController
         $validStatuses = [
             'applied',
             'pending',
-            'ai_interview_started',
-            'ai_interview_completed',
             'shortlisted',
             'interview_slot_booked',
             'selected',
@@ -88,10 +86,9 @@ class RecruiterApplications extends BaseController
         $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
         // Get applications for this job with optional filters
         $builder = $applicationModel
-            ->select('applications.*, users.name, users.email, candidate_profiles.location as candidate_location, candidate_profiles.resume_path as resume_path, MAX(interview_sessions.overall_rating) as overall_rating, candidate_skills.skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months, recruiter_candidate_notes.tags as recruiter_tags, recruiter_candidate_notes.notes as recruiter_notes')
+            ->select('applications.*, users.name, users.email, candidate_profiles.location as candidate_location, candidate_profiles.resume_path as resume_path, 0 as overall_rating, candidate_skills.skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months, recruiter_candidate_notes.tags as recruiter_tags, recruiter_candidate_notes.notes as recruiter_notes')
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->join('candidate_profiles', 'candidate_profiles.user_id = applications.candidate_id', 'left')
-            ->join('interview_sessions', 'interview_sessions.application_id = applications.id', 'left')
             ->join('candidate_skills', 'candidate_skills.candidate_id = applications.candidate_id', 'left')
             ->join(
                 'recruiter_candidate_notes',
@@ -126,12 +123,8 @@ class RecruiterApplications extends BaseController
             $builder->where('applications.status', $filters['status']);
         }
 
-        if ($scoreMin !== null) {
-            $builder->having('MAX(interview_sessions.overall_rating) >=', $scoreMin);
-        }
-
-        if ($scoreMax !== null) {
-            $builder->having('MAX(interview_sessions.overall_rating) <=', $scoreMax);
+        if ($scoreMin !== null && $scoreMin > 0) {
+            $builder->where('1 = 0', null, false);
         }
 
         $applications = $builder
@@ -385,7 +378,7 @@ class RecruiterApplications extends BaseController
             return true;
         }
 
-        return in_array($applicationStatus, ['ai_interview_completed', 'shortlisted', 'rejected'], true);
+        return in_array($applicationStatus, ['applied', 'shortlisted', 'rejected'], true);
     }
 
     private function calculateAtsScore(array $application, array $job): int

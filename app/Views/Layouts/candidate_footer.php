@@ -24,7 +24,7 @@
             <div class="col-6 col-md-3 mb-4 mb-md-0">
                 <h3>Account</h3>
                 <ul class="list-unstyled">
-                    <li><a href="<?= base_url('candidate/profile') ?>">Settings</a></li>
+                    <li><a href="<?= base_url('candidate/settings') ?>">Settings</a></li>
                     <li><a href="<?= base_url('account/change-password') ?>">Change Password</a></li>
                     <li><a href="<?= base_url('logout') ?>">Logout</a></li>
                 </ul>
