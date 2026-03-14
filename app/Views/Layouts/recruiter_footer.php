@@ -61,16 +61,6 @@
 <script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
 <script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
 <script src="<?= base_url('jobboard/js/custom.js') ?>"></script>
-<script>
-function toggleRecruiterDropdown() {
-    document.getElementById('recruiterDropdown').classList.toggle('show');
-}
-window.addEventListener('click', function(e) {
-    if (!e.target.closest('.recruiter-avatar-dropdown')) {
-        document.getElementById('recruiterDropdown')?.classList.remove('show');
-    }
-});
-</script>
 
 </div>
 </body>

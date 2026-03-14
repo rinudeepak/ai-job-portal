@@ -126,6 +126,22 @@
                                 <?php endif; ?>
                             </div>
 
+                            <div class="form-group">
+                                <label>Office Tour Title</label>
+                                <input type="text" name="company_office_tour_title" class="form-control" placeholder="e.g. Explore Our Bangalore Workspace" value="<?= esc(old('company_office_tour_title', $company['office_tour_title'] ?? '')) ?>">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Office Tour URL</label>
+                                <input type="url" name="company_office_tour_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." value="<?= esc(old('company_office_tour_url', $company['office_tour_url'] ?? '')) ?>">
+                                <small class="form-text text-muted">Use a YouTube, Vimeo, or hosted 360 tour link.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Office Tour Summary</label>
+                                <textarea name="company_office_tour_summary" class="form-control" rows="3" placeholder="Tell candidates what they will see in the workplace tour."><?= esc(old('company_office_tour_summary', $company['office_tour_summary'] ?? '')) ?></textarea>
+                            </div>
+
                             <div class="form-row">
                                 <div class="form-group col-md-6">
                                     <label>HR / Support Email</label>

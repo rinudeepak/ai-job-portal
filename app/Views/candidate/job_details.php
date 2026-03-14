@@ -22,6 +22,7 @@ if ($benefitsRaw !== '') {
     $benefits = array_values(array_filter(array_map('trim', $benefits)));
 }
 $cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
+$resumeCoach = is_array($resumeCoach ?? null) ? $resumeCoach : [];
 ?>
 <style>
 .job-details-jobboard .ai-policy-card {
@@ -65,6 +66,50 @@ $cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
 .job-details-jobboard .ai-policy-soft .ai-policy-icon { background: #ffedcc; color: #b87b1b; }
 .job-details-jobboard .ai-policy-hard { background: #fff4f4; border-color: #f2c7c7; }
 .job-details-jobboard .ai-policy-hard .ai-policy-icon { background: #f8dada; color: #b53d3d; }
+.job-details-jobboard .resume-coach-card {
+    border: 1px solid #dbeafe;
+    background: linear-gradient(135deg, #f8fbff 0%, #f4fbf6 100%);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 28px;
+}
+.job-details-jobboard .resume-coach-score {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #0f172a;
+}
+.job-details-jobboard .resume-coach-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.job-details-jobboard .resume-coach-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.job-details-jobboard .resume-coach-chip.match {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #bbf7d0;
+}
+.job-details-jobboard .resume-coach-chip.missing {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+.job-details-jobboard .resume-coach-suggestion-list {
+    margin: 0;
+    padding-left: 18px;
+}
+.job-details-jobboard .resume-coach-suggestion-list li {
+    margin-bottom: 8px;
+    color: #475569;
+}
 </style>
 
 <div class="job-details-jobboard">
@@ -192,6 +237,99 @@ $cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
 
             <div class="row">
                 <div class="col-lg-8">
+                    <?php if (!$alreadyApplied && !empty($resumeCoach)): ?>
+                        <div class="resume-coach-card">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+                                <div>
+                                    <h3 class="h5 mb-1 text-primary"><i class="fas fa-magic mr-2"></i>Job-specific Resume Coach</h3>
+                                    <p class="text-muted mb-0">See how well your current resume/profile aligns with this job before you apply.</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="resume-coach-score"><?= (int) ($resumeCoach['score'] ?? 0) ?></div>
+                                    <small class="text-muted">ATS readiness</small>
+                                </div>
+                            </div>
+
+                            <?php if (!empty($resumeCoach['resume_version']['title'])): ?>
+                                <div class="alert alert-light border mb-3">
+                                    Using resume version: <strong><?= esc($resumeCoach['resume_version']['title']) ?></strong>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($resumeCoach['matched_skills'])): ?>
+                                <div class="mb-3">
+                                    <div class="small text-uppercase font-weight-bold text-muted mb-2">Matched Skills</div>
+                                    <div class="resume-coach-chip-list">
+                                        <?php foreach (array_slice((array) $resumeCoach['matched_skills'], 0, 6) as $skill): ?>
+                                            <span class="resume-coach-chip match"><?= esc($skill) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($resumeCoach['missing_skills'])): ?>
+                                <div class="mb-3">
+                                    <div class="small text-uppercase font-weight-bold text-muted mb-2">Missing or Weak Keywords</div>
+                                    <div class="resume-coach-chip-list">
+                                        <?php foreach (array_slice((array) $resumeCoach['missing_skills'], 0, 6) as $skill): ?>
+                                            <span class="resume-coach-chip missing"><?= esc($skill) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="mb-3">
+                                <div class="small text-uppercase font-weight-bold text-muted mb-2">Suggested Summary Direction</div>
+                                <p class="mb-0"><?= esc((string) ($resumeCoach['summary_suggestion'] ?? 'Tailor your resume summary to this role.')) ?></p>
+                            </div>
+
+                            <?php if (!empty($resumeCoach['suggestions'])): ?>
+                                <div class="mb-3">
+                                    <div class="small text-uppercase font-weight-bold text-muted mb-2">What to Improve</div>
+                                    <ul class="resume-coach-suggestion-list">
+                                        <?php foreach ((array) $resumeCoach['suggestions'] as $suggestion): ?>
+                                            <li><?= esc($suggestion) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
+
+                            <a href="<?= esc((string) ($resumeCoach['resume_studio_url'] ?? base_url('candidate/resume-studio'))) ?>" class="btn btn-primary">
+                                <i class="fas fa-file-alt mr-1"></i> Improve Resume for This Job
+                            </a>
+                        </div>
+                    <?php elseif ($alreadyApplied): ?>
+                        <div class="resume-coach-card">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+                                <div>
+                                    <h3 class="h5 mb-1 text-primary"><i class="fas fa-check-circle mr-2"></i>Application Already Submitted</h3>
+                                    <p class="text-muted mb-0">Your focus should now move from resume tailoring to interview readiness and application follow-up.</p>
+                                </div>
+                                <span class="badge badge-light border px-3 py-2">Post-application guidance</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="small text-uppercase font-weight-bold text-muted mb-2">What to Do Next</div>
+                                <ul class="resume-coach-suggestion-list">
+                                    <li>Review your submitted application status and recruiter activity from the applications page.</li>
+                                    <li>Use the mock interview coach to practice role-specific questions for this job.</li>
+                                    <li>Keep your project stories and examples aligned with the resume version you used for this application.</li>
+                                </ul>
+                            </div>
+
+                            <div class="d-flex flex-wrap" style="gap: 10px;">
+                                <a href="<?= base_url('candidate/applications') ?>" class="btn btn-primary">
+                                    <i class="fas fa-briefcase mr-1"></i> View My Application
+                                </a>
+                                <?php if (!empty($application['id'])): ?>
+                                    <a href="<?= base_url('candidate/applications/' . (int) $application['id'] . '/mock-interview') ?>" class="btn btn-outline-primary">
+                                        <i class="fas fa-comments mr-1"></i> Open Mock Interview
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="mb-5">
                         <h3 class="h5 d-flex align-items-center mb-4 text-primary">
                             <span class="icon-align-left mr-3"></span>Job Description

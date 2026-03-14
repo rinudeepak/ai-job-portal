@@ -111,7 +111,6 @@
                             </div>
 
                             <div class="companies-directory-actions">
-                                <a href="<?= base_url('company/' . (int) $company['id']) ?>" class="btn btn-outline-primary btn-sm">View Company</a>
                                 <?php if ((int) ($company['open_jobs_count'] ?? 0) > 0): ?>
                                     <a href="<?= base_url('jobs?company=' . urlencode((string) ($company['name'] ?? ''))) ?>" class="btn btn-primary btn-sm">See Jobs</a>
                                 <?php endif; ?>

@@ -346,6 +346,9 @@ class CompanyProfile extends BaseController
             'mission_values' => trim((string) $this->request->getPost('company_mission_values')),
             'culture_summary' => trim((string) $this->request->getPost('company_culture_summary')),
             'employee_benefits' => trim((string) $this->request->getPost('company_employee_benefits')),
+            'office_tour_title' => trim((string) $this->request->getPost('company_office_tour_title')),
+            'office_tour_url' => trim((string) $this->request->getPost('company_office_tour_url')),
+            'office_tour_summary' => trim((string) $this->request->getPost('company_office_tour_summary')),
             'contact_email' => trim((string) $this->request->getPost('company_contact_email')),
             'contact_phone' => trim((string) $this->request->getPost('company_contact_phone')),
             'contact_public' => $this->request->getPost('company_contact_public') ? 1 : 0,
@@ -357,6 +360,10 @@ class CompanyProfile extends BaseController
 
         if ($data['website'] !== '' && !filter_var($data['website'], FILTER_VALIDATE_URL)) {
             return redirect()->back()->withInput()->with('error', 'Company website must be a valid URL.');
+        }
+
+        if ($data['office_tour_url'] !== '' && !filter_var($data['office_tour_url'], FILTER_VALIDATE_URL)) {
+            return redirect()->back()->withInput()->with('error', 'Office tour URL must be a valid URL.');
         }
 
         if ($data['contact_email'] !== '' && !filter_var($data['contact_email'], FILTER_VALIDATE_EMAIL)) {

@@ -99,14 +99,14 @@
                             text-align: center;
                             padding: 0 4px;
                         }
-                        .recruiter-avatar-dropdown {
+                        .recruiter-avatar-menu {
                             position: relative;
-                            display: inline-block;
                         }
-                        .recruiter-avatar {
+                        .recruiter-avatar-btn {
                             width: 42px;
                             height: 42px;
                             border-radius: 50%;
+                            border: 2px solid rgba(255, 255, 255, 0.8);
                             background: #fff;
                             color: #89ba16;
                             display: inline-flex;
@@ -115,42 +115,45 @@
                             font-weight: 700;
                             font-size: 16px;
                             cursor: pointer;
-                            border: 2px solid rgba(255, 255, 255, 0.8);
+                            overflow: hidden;
+                            padding: 0;
                         }
-                        .recruiter-avatar:hover {
+                        .recruiter-avatar-btn:hover {
                             border-color: #fff;
                         }
-                        .recruiter-dropdown-menu {
+                        .recruiter-avatar-dropdown {
                             position: absolute;
-                            top: 52px;
                             right: 0;
+                            top: calc(100% + 10px);
+                            min-width: 170px;
                             background: #fff;
+                            border: 1px solid rgba(0, 0, 0, 0.1);
                             border-radius: 8px;
-                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                            min-width: 200px;
-                            display: none;
+                            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+                            padding: 8px 0;
                             z-index: 1000;
+                            display: none;
                         }
-                        .recruiter-dropdown-menu.show {
+                        .recruiter-avatar-dropdown.is-open {
                             display: block;
                         }
-                        .recruiter-dropdown-menu a {
-                            display: block;
-                            padding: 12px 20px;
-                            color: #333;
+                        .recruiter-avatar-dropdown a {
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            padding: 8px 14px;
+                            color: #212529;
                             text-decoration: none;
+                            text-align: left;
                             font-size: 14px;
-                            border-bottom: 1px solid #f0f0f0;
                         }
-                        .recruiter-dropdown-menu a:last-child {
-                            border-bottom: none;
-                        }
-                        .recruiter-dropdown-menu a:hover {
+                        .recruiter-avatar-dropdown a:hover {
                             background: #f8f9fa;
                         }
-                        .recruiter-dropdown-menu a i {
-                            margin-right: 8px;
+                        .recruiter-avatar-dropdown a i {
                             width: 16px;
+                            text-align: center;
+                            color: #64748b;
                         }
                     </style>
                     <div class="ml-auto d-flex align-items-center">
@@ -160,14 +163,14 @@
                                 <span class="recruiter-notification-badge"><?= $recruiterUnreadNotificationCount > 99 ? '99+' : $recruiterUnreadNotificationCount ?></span>
                             <?php endif; ?>
                         </a>
-                        <div class="recruiter-avatar-dropdown d-none d-lg-inline-block">
-                            <div class="recruiter-avatar" onclick="toggleRecruiterDropdown()">
+                        <div class="d-none d-lg-inline-block recruiter-avatar-menu" id="recruiterAvatarMenu">
+                            <button type="button" class="recruiter-avatar-btn" id="recruiterAvatarBtn" aria-haspopup="true" aria-expanded="false" title="<?= esc((string) (session()->get('user_name') ?? 'Recruiter')) ?>">
                                 <?= strtoupper(substr(session()->get('user_name') ?? 'R', 0, 1)) ?>
-                            </div>
-                            <div class="recruiter-dropdown-menu" id="recruiterDropdown">
-                                <a href="<?= base_url('recruiter/company-profile') ?>"><i class="icon-briefcase"></i>Company Profile</a>
-                                <a href="<?= base_url('account/change-password') ?>"><i class="icon-lock_outline"></i>Change Password</a>
-                                <a href="<?= base_url('logout') ?>"><i class="icon-power-off"></i>Logout</a>
+                            </button>
+                            <div class="recruiter-avatar-dropdown" id="recruiterAvatarDropdown">
+                                <a href="<?= base_url('recruiter/company-profile') ?>"><i class="fas fa-briefcase"></i><span>Company Profile</span></a>
+                                <a href="<?= base_url('account/change-password') ?>"><i class="fas fa-lock"></i><span>Change Password</span></a>
+                                <a href="<?= base_url('logout') ?>"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                             </div>
                         </div>
                     </div>
@@ -201,3 +204,28 @@
     <?php endif; ?>
 
     <main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menu = document.getElementById('recruiterAvatarMenu');
+            const button = document.getElementById('recruiterAvatarBtn');
+            const dropdown = document.getElementById('recruiterAvatarDropdown');
+
+            if (!menu || !button || !dropdown) {
+                return;
+            }
+
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                dropdown.classList.toggle('is-open');
+                button.setAttribute('aria-expanded', dropdown.classList.contains('is-open') ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!menu.contains(event.target)) {
+                    dropdown.classList.remove('is-open');
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>

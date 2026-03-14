@@ -61,6 +61,11 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                 transition: background-color .18s ease;
                 cursor: pointer;
             }
+            .application-list-item:focus,
+            .application-list-item:focus-visible {
+                outline: none;
+                box-shadow: none;
+            }
             .application-list-item:last-child {
                 border-bottom: 0;
             }
@@ -102,6 +107,14 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                 line-height: 1.2;
                 margin-bottom: 8px;
             }
+            .application-detail-title-link {
+                color: #111827;
+                text-decoration: none;
+            }
+            .application-detail-title-link:hover {
+                color: #1d4ed8;
+                text-decoration: underline;
+            }
             .application-detail-submeta {
                 color: #6b7280;
                 font-size: .95rem;
@@ -141,6 +154,75 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                 flex-wrap: wrap;
                 gap: 10px;
                 margin-top: 22px;
+            }
+            .prep-coach-card {
+                border: 1px solid #dbeafe;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #f8fbff 0%, #f4fbf6 100%);
+                padding: 18px;
+                margin-top: 22px;
+            }
+            .prep-coach-chip-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .prep-coach-chip {
+                display: inline-flex;
+                align-items: center;
+                padding: 6px 10px;
+                border-radius: 999px;
+                border: 1px solid #bfdbfe;
+                background: #eff6ff;
+                color: #1d4ed8;
+                font-size: 12px;
+                font-weight: 700;
+            }
+            .prep-coach-list {
+                margin: 0;
+                padding-left: 18px;
+            }
+            .prep-coach-list li {
+                margin-bottom: 8px;
+                color: #475569;
+            }
+            .prep-coach-summary {
+                color: #475569;
+                margin-bottom: 14px;
+                max-width: 760px;
+            }
+            .prep-coach-meta {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+            .prep-coach-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+            }
+            .prep-coach-source {
+                display: inline-flex;
+                align-items: center;
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+            }
+            .prep-coach-source.is-ai {
+                background: #dcfce7;
+                color: #166534;
+                border: 1px solid #bbf7d0;
+            }
+            .prep-coach-source.is-fallback {
+                background: #eff6ff;
+                color: #1d4ed8;
+                border: 1px solid #bfdbfe;
             }
             @media (max-width: 991.98px) {
                 .applications-shell {
@@ -232,11 +314,15 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                         <article id="application-<?= (int) $application['id'] ?>" class="application-detail-card<?= $index === 0 ? ' is-active' : '' ?>">
                             <div class="application-detail-head">
                                 <div>
-                                    <h2 class="application-detail-title"><?= esc($application['job_title']) ?></h2>
+                                    <h2 class="application-detail-title">
+                                        <a href="<?= base_url('job/' . $application['job_id']) ?>" target="_blank" class="application-detail-title-link">
+                                            <?= esc($application['job_title']) ?>
+                                        </a>
+                                    </h2>
                                     <div class="application-detail-submeta">
                                         <i class="far fa-clock"></i> Applied <?= date('M d, Y', strtotime($application['applied_at'])) ?>
                                         <?php if (!empty($application['company'])): ?>
-                                            <span class="mx-2">•</span><?= esc($application['company']) ?>
+                                            <span class="mx-2">&bull;</span><?= esc($application['company']) ?>
                                         <?php endif; ?>
                                     </div>
                                     <?php if (!empty($application['resume_version_title'])): ?>
@@ -294,8 +380,40 @@ $activeApplications = count(array_filter($applications ?? [], function ($applica
                                 <?php endif; ?>
                             </div>
 
+                            <?php if (!empty($application['interview_prep']) && !in_array($application['status'], ['rejected', 'withdrawn', 'selected', 'hired'], true)): ?>
+                                <?php $prep = $application['interview_prep']; ?>
+                                <div class="prep-coach-card">
+                                    <h4 class="application-section-title mb-2"><?= esc($prep['title'] ?? 'Pre-interview Preparation Coach') ?></h4>
+                                    <div class="prep-coach-meta">
+                                        <p class="text-muted mb-0">Open the detailed mock interview page to practice role-specific questions, answer structure, and evaluation points.</p>
+                                        <?php $prepSource = (string) ($prep['source'] ?? 'fallback'); ?>
+                                        <span class="prep-coach-source <?= $prepSource === 'ai' ? 'is-ai' : 'is-fallback' ?>">
+                                            <?= $prepSource === 'ai' ? 'AI-generated' : 'Structured fallback' ?>
+                                        </span>
+                                    </div>
+
+                                    <?php if (!empty($prep['focus_skills'])): ?>
+                                        <div class="mb-3">
+                                            <div class="small text-uppercase font-weight-bold text-muted mb-2">Focus Skills</div>
+                                            <div class="prep-coach-chip-list">
+                                                <?php foreach ((array) $prep['focus_skills'] as $skill): ?>
+                                                    <span class="prep-coach-chip"><?= esc($skill) ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="prep-coach-summary">
+                                        Includes tailored interview rounds, deeper mock questions, answer guidance, and a final rehearsal checklist for this application.
+                                    </div>
+                                    <div class="prep-coach-actions">
+                                        <a href="<?= base_url('candidate/applications/' . (int) $application['id'] . '/mock-interview') ?>" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-comments"></i> Open Mock Interview
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
                             <div class="detail-actions">
-                                <a href="<?= base_url('job/' . $application['job_id']) ?>" target="_blank" class="btn btn-outline-primary btn-sm"><i class="fas fa-eye"></i> View Job</a>
                                 <?php if ($application['status'] === 'applied'): ?>
                                     <?php $policy = strtoupper($application['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
                                     <?php if ($policy === 'OFF'): ?>

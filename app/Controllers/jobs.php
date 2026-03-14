@@ -2,10 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Libraries\AiResumeCoach;
 use App\Libraries\AiJobMatcher;
 use App\Models\CompanyModel;
+use App\Models\CandidateResumeVersionModel;
+use App\Models\CandidateSkillsModel;
 use App\Models\JobModel;
 use App\Models\SavedJobModel;
+use App\Models\UserModel;
 
 class Jobs extends BaseController
 {
@@ -497,6 +501,7 @@ class Jobs extends BaseController
         $jobModel = new JobModel();
         $companyModel = new CompanyModel();
         $applicationModel = model('ApplicationModel');
+        $candidateId = (int) session()->get('user_id');
 
         $job = $jobModel
             ->where('id', $id)
@@ -510,7 +515,7 @@ class Jobs extends BaseController
 
         $application = $applicationModel
             ->where('job_id', $id)
-            ->where('candidate_id', session()->get('user_id'))
+            ->where('candidate_id', $candidateId)
             ->where('status !=', 'withdrawn')
             ->first();
 
@@ -518,7 +523,7 @@ class Jobs extends BaseController
         $interviewId = null;
 
         $isSaved = (bool) (new SavedJobModel())
-            ->where('candidate_id', (int) session()->get('user_id'))
+            ->where('candidate_id', $candidateId)
             ->where('job_id', (int) $id)
             ->first();
 
@@ -532,6 +537,8 @@ class Jobs extends BaseController
             $company = $companyModel->where('name', $job['company'])->first();
         }
 
+        $resumeCoach = $this->buildResumeCoach($candidateId, $job);
+
         return view('candidate/job_details', [
             'title' => 'Job Details',
             'job' => $job,
@@ -539,6 +546,123 @@ class Jobs extends BaseController
             'alreadyApplied' => $alreadyApplied,
             'interviewId' => $interviewId,
             'isSaved' => $isSaved,
+            'resumeCoach' => $resumeCoach,
         ]);
+    }
+
+    private function buildResumeCoach(int $candidateId, array $job): array
+    {
+        $user = (new UserModel())->findCandidateWithProfile($candidateId) ?? [];
+        $skillsRow = (new CandidateSkillsModel())->where('candidate_id', $candidateId)->first();
+        $resumeVersion = (new CandidateResumeVersionModel())->getPreferredVersionForJob($candidateId, (int) ($job['id'] ?? 0));
+
+        $requiredSkills = $this->tokenizeSkills((string) ($job['required_skills'] ?? ''));
+        $profileSkills = $this->tokenizeSkills((string) ($skillsRow['skill_name'] ?? ''));
+        $resumeSkills = $this->tokenizeSkills((string) ($resumeVersion['highlight_skills'] ?? ''));
+        $candidateSkills = array_values(array_unique(array_merge($profileSkills, $resumeSkills)));
+
+        $matchedSkills = array_values(array_intersect($requiredSkills, $candidateSkills));
+        $missingSkills = array_values(array_diff($requiredSkills, $candidateSkills));
+
+        $summaryText = strtolower(trim((string) ($resumeVersion['summary'] ?? '')));
+        $jobTitle = trim((string) ($job['title'] ?? 'this role'));
+        $titleTokens = $this->tokenizeSkills($jobTitle);
+        $summaryAlignment = 0;
+        foreach ($titleTokens as $token) {
+            if ($token !== '' && str_contains($summaryText, strtolower($token))) {
+                $summaryAlignment++;
+            }
+        }
+
+        $profileReadiness = 0;
+        if (!empty($user['resume_path'])) {
+            $profileReadiness += 6;
+        }
+        if (!empty($user['bio'])) {
+            $profileReadiness += 4;
+        }
+        if (!empty($user['location'])) {
+            $profileReadiness += 2;
+        }
+        if (!empty($candidateSkills)) {
+            $profileReadiness += 3;
+        }
+
+        $skillScore = empty($requiredSkills) ? 50 : (int) round((count($matchedSkills) / max(1, count($requiredSkills))) * 50);
+        $summaryScore = empty($titleTokens) ? 15 : (int) round((min(count($titleTokens), $summaryAlignment) / max(1, count($titleTokens))) * 20);
+        $readinessScore = max(0, min(100, $skillScore + $summaryScore + $profileReadiness + (!empty($resumeVersion) ? 15 : 5)));
+
+        $suggestions = [];
+        if (!empty($missingSkills)) {
+            $suggestions[] = 'Add missing job keywords like ' . implode(', ', array_slice($missingSkills, 0, 4)) . ' where you have real experience.';
+        }
+        if ($summaryAlignment === 0) {
+            $suggestions[] = 'Rewrite your summary to mention the target role "' . $jobTitle . '" and the strongest matching skills.';
+        }
+        if (empty($resumeVersion)) {
+            $suggestions[] = 'Generate a job-specific AI resume version for this role instead of using a generic resume.';
+        }
+        if (empty($user['bio'])) {
+            $suggestions[] = 'Complete your profile bio so your resume and profile tell the same story to recruiters.';
+        }
+        if (empty($suggestions)) {
+            $suggestions[] = 'Your resume already aligns reasonably well. Focus on sharper achievement bullets and measurable impact.';
+        }
+
+        $emphasisSkills = !empty($matchedSkills)
+            ? array_slice($matchedSkills, 0, 5)
+            : array_slice($requiredSkills, 0, 5);
+
+        $summarySuggestion = 'Tailor your opening summary for ' . $jobTitle . ' by highlighting '
+            . (!empty($emphasisSkills) ? implode(', ', array_slice($emphasisSkills, 0, 3)) : 'your most relevant experience')
+            . ' and one measurable result from past work.';
+
+        $fallback = [
+            'score' => $readinessScore,
+            'required_skills' => $requiredSkills,
+            'matched_skills' => $matchedSkills,
+            'missing_skills' => $missingSkills,
+            'emphasis_skills' => $emphasisSkills,
+            'suggestions' => $suggestions,
+            'summary_suggestion' => $summarySuggestion,
+            'resume_version' => $resumeVersion,
+            'resume_studio_url' => base_url('candidate/resume-studio?generation_mode=job&job_id=' . (int) ($job['id'] ?? 0)),
+            'source' => 'fallback',
+        ];
+
+        $resumeContext = [
+            'profile' => [
+                'headline' => (string) ($user['resume_headline'] ?? ''),
+                'bio' => (string) ($user['bio'] ?? ''),
+                'location' => (string) ($user['location'] ?? ''),
+                'has_resume' => !empty($user['resume_path']),
+            ],
+            'profile_skills' => $profileSkills,
+            'resume_version' => [
+                'title' => (string) ($resumeVersion['title'] ?? ''),
+                'target_role' => (string) ($resumeVersion['target_role'] ?? ''),
+                'summary' => (string) ($resumeVersion['summary'] ?? ''),
+                'highlight_skills' => $resumeSkills,
+                'content' => (string) ($resumeVersion['content'] ?? ''),
+            ],
+            'candidate_skills' => $candidateSkills,
+        ];
+
+        return (new AiResumeCoach())->generate($candidateId, $job, $resumeContext, $fallback);
+    }
+
+    private function tokenizeSkills(string $value): array
+    {
+        $parts = preg_split('/[,|\\/]+/', strtolower($value)) ?: [];
+        $tokens = [];
+
+        foreach ($parts as $part) {
+            $trimmed = trim($part);
+            if ($trimmed !== '') {
+                $tokens[] = $trimmed;
+            }
+        }
+
+        return array_values(array_unique($tokens));
     }
 }

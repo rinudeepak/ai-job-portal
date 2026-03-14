@@ -44,6 +44,8 @@ $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'cand
     $routes->get('dashboard', 'CandidateDashboardController::index');
     $routes->get('/', 'CandidateDashboardController::index'); // Default route
     $routes->get('applications', 'CandidateDashboardController::applications');
+    $routes->get('job-search-strategy', 'CandidateDashboardController::jobSearchStrategy');
+    $routes->get('applications/(:num)/mock-interview', 'CandidateDashboardController::mockInterview/$1');
     $routes->get('saved-jobs', 'SavedJobs::index');
     $routes->get('job-alerts', 'JobAlerts::index');
     $routes->post('job-alerts/settings', 'JobAlerts::updateSettings');

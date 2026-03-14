@@ -1,4 +1,11 @@
 <?= view('Layouts/candidate_header', ['title' => 'AI Resume Studio']) ?>
+<?php
+$prefillGenerationMode = (string) (service('request')->getGet('generation_mode') ?? 'role');
+if (!in_array($prefillGenerationMode, ['role', 'job'], true)) {
+    $prefillGenerationMode = 'role';
+}
+$prefillJobId = (int) (service('request')->getGet('job_id') ?? 0);
+?>
 
 <div class="profile-jobboard">
     <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
@@ -324,14 +331,14 @@
                                 <label class="form-label d-block">Choose Generation Mode</label>
                                 <div class="generation-mode-grid">
                                     <label class="generation-mode-option">
-                                        <input type="radio" name="generation_mode" value="role" checked>
+                                        <input type="radio" name="generation_mode" value="role" <?= $prefillGenerationMode === 'role' ? 'checked' : '' ?>>
                                         <span class="generation-mode-card">
                                             <strong>Generate By Role</strong>
                                             <small>Create a resume for a target role you enter manually.</small>
                                         </span>
                                     </label>
                                     <label class="generation-mode-option">
-                                        <input type="radio" name="generation_mode" value="job">
+                                        <input type="radio" name="generation_mode" value="job" <?= $prefillGenerationMode === 'job' ? 'checked' : '' ?>>
                                         <span class="generation-mode-card">
                                             <strong>Generate For Specific Job</strong>
                                             <small>Create a version tailored to one selected job posting.</small>
@@ -339,17 +346,17 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-12 mb-3 generation-panel is-active" data-generation-panel="role-field">
+                            <div class="col-md-12 mb-3 generation-panel <?= $prefillGenerationMode === 'role' ? 'is-active' : '' ?>" data-generation-panel="role-field">
                                 <label class="form-label">Target Role</label>
                                 <input type="text" name="target_role" class="form-control" placeholder="e.g. Product Designer, PHP Developer">
                                 <small class="text-muted">Used only for role-based generation.</small>
                             </div>
-                            <div class="col-md-12 mb-3 generation-panel" data-generation-panel="job">
+                            <div class="col-md-12 mb-3 generation-panel <?= $prefillGenerationMode === 'job' ? 'is-active' : '' ?>" data-generation-panel="job">
                                 <label class="form-label">Specific Job Version</label>
                                 <select name="job_id" class="form-control">
                                     <option value="">Select a job</option>
                                     <?php foreach (($resumeTargets ?? []) as $target): ?>
-                                        <option value="<?= (int) $target['job_id'] ?>"><?= esc($target['title']) ?></option>
+                                        <option value="<?= (int) $target['job_id'] ?>" <?= $prefillJobId === (int) $target['job_id'] ? 'selected' : '' ?>><?= esc($target['title']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                                 <small class="text-muted">Used only for job-specific generation.</small>

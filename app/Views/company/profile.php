@@ -21,6 +21,12 @@ if ($cultureText === '') {
 }
 $aboutCompanyText = trim((string) ($company['what_we_do'] ?? ''));
 $hasBrandingSection = ($cultureText !== '') || !empty($benefits) || !empty($brandingPhotos);
+$officeTourUrl = trim((string) ($company['office_tour_url'] ?? ''));
+$officeTourTitle = trim((string) ($company['office_tour_title'] ?? ''));
+$officeTourSummary = trim((string) ($company['office_tour_summary'] ?? ''));
+if ($officeTourTitle === '') {
+    $officeTourTitle = 'Take a Virtual Tour';
+}
 
 $averageRating = (float) ($reviewSummary['average_rating'] ?? 0);
 $totalReviews = (int) ($reviewSummary['total_reviews'] ?? 0);
@@ -156,6 +162,27 @@ $reviewEligibility = is_array($reviewEligibility ?? null) ? $reviewEligibility :
                                         </div>
                                     </div>
                                 <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($officeTourUrl !== ''): ?>
+                        <div class="card mb-4">
+                            <div class="card-body office-tour-card">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+                                    <div>
+                                        <h5 class="mb-1">Office Tour</h5>
+                                        <p class="text-muted mb-0">Explore the workplace before you apply.</p>
+                                    </div>
+                                    <span class="badge badge-info">Virtual Tour</span>
+                                </div>
+                                <h4 class="office-tour-title"><?= esc($officeTourTitle) ?></h4>
+                                <?php if ($officeTourSummary !== ''): ?>
+                                    <p class="office-tour-summary"><?= esc($officeTourSummary) ?></p>
+                                <?php endif; ?>
+                                <a href="<?= esc($officeTourUrl) ?>" target="_blank" rel="noopener" class="btn btn-primary">
+                                    <i class="fas fa-play-circle mr-1"></i> Watch Tour
+                                </a>
                             </div>
                         </div>
                     <?php endif; ?>

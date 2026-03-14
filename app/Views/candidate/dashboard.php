@@ -8,6 +8,7 @@ $activeSuggestions = array_filter($suggestions, function ($s) {
 $avgScore = $stats['average_ai_score'] ?? 0;
 $recentApps = array_slice($applications ?? [], 0, 5);
 $topSuggestedJobs = $topSuggestedJobs ?? [];
+$jobSearchStrategy = $jobSearchStrategy ?? [];
 ?>
 
 <div class="dashboard-jobboard">
@@ -112,6 +113,148 @@ $topSuggestedJobs = $topSuggestedJobs ?? [];
 
     <section class="site-section">
         <div class="container">
+            <?php if (!empty($jobSearchStrategy)): ?>
+                <style>
+                    .strategy-preview-card {
+                        position: relative;
+                        overflow: hidden;
+                        border: 1px solid #dbe7f3;
+                        border-radius: 24px;
+                        background:
+                            radial-gradient(circle at top right, rgba(120, 179, 0, 0.10), transparent 34%),
+                            linear-gradient(135deg, #ffffff 0%, #fbfdff 55%, #f6fbf7 100%);
+                        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+                    }
+                    .strategy-preview-card::before {
+                        content: "";
+                        position: absolute;
+                        inset: 0 auto 0 0;
+                        width: 6px;
+                        background: linear-gradient(180deg, #78b300 0%, #12905a 100%);
+                    }
+                    .strategy-preview-grid {
+                        display: grid;
+                        grid-template-columns: minmax(0, 1.5fr) minmax(260px, .8fr);
+                        gap: 28px;
+                        align-items: start;
+                    }
+                    .strategy-preview-title {
+                        font-size: 2rem;
+                        line-height: 1.1;
+                        color: #0f172a;
+                    }
+                    .strategy-preview-summary {
+                        max-width: 680px;
+                        color: #475569;
+                        font-size: 1rem;
+                        line-height: 1.7;
+                    }
+                    .strategy-preview-section-label {
+                        margin-bottom: 12px;
+                        color: #64748b;
+                        font-size: .77rem;
+                        font-weight: 700;
+                        letter-spacing: .08em;
+                        text-transform: uppercase;
+                    }
+                    .strategy-preview-list {
+                        margin: 0;
+                        padding-left: 18px;
+                        color: #334155;
+                    }
+                    .strategy-preview-list li {
+                        margin-bottom: 10px;
+                        line-height: 1.7;
+                    }
+                    .strategy-preview-side {
+                        border: 1px solid #e2e8f0;
+                        border-radius: 18px;
+                        background: rgba(255, 255, 255, 0.82);
+                        padding: 20px;
+                    }
+                    .strategy-preview-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        padding: 6px 12px;
+                        border-radius: 999px;
+                        font-size: 11px;
+                        font-weight: 700;
+                        letter-spacing: .05em;
+                        text-transform: uppercase;
+                        border: 1px solid #bbf7d0;
+                        background: #dcfce7;
+                        color: #166534;
+                    }
+                    .strategy-preview-badge.is-fallback {
+                        border-color: #bfdbfe;
+                        background: #eff6ff;
+                        color: #1d4ed8;
+                    }
+                    .strategy-preview-role-grid {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
+                    .strategy-preview-role {
+                        display: inline-flex;
+                        align-items: center;
+                        padding: 8px 12px;
+                        border-radius: 999px;
+                        border: 1px solid #d7e3f2;
+                        background: #fff;
+                        color: #1e293b;
+                        font-size: .92rem;
+                        font-weight: 600;
+                    }
+                    .strategy-preview-cta {
+                        width: 100%;
+                        border-radius: 14px;
+                        padding: 12px 16px;
+                        font-weight: 700;
+                    }
+                    @media (max-width: 991.98px) {
+                        .strategy-preview-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .strategy-preview-title {
+                            font-size: 1.75rem;
+                        }
+                    }
+                </style>
+                <div class="row mb-5 justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="strategy-preview-card p-4 p-lg-5">
+                            <div class="strategy-preview-grid">
+                                <div>
+                                    <h2 class="strategy-preview-title mb-3">Job Search Strategy Coach</h2>
+                                    <p class="strategy-preview-summary mb-4"><?= esc($jobSearchStrategy['summary'] ?? 'Get a tighter strategy for what to apply to next and how to improve your search quality.') ?></p>
+                                    <div class="strategy-preview-section-label">Priority Actions</div>
+                                    <ul class="strategy-preview-list">
+                                        <?php foreach (array_slice((array) ($jobSearchStrategy['priority_actions'] ?? []), 0, 3) as $item): ?>
+                                            <li><?= esc($item) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                                <div class="strategy-preview-side">
+                                    <span class="strategy-preview-badge <?= ($jobSearchStrategy['source'] ?? 'fallback') === 'ai' ? '' : 'is-fallback' ?>">
+                                        <?= ($jobSearchStrategy['source'] ?? 'fallback') === 'ai' ? 'AI-generated' : 'Structured fallback' ?>
+                                    </span>
+                                    <div class="strategy-preview-section-label mt-4">Target Roles</div>
+                                    <div class="strategy-preview-role-grid mb-4">
+                                        <?php foreach (array_slice((array) ($jobSearchStrategy['target_roles'] ?? []), 0, 4) as $role): ?>
+                                            <span class="strategy-preview-role"><?= esc($role) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <a href="<?= base_url('candidate/job-search-strategy') ?>" class="btn btn-outline-primary strategy-preview-cta">
+                                        Open Full Strategy
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="row mb-5 justify-content-center">
                 <div class="col-md-7 text-center">
                     <h2 class="section-title mb-2">Top Suggested Jobs</h2>
@@ -244,6 +387,13 @@ $topSuggestedJobs = $topSuggestedJobs ?? [];
                         <span class="icon-trending_up d-inline-block mb-3" style="font-size:34px;"></span>
                         <h5>Career Transition AI</h5>
                         <p class="mb-0 text-muted">Build your path.</p>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <a href="<?= base_url('candidate/job-search-strategy') ?>" class="action-card d-block text-center">
+                        <span class="icon-lightbulb_outline d-inline-block mb-3" style="font-size:34px;"></span>
+                        <h5>Search Strategy Coach</h5>
+                        <p class="mb-0 text-muted">Plan what to target next.</p>
                     </a>
                 </div>
             </div>
