@@ -93,9 +93,10 @@ class DashboardController extends BaseController
 
         // Recent Activity
         $recentApplicationsBuilder = $applicationModel
-            ->select('applications.*, users.name as candidate_name, jobs.title as job_title')
+            ->select('applications.*, users.name as candidate_name, jobs.title as job_title, jobs.required_skills as required_skills, candidate_profiles.location as candidate_location, candidate_profiles.headline as candidate_headline')
             ->join('users', 'users.id = applications.candidate_id', 'left')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left');
+            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->join('candidate_profiles', 'candidate_profiles.user_id = applications.candidate_id', 'left');
         if (!empty($jobIds)) {
             $recentApplicationsBuilder->whereIn('applications.job_id', $jobIds);
         }
@@ -549,6 +550,7 @@ class DashboardController extends BaseController
         }
         return $candidates;
     }
+
     /**
      * Get Candidate Skills from candidate_skills table
      */

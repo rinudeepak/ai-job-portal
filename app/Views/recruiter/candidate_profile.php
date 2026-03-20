@@ -1,6 +1,7 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Candidate Profile']) ?>
 
-<div class="container mt-5 mb-5">
+<div class="recruiter-candidate-profile-jobboard">
+<div class="container-fluid py-5">
     <?php
     $applicationId = (int) (service('request')->getGet('application_id') ?? 0);
     $jobId = (int) (service('request')->getGet('job_id') ?? 0);
@@ -8,77 +9,59 @@
     $contactViewUrl = base_url('recruiter/candidate/' . $candidate['id'] . '/view-contact')
         . '?application_id=' . $applicationId
         . '&job_id=' . $jobId;
+    $resumeUrl = base_url('recruiter/candidate/' . $candidate['id'] . '/download-resume');
+    $resumeUrl .= '?application_id=' . $applicationId . '&job_id=' . $jobId;
     $messages = $messages ?? [];
     $recruiterNote = $recruiterNote ?? null;
     $interests = $interests ?? [];
     $projects = $projects ?? [];
     ?>
-    <style>
-        .candidate-summary-card .candidate-name {
-            margin-bottom: 12px;
-            font-weight: 700;
-        }
-        .candidate-summary-card .candidate-meta {
-            margin-bottom: 14px;
-            color: #6c757d;
-            font-size: 0.95rem;
-        }
-        .candidate-summary-card .candidate-meta p {
-            margin-bottom: 6px;
-        }
-        .candidate-summary-actions {
-            margin-top: 12px;
-        }
-        .candidate-summary-actions .btn {
-            width: 100%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-        .candidate-summary-actions .btn:last-child {
-            margin-bottom: 0;
-        }
-        .candidate-detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-        }
-        .candidate-detail-item {
-            border: 1px solid #e9eef5;
-            border-radius: 12px;
-            padding: 12px 14px;
-            background: #fbfdff;
-        }
-        .candidate-detail-item label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #6c757d;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-        }
-        .candidate-detail-item .value-empty {
-            color: #94a3b8;
-        }
-        @media (max-width: 767.98px) {
-            .candidate-detail-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <?php
+    $candidateHeadline = trim((string) ($candidate['resume_headline'] ?? ''));
+    $candidateLocation = trim((string) ($candidate['location'] ?? ''));
+    $candidateMetaBits = array_filter([
+        $candidateHeadline !== '' ? $candidateHeadline : null,
+        $candidateLocation !== '' ? $candidateLocation : null,
+        $showContact ? 'Contact visible' : 'Contact hidden',
+        !empty($candidate['resume_path']) ? 'Resume available' : null,
+    ]);
+    ?>
+    <div class="page-board-header page-board-header-tight recruiter-page-board-header">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-id-card"></i> Candidate profile</span>
+            <h1 class="page-board-title"><?= esc($candidate['name']) ?></h1>
+            <p class="page-board-subtitle">
+                Review candidate details, notes, skills, and history before moving forward.
+            </p>
+            <?php if (!empty($candidateMetaBits)): ?>
+            <div class="company-profile-meta">
+                <?php foreach ($candidateMetaBits as $metaBit): ?>
+                    <span class="meta-chip"><?= esc($metaBit) ?></span>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        <div class="page-board-actions candidate-profile-actions">
+            <?php if (!$showContact): ?>
+                <a href="<?= $contactViewUrl ?>" class="btn btn-outline-primary">
+                    <i class="fas fa-address-card"></i> View Contact
+                </a>
+            <?php endif; ?>
+            <?php if ($candidate['resume_path']): ?>
+                <a href="<?= $resumeUrl ?>" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download Resume
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
     <?php if (session()->getFlashdata('success')): ?>
         <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
     <?php endif; ?>
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
     <?php endif; ?>
-    <div class="row">
-        <div class="col-lg-4">
+    <div class="row candidate-profile-layout">
+        <div class="col-lg-4 candidate-profile-side">
             <div class="card shadow-sm candidate-summary-card">
                 <div class="card-body text-center">
                     <?php if (!empty($candidate['profile_photo'])): ?>
@@ -96,20 +79,6 @@
                         <?php endif; ?>
                         <?php if ($candidate['location']): ?>
                             <p><i class="fas fa-map-marker-alt"></i> <?= esc($candidate['location']) ?></p>
-                        <?php endif; ?>
-                    </div>
-                    <?php
-                    $resumeUrl = base_url('recruiter/candidate/' . $candidate['id'] . '/download-resume');
-                    $resumeUrl .= '?application_id=' . $applicationId . '&job_id=' . $jobId;
-                    ?>
-                    <div class="candidate-summary-actions">
-                        <?php if (!$showContact): ?>
-                            <a href="<?= $contactViewUrl ?>" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-address-card"></i> View Contact
-                            </a>
-                        <?php endif; ?>
-                        <?php if($candidate['resume_path']): ?>
-                            <a href="<?= $resumeUrl ?>" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Download Resume</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -189,7 +158,7 @@
             </div>
         </div>
         
-        <div class="col-lg-8">
+        <div class="col-lg-8 candidate-profile-main">
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h5><i class="fas fa-id-card"></i> Personal Information</h5>
@@ -411,6 +380,7 @@
             <?php endif; ?>
         </div>
     </div>
+</div>
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>

@@ -1,27 +1,48 @@
 <?= view('Layouts/recruiter_header', ['title' => 'My Jobs']) ?>
 
+<div class="recruiter-jobs-jobboard">
 <div class="container-fluid py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="fas fa-briefcase"></i> My Posted Jobs</h2>
-            <p class="text-muted">Manage your job postings</p>
+    <?php
+    $totalJobs = count($jobs ?? []);
+    $openJobs = 0;
+    $closedJobs = 0;
+    foreach (($jobs ?? []) as $job) {
+        if (($job['status'] ?? '') === 'open') {
+            $openJobs++;
+        } else {
+            $closedJobs++;
+        }
+    }
+    ?>
+    <div class="page-board-header page-board-header-tight recruiter-page-board-header">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-briefcase"></i> Recruiter jobs</span>
+            <h1 class="page-board-title">My Posted Jobs</h1>
+            <p class="page-board-subtitle">Manage job postings, applications, screening policy, and leaderboard access.</p>
+            <div class="company-profile-meta">
+                <span class="meta-chip"><strong><?= number_format($totalJobs) ?></strong> Total jobs</span>
+                <span class="meta-chip"><strong><?= number_format($openJobs) ?></strong> Open</span>
+                <span class="meta-chip"><strong><?= number_format($closedJobs) ?></strong> Closed</span>
+            </div>
         </div>
-        <a href="<?= base_url('recruiter/post_job') ?>" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Post New Job
-        </a>
+        <div class="page-board-actions">
+            <a href="<?= base_url('recruiter/post_job') ?>" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Post New Job
+            </a>
+        </div>
     </div>
 
     <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+        <div class="alert alert-success recruiter-alert"><?= session()->getFlashdata('success') ?></div>
     <?php endif; ?>
     <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+        <div class="alert alert-danger recruiter-alert"><?= esc(session()->getFlashdata('error')) ?></div>
     <?php endif; ?>
 
-    <div class="card shadow">
-        <div class="card-body">
+    <div class="card shadow-sm recruiter-table-card">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover recruiter-jobs-table mb-0">
                     <thead class="thead-light">
                         <tr>
                             <th>Job Title</th>
@@ -78,7 +99,7 @@
                                                 <i class="fas fa-trophy"></i> Leaderboard
                                             </a>
                                             <?php if ($job['status'] == 'open'): ?>
-                                                <a href="<?= base_url('recruiter/jobs/close/' . $job['id']) ?>" 
+                                                <a href="<?= base_url('recruiter/jobs/close/' . $job['id']) ?>"
                                                    class="btn btn-sm btn-action btn-action-close"
                                                    onclick="return confirm('Are you sure you want to close this job?')">
                                                     <i class="fas fa-times-circle"></i> Close
@@ -106,6 +127,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>

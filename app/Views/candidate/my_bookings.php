@@ -1,20 +1,25 @@
 <?= view('Layouts/candidate_header', ['title' => 'My Interview Bookings']) ?>
 
 <div class="my-bookings-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <h1 class="text-white font-weight-bold">My Interview Bookings</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>My Bookings</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-calendar-check"></i> Interview calendar</span>
+                <h1 class="page-board-title">My Interview Bookings</h1>
+                <p class="page-board-subtitle">Review upcoming interviews, track completed bookings, and reschedule when needed.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= count($bookings ?? []) ?></strong> Total</span>
+                    <span class="meta-chip"><strong><?= (int) $upcomingCount ?></strong> Upcoming</span>
+                    <span class="meta-chip"><strong><?= (int) $completedCount ?></strong> Completed</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('candidate/dashboard') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-home mr-1"></i> Dashboard
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">

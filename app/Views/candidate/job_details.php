@@ -23,223 +23,126 @@ if ($benefitsRaw !== '') {
 }
 $cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
 $resumeCoach = is_array($resumeCoach ?? null) ? $resumeCoach : [];
+$successFlash = session()->getFlashdata('success');
+$errorFlash = session()->getFlashdata('error');
+$careerSuggestion = session()->getFlashdata('career_suggestion');
+$skills = array_filter(array_map('trim', explode(',', (string) ($job['required_skills'] ?? ''))));
+$jobTypeLabel = ucwords(str_replace('-', ' ', (string) ($job['employment_type'] ?? 'Full Time')));
+$jobLocation = (string) ($job['location'] ?? 'Not specified');
+$jobCompany = (string) ($job['company'] ?? 'Company');
+$jobCategory = trim((string) ($job['category'] ?? ''));
+$jobExperience = (string) ($job['experience_level'] ?? 'Not specified');
+$jobSalary = trim((string) ($job['salary_range'] ?? ''));
+$jobDeadline = trim((string) ($job['application_deadline'] ?? ''));
+$jobOpenings = trim((string) ($job['openings'] ?? ''));
+$jobPublished = !empty($job['created_at']) ? date('d M Y', strtotime((string) $job['created_at'])) : null;
+$companyInitial = strtoupper(substr($jobCompany, 0, 1) ?: 'C');
+
+$summaryRows = [
+    ['Published on', $jobPublished ?: 'Not specified'],
+    ['Company', $jobCompany],
+    ['Employment', $jobTypeLabel],
+    ['Experience', $jobExperience],
+    ['Location', $jobLocation],
+];
+if ($jobCategory !== '') {
+    $summaryRows[] = ['Category', $jobCategory];
+}
+if ($jobSalary !== '') {
+    $summaryRows[] = ['Salary Range', $jobSalary];
+}
+if ($jobDeadline !== '') {
+    $summaryRows[] = ['Deadline', date('d M Y', strtotime($jobDeadline))];
+}
+if ($jobOpenings !== '') {
+    $summaryRows[] = ['Openings', $jobOpenings];
+}
+
+$policyRaw = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
+$policyMap = [
+    'OFF' => [
+        'title' => 'AI Interview: Not Required',
+        'desc' => 'You can apply directly. No AI round is needed for this job.',
+        'class' => 'ai-policy-off',
+        'icon' => 'fas fa-check-circle',
+    ],
+    'OPTIONAL' => [
+        'title' => 'AI Interview: Optional',
+        'desc' => 'Optional AI round is available and may improve your visibility.',
+        'class' => 'ai-policy-optional',
+        'icon' => 'fas fa-lightbulb',
+    ],
+    'REQUIRED_SOFT' => [
+        'title' => 'AI Interview: Required + Recruiter Review',
+        'desc' => 'AI round is required, and recruiter can still make the final decision.',
+        'class' => 'ai-policy-soft',
+        'icon' => 'fas fa-user-check',
+    ],
+    'REQUIRED_HARD' => [
+        'title' => 'AI Interview: Mandatory Screening',
+        'desc' => 'AI interview is mandatory and works as the primary screening gate.',
+        'class' => 'ai-policy-hard',
+        'icon' => 'fas fa-shield-alt',
+    ],
+];
+$policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
 ?>
-<style>
-.job-details-jobboard .ai-policy-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #dfe6f5;
-    background: #f8fbff;
-    margin-bottom: 12px;
-}
-.job-details-jobboard .ai-policy-card .ai-policy-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    flex: 0 0 28px;
-}
-.job-details-jobboard .ai-policy-card .ai-policy-title {
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.2;
-    color: #1f2f57;
-    margin-bottom: 2px;
-}
-.job-details-jobboard .ai-policy-card .ai-policy-desc {
-    font-size: 12px;
-    color: #607295;
-    line-height: 1.3;
-    margin: 0;
-}
-.job-details-jobboard .ai-policy-off { background: #f7f9fc; border-color: #dde3ed; }
-.job-details-jobboard .ai-policy-off .ai-policy-icon { background: #e8edf4; color: #4b5f80; }
-.job-details-jobboard .ai-policy-optional { background: #f2f9ff; border-color: #cfe5ff; }
-.job-details-jobboard .ai-policy-optional .ai-policy-icon { background: #dceeff; color: #2f78c6; }
-.job-details-jobboard .ai-policy-soft { background: #fffaf0; border-color: #f4dfb8; }
-.job-details-jobboard .ai-policy-soft .ai-policy-icon { background: #ffedcc; color: #b87b1b; }
-.job-details-jobboard .ai-policy-hard { background: #fff4f4; border-color: #f2c7c7; }
-.job-details-jobboard .ai-policy-hard .ai-policy-icon { background: #f8dada; color: #b53d3d; }
-.job-details-jobboard .resume-coach-card {
-    border: 1px solid #dbeafe;
-    background: linear-gradient(135deg, #f8fbff 0%, #f4fbf6 100%);
-    border-radius: 16px;
-    padding: 18px;
-    margin-bottom: 28px;
-}
-.job-details-jobboard .resume-coach-score {
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1;
-    color: #0f172a;
-}
-.job-details-jobboard .resume-coach-chip-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.job-details-jobboard .resume-coach-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
-}
-.job-details-jobboard .resume-coach-chip.match {
-    background: #ecfdf5;
-    color: #047857;
-    border: 1px solid #bbf7d0;
-}
-.job-details-jobboard .resume-coach-chip.missing {
-    background: #fff7ed;
-    color: #c2410c;
-    border: 1px solid #fed7aa;
-}
-.job-details-jobboard .resume-coach-suggestion-list {
-    margin: 0;
-    padding-left: 18px;
-}
-.job-details-jobboard .resume-coach-suggestion-list li {
-    margin-bottom: 8px;
-    color: #475569;
-}
-</style>
 
 <div class="job-details-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <h1 class="text-white font-weight-bold"><?= esc($job['title']) ?></h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('jobs') ?>">Jobs</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong><?= esc($job['title']) ?></strong></span>
-                    </div>
+    <div class="container">
+        <div class="job-details-page-header">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-briefcase"></i> Job details</span>
+                <h1 class="page-board-title"><?= esc($job['title']) ?></h1>
+                <p class="page-board-subtitle">Review the role, AI screening policy, and company summary before applying.</p>
+                <div class="job-details-header-meta">
+                    <span class="meta-chip"><i class="fas fa-building"></i> <?= esc($jobCompany) ?></span>
+                    <span class="meta-chip"><i class="fas fa-map-pin"></i> <?= esc($jobLocation) ?></span>
+                    <span class="meta-chip"><i class="fas fa-clock"></i> <?= esc($jobTypeLabel) ?></span>
+                    <?php if ($jobSalary !== ''): ?>
+                        <span class="meta-chip"><i class="fas fa-rupee-sign"></i> <?= esc($jobSalary) ?></span>
+                    <?php endif; ?>
                 </div>
+            </div>
+            <div class="job-details-header-actions">
+                <a href="<?= esc($companyProfileUrl) ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-store mr-1"></i> Company Profile
+                </a>
+                <a href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>" class="btn btn-outline-secondary">
+                    <span class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-1"></span><?= $isSaved ? 'Saved' : 'Save Job' ?>
+                </a>
+                <?php if ($alreadyApplied): ?>
+                    <button class="btn btn-primary" disabled>
+                        <i class="fas fa-check mr-1"></i> Already Applied
+                    </button>
+                <?php else: ?>
+                    <a href="#apply-job" class="btn btn-primary">
+                        <i class="fas fa-paper-plane mr-1"></i> Apply Now
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
-    </section>
+    </div>
 
-    <section class="site-section content-wrap">
+    <section class="site-section pt-0 content-wrap">
         <div class="container">
-            <div class="row align-items-center mb-5">
-                <div class="col-lg-8 mb-4 mb-lg-0">
-                    <div class="d-flex align-items-center">
-                        <div class="border p-2 d-inline-block mr-3 rounded">
-                            <a href="<?= esc($companyProfileUrl) ?>" title="View company profile">
-                                <div class="job-details-logo">
-                                    <?= strtoupper(substr($job['company'] ?? 'J', 0, 1)) ?>
-                                </div>
-                            </a>
-                        </div>
-                        <div>
-                            <h2 class="mb-1"><?= esc($job['title']) ?></h2>
-                            <div>
-                                <span class="ml-0 mr-2 mb-2 d-inline-block">
-                                    <span class="icon-briefcase mr-2"></span>
-                                    <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a>
-                                </span>
-                                <span class="m-2 d-inline-block">
-                                    <span class="icon-room mr-2"></span><?= esc($job['location']) ?>
-                                </span>
-                                <span class="m-2 d-inline-block">
-                                    <span class="icon-clock-o mr-2"></span>
-                                    <span class="text-primary"><?= esc(ucwords(str_replace('-', ' ', $job['employment_type'] ?? 'Full Time'))) ?></span>
-                                </span>
-                                <?php if (!empty(trim((string) ($job['salary_range'] ?? '')))): ?>
-                                    <span class="m-2 d-inline-block">
-                                        <span class="icon-attach_money mr-2"></span><?= esc($job['salary_range']) ?>
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <?php
-                    $policyRaw = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
-                    $policyMap = [
-                        'OFF' => [
-                            'title' => 'AI Interview: Not Required',
-                            'desc' => 'You can apply directly. No AI round is needed for this job.',
-                            'class' => 'ai-policy-off',
-                            'icon' => 'fas fa-check-circle'
-                        ],
-                        'OPTIONAL' => [
-                            'title' => 'AI Interview: Optional',
-                            'desc' => 'Optional AI round is available and may improve your visibility.',
-                            'class' => 'ai-policy-optional',
-                            'icon' => 'fas fa-lightbulb'
-                        ],
-                        'REQUIRED_SOFT' => [
-                            'title' => 'AI Interview: Required + Recruiter Review',
-                            'desc' => 'AI round is required, and recruiter can still make the final decision.',
-                            'class' => 'ai-policy-soft',
-                            'icon' => 'fas fa-user-check'
-                        ],
-                        'REQUIRED_HARD' => [
-                            'title' => 'AI Interview: Mandatory Screening',
-                            'desc' => 'AI interview is mandatory and works as the primary screening gate.',
-                            'class' => 'ai-policy-hard',
-                            'icon' => 'fas fa-shield-alt'
-                        ],
-                    ];
-                    $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
-                    ?>
-                    <div class="ai-policy-card <?= esc($policy['class']) ?>">
-                        <span class="ai-policy-icon"><i class="<?= esc($policy['icon']) ?>"></i></span>
-                        <div>
-                            <div class="ai-policy-title"><?= esc($policy['title']) ?></div>
-                            <p class="ai-policy-desc"><?= esc($policy['desc']) ?></p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <a href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>" class="btn btn-block btn-outline-secondary btn-md mb-2">
-                                <span class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-2"></span><?= $isSaved ? 'Saved' : 'Save Job' ?>
-                            </a>
-                            <?php if ($alreadyApplied): ?>
-                                <button class="btn btn-block btn-light btn-md" disabled>
-                                    <span class="icon-check mr-2 text-success"></span>Already Applied
-                                </button>
-                            <?php else: ?>
-                                <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="btn btn-block btn-primary btn-md">Apply Now</button>
-                                </form>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <?php if (session()->getFlashdata('success')): ?>
+            <?php if ($successFlash): ?>
                 <div class="alert alert-success">
-                    <?= esc(session()->getFlashdata('success')) ?>
+                    <?= esc($successFlash) ?>
                 </div>
             <?php endif; ?>
 
-            <?php if (session()->getFlashdata('error')): ?>
+            <?php if ($errorFlash): ?>
                 <div class="alert alert-danger">
-                    <?= esc(session()->getFlashdata('error')) ?>
+                    <?= esc($errorFlash) ?>
                 </div>
             <?php endif; ?>
 
-            <div class="row">
-                <div class="col-lg-8">
+            <div class="job-details-layout">
+                <div class="job-details-main">
                     <?php if (!$alreadyApplied && !empty($resumeCoach)): ?>
                         <div class="resume-coach-card">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                                 <div>
                                     <h3 class="h5 mb-1 text-primary"><i class="fas fa-magic mr-2"></i>Job-specific Resume Coach</h3>
                                     <p class="text-muted mb-0">See how well your current resume/profile aligns with this job before you apply.</p>
@@ -300,7 +203,7 @@ $resumeCoach = is_array($resumeCoach ?? null) ? $resumeCoach : [];
                         </div>
                     <?php elseif ($alreadyApplied): ?>
                         <div class="resume-coach-card">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                                 <div>
                                     <h3 class="h5 mb-1 text-primary"><i class="fas fa-check-circle mr-2"></i>Application Already Submitted</h3>
                                     <p class="text-muted mb-0">Your focus should now move from resume tailoring to interview readiness and application follow-up.</p>
@@ -330,102 +233,141 @@ $resumeCoach = is_array($resumeCoach ?? null) ? $resumeCoach : [];
                         </div>
                     <?php endif; ?>
 
-                    <div class="mb-5">
-                        <h3 class="h5 d-flex align-items-center mb-4 text-primary">
-                            <span class="icon-align-left mr-3"></span>Job Description
-                        </h3>
-                        <p><?= nl2br(esc($job['description'])) ?></p>
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span class="detail-card-icon"><i class="fas fa-align-left"></i></span>
+                            <span>Job Description</span>
+                        </div>
+                        <div class="job-details-section-text">
+                            <p><?= nl2br(esc($job['description'])) ?></p>
+                        </div>
                     </div>
 
-                    <div class="mb-5">
-                        <h3 class="h5 d-flex align-items-center mb-4 text-primary">
-                            <span class="icon-rocket mr-3"></span>Required Knowledge, Skills, and Abilities
-                        </h3>
-                        <?php
-                        $skills = array_filter(array_map('trim', explode(',', $job['required_skills'] ?? '')));
-                        ?>
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span class="detail-card-icon"><i class="fas fa-rocket"></i></span>
+                            <span>Required Knowledge, Skills, and Abilities</span>
+                        </div>
                         <?php if (!empty($skills)): ?>
-                            <ul class="list-unstyled m-0 p-0">
+                            <ul class="job-details-skill-list">
                                 <?php foreach ($skills as $skill): ?>
-                                    <li class="d-flex align-items-start mb-2">
-                                        <span class="icon-check_circle mr-2 text-muted"></span>
-                                        <span><?= esc($skill) ?></span>
-                                    </li>
+                                    <li><i class="fas fa-check-circle"></i><span><?= esc($skill) ?></span></li>
                                 <?php endforeach; ?>
                             </ul>
                         <?php else: ?>
-                            <ul class="list-unstyled m-0 p-0">
-                                <li class="d-flex align-items-start mb-2">
-                                    <span class="icon-check_circle mr-2 text-muted"></span>
-                                    <span>Skills not specified.</span>
-                                </li>
-                            </ul>
+                            <p class="job-details-section-text mb-0">Skills not specified.</p>
                         <?php endif; ?>
                     </div>
 
-                    <div class="mb-5">
-                        <h3 class="h5 d-flex align-items-center mb-4 text-primary">
-                            <span class="icon-book mr-3"></span>Education + Experience
-                        </h3>
-                        <ul class="list-unstyled m-0 p-0">
-                            <li class="d-flex align-items-start mb-2">
-                                <span class="icon-check_circle mr-2 text-muted"></span>
-                                <span><?= esc($job['experience_level'] ?? 'Not specified') ?></span>
-                            </li>
-                        </ul>
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span class="detail-card-icon"><i class="fas fa-book"></i></span>
+                            <span>Education + Experience</span>
+                        </div>
+                        <p class="job-details-section-text mb-0"><?= esc($jobExperience) ?></p>
                     </div>
 
-                    <div class="row mb-5">
-                        <div class="col-12">
-                            <?php if ($alreadyApplied): ?>
-                                <button class="btn btn-block btn-light btn-md" disabled>
-                                    <span class="icon-check mr-2 text-success"></span>Already Applied
-                                </button>
-                            <?php else: ?>
-                                <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="btn btn-block btn-primary btn-md">Apply Now</button>
-                                </form>
+                    <?php if ($cultureSummary !== '' || !empty($benefits) || !empty($brandingPhotos)): ?>
+                        <div class="detail-card">
+                            <div class="detail-card-title">
+                                <span class="detail-card-icon"><i class="fas fa-building"></i></span>
+                                <span>Company Snapshot</span>
+                            </div>
+                            <?php if ($cultureSummary !== ''): ?>
+                                <p class="job-details-section-text"><?= esc($cultureSummary) ?></p>
+                            <?php endif; ?>
+                            <?php if (!empty($benefits)): ?>
+                                <div class="job-details-chip-list">
+                                    <?php foreach (array_slice($benefits, 0, 6) as $benefit): ?>
+                                        <span class="summary-chip"><?= esc($benefit) ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (!empty($brandingPhotos)): ?>
+                                <div class="job-details-gallery">
+                                    <?php foreach (array_slice($brandingPhotos, 0, 3) as $photo): ?>
+                                        <img src="<?= esc($photo) ?>" alt="<?= esc($jobCompany) ?>" loading="lazy">
+                                    <?php endforeach; ?>
+                                </div>
                             <?php endif; ?>
                         </div>
+                    <?php endif; ?>
+
+                    <div class="detail-card" id="apply-job">
+                        <div class="detail-card-title">
+                            <span class="detail-card-icon"><i class="fas fa-paper-plane"></i></span>
+                            <span>Apply</span>
+                        </div>
+                        <?php if ($alreadyApplied): ?>
+                            <button class="btn btn-block btn-light btn-md" disabled>
+                                <span class="icon-check mr-2 text-success"></span>Already Applied
+                            </button>
+                        <?php else: ?>
+                            <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-block btn-primary btn-md">Apply Now</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <div class="col-lg-4">
-                    <?php if (session()->getFlashdata('career_suggestion')):
-                        $suggestion = session()->getFlashdata('career_suggestion'); ?>
-                        <div class="bg-light p-3 border rounded mb-4">
-                            <h3 class="text-primary mt-2 h5 mb-2"><i class="fas fa-rocket mr-2"></i>Career Transition Opportunity</h3>
-                            <p class="small mb-2"><?= esc($suggestion['message']) ?></p>
+                <aside class="job-details-side">
+                    <div class="summary-card policy-card">
+                        <div class="ai-policy-card <?= esc($policy['class']) ?>">
+                            <span class="ai-policy-icon"><i class="<?= esc($policy['icon']) ?>"></i></span>
+                            <div>
+                                <div class="ai-policy-title"><?= esc($policy['title']) ?></div>
+                                <p class="ai-policy-desc"><?= esc($policy['desc']) ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="detail-card-title mb-3">
+                            <span class="detail-card-icon"><i class="fas fa-list"></i></span>
+                            <span>Job Summary</span>
+                        </div>
+                        <ul class="job-details-summary-list">
+                            <?php foreach ($summaryRows as [$label, $value]): ?>
+                                <li>
+                                    <strong><?= esc($label) ?></strong>
+                                    <span><?= esc($value) ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="detail-card-title mb-3">
+                            <span class="detail-card-icon"><i class="fas fa-store"></i></span>
+                            <span>Company</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="job-details-logo mr-3"><?= esc($companyInitial) ?></div>
+                            <div>
+                                <div class="font-weight-bold"><?= esc($jobCompany) ?></div>
+                                <a href="<?= esc($companyProfileUrl) ?>" class="small">View company profile</a>
+                            </div>
+                        </div>
+                        <?php if (!empty($benefits)): ?>
+                            <div class="job-details-chip-list">
+                                <?php foreach (array_slice($benefits, 0, 4) as $benefit): ?>
+                                    <span class="summary-chip"><?= esc($benefit) ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ($careerSuggestion): ?>
+                        <div class="summary-card career-card">
+                            <h3 class="text-primary h5 mb-2"><i class="fas fa-rocket mr-2"></i>Career Transition Opportunity</h3>
+                            <p class="small mb-3"><?= esc($careerSuggestion['message']) ?></p>
                             <a href="<?= base_url('career-transition') ?>" class="btn btn-sm btn-primary btn-block">
                                 <i class="fas fa-graduation-cap mr-1"></i> Get Learning Roadmap
                             </a>
                         </div>
                     <?php endif; ?>
-
-                    <div class="bg-light p-3 border rounded mb-4">
-                        <h3 class="text-primary mt-3 h5 pl-3 mb-3">Job Summary</h3>
-                        <ul class="list-unstyled pl-3 mb-0">
-                            <li class="mb-2"><strong class="text-black">Published on:</strong> <?= date('d M Y', strtotime($job['created_at'])) ?></li>
-                            <li class="mb-2"><strong class="text-black">Company:</strong> <a href="<?= esc($companyProfileUrl) ?>"><?= esc($job['company']) ?></a></li>
-                            <?php if (!empty(trim((string) ($job['category'] ?? '')))): ?>
-                                <li class="mb-2"><strong class="text-black">Category:</strong> <?= esc($job['category']) ?></li>
-                            <?php endif; ?>
-                            <li class="mb-2"><strong class="text-black">Employment Status:</strong> <?= esc(ucwords(str_replace('-', ' ', $job['employment_type'] ?? 'Full Time'))) ?></li>
-                            <li class="mb-2"><strong class="text-black">Experience:</strong> <?= esc($job['experience_level'] ?? 'Not specified') ?></li>
-                            <?php if (!empty(trim((string) ($job['salary_range'] ?? '')))): ?>
-                                <li class="mb-2"><strong class="text-black">Salary Range:</strong> <?= esc($job['salary_range']) ?></li>
-                            <?php endif; ?>
-                            <?php if (!empty(trim((string) ($job['application_deadline'] ?? '')))): ?>
-                                <li class="mb-2"><strong class="text-black">Application Deadline:</strong> <?= date('d M Y', strtotime((string) $job['application_deadline'])) ?></li>
-                            <?php endif; ?>
-                            <?php if (!empty($job['openings'])): ?>
-                                <li class="mb-2"><strong class="text-black">Openings:</strong> <?= esc((string) $job['openings']) ?></li>
-                            <?php endif; ?>
-                            <li class="mb-2"><strong class="text-black">Job Location:</strong> <?= esc($job['location']) ?></li>
-                        </ul>
-                    </div>
-                </div>
+                </aside>
             </div>
         </div>
     </section>

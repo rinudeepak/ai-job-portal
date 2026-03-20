@@ -14,186 +14,212 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
 </head>
-<body id="top">
-<div id="overlayer"></div>
-<div class="loader">
-    <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
-</div>
+<body style="background: var(--background);" class="hirematrix-app">
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="<?= base_url('/') ?>">
+        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 40px; width: auto;">
+        <span class="d-none d-sm-inline">HireMatrix</span>
+      </a>
 
-<div class="site-wrap">
-    <div class="site-mobile-menu site-navbar-target">
-        <div class="site-mobile-menu-header">
-            <div class="site-mobile-menu-close mt-3"><span class="icon-close2 js-menu-toggle"></span></div>
-        </div>
-        <div class="site-mobile-menu-body"></div>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="<?= base_url('/') ?>">For Job Seekers</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="<?= base_url('recruiter/register') ?>">For Recruiters</a>
+          </li>
+        </ul>
+      </div>
     </div>
+  </nav>
 
-    <header class="site-navbar mt-3">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="site-logo col-6">
-                    <a href="<?= base_url('/') ?>" class="d-inline-flex align-items-center">
-                        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 34px; width: auto; margin-right: 8px;">
-                        <span style="text-transform: none;">HireMatrix</span>
-                    </a>
-                </div>
-                <nav class="mx-auto site-navigation">
-                    <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
-                        <li><a href="<?= base_url('/') ?>">Home</a></li>
-                        <li><a href="<?= base_url('register') ?>">Candidate Register</a></li>
-                        <li><a href="<?= base_url('recruiter/register') ?>" class="nav-link active">Recruiter Register</a></li>
-                        <li><a href="<?= base_url('login') ?>">Login</a></li>
-                    </ul>
-                </nav>
-                <div class="right-cta-menu text-right d-flex aligin-items-center col-6">
-                    <div class="ml-auto">
-                        <a href="<?= base_url('register') ?>" class="btn btn-outline-white border-width-2 d-none d-lg-inline-block">Candidate</a>
-                        <a href="<?= base_url('recruiter/register') ?>" class="btn btn-primary border-width-2 d-none d-lg-inline-block">Recruiter</a>
-                        <a href="<?= base_url('login') ?>" class="btn btn-outline-white border-width-2 d-none d-lg-inline-block">Log In</a>
-                    </div>
-                    <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3"><span class="icon-menu h3 m-0 p-0 mt-2"></span></a>
-                </div>
-            </div>
+  <section style="min-height: calc(100vh - 160px); display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
+    <div style="width: 100%; max-width: 480px;">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 48px; width: auto;">
+          <span style="font-weight: 700; font-size: 1.5rem; color: var(--foreground);">HireMatrix</span>
         </div>
-    </header>
+        <h1 style="font-size: 1.875rem; font-weight: 700; color: var(--foreground); margin-bottom: 0.5rem;">Create Recruiter Account</h1>
+        <p style="color: var(--muted-foreground); font-size: 0.875rem;">Create your recruiter account to post jobs and manage applications.</p>
+      </div>
 
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">Sign Up</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('/') ?>">Home</a> <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Recruiter Register</strong></span>
-                    </div>
+      <div class="card rounded-5 border-1" style="margin-bottom: 1.5rem;">
+        <div class="card-body p-4 p-md-5">
+          <?php if (session()->getFlashdata('error')) : ?>
+              <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+          <?php endif; ?>
+
+          <form method="post" action="<?= base_url('recruiter/register') ?>" style="display: flex; flex-direction: column; gap: 1rem;">
+              <?= csrf_field() ?>
+
+              <div>
+                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Company Name</label>
+                <div style="position: relative;">
+                  <i class="fas fa-building" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
+                  <input type="text" id="company_name" name="company_name" placeholder="Your company name" class="form-control" style="padding-left: 2.5rem;" value="<?= old('company_name') ?>" required>
                 </div>
-            </div>
-        </div>
-    </section>
+              </div>
 
-    <section class="site-section pt-0">
-        <div class="container pt-4">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <h2 class="mb-4">Create Recruiter Account</h2>
-                    <form method="post" action="<?= base_url('recruiter/register') ?>" class="p-4 border rounded bg-white">
-                        <?= csrf_field() ?>
-
-                        <?php if (session()->getFlashdata('error')) : ?>
-                            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
-                        <?php endif; ?>
-
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label class="text-black" for="company_name">Company Name</label>
-                                <input type="text" id="company_name" name="company_name" class="form-control" value="<?= old('company_name') ?>" required>
-                            </div>
-                        </div>
-
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label class="text-black" for="name">Recruiter Name</label>
-                                <input type="text" id="name" name="name" class="form-control" value="<?= old('name') ?>" required>
-                                <?php if (session('validation') && session('validation')->hasError('name')): ?>
-                                    <small class="text-danger"><?= session('validation')->getError('name') ?></small>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label class="text-black" for="designation">Designation</label>
-                                <input type="text" id="designation" name="designation" class="form-control" value="<?= old('designation') ?>" placeholder="e.g., Talent Acquisition Specialist" required>
-                                <?php if (session('validation') && session('validation')->hasError('designation')): ?>
-                                    <small class="text-danger"><?= session('validation')->getError('designation') ?></small>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label class="text-black" for="email">Email Address</label>
-                                <input type="email" id="email" name="email" class="form-control" value="<?= old('email') ?>" required>
-                                <small class="text-muted">Use company domain email only (free providers are blocked).</small>
-                                <?php if (session('validation') && session('validation')->hasError('email')): ?>
-                                    <small class="text-danger"><?= session('validation')->getError('email') ?></small>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label class="text-black" for="phone">Phone Number</label>
-                                <input type="text" id="phone" name="phone" class="form-control" value="<?= old('phone') ?>" required>
-                                <?php if (session('validation') && session('validation')->hasError('phone')): ?>
-                                    <small class="text-danger"><?= session('validation')->getError('phone') ?></small>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <label class="text-black" for="password">Password</label>
-                                <div class="input-group">
-                                    <input type="password" id="password" name="password" class="form-control" required>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)">Show</button>
-                                    </div>
-                                </div>
-                                <?php if (session('validation') && session('validation')->hasError('password')): ?>
-                                    <small class="text-danger"><?= session('validation')->getError('password') ?></small>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="row form-group mb-4">
-                            <div class="col-md-12">
-                                <label class="text-black" for="confirm_password">Re-Type Password</label>
-                                <div class="input-group">
-                                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password', this)">Show</button>
-                                    </div>
-                                </div>
-                                <?php if (session('validation') && session('validation')->hasError('confirm_password')): ?>
-                                    <small class="text-danger"><?= session('validation')->getError('confirm_password') ?></small>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="row form-group">
-                            <div class="col-md-12">
-                                <button type="submit" class="btn px-4 btn-primary text-white">Register as Recruiter</button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <p class="mt-3">Already have an account? <a href="<?= base_url('login') ?>">Login</a></p>
+              <div>
+                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Recruiter Name</label>
+                <div style="position: relative;">
+                  <i class="fas fa-user" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
+                  <input type="text" id="name" name="name" placeholder="Your full name" class="form-control" style="padding-left: 2.5rem;" value="<?= old('name') ?>" required>
                 </div>
-            </div>
-        </div>
-    </section>
-</div>
+                <?php if (session('validation') && session('validation')->hasError('name')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('name') ?></small>
+                <?php endif; ?>
+              </div>
 
-<script src="<?= base_url('jobboard/js/jquery.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/isotope.pkgd.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/stickyfill.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.fancybox.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.easing.1.3.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.waypoints.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.animateNumber.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/custom.js') ?>"></script>
-<script>
-function togglePassword(inputId, button) {
-    const input = document.getElementById(inputId);
-    const show = input.type === 'password';
-    input.type = show ? 'text' : 'password';
-    button.textContent = show ? 'Hide' : 'Show';
-}
-</script>
+              <div>
+                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Designation</label>
+                <div style="position: relative;">
+                  <i class="fas fa-id-badge" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
+                  <input type="text" id="designation" name="designation" placeholder="e.g., Talent Acquisition Specialist" class="form-control" style="padding-left: 2.5rem;" value="<?= old('designation') ?>" required>
+                </div>
+                <?php if (session('validation') && session('validation')->hasError('designation')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('designation') ?></small>
+                <?php endif; ?>
+              </div>
+
+              <div>
+                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Email Address</label>
+                <div style="position: relative;">
+                  <i class="fas fa-envelope" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
+                  <input type="email" id="email" name="email" placeholder="you@company.com" class="form-control" style="padding-left: 2.5rem;" value="<?= old('email') ?>" required>
+                </div>
+                <small class="text-muted">Use company domain email only (free providers are blocked).</small>
+                <?php if (session('validation') && session('validation')->hasError('email')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('email') ?></small>
+                <?php endif; ?>
+              </div>
+
+              <div>
+                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Phone Number</label>
+                <div style="position: relative;">
+                  <i class="fas fa-phone" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
+                  <input type="text" id="phone" name="phone" placeholder="Phone number" class="form-control" style="padding-left: 2.5rem;" value="<?= old('phone') ?>" required>
+                </div>
+                <?php if (session('validation') && session('validation')->hasError('phone')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('phone') ?></small>
+                <?php endif; ?>
+              </div>
+
+              <div>
+                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Password</label>
+                <div style="position: relative;">
+                  <i class="fas fa-lock" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
+                  <input type="password" id="passwordInput" name="password" placeholder="••••••••" class="form-control" style="padding-left: 2.5rem; padding-right: 2.5rem;" required>
+                  <button type="button" onclick="togglePassword('passwordInput', this)" style="position: absolute; right: 1rem; top: 0.875rem; background: transparent; border: none; color: var(--muted-foreground); cursor: pointer;">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <?php if (session('validation') && session('validation')->hasError('password')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('password') ?></small>
+                <?php endif; ?>
+              </div>
+
+              <div class="mb-1">
+                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Re-Type Password</label>
+                <div style="position: relative;">
+                  <i class="fas fa-lock" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
+                  <input type="password" id="confirmPasswordInput" name="confirm_password" placeholder="••••••••" class="form-control" style="padding-left: 2.5rem; padding-right: 2.5rem;" required>
+                  <button type="button" onclick="togglePassword('confirmPasswordInput', this)" style="position: absolute; right: 1rem; top: 0.875rem; background: transparent; border: none; color: var(--muted-foreground); cursor: pointer;">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <?php if (session('validation') && session('validation')->hasError('confirm_password')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('confirm_password') ?></small>
+                <?php endif; ?>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg" style="margin-top: 0.5rem; width: 100%;">
+                Register as Recruiter
+              </button>
+          </form>
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        <p style="color: var(--muted-foreground); font-size: 0.875rem;">
+          Already have an account?
+          <a href="<?= base_url('login') ?>" style="color: var(--primary); text-decoration: none; font-weight: 600;">Login</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer mt-5">
+    <div class="container">
+      <div class="row g-5 mb-5">
+        <div class="col-md-3">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 40px; width: auto;">
+            <span style="font-weight: 700; font-size: 1.125rem;">HireMatrix</span>
+          </div>
+          <p style="font-size: 0.875rem; opacity: 0.8;">
+            Connecting talent with opportunities through AI-powered recommendations.
+          </p>
+        </div>
+
+        <div class="footer-section col-md-3">
+          <h3>For Job Seekers</h3>
+          <a href="<?= base_url('jobs') ?>">Browse Jobs</a>
+          <a href="<?= base_url('/#get-started') ?>">Get Started</a>
+          <a href="<?= base_url('register') ?>">Create Candidate Account</a>
+        </div>
+
+        <div class="footer-section col-md-3">
+          <h3>For Employers</h3>
+          <a href="<?= base_url('recruiter/register') ?>">Join as Recruiter</a>
+          <a href="<?= base_url('login') ?>">Sign In</a>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-social">
+          <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+          <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+        </div>
+        <p>© 2026 HireMatrix. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="<?= base_url('jobboard/js/jquery.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/bootstrap.bundle.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/isotope.pkgd.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/stickyfill.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/jquery.fancybox.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/jquery.easing.1.3.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/jquery.waypoints.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/jquery.animateNumber.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
+  <script src="<?= base_url('jobboard/js/custom.js') ?>"></script>
+  <script>
+    function togglePassword(inputId, button) {
+      const input = document.getElementById(inputId);
+      const icon = button.querySelector('i');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      if (icon) {
+        icon.classList.toggle('fa-eye', !show);
+        icon.classList.toggle('fa-eye-slash', show);
+      }
+    }
+  </script>
 </body>
 </html>

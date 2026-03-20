@@ -3,28 +3,28 @@
 <div class="course-content-jobboard">
     <div class="offline-badge online" id="offlineStatus">Online</div>
 
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <h1 class="text-white font-weight-bold"><?= esc($module['title']) ?></h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('career-transition') ?>">Career Transition AI</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('career-transition/course') ?>">Modules</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Module <?= (int) $module['module_number'] ?></strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-book-open"></i> Learning content</span>
+                <h1 class="page-board-title"><?= esc($module['title']) ?></h1>
+                <p class="page-board-subtitle">Read through the lessons, resources, and practice exercises for this module.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong>Module <?= (int) $module['module_number'] ?></strong></span>
+                    <span class="meta-chip"><strong><?= (int) $module['duration_weeks'] ?></strong> Week(s)</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('career-transition/course') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> All Modules
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">
-            <div class="card transition-panel course-header-panel mb-4">
+            <div class="course-header-card mb-4">
                 <div class="card-body d-flex justify-content-between align-items-start flex-wrap transition-header-row">
                     <div>
                         <span class="badge badge-light mb-2">Module <?= (int) $module['module_number'] ?></span>
@@ -44,7 +44,7 @@
                 <div class="alert alert-warning">No lessons available for this module.</div>
             <?php else: ?>
                 <?php foreach ($lessons as $lesson): ?>
-                    <div class="card course-lesson-card mb-4">
+                    <div class="course-lesson-card mb-4">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <span class="course-lesson-number"><?= (int) $lesson['lesson_number'] ?></span>

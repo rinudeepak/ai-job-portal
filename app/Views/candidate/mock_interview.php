@@ -10,22 +10,36 @@ $status = (string) ($application['status'] ?? '');
 $aiPolicy = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRED_HARD'));
 ?>
 
-<section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-8">
-                <h1 class="text-white font-weight-bold">Detailed Mock Interview</h1>
-                <div class="custom-breadcrumbs">
-                    <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                    <span class="mx-2 slash">/</span>
-                    <a href="<?= base_url('candidate/applications') ?>">Applications</a>
-                    <span class="mx-2 slash">/</span>
-                    <span class="text-white"><strong><?= esc($jobTitle) ?></strong></span>
-                </div>
+<div class="container">
+    <div class="page-board-header page-board-header-tight">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-video"></i> Interview practice</span>
+            <h1 class="page-board-title">Detailed Mock Interview</h1>
+            <p class="page-board-subtitle">Practice the most likely interview questions and answer patterns for this role.</p>
+            <div class="company-profile-meta">
+                <span class="meta-chip"><strong><?= esc($jobTitle) ?></strong> Role</span>
+                <?php if ($companyName !== ''): ?>
+                    <span class="meta-chip"><strong><?= esc($companyName) ?></strong> Company</span>
+                <?php endif; ?>
+                <span class="meta-chip"><strong><?= esc(ucwords(str_replace('_', ' ', $status))) ?></strong> Status</span>
             </div>
         </div>
+        <div class="page-board-actions">
+            <a href="<?= base_url('candidate/applications') ?>" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Applications
+            </a>
+            <?php if ($status === 'applied' && $aiPolicy !== 'OFF'): ?>
+                <a href="<?= base_url('interview/start/' . (int) $application['id']) ?>" class="btn btn-success">
+                    <i class="fas fa-video mr-1"></i> Start AI Interview
+                </a>
+            <?php elseif ($status === 'shortlisted'): ?>
+                <a href="<?= base_url('candidate/book-slot/' . (int) $application['id']) ?>" class="btn btn-warning">
+                    <i class="fas fa-calendar-plus mr-1"></i> Book Interview Slot
+                </a>
+            <?php endif; ?>
+        </div>
     </div>
-</section>
+</div>
 
 <div class="container py-5">
     <style>

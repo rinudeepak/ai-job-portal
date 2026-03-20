@@ -1,21 +1,31 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Interview Slots']) ?>
 
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-calendar-alt"></i> Interview Slots Management</h2>
-                <a href="<?= base_url('recruiter/slots/create') ?>" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Create New Slots
-                </a>
+<div class="recruiter-slots-jobboard">
+<div class="container-fluid py-5">
+    <div class="page-board-header page-board-header-tight recruiter-page-board-header">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-calendar-alt"></i> Recruiter scheduling</span>
+            <h1 class="page-board-title">Interview Slots Management</h1>
+            <p class="page-board-subtitle">Create, review, and manage slots before candidates book interview windows.</p>
+            <div class="company-profile-meta">
+                <span class="meta-chip"><strong><?= number_format($stats['total_slots']) ?></strong> Total slots</span>
+                <span class="meta-chip"><strong><?= number_format($stats['available_slots']) ?></strong> Available</span>
+                <span class="meta-chip"><strong><?= number_format($stats['total_bookings']) ?></strong> Bookings</span>
             </div>
+        </div>
+        <div class="page-board-actions">
+            <a href="<?= base_url('recruiter/slots/create') ?>" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New Slots
+            </a>
+            <a href="<?= base_url('recruiter/slots/bookings') ?>" class="btn btn-outline-secondary">
+                <i class="fas fa-list"></i> View All Bookings
+            </a>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-applications shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -31,7 +41,7 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-openjobs shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -47,7 +57,7 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-conversion shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -63,7 +73,7 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-bookings shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -79,13 +89,15 @@
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
-        </div>
+    <div class="card shadow-sm recruiter-filter-card mb-4">
         <div class="card-body">
-            <form method="get" action="<?= base_url('recruiter/slots') ?>">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+                    <p class="text-muted mb-0">Narrow the schedule by job, date, and slot availability.</p>
+                </div>
+            </div>
+            <form method="get" action="<?= base_url('recruiter/slots') ?>" class="recruiter-slot-filter-form">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
@@ -130,23 +142,16 @@
                     </div>
                 </div>
             </form>
-
-            <div class="text-right">
-                <a href="<?= base_url('recruiter/slots/bookings') ?>" class="btn btn-info">
-                    <i class="fas fa-list"></i> View All Bookings
-                </a>
-            </div>
         </div>
     </div>
 
-    <!-- Slots Table -->
-    <div class="card shadow">
+    <div class="card shadow-sm recruiter-table-card">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Interview Slots</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover">
+                <table class="table table-bordered table-hover recruiter-slots-table">
                     <thead class="thead-light">
                         <tr>
                             <th>ID</th>
@@ -163,7 +168,7 @@
                     <tbody>
                         <?php if (empty($slots)): ?>
                             <tr>
-                                <td colspan="9" class="text-center">No slots found</td>
+                                <td colspan="9" class="text-center py-5">No slots found</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($slots as $slot): ?>
@@ -197,13 +202,10 @@
                                     <td><?= esc($slot['created_by_name']) ?></td>
                                     <td>
                                         <?php if ($slot['booked_count'] == 0): ?>
-                                            <a href="<?= base_url('recruiter/slots/edit/' . $slot['id']) ?>" 
-                                               class="btn btn-sm btn-warning" title="Edit">
+                                            <a href="<?= base_url('recruiter/slots/edit/' . $slot['id']) ?>" class="btn btn-sm btn-warning" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="<?= base_url('recruiter/slots/delete/' . $slot['id']) ?>" 
-                                               class="btn btn-sm btn-danger" 
-                                               onclick="return confirm('Delete this slot?')" title="Delete">
+                                            <a href="<?= base_url('recruiter/slots/delete/' . $slot['id']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this slot?')" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         <?php else: ?>
@@ -217,12 +219,14 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
             <?php if (isset($pager) && is_object($pager) && method_exists($pager, 'links')): ?>
-                <?= $pager->links() ?>
+                <div class="mt-3">
+                    <?= $pager->links() ?>
+                </div>
             <?php endif; ?>
         </div>
     </div>
+</div>
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>

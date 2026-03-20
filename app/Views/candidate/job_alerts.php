@@ -56,41 +56,27 @@
             opacity: .65;
         }
     </style>
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row align-items-end">
-                <div class="col-lg-8">
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('jobs') ?>">Jobs</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Job Alerts</strong></span>
-                    </div>
-                    <div class="job-alerts-hero-title">
-                        <span class="job-alerts-icon"><i class="fas fa-bell"></i></span>
-                        <div>
-                            <h1>Job Alerts</h1>
-                            <p>Set your role, location, skills, and salary preferences once. We will notify you when matching jobs are posted.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="job-alerts-hero-panel">
-                        <div class="job-alerts-hero-stat">
-                            <strong>Instant updates</strong>
-                            <span>In-app and email notifications for matching roles.</span>
-                        </div>
-                        <div class="job-alerts-hero-tags">
-                            <span>Role-based</span>
-                            <span>Location-aware</span>
-                            <span>Salary filters</span>
-                        </div>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-bell"></i> Job alerts</span>
+                <h1 class="page-board-title">Job Alerts</h1>
+                <p class="page-board-subtitle">Set your role, location, skills, and salary preferences once. We’ll notify you when matching jobs are posted.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= !empty($jobAlertsEnabled) ? 'On' : 'Off' ?></strong> Alerts</span>
+                    <span class="meta-chip"><strong><?= count($alerts ?? []) ?></strong> Saved rules</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('jobs') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-briefcase mr-1"></i> Browse Jobs
+                </a>
+                <a href="<?= base_url('candidate/profile') ?>" class="btn btn-primary">
+                    <i class="fas fa-user-edit mr-1"></i> Update Profile
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">

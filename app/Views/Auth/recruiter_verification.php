@@ -7,8 +7,9 @@
 
     <link rel="stylesheet" href="<?= base_url('jobboard/css/custom-bs.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
 </head>
-<body>
+<body class="hirematrix-app">
 <div class="site-wrap">
     <section class="site-section">
         <div class="container">

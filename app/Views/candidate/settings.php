@@ -4,19 +4,85 @@
 
 <div class="settings-jobboard">
     <style>
+        .settings-jobboard .page-board-header {
+            align-items: flex-start;
+            padding-top: 1rem;
+        }
+        .settings-jobboard .company-profile-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        .settings-jobboard .company-profile-actions .btn {
+            border-radius: 999px;
+        }
+        .settings-summary-card {
+            margin-top: 1rem;
+            border: 1px solid #e6ebf2;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+        }
+        .settings-summary-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 1rem 1.25rem;
+            align-items: center;
+        }
+        .settings-summary-copy {
+            min-width: 0;
+        }
+        .settings-summary-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: #3b82f6;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .settings-summary-title {
+            margin: 0;
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .settings-summary-note {
+            margin: 0.35rem 0 0;
+            color: #64748b;
+        }
+        .settings-summary-progress {
+            min-width: 260px;
+        }
+        .settings-summary-progress .progress {
+            height: 10px;
+            border-radius: 999px;
+            background: #edf2f7;
+        }
+        .settings-summary-progress .progress-bar {
+            border-radius: 999px;
+        }
+        .settings-summary-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.55rem;
+        }
+        .settings-summary-metrics .meta-chip {
+            border-radius: 999px;
+        }
         .settings-shell {
             display: grid;
-            grid-template-columns: 280px minmax(0, 1fr);
+            grid-template-columns: 264px minmax(0, 1fr);
             gap: 24px;
             align-items: start;
             margin-top: 22px;
         }
         .settings-flash-wrap {
             margin-top: 22px;
-        }
-        .settings-hero {
-            padding-top: 120px;
-            padding-bottom: 24px;
         }
         .settings-side,
         .settings-content {
@@ -26,52 +92,69 @@
             box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
         }
         .settings-side {
-            padding: 18px;
+            padding: 16px;
         }
         .settings-side-title {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .08em;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .1em;
             text-transform: uppercase;
             color: #6b7280;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .settings-nav {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
         .settings-nav-link {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border-radius: 14px;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 16px;
             text-decoration: none;
             color: #1f2937;
-            border: 1px solid #edf2f7;
-            background: #f8fafc;
+            border: 1px solid #e8edf5;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.03);
             transition: all .2s ease;
         }
         .settings-nav-link:hover {
             text-decoration: none;
             color: #0f172a;
             border-color: #cfd8e3;
-            background: #f1f5f9;
+            background: #f4f8fc;
+            transform: translateY(-1px);
         }
         .settings-nav-link.is-active {
-            background: #0f172a;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
             color: #fff;
-            border-color: #0f172a;
-            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+            border-color: #2563eb;
+            box-shadow: 0 14px 26px rgba(37, 99, 235, 0.18);
         }
         .settings-nav-link small {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             opacity: .75;
         }
+        .settings-nav-link span:first-child {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 99, 235, 0.08);
+            color: #2563eb;
+            flex-shrink: 0;
+        }
+        .settings-nav-link.is-active span:first-child {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+        }
         .settings-content {
-            padding: 26px;
+            padding: 20px;
         }
         .settings-panel {
             display: none;
@@ -80,30 +163,31 @@
             display: block;
         }
         .settings-panel-title {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 700;
             color: #0f172a;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .settings-panel-copy {
             color: #64748b;
-            margin-bottom: 24px;
+            margin-bottom: 18px;
+            max-width: 760px;
         }
         .settings-card {
             border: 1px solid #eef2f7;
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 18px;
+            padding: 16px;
             background: #fbfdff;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
         .settings-card:last-child {
             margin-bottom: 0;
         }
         .settings-card h6 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #0f172a;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .settings-card p {
             color: #64748b;
@@ -114,7 +198,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            padding: 16px 0;
+            padding: 13px 0;
         }
         .switch-row + .switch-row {
             border-top: 1px solid #eef2f7;
@@ -125,10 +209,11 @@
         .switch-copy label {
             font-weight: 600;
             color: #0f172a;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .switch-copy small {
             color: #64748b;
+            line-height: 1.45;
         }
         .switch-toggle {
             position: relative;
@@ -170,40 +255,91 @@
             transform: translateX(18px);
         }
         .settings-actions {
-            margin-top: 20px;
+            margin-top: 16px;
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
         }
+        .settings-content .btn {
+            border-radius: 999px;
+        }
+        .settings-content .form-control,
+        .settings-content .form-select {
+            min-height: 44px;
+            border-radius: 12px;
+        }
+        .settings-content .form-control {
+            background: #fff;
+        }
+        .settings-content .form-check-input {
+            width: 1.1rem;
+            height: 1.1rem;
+        }
         @media (max-width: 991.98px) {
-            .settings-hero {
-                padding-top: 110px;
-                padding-bottom: 18px;
-            }
+            .settings-summary-grid,
             .settings-shell {
                 grid-template-columns: 1fr;
                 margin-top: 18px;
             }
+            .settings-jobboard .company-profile-actions,
+            .settings-summary-metrics {
+                justify-content: flex-start;
+            }
+            .settings-summary-progress {
+                min-width: 0;
+            }
+            .settings-shell {
+                gap: 16px;
+            }
         }
     </style>
 
-    <section class="section-hero overlay inner-page bg-image settings-hero" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+    <section class="site-section pt-0 content-wrap">
         <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">Settings</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Settings</strong></span>
+            <div class="page-board-header page-board-header-tight">
+                <div class="page-board-copy">
+                    <span class="page-board-kicker"><i class="fas fa-cog"></i> Account settings</span>
+                    <h1 class="page-board-title">Settings</h1>
+                    <p class="page-board-subtitle">Control profile visibility, notifications, and account security from one compact panel.</p>
+                    <div class="company-profile-meta">
+                        <span class="meta-chip"><strong><?= (int) (($user['allow_public_recruiter_visibility'] ?? 1) === 1 ? 1 : 0) ?></strong> Recruiter visibility</span>
+                        <span class="meta-chip"><strong><?= (int) (($user['job_alerts_enabled'] ?? 1) === 1 ? 1 : 0) ?></strong> Job alerts</span>
+                        <span class="meta-chip"><strong>Secure</strong> Account access</span>
+                    </div>
+                </div>
+                <div class="company-profile-actions">
+                    <a href="<?= base_url('candidate/profile') ?>" class="btn btn-outline-secondary">
+                        <i class="fas fa-user mr-1"></i> My Profile
+                    </a>
+                    <a href="<?= base_url('account/change-password') ?>" class="btn btn-primary">
+                        <i class="fas fa-lock mr-1"></i> Change Password
+                    </a>
+                </div>
+            </div>
+
+            <div class="card settings-summary-card">
+                <div class="card-body">
+                    <div class="settings-summary-grid">
+                        <div class="settings-summary-copy">
+                            <div class="settings-summary-kicker"><i class="fas fa-sliders-h"></i> Quick snapshot</div>
+                            <h2 class="settings-summary-title">Keep your job search settings aligned with your profile</h2>
+                            <p class="settings-summary-note">Update visibility and alerts here, then continue editing the rest of your profile in one place.</p>
+                            <div class="settings-summary-progress mt-3">
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: <?= (int) ($user['allow_public_recruiter_visibility'] ?? 1) === 1 ? '100%' : '35%' ?>" aria-valuenow="<?= (int) ($user['allow_public_recruiter_visibility'] ?? 1) === 1 ? 100 : 35 ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="settings-summary-metrics">
+                            <span class="meta-chip"><strong><?= (int) (($user['allow_public_recruiter_visibility'] ?? 1) === 1 ? 1 : 0) ?></strong> Visible</span>
+                            <span class="meta-chip"><strong><?= (int) (($user['job_alerts_enabled'] ?? 1) === 1 ? 1 : 0) ?></strong> Alerts</span>
+                            <span class="meta-chip"><strong><?= (int) (($user['job_alert_notify_in_app'] ?? 1) === 1 ? 1 : 0) ?></strong> In-app</span>
+                            <span class="meta-chip"><strong><?= (int) (($user['job_alert_notify_email'] ?? 1) === 1 ? 1 : 0) ?></strong> Email</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <section class="site-section pt-0 content-wrap">
-        <div class="container">
             <?php if (session()->getFlashdata('settings_success') || session()->getFlashdata('error')): ?>
                 <div class="settings-flash-wrap">
                     <?php if (session()->getFlashdata('settings_success')): ?>

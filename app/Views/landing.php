@@ -1,3 +1,47 @@
+<?php
+$platformStats = $platformStats ?? [];
+$featuredJobs = $featuredJobs ?? [];
+
+$jobsPostedCount = (int) ($platformStats['jobs_posted'] ?? count($featuredJobs));
+$candidateCount = (int) ($platformStats['candidates'] ?? 0);
+$interviewCount = (int) ($platformStats['interviews_booked'] ?? 0);
+$recruiterCount = (int) ($platformStats['recruiters'] ?? 0);
+
+$jobIconSet = [
+    'developer' => 'fas fa-code',
+    'engineer' => 'fas fa-cogs',
+    'designer' => 'fas fa-palette',
+    'manager' => 'fas fa-chart-line',
+    'data' => 'fas fa-database',
+    'marketing' => 'fas fa-bullhorn',
+    'product' => 'fas fa-briefcase',
+];
+
+$pickJobIcon = static function (string $title) use ($jobIconSet): string {
+    $needle = strtolower($title);
+    foreach ($jobIconSet as $key => $icon) {
+        if (str_contains($needle, $key)) {
+            return $icon;
+        }
+    }
+
+    return 'fas fa-briefcase';
+};
+
+$formatAge = static function ($value): string {
+    if ($value === null || $value === '') {
+        return 'Recently';
+    }
+
+    $date = strtotime((string) $value);
+    if ($date === false) {
+        return 'Recently';
+    }
+
+    return date('M d, Y', $date);
+};
+
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -16,8 +60,9 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
 </head>
-<body id="top">
+<body id="top" class="hirematrix-app landing-page">
 <div id="overlayer"></div>
 <div class="loader">
     <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
@@ -33,222 +78,321 @@
         <div class="site-mobile-menu-body"></div>
     </div>
 
-    <header class="site-navbar mt-3">
+    <header class="site-navbar site-navbar-target">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6">
+                <div class="site-logo col-6 col-xl-2">
                     <a href="<?= base_url('/') ?>" class="d-inline-flex align-items-center">
                         <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 34px; width: auto; margin-right: 8px;">
                         <span style="text-transform: none;">HireMatrix</span>
                     </a>
                 </div>
-
-                <nav class="mx-auto site-navigation">
+                <nav class="mx-auto site-navigation col-xl-7">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
-                        <li><a href="<?= base_url('/') ?>" class="nav-link active">Home</a></li>
+                        <li><a class="active" href="<?= base_url('/') ?>">Home</a></li>
                         <li><a href="<?= base_url('login') ?>">Browse Jobs</a></li>
                         <li><a href="<?= base_url('login') ?>">Career Transition AI</a></li>
                     </ul>
                 </nav>
-
-                <div class="right-cta-menu text-right d-flex aligin-items-center col-6">
-                    <div class="ml-auto">
-                        <a href="<?= base_url('recruiter/register') ?>" class="btn btn-outline-white border-width-2 d-none d-lg-inline-block"><span class="mr-2 icon-add"></span>Recruiter</a>
-                        <a href="<?= base_url('register') ?>" class="btn btn-outline-white border-width-2 d-none d-lg-inline-block">Candidate</a>
-                        <a href="<?= base_url('login') ?>" class="btn btn-primary border-width-2 d-none d-lg-inline-block"><span class="mr-2 icon-lock_outline"></span>Log In</a>
-                    </div>
-                    <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3"><span class="icon-menu h3 m-0 p-0 mt-2"></span></a>
+                <div class="right-cta-menu text-right d-flex justify-content-end align-items-center col-6 col-xl-3">
+                    <a href="<?= base_url('recruiter/register') ?>" class="btn btn-outline-secondary btn-sm me-2">
+                        <span class="d-none d-lg-inline ms-1">Recruiter</span>
+                    </a>
+                    <a href="<?= base_url('register') ?>" class="btn btn-ghost btn-sm me-2">Candidate</a>
+                    <a href="<?= base_url('login') ?>" class="btn btn-primary btn-sm">Log In</a>
+                    <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3">
+                        <span class="icon-menu h3 m-0 p-0 mt-2"></span>
+                    </a>
                 </div>
             </div>
         </div>
     </header>
 
-    <section class="home-section section-hero overlay bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+    <section class="hero py-5">
         <div class="container">
-            <div class="row align-items-center justify-content-center">
-                <div class="col-md-12">
-                    <div class="mb-5 text-center">
-                        <h1 class="text-white font-weight-bold">The Easiest Way To Get Your Dream Job</h1>
-                        <p class="lead text-white">AI-powered hiring for candidates and recruiters in one modern workflow.</p>
-                    </div>
-                    <form action="<?= base_url('login') ?>" method="get" class="search-jobs-form">
-                        <div class="row mb-5">
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4 mb-lg-0">
-                                <input type="text" class="form-control form-control-lg" placeholder="Job title, Company..." disabled>
+            <div class="status-pill">
+                <i class="fas fa-arrow-trend-up" style="color: var(--primary);"></i>
+                <?= max(1, $jobsPostedCount) ?>+ Active Jobs Available
+            </div>
+
+            <h1 class="hero-title">
+                Find Your
+                <span class="gradient-text">Dream Job</span>
+                Today
+            </h1>
+
+            <p class="hero-subtitle">
+                Connect with top companies and discover opportunities that match your skills.
+                AI-powered recommendations to fast-track your career.
+            </p>
+
+            <div class="card mb-4" style="max-width: 800px;">
+                <div class="card-body p-3 p-md-4">
+                    <form action="<?= base_url('jobs') ?>" method="get">
+                        <div class="row g-3 g-md-2">
+                            <div class="col-12 col-md-6 col-lg-5">
+                                <div class="search-input-group">
+                                    <i class="fas fa-search" style="color: var(--muted-foreground);"></i>
+                                    <input type="text" name="search" placeholder="Job title, skills, or company" class="form-control border-0">
+                                </div>
                             </div>
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4 mb-lg-0">
-                                <select class="selectpicker" data-style="btn-white btn-lg" data-width="100%" title="Select Location" disabled>
-                                    <option>Anywhere</option>
-                                </select>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="search-input-group">
+                                    <i class="fas fa-map-pin" style="color: var(--muted-foreground);"></i>
+                                    <input type="text" name="location" placeholder="City or location" class="form-control border-0">
+                                </div>
                             </div>
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4 mb-lg-0">
-                                <select class="selectpicker" data-style="btn-white btn-lg" data-width="100%" title="Select Job Type" disabled>
-                                    <option>Full Time</option>
-                                    <option>Part Time</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4 mb-lg-0">
-                                <button type="submit" class="btn btn-primary btn-lg btn-block text-white btn-search"><span class="icon-lock_outline icon mr-2"></span>Login To Search</button>
+                            <div class="col-12 col-lg-3">
+                                <button class="btn btn-primary w-100" type="submit">Search Jobs</button>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
 
-        <a href="#next" class="scroll-button smoothscroll">
-            <span class="icon-keyboard_arrow_down"></span>
-        </a>
+            <div class="mb-5">
+                <span class="text-muted me-3" style="font-size: 0.875rem; font-weight: 500;">Popular:</span>
+                <div class="btn-group" role="group">
+                    <a class="btn btn-outline-primary btn-sm" href="<?= base_url('jobs?search=developer') ?>" style="border-width: 2px;">Developer</a>
+                    <a class="btn btn-sm" href="<?= base_url('jobs?search=designer') ?>" style="background: rgba(255, 123, 42, 0.2); color: var(--secondary); border: none;">Designer</a>
+                    <a class="btn btn-sm" href="<?= base_url('jobs?search=marketing') ?>" style="background: rgba(0, 191, 165, 0.2); color: var(--accent); border: none;">Marketing</a>
+                    <a class="btn btn-sm" href="<?= base_url('jobs?location=remote') ?>" style="background: rgba(59, 130, 246, 0.2); color: var(--primary); border: none;">Remote</a>
+                    <a class="btn btn-sm" href="<?= base_url('jobs?employment_type=full-time') ?>" style="background: rgba(255, 123, 42, 0.2); color: var(--secondary); border: none;">Full-time</a>
+                </div>
+            </div>
+
+            <section class="landing-career-transition">
+                <div class="landing-career-transition-inner">
+                    <div class="landing-career-transition-copy">
+                        <div class="landing-career-transition-kicker">
+                            <i class="fas fa-sparkles"></i>
+                            Career Transition AI
+                        </div>
+                        <h2 class="landing-career-transition-title">Career Transition AI</h2>
+                        <p class="landing-career-transition-text">
+                            We analyze your current skill set and generate a focused roadmap for your target role.
+                            Start your career transition journey today!
+                        </p>
+                        <a href="<?= base_url('career-transition') ?>" class="btn btn-light landing-career-transition-btn">
+                            Generate Roadmap <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                    <div class="landing-career-transition-art d-none d-lg-flex" aria-hidden="true">
+                        <div class="landing-career-transition-orb">
+                            <i class="fas fa-sparkles"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <p class="text-center text-muted" style="font-size: 0.875rem;">
+                Sign in to view complete listings, AI match score, and application status.
+            </p>
+        </div>
     </section>
 
-    <section class="py-5 bg-image overlay-primary fixed overlay" id="next" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');">
-        <?php
-            $platformStats = $platformStats ?? [];
-            $candidatesCount = (int) ($platformStats['candidates'] ?? 0);
-            $jobsPostedCount = (int) ($platformStats['jobs_posted'] ?? 0);
-            $interviewsBookedCount = (int) ($platformStats['interviews_booked'] ?? 0);
-            $recruitersCount = (int) ($platformStats['recruiters'] ?? 0);
-        ?>
+    <section class="py-5" id="jobs">
         <div class="container">
-            <div class="row mb-5 justify-content-center">
-                <div class="col-md-7 text-center">
-                    <h2 class="section-title mb-2 text-white">Platform Stats</h2>
-                    <p class="lead text-white">A unified workspace for candidate growth and recruiter hiring.</p>
+            <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+                <div>
+                    <div class="ai-badge">
+                        <i class="fas fa-sparkles"></i>
+                        Live Open Roles
+                    </div>
+                    <h2 class="section-title">Featured Jobs</h2>
+                    <p class="section-subtitle">Live openings pulled from the database. Sign in to get personalized matching.</p>
                 </div>
-            </div>
-            <div class="row pb-0 block__19738 section-counter">
-                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $candidatesCount ?>"><?= $candidatesCount ?></strong></div>
-                    <span class="caption">Candidates</span>
-                </div>
-                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $jobsPostedCount ?>"><?= $jobsPostedCount ?></strong></div>
-                    <span class="caption">Jobs Posted</span>
-                </div>
-                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $interviewsBookedCount ?>"><?= $interviewsBookedCount ?></strong></div>
-                    <span class="caption">Interviews Booked</span>
-                </div>
-                <div class="col-6 col-md-6 col-lg-3 mb-5 mb-lg-0">
-                    <div class="d-flex align-items-center justify-content-center mb-2"><strong class="number" data-number="<?= $recruitersCount ?>"><?= $recruitersCount ?></strong></div>
-                    <span class="caption">Recruiters</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="site-section">
-        <div class="container">
-            <div class="row mb-5 justify-content-center">
-                <div class="col-md-7 text-center">
-                    <h2 class="section-title mb-2">Featured Roles</h2>
-                    <p>Sign in to view complete listings, AI match score, and application status.</p>
-                </div>
+                <a href="<?= base_url('jobs') ?>" class="btn btn-ghost landing-view-all-link">View all jobs <i class="fas fa-arrow-right ms-2"></i></a>
             </div>
 
-            <ul class="job-listings mb-5">
+            <div class="landing-featured-jobs-grid mb-4">
                 <?php if (!empty($featuredJobs)): ?>
-                    <?php foreach ($featuredJobs as $job): ?>
+                    <?php foreach (array_slice($featuredJobs, 0, 6) as $job): ?>
                         <?php
-                            $logo = trim((string) ($job['company_logo'] ?? ''));
-                            $logoUrl = $logo !== '' ? base_url($logo) : '';
-                            $companyName = trim((string) ($job['company'] ?? 'Confidential Company'));
-                            $employmentType = trim((string) ($job['employment_type'] ?? ''));
+                        $title = (string) ($job['title'] ?? 'Untitled Role');
+                        $company = trim((string) ($job['company'] ?? 'Company'));
+                        $location = trim((string) ($job['location'] ?? 'N/A'));
+                        $postedAt = $formatAge($job['created_at'] ?? $job['posted_at'] ?? null);
+                        $matchScore = (int) round((float) ($job['match_score'] ?? 85));
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
-                            <a href="<?= base_url('login') ?>"></a>
-                            <div class="job-listing-logo">
-                                <?php if ($logoUrl !== ''): ?>
-                                    <img src="<?= esc($logoUrl) ?>" alt="Company Logo" class="img-fluid">
-                                <?php else: ?>
-                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
-                                        <span class="icon-domain"></span>
-                                    </div>
-                                <?php endif; ?>
+                        <div class="landing-featured-jobs-item">
+                            <div class="job-card">
+                                <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
+                                <h3 class="job-card-title"><?= esc($title) ?></h3>
+                                <p class="job-card-company"><?= esc($company) ?></p>
+                                <div class="job-card-meta">
+                                    <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
+                                    <span><i class="fas fa-clock"></i> <?= esc($postedAt) ?></span>
+                                </div>
+                                <div class="job-card-tags">
+                                    <span class="badge badge-primary">Full-time</span>
+                                    <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar-custom" style="width: <?= max(10, min(100, $matchScore)) ?>%;"></div>
+                                    <span class="progress-label"><?= max(10, min(100, $matchScore)) ?>%</span>
+                                </div>
+                                <a href="<?= base_url('login') ?>" class="view-details">View Details &rarr;</a>
                             </div>
-                            <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
-                                <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                                    <h2><?= esc($job['title'] ?? 'Untitled Role') ?></h2>
-                                    <strong><?= esc($companyName) ?></strong>
-                                </div>
-                                <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                                    <span class="icon-room"></span> <?= esc($job['location'] ?? 'Location not specified') ?>
-                                </div>
-                                <div class="job-listing-meta">
-                                    <span class="badge badge-success"><?= esc($employmentType !== '' ? $employmentType : 'Open') ?></span>
-                                </div>
-                            </div>
-                        </li>
+                        </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
-                        <a href="<?= base_url('login') ?>"></a>
-                        <div class="job-listing-logo">
-                            <img src="<?= base_url('jobboard/images/job_logo_1.jpg') ?>" alt="Job" class="img-fluid">
-                        </div>
-                        <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
-                            <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                                <h2>No Featured Roles Yet</h2>
-                                <strong>New openings will appear here soon</strong>
+                    <div class="landing-featured-jobs-item">
+                        <div class="job-card">
+                            <div class="job-card-icon"><i class="fas fa-robot"></i></div>
+                            <h3 class="job-card-title">Data Scientist</h3>
+                            <p class="job-card-company">AI Dynamics</p>
+                            <div class="job-card-meta">
+                                <span><i class="fas fa-map-pin"></i> Boston, MA</span>
+                                <span><i class="fas fa-clock"></i> 2 days ago</span>
                             </div>
-                            <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                                <span class="icon-room"></span> Check back shortly
+                            <div class="job-card-tags">
+                                <span class="badge badge-primary">Full-time</span>
+                                <span class="badge badge-secondary">Python</span>
                             </div>
-                            <div class="job-listing-meta"><span class="badge badge-secondary">Coming Soon</span></div>
+                            <div class="progress-container">
+                                <div class="progress-bar-custom" style="width: 88%;"></div>
+                                <span class="progress-label">88%</span>
+                            </div>
+                            <a href="<?= base_url('login') ?>" class="view-details">View Details &rarr;</a>
                         </div>
-                    </li>
-                <?php endif; ?>
-            </ul>
+                    </div>
 
-            <div class="row justify-content-center">
-                <div class="col-md-7 text-center">
-                    <a href="<?= base_url('register') ?>" class="btn btn-primary border-width-2 btn-lg mr-2">Create Candidate Account</a>
-                    <a href="<?= base_url('recruiter/register') ?>" class="btn btn-outline-primary border-width-2 btn-lg">Join as Recruiter</a>
+                    <div class="landing-featured-jobs-item">
+                        <div class="job-card">
+                            <div class="job-card-icon"><i class="fas fa-pencil-ruler"></i></div>
+                            <h3 class="job-card-title">UI/UX Designer</h3>
+                            <p class="job-card-company">Design Studio Pro</p>
+                            <div class="job-card-meta">
+                                <span><i class="fas fa-map-pin"></i> Los Angeles, CA</span>
+                                <span><i class="fas fa-clock"></i> 4 days ago</span>
+                            </div>
+                            <div class="job-card-tags">
+                                <span class="badge badge-primary">Remote</span>
+                                <span class="badge badge-secondary">Design</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar-custom" style="width: 91%;"></div>
+                                <span class="progress-label">91%</span>
+                            </div>
+                            <a href="<?= base_url('login') ?>" class="view-details">View Details &rarr;</a>
+                        </div>
+                    </div>
+
+                    <div class="landing-featured-jobs-item">
+                        <div class="job-card">
+                            <div class="job-card-icon"><i class="fas fa-code"></i></div>
+                            <h3 class="job-card-title">Backend Engineer</h3>
+                            <p class="job-card-company">Cloud Systems Inc</p>
+                            <div class="job-card-meta">
+                                <span><i class="fas fa-map-pin"></i> Seattle, WA</span>
+                                <span><i class="fas fa-clock"></i> 1 day ago</span>
+                            </div>
+                            <div class="job-card-tags">
+                                <span class="badge badge-primary">Full-time</span>
+                                <span class="badge badge-secondary">Node.js</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar-custom" style="width: 86%;"></div>
+                                <span class="progress-label">86%</span>
+                            </div>
+                            <a href="<?= base_url('login') ?>" class="view-details">View Details &rarr;</a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <p class="text-center text-muted" style="font-size: 0.875rem;">
+                Sign in to see personalized match scores, saved jobs, and application status.
+            </p>
+        </div>
+    </section>
+
+    <section class="landing-get-started" id="get-started">
+        <div class="container">
+            <div class="text-center landing-get-started-head">
+                <h2 class="landing-get-started-title">Get Started Today</h2>
+                <p class="landing-get-started-subtitle">
+                    Whether you're looking for your next opportunity or searching for top talent, HireMatrix has you covered.
+                </p>
+            </div>
+
+            <div class="row g-4 justify-content-center landing-get-started-grid">
+                <div class="col-lg-5">
+                    <div class="landing-start-card landing-start-card-candidate h-100">
+                        <div class="landing-start-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>For Job Seekers</h3>
+                        <p>Discover opportunities tailored to your skills and career goals.</p>
+                        <ul class="landing-start-list">
+                            <li><i class="fas fa-check"></i> AI-powered job recommendations</li>
+                            <li><i class="fas fa-check"></i> Skill gap analysis</li>
+                            <li><i class="fas fa-check"></i> Career transition tools</li>
+                        </ul>
+                        <a href="<?= base_url('register') ?>" class="btn btn-primary landing-start-btn">
+                            Create Candidate Account <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="landing-start-card landing-start-card-recruiter h-100">
+                        <div class="landing-start-icon landing-start-icon-recruiter">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3>For Recruiters</h3>
+                        <p>Find and connect with the best talent for your organization.</p>
+                        <ul class="landing-start-list landing-start-list-recruiter">
+                            <li><i class="fas fa-check"></i> Smart candidate matching</li>
+                            <li><i class="fas fa-check"></i> ATS integration</li>
+                            <li><i class="fas fa-check"></i> Team collaboration tools</li>
+                        </ul>
+                        <a href="<?= base_url('recruiter/register') ?>" class="btn btn-primary landing-start-btn landing-start-btn-recruiter">
+                            Join as Recruiter <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="site-footer">
-        <a href="#top" class="smoothscroll scroll-top">
-            <span class="icon-keyboard_arrow_up"></span>
-        </a>
-
+    <footer class="footer mt-5">
         <div class="container">
-            <div class="row mb-5">
-                <div class="col-6 col-md-3 mb-4 mb-md-0">
-                    <h3>Candidate</h3>
-                    <ul class="list-unstyled">
-                        <li><a href="<?= base_url('register') ?>">Register</a></li>
-                        <li><a href="<?= base_url('login') ?>">Login</a></li>
-                    </ul>
+            <div class="row g-5 mb-5">
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 40px; width: auto;">
+                        <span style="font-weight: 700; font-size: 1.125rem;">HireMatrix</span>
+                    </div>
+                    <p style="font-size: 0.875rem; opacity: 0.8;">
+                        Connecting talent with opportunities through AI-powered recommendations.
+                    </p>
                 </div>
-                <div class="col-6 col-md-3 mb-4 mb-md-0">
-                    <h3>Recruiter</h3>
-                    <ul class="list-unstyled">
-                        <li><a href="<?= base_url('recruiter/register') ?>">Register</a></li>
-                        <li><a href="<?= base_url('login') ?>">Login</a></li>
-                    </ul>
+
+                <div class="footer-section col-md-3">
+                    <h3>For Job Seekers</h3>
+                    <a href="<?= base_url('jobs') ?>">Browse Jobs</a>
+                    <a href="<?= base_url('/#get-started') ?>">Get Started</a>
+                    <a href="<?= base_url('register') ?>">Create Candidate Account</a>
                 </div>
-                <div class="col-6 col-md-3 mb-4 mb-md-0">
-                    <h3>Platform</h3>
-                    <ul class="list-unstyled">
-                        <li><a href="<?= base_url('/') ?>">Home</a></li>
-                        <li><a href="<?= base_url('login') ?>">Jobs</a></li>
-                    </ul>
+
+                <div class="footer-section col-md-3">
+                    <h3>For Recruiters</h3>
+                    <a href="<?= base_url('recruiter/register') ?>">Join as Recruiter</a>
+                    <a href="<?= base_url('login') ?>">Sign In</a>
                 </div>
-                <div class="col-6 col-md-3 mb-4 mb-md-0">
-                    <h3>Account</h3>
-                    <ul class="list-unstyled">
-                        <li><a href="<?= base_url('login') ?>">Sign In</a></li>
-                    </ul>
-                </div>
+
             </div>
 
-            <div class="row text-center">
-                <div class="col-12">
-                    <p class="copyright"><small>Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved</small></p>
+            <div class="footer-bottom">
+                <div class="footer-social">
+                    <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
                 </div>
+                <p>&copy; <?= date('Y') ?> HireMatrix. All rights reserved.</p>
             </div>
         </div>
     </footer>

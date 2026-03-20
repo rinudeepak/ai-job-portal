@@ -15,9 +15,10 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/recruiter-pages.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
 </head>
-<body id="top" class="recruiter-jobboard">
+<body id="top" class="hirematrix-app recruiter-jobboard">
 <div id="overlayer"></div>
 <div class="loader">
     <div class="spinner-border text-primary" role="status">
@@ -70,10 +71,9 @@
                             position: relative;
                             width: 42px;
                             height: 42px;
-                            border-radius: 50%;
-                            border: 1px solid rgba(255, 255, 255, 0.45);
-                            background: rgba(255, 255, 255, 0.12);
-                            color: #fff;
+                            border: 0;
+                            background: transparent;
+                            color: #111827;
                             display: inline-flex;
                             align-items: center;
                             justify-content: center;
@@ -81,23 +81,28 @@
                             text-decoration: none;
                         }
                         .recruiter-notification-link:hover {
-                            background: rgba(255, 255, 255, 0.2);
-                            color: #fff;
+                            color: #111827;
+                            background: rgba(255, 123, 42, 0.04);
+                            border-radius: 12px;
+                        }
+                        .recruiter-notification-link .icon-bell {
+                            color: #111827;
                         }
                         .recruiter-notification-badge {
                             position: absolute;
-                            top: -5px;
-                            right: -5px;
-                            min-width: 18px;
-                            height: 18px;
+                            top: -1px;
+                            right: 2px;
+                            min-width: 8px;
+                            height: 8px;
                             border-radius: 999px;
-                            background: #dc3545;
-                            color: #fff;
-                            font-size: 11px;
-                            font-weight: 700;
-                            line-height: 18px;
+                            background: #0b66ff;
+                            color: transparent;
+                            font-size: 0;
+                            line-height: 0;
                             text-align: center;
-                            padding: 0 4px;
+                            padding: 0;
+                            overflow: hidden;
+                            box-shadow: 0 0 0 2px #fff;
                         }
                         .recruiter-avatar-menu {
                             position: relative;
@@ -105,10 +110,10 @@
                         .recruiter-avatar-btn {
                             width: 42px;
                             height: 42px;
-                            border-radius: 50%;
-                            border: 2px solid rgba(255, 255, 255, 0.8);
-                            background: #fff;
-                            color: #89ba16;
+                            border-radius: 12px;
+                            border: 0;
+                            background: linear-gradient(135deg, #3b82f6 0%, #ff7b2a 100%);
+                            color: #fff;
                             display: inline-flex;
                             align-items: center;
                             justify-content: center;
@@ -117,9 +122,12 @@
                             cursor: pointer;
                             overflow: hidden;
                             padding: 0;
+                            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24);
+                            transition: transform .2s ease, box-shadow .2s ease;
                         }
                         .recruiter-avatar-btn:hover {
-                            border-color: #fff;
+                            transform: translateY(-1px);
+                            box-shadow: 0 10px 22px rgba(59, 130, 246, 0.28);
                         }
                         .recruiter-avatar-dropdown {
                             position: absolute;
@@ -183,7 +191,7 @@
     </header>
 
     <?php
-    $showHero = $showHero ?? true;
+    $showHero = $showHero ?? false;
     $heroTitle = esc($title ?? 'Recruiter');
     ?>
     <?php if ($showHero): ?>

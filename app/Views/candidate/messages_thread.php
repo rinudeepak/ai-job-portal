@@ -7,22 +7,24 @@ $applicationId = (int) ($applicationId ?? 0);
 ?>
 
 <div class="applications-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <h1 class="text-white font-weight-bold">Messages</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('notifications') ?>">Notifications</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong><?= esc($recruiter['name'] ?? 'Recruiter') ?></strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-comments"></i> Candidate messages</span>
+                <h1 class="page-board-title">Messages</h1>
+                <p class="page-board-subtitle">Keep the recruiter conversation organized and continue the hiring discussion from one place.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= esc($recruiter['name'] ?? 'Recruiter') ?></strong> Contact</span>
+                    <span class="meta-chip"><strong><?= count($messages ?? []) ?></strong> Messages</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('notifications') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-bell mr-1"></i> Notifications
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <div class="container content-wrap pb-5">
         <?php if (session()->getFlashdata('success')): ?>
@@ -68,4 +70,3 @@ $applicationId = (int) ($applicationId ?? 0);
 </div>
 
 <?= view('Layouts/candidate_footer') ?>
-

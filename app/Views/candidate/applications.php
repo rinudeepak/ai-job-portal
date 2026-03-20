@@ -5,248 +5,33 @@ $totalApplications = count($applications ?? []);
 $activeApplications = count(array_filter($applications ?? [], function ($application) {
     return !in_array($application['status'] ?? '', ['rejected', 'selected', 'withdrawn', 'hired'], true);
 }));
+$completedApplications = count(array_filter($applications ?? [], function ($application) {
+    return in_array($application['status'] ?? '', ['selected', 'hired'], true);
+}));
 ?>
 
 <div class="applications-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">My Applications</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Applications</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header applications-page-header">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-list-check"></i> Application tracking</span>
+                <h1 class="page-board-title">Application Status</h1>
+                <p class="page-board-subtitle">Track recruiter activity, interview preparation, and application progress in one view.</p>
+                <div class="custom-breadcrumbs">
+                    <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
+                    <span class="mx-2 slash">/</span>
+                    <span><strong>Applications</strong></span>
                 </div>
             </div>
+            <div class="page-board-metrics">
+                <span class="hero-stat-chip"><strong><?= $totalApplications ?></strong>Total</span>
+                <span class="hero-stat-chip"><strong><?= $activeApplications ?></strong>Active</span>
+                <span class="hero-stat-chip"><strong><?= $completedApplications ?></strong>Completed</span>
+            </div>
         </div>
-    </section>
+    </div>
 
     <div class="container content-wrap pb-5">
-        <style>
-            .applications-shell {
-                display: grid;
-                grid-template-columns: 340px minmax(0, 1fr);
-                gap: 24px;
-                align-items: start;
-            }
-            .applications-sidebar,
-            .application-detail-panel {
-                background: #fff;
-                border: 1px solid #e5e7eb;
-                border-radius: 18px;
-                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-            }
-            .applications-sidebar {
-                position: sticky;
-                top: 110px;
-                overflow: hidden;
-            }
-            .applications-sidebar-header {
-                padding: 20px 22px 14px;
-                border-bottom: 1px solid #eef2f7;
-            }
-            .applications-sidebar-list {
-                max-height: 70vh;
-                overflow-y: auto;
-            }
-            .application-list-item {
-                width: 100%;
-                border: 0;
-                border-bottom: 1px solid #eef2f7;
-                background: #fff;
-                text-align: left;
-                padding: 16px 20px;
-                transition: background-color .18s ease;
-                cursor: pointer;
-            }
-            .application-list-item:focus,
-            .application-list-item:focus-visible {
-                outline: none;
-                box-shadow: none;
-            }
-            .application-list-item:last-child {
-                border-bottom: 0;
-            }
-            .application-list-item.is-active {
-                background: #f8fbff;
-                box-shadow: inset 3px 0 0 #78b300;
-            }
-            .application-list-title {
-                font-size: 1rem;
-                font-weight: 700;
-                color: #1f2937;
-                margin-bottom: 6px;
-            }
-            .application-list-meta {
-                font-size: .88rem;
-                color: #6b7280;
-                margin-bottom: 10px;
-            }
-            .application-detail-panel {
-                padding: 24px;
-            }
-            .application-detail-card {
-                display: none;
-            }
-            .application-detail-card.is-active {
-                display: block;
-            }
-            .application-detail-head {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                gap: 16px;
-                padding-bottom: 18px;
-                margin-bottom: 20px;
-                border-bottom: 1px solid #eef2f7;
-            }
-            .application-detail-title {
-                font-size: 1.8rem;
-                line-height: 1.2;
-                margin-bottom: 8px;
-            }
-            .application-detail-title-link {
-                color: #111827;
-                text-decoration: none;
-            }
-            .application-detail-title-link:hover {
-                color: #1d4ed8;
-                text-decoration: underline;
-            }
-            .application-detail-submeta {
-                color: #6b7280;
-                font-size: .95rem;
-            }
-            .application-section-title {
-                font-size: 1.05rem;
-                font-weight: 700;
-                color: #374151;
-                margin-bottom: 12px;
-            }
-            .detail-progress {
-                height: 26px;
-                border-radius: 999px;
-                overflow: hidden;
-                background: #e5e7eb;
-            }
-            .detail-progress .progress-bar {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-            }
-            .detail-score-grid {
-                display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 14px;
-            }
-            .detail-score-item {
-                border: 1px solid #dbe5f0;
-                border-radius: 14px;
-                padding: 16px;
-                background: #f8fbff;
-                text-align: center;
-            }
-            .detail-actions {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-top: 22px;
-            }
-            .prep-coach-card {
-                border: 1px solid #dbeafe;
-                border-radius: 16px;
-                background: linear-gradient(135deg, #f8fbff 0%, #f4fbf6 100%);
-                padding: 18px;
-                margin-top: 22px;
-            }
-            .prep-coach-chip-list {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .prep-coach-chip {
-                display: inline-flex;
-                align-items: center;
-                padding: 6px 10px;
-                border-radius: 999px;
-                border: 1px solid #bfdbfe;
-                background: #eff6ff;
-                color: #1d4ed8;
-                font-size: 12px;
-                font-weight: 700;
-            }
-            .prep-coach-list {
-                margin: 0;
-                padding-left: 18px;
-            }
-            .prep-coach-list li {
-                margin-bottom: 8px;
-                color: #475569;
-            }
-            .prep-coach-summary {
-                color: #475569;
-                margin-bottom: 14px;
-                max-width: 760px;
-            }
-            .prep-coach-meta {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                flex-wrap: wrap;
-                margin-bottom: 12px;
-            }
-            .prep-coach-actions {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                align-items: center;
-            }
-            .prep-coach-source {
-                display: inline-flex;
-                align-items: center;
-                padding: 4px 10px;
-                border-radius: 999px;
-                font-size: 11px;
-                font-weight: 700;
-                letter-spacing: .04em;
-                text-transform: uppercase;
-            }
-            .prep-coach-source.is-ai {
-                background: #dcfce7;
-                color: #166534;
-                border: 1px solid #bbf7d0;
-            }
-            .prep-coach-source.is-fallback {
-                background: #eff6ff;
-                color: #1d4ed8;
-                border: 1px solid #bfdbfe;
-            }
-            @media (max-width: 991.98px) {
-                .applications-shell {
-                    grid-template-columns: 1fr;
-                }
-                .applications-sidebar {
-                    position: static;
-                }
-                .applications-sidebar-list {
-                    max-height: none;
-                }
-                .application-detail-title {
-                    font-size: 1.45rem;
-                }
-            }
-            @media (max-width: 575.98px) {
-                .application-detail-head {
-                    flex-direction: column;
-                }
-                .detail-score-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
-        </style>
         <?php if (empty($applications)): ?>
             <div class="text-center bg-white rounded shadow-sm p-5 mb-4">
                 <i class="fas fa-inbox fa-4x text-muted mb-3"></i>

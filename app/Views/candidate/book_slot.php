@@ -1,33 +1,36 @@
 <?= view('Layouts/candidate_header', ['title' => 'Book Interview Slot']) ?>
 
 <div class="book-slot-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <h1 class="text-white font-weight-bold">Book Interview Slot</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('candidate/my-bookings') ?>">My Bookings</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Book Slot</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-calendar-check"></i> Interview scheduling</span>
+                <h1 class="page-board-title">Book Interview Slot</h1>
+                <p class="page-board-subtitle">Select a convenient interview time after you’ve been shortlisted for this role.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= esc($application['job_title'] ?? 'Role') ?></strong> Position</span>
+                    <span class="meta-chip"><strong><?= count($available_slots ?? []) ?></strong> Available dates</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> My Bookings
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">
-            <div class="col-lg-10 offset-lg-1 px-0">
-                <div class="alert alert-success booking-alert">
+            <div class="booking-summary-card mb-4">
+                <div class="alert alert-success booking-alert mb-0">
                     <h5><i class="fas fa-check-circle mr-2"></i>Congratulations!</h5>
                     <p class="mb-0">
                         You have been shortlisted for <strong><?= esc($application['job_title'] ?? 'this position') ?></strong>.
                         Please select an available interview slot below.
                     </p>
                 </div>
+            </div>
 
                 <?php if (session()->getFlashdata('error')): ?>
                     <div class="alert alert-danger">
@@ -56,9 +59,9 @@
                                         </h5>
                                     </div>
                                     <div class="card-body">
-                                        <div class="row">
+                                        <div class="slot-choice-grid">
                                             <?php foreach ($slots as $slot): ?>
-                                                <div class="col-md-4 mb-3">
+                                                <div>
                                                     <input type="radio" name="slot_id" id="slot_<?= $slot['id'] ?>"
                                                            value="<?= $slot['id'] ?>" class="slot-radio" required>
                                                     <label for="slot_<?= $slot['id'] ?>" class="slot-label">
@@ -91,7 +94,6 @@
                         </div>
                     </form>
                 <?php endif; ?>
-            </div>
         </div>
     </section>
 </div>

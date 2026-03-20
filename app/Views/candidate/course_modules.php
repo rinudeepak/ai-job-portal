@@ -3,26 +3,29 @@
 <div class="course-modules-jobboard">
     <div class="offline-badge online" id="offlineStatus">Online</div>
 
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <h1 class="text-white font-weight-bold">Course Modules</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('career-transition') ?>">Career Transition AI</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Course Modules</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-graduation-cap"></i> Career learning path</span>
+                <h1 class="page-board-title">Course Modules</h1>
+                <p class="page-board-subtitle">Open a module to continue your role transition roadmap and keep learning at your own pace.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= count($modules ?? []) ?></strong> Modules</span>
+                    <span class="meta-chip"><strong><?= esc($transition['current_role'] ?? 'Current') ?></strong> From</span>
+                    <span class="meta-chip"><strong><?= esc($transition['target_role'] ?? 'Target') ?></strong> To</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('career-transition') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Back
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">
-            <div class="card transition-panel course-header-panel mb-4">
+            <div class="course-header-card mb-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start flex-wrap transition-header-row">
                         <div class="flex-grow-1">
@@ -54,6 +57,7 @@
                     <p class="mb-0">Generate your career transition roadmap first.</p>
                 </div>
             <?php else: ?>
+                <div class="course-module-grid">
                 <?php foreach ($modules as $module): ?>
                     <a href="<?= base_url('career-transition/module/' . (int) $module['id']) ?>" class="course-module-card">
                         <div class="course-module-number"><?= (int) $module['module_number'] ?></div>
@@ -65,6 +69,7 @@
                         <span class="course-module-arrow"><i class="fas fa-arrow-right"></i></span>
                     </a>
                 <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </div>
     </section>

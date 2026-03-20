@@ -1,10 +1,11 @@
-const CACHE_NAME = 'ai-job-portal-v1';
+const CACHE_NAME = 'ai-job-portal-v2';
 const OFFLINE_CACHE = 'offline-course-v1';
 
 const STATIC_ASSETS = [
     '/ai-job-portal/public/',
     '/ai-job-portal/public/jobboard/css/custom-bs.css',
     '/ai-job-portal/public/jobboard/css/style.css',
+    '/ai-job-portal/public/jobboard/css/hirematrix-style.css',
     '/ai-job-portal/public/jobboard/js/jquery.min.js',
     '/ai-job-portal/public/jobboard/js/bootstrap.bundle.min.js'
 ];

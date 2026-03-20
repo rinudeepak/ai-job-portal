@@ -1,179 +1,270 @@
 <?= view('Layouts/candidate_header', ['title' => 'Career Transition AI']) ?>
 
+<?php
+$skillGaps = [];
+if (!empty($transition['skill_gaps'])) {
+    $decodedGaps = json_decode((string) $transition['skill_gaps'], true);
+    if (is_array($decodedGaps)) {
+        $skillGaps = $decodedGaps;
+    }
+}
+$hasTransition = !empty($transition);
+$taskCount = count($tasks ?? []);
+$reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
+?>
+
 <div class="career-transition-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
+    <section class="hero career-transition-hero">
         <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">Career Transition AI</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Career Transition AI</strong></span>
-                    </div>
-                </div>
+            <div class="status-pill">
+                <i class="fas fa-sparkles" style="color: var(--primary);"></i>
+                Career Transition AI
+            </div>
+
+            <h1 class="hero-title">
+                Build Your Next
+                <span class="gradient-text">Career Path</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                Get a personalized roadmap, identify skill gaps, and follow a day-by-day learning plan toward your target role.
+            </p>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="#transition-form" class="btn btn-primary">Start Now</a>
+                <a href="<?= base_url('career-transition/history') ?>" class="btn btn-outline-primary">View History</a>
             </div>
         </div>
     </section>
 
-    <section class="site-section pt-0 content-wrap">
+    <section class="career-transition-content">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap transition-header-row">
-                <h3 class="mb-0">Your Career Transition</h3>
-                <a href="<?= base_url('career-transition/history') ?>" class="btn btn-primary">
-                    <i class="fas fa-history"></i> View History
-                </a>
-            </div>
+            <?php if (session()->getFlashdata('error')): ?>
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <?= esc(session()->getFlashdata('error')) ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">&times;</button>
+                </div>
+            <?php endif; ?>
 
-            <?php if (!$transition): ?>
-                <?php if (session()->getFlashdata('error')): ?>
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                        <?= session()->getFlashdata('error') ?>
-                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <?php if (session()->getFlashdata('success')): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <?= esc(session()->getFlashdata('success')) ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">&times;</button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!$hasTransition): ?>
+                <div class="row g-4 align-items-start">
+                    <div class="col-lg-7">
+                        <div class="career-transition-card dashboard-panel" id="transition-form">
+                            <div class="panel-header">
+                                <div class="ai-badge">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Personalized Roadmap
+                                </div>
+                                <h2 class="section-title mb-2">Start Your Career Transition Journey</h2>
+                                <p class="section-subtitle">
+                                    We analyze your current skill set and generate a focused roadmap for your target role.
+                                </p>
+                            </div>
+                            <div class="panel-body">
+                                <div class="dashboard-cta-banner mb-4">
+                                    <h3 class="section-title mb-2">Smart Tip</h3>
+                                    <p class="section-subtitle mb-0">
+                                        If you already explored this path before, your course can be restored instantly.
+                                    </p>
+                                </div>
+
+                                <form action="<?= base_url('career-transition/create') ?>" method="post" id="transitionForm">
+                                    <?= csrf_field() ?>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Current Role</label>
+                                        <input type="text" name="current_role" class="form-control" value="<?= esc($currentRole ?? '') ?>" placeholder="e.g., PHP Developer" required>
+                                        <small class="text-muted">Auto-detected from your profile</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Target Role</label>
+                                        <input list="role-suggestions" type="text" name="target_role" class="form-control" value="<?= esc($targetRole ?? '') ?>" placeholder="e.g., Next.js Developer" required>
+                                        <datalist id="role-suggestions">
+                                            <option value="Next.js Developer">
+                                            <option value="React Developer">
+                                            <option value="DevOps Engineer">
+                                            <option value="DevOps Developer">
+                                            <option value="Data Scientist">
+                                            <option value="Data Analyst">
+                                            <option value="Full Stack Developer">
+                                            <option value="Frontend Developer">
+                                            <option value="Backend Developer">
+                                            <option value="Python Developer">
+                                            <option value="Java Developer">
+                                            <option value="Node.js Developer">
+                                            <option value="Cloud Engineer">
+                                            <option value="Machine Learning Engineer">
+                                        </datalist>
+                                        <small class="text-muted">Choose from suggestions or type your own role</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <span id="btnText"><i class="fas fa-rocket"></i> Generate Personalized Roadmap</span>
+                                        <span id="btnLoading" class="transition-btn-loading">
+                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                            Generating AI course... (60-90 seconds)
+                                        </span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                <?php endif; ?>
 
-                <?php if (session()->getFlashdata('success')): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <?= session()->getFlashdata('success') ?>
-                        <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    </div>
-                <?php endif; ?>
-
-                <div class="card transition-panel">
-                    <div class="card-body p-4 p-md-5">
-                        <h5 class="mb-2">Start Your Career Transition Journey</h5>
-                        <p class="text-muted mb-3">We analyze your current skill set and generate a focused roadmap for your target role.</p>
-
-                        <div class="alert alert-info mb-4">
-                            <i class="fas fa-lightbulb"></i>
-                            <strong> Smart Tip:</strong> If you already explored this path before, your course can be restored instantly.
+                    <div class="col-lg-5">
+                        <div class="dashboard-panel mb-4">
+                            <div class="panel-header">
+                                <h3 class="section-title mb-2">What You Get</h3>
+                                <p class="section-subtitle mb-0">A practical transition plan, not just a static list.</p>
+                            </div>
+                            <div class="panel-body">
+                                <div class="d-grid gap-3">
+                                    <div class="quick-action-card">
+                                        <div class="quick-action-title">Learning Path</div>
+                                        <div class="quick-action-text">A structured course with daily tasks and milestones.</div>
+                                    </div>
+                                    <div class="quick-action-card">
+                                        <div class="quick-action-title">Skill Gap Analysis</div>
+                                        <div class="quick-action-text">Clear focus areas based on your current profile.</div>
+                                    </div>
+                                    <div class="quick-action-card">
+                                        <div class="quick-action-title">Job Direction</div>
+                                        <div class="quick-action-text">Target roles aligned to your new career goal.</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <form action="<?= base_url('career-transition/create') ?>" method="post" id="transitionForm">
-                            <?= csrf_field() ?>
-                            <div class="mb-3">
-                                <label>Current Role</label>
-                                <input type="text" name="current_role" class="form-control" value="<?= esc($currentRole ?? '') ?>" placeholder="e.g., PHP Developer" required>
-                                <small class="text-muted">Auto-detected from your profile</small>
+                        <div class="dashboard-panel">
+                            <div class="panel-header">
+                                <h3 class="section-title mb-2">Need to Revisit?</h3>
+                                <p class="section-subtitle mb-0">Keep your existing path and build a new one when you’re ready.</p>
                             </div>
-                            <div class="mb-3">
-                                <label>Target Role (Job you want to transition to)</label>
-                                <input list="role-suggestions" type="text" name="target_role" class="form-control" value="<?= esc($targetRole ?? '') ?>" placeholder="e.g., Next.js Developer" required>
-                                <datalist id="role-suggestions">
-                                    <option value="Next.js Developer">
-                                    <option value="React Developer">
-                                    <option value="DevOps Engineer">
-                                    <option value="DevOps Developer">
-                                    <option value="Data Scientist">
-                                    <option value="Data Analyst">
-                                    <option value="Full Stack Developer">
-                                    <option value="Frontend Developer">
-                                    <option value="Backend Developer">
-                                    <option value="Python Developer">
-                                    <option value="Java Developer">
-                                    <option value="Node.js Developer">
-                                    <option value="Cloud Engineer">
-                                    <option value="Machine Learning Engineer">
-                                </datalist>
-                                <small class="text-muted">Choose from suggestions or type your own role</small>
+                            <div class="panel-body">
+                                <a href="<?= base_url('career-transition/history') ?>" class="btn btn-outline-primary w-100 mb-2">
+                                    <i class="fas fa-history"></i> View History
+                                </a>
+                                <p class="text-muted mb-0">Previous transitions remain available for reference and reuse.</p>
                             </div>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <span id="btnText"><i class="fas fa-rocket"></i> Generate Personalized Roadmap</span>
-                                <span id="btnLoading" class="transition-btn-loading">
-                                    <span class="spinner-border spinner-border-sm" role="status"></span>
-                                    Generating AI course... (60-90 seconds)
-                                </span>
-                            </button>
-                        </form>
+                        </div>
                     </div>
                 </div>
-
             <?php else: ?>
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <div class="card transition-panel">
-                            <div class="card-body text-center">
-                                <h6>Career Path</h6>
-                                <h5><?= esc($transition['current_role']) ?></h5>
-                                <div class="transition-arrow my-2"><i class="fas fa-arrow-down"></i></div>
-                                <h5 class="text-success"><?= esc($transition['target_role']) ?></h5>
+                <div class="row g-4 align-items-start">
+                    <div class="col-lg-4">
+                        <div class="dashboard-panel mb-4">
+                            <div class="panel-header text-center">
+                                <div class="ai-badge mb-3">
+                                    <i class="fas fa-route"></i>
+                                    Current Path
+                                </div>
+                                <h3 class="section-title mb-2"><?= esc($transition['current_role']) ?></h3>
+                                <div class="transition-arrow my-3" style="font-size: 2rem; color: var(--primary);">
+                                    <i class="fas fa-arrow-down"></i>
+                                </div>
+                                <h3 class="section-title mb-0"><?= esc($transition['target_role']) ?></h3>
 
-                                <?php if (isset($transition['reactivation_count']) && $transition['reactivation_count'] > 0): ?>
-                                    <div class="badge badge-info mt-2">
-                                        <i class="fas fa-redo"></i> Reused <?= (int)$transition['reactivation_count'] ?> time(s)
+                                <?php if ($reactivationCount > 0): ?>
+                                    <div class="badge badge-info mt-3">
+                                        <i class="fas fa-redo"></i> Reused <?= $reactivationCount ?> time(s)
                                     </div>
                                 <?php endif; ?>
-
-                                <a href="<?= base_url('career-transition/course') ?>" class="btn btn-success btn-sm mt-3 d-block">
+                            </div>
+                            <div class="panel-body">
+                                <a href="<?= base_url('career-transition/course') ?>" class="btn btn-success w-100 mb-2">
                                     <i class="fas fa-book-open"></i> View Full Course
                                 </a>
-                                <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-info btn-sm mt-2 d-block">
+                                <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-info w-100 mb-2">
                                     <i class="fas fa-file-pdf"></i> Download PDF
                                 </a>
-                                <button class="btn btn-warning btn-sm mt-2 d-block" onclick="if(confirm('Save current path to history and start a new one? Your progress will be preserved.')) window.location.href='<?= base_url('career-transition/reset') ?>'">
+                                <button type="button" class="btn btn-warning w-100" onclick="if(confirm('Save current path to history and start a new one? Your progress will be preserved.')) window.location.href='<?= base_url('career-transition/reset') ?>'">
                                     <i class="fas fa-sync"></i> Change Career Path
                                 </button>
                             </div>
                         </div>
 
-                        <div class="card transition-panel mt-3">
-                            <div class="card-body">
-                                <h6>Skill Gaps</h6>
-                                <ul class="mb-0 pl-3">
-                                    <?php
-                                    $skillGaps = json_decode($transition['skill_gaps'], true);
-                                    if ($skillGaps && count($skillGaps) > 0):
-                                        foreach ($skillGaps as $skill): ?>
-                                            <li><?= esc($skill) ?></li>
-                                        <?php endforeach;
-                                    else: ?>
-                                        <li class="text-muted">Analyzing skills...</li>
-                                    <?php endif; ?>
-                                </ul>
+                        <div class="dashboard-panel">
+                            <div class="panel-header">
+                                <h3 class="section-title mb-2">Skill Gaps</h3>
+                                <p class="section-subtitle mb-0">Skills to prioritize next</p>
+                            </div>
+                            <div class="panel-body">
+                                <?php if (!empty($skillGaps)): ?>
+                                    <div class="job-card-tags">
+                                        <?php foreach ($skillGaps as $skill): ?>
+                                            <span class="badge badge-secondary"><?= esc($skill) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="text-muted mb-0">Analyzing skills...</p>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-md-8">
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap transition-task-head">
-                            <h5 class="mb-0">Daily Learning Tasks</h5>
-                            <small class="text-muted">5-10 minutes each</small>
+                    <div class="col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                            <div>
+                                <div class="ai-badge">
+                                    <i class="fas fa-calendar-day"></i>
+                                    Daily Plan
+                                </div>
+                                <h2 class="section-title">Daily Learning Tasks</h2>
+                                <p class="section-subtitle mb-0">Each task maps directly to a module and lesson in your generated course.</p>
+                            </div>
+                            <div class="badge badge-primary" style="padding: 0.6rem 0.9rem;">
+                                <?= $taskCount ?> Tasks
+                            </div>
                         </div>
-                        <p class="text-muted">Each task maps directly to a module and lesson in your generated course.</p>
 
                         <?php if (!empty($tasks) && count($tasks) > 0): ?>
-                            <?php foreach ($tasks as $task): ?>
-                                <div class="card transition-task-card mb-3 <?= $task['is_completed'] ? 'task-completed' : '' ?>">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between transition-task-row">
-                                            <div class="flex-grow-1">
-                                                <h6>Day <?= (int)$task['day_number'] ?>: <?= esc($task['task_title']) ?></h6>
-                                                <p class="mb-1"><?= esc($task['task_description']) ?></p>
-                                                <small class="text-muted"><i class="far fa-clock"></i> <?= (int)$task['duration_minutes'] ?> minutes</small>
-                                                <?php if (!empty($task['module_number'])): ?>
-                                                    <span class="badge badge-info ml-2">
-                                                        Module <?= (int)$task['module_number'] ?>
-                                                        <?= !empty($task['lesson_number']) ? ' - Lesson ' . (int)$task['lesson_number'] : '' ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div>
-                                                <?php if (!$task['is_completed']): ?>
-                                                    <button class="btn btn-sm btn-success" onclick="completeTask(<?= (int)$task['id'] ?>)">
-                                                        <i class="fas fa-check"></i> Complete
-                                                    </button>
-                                                <?php else: ?>
-                                                    <span class="badge badge-success"><i class="fas fa-check"></i> Done</span>
-                                                <?php endif; ?>
+                            <div class="d-grid gap-3">
+                                <?php foreach ($tasks as $task): ?>
+                                    <div class="dashboard-panel transition-task-card <?= !empty($task['is_completed']) ? 'task-completed' : '' ?>">
+                                        <div class="panel-body">
+                                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                                <div class="flex-grow-1">
+                                                    <h4 class="mb-2">Day <?= (int) $task['day_number'] ?>: <?= esc($task['task_title']) ?></h4>
+                                                    <p class="mb-2 text-muted"><?= esc($task['task_description']) ?></p>
+                                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                        <span class="badge badge-info">
+                                                            <i class="far fa-clock"></i> <?= (int) $task['duration_minutes'] ?> minutes
+                                                        </span>
+                                                        <?php if (!empty($task['module_number'])): ?>
+                                                            <span class="badge badge-secondary">
+                                                                Module <?= (int) $task['module_number'] ?>
+                                                                <?= !empty($task['lesson_number']) ? ' - Lesson ' . (int) $task['lesson_number'] : '' ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <?php if (empty($task['is_completed'])): ?>
+                                                        <button class="btn btn-sm btn-success" onclick="completeTask(<?= (int) $task['id'] ?>)">
+                                                            <i class="fas fa-check"></i> Complete
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <span class="badge badge-success"><i class="fas fa-check"></i> Done</span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
                         <?php else: ?>
-                            <div class="alert alert-info" data-auto-refresh="1" data-refresh-delay="5000">
-                                <p class="mb-0"><i class="fas fa-sync-alt"></i> Tasks are being generated. This page will refresh shortly.</p>
+                            <div class="dashboard-panel">
+                                <div class="panel-body text-center py-5">
+                                    <i class="fas fa-sync-alt fa-3x text-muted mb-3"></i>
+                                    <h4 class="mb-2">Tasks are being generated</h4>
+                                    <p class="text-muted mb-0" data-auto-refresh="1" data-refresh-delay="5000">
+                                        This page will refresh shortly.
+                                    </p>
+                                </div>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -182,5 +273,21 @@
         </div>
     </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('transitionForm');
+    var submitBtn = document.getElementById('submitBtn');
+
+    if (!form || !submitBtn) {
+        return;
+    }
+
+    form.addEventListener('submit', function () {
+        submitBtn.classList.add('is-loading');
+        submitBtn.disabled = true;
+    });
+});
+</script>
 
 <?= view('Layouts/candidate_footer') ?>

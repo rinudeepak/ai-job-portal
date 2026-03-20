@@ -14,8 +14,9 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
 </head>
-<body id="top">
+<body id="top" class="hirematrix-app">
 <div class="site-wrap">
     <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');">
         <div class="container">

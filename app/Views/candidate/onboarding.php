@@ -22,19 +22,28 @@ $stepDescriptions = [
 $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
 ?>
 
-<section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-8">
-                <h1 class="text-white font-weight-bold">Complete Your Candidate Profile</h1>
-                <div class="custom-breadcrumbs">
-                    <span class="text-white"><strong>Step-by-step onboarding</strong></span>
-                </div>
+<div class="container">
+    <div class="page-board-header page-board-header-tight">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-user-plus"></i> Onboarding</span>
+            <h1 class="page-board-title">Complete Your Candidate Profile</h1>
+            <p class="page-board-subtitle">Follow the step-by-step setup flow to finish your profile and enter the portal fully prepared.</p>
+            <div class="company-profile-meta">
+                <span class="meta-chip"><strong><?= (int) $progressPercent ?>%</strong> Complete</span>
+                <span class="meta-chip"><strong><?= esc($currentStepTitle) ?></strong> Current step</span>
             </div>
         </div>
+        <div class="page-board-actions">
+            <?php if (!empty($user['resume_path'])): ?>
+                <a href="<?= base_url('candidate/download-resume') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-download mr-1"></i> Download Resume
+                </a>
+            <?php endif; ?>
+        </div>
     </div>
-</section>
+</div>
 
+<div class="onboarding-jobboard">
 <section class="site-section pt-0 content-wrap">
     <div class="container pt-4">
         <?php if (session()->getFlashdata('success')): ?>
@@ -62,11 +71,12 @@ $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
             .onboarding-content {
                 background: #fff;
                 border: 1px solid #e8edf3;
-                border-radius: 18px;
-                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+                border-radius: 22px;
+                box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
             }
             .onboarding-side {
-                padding: 20px;
+                padding: 22px;
+                background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
             }
             .onboarding-progress-bar {
                 height: 10px;
@@ -77,7 +87,7 @@ $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
             }
             .onboarding-progress-fill {
                 height: 100%;
-                background: #89ba16;
+                background: linear-gradient(90deg, var(--primary), var(--secondary));
                 border-radius: 999px;
             }
             .onboarding-step-list {
@@ -87,18 +97,19 @@ $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
             }
             .onboarding-step-item {
                 padding: 12px 14px;
-                border-radius: 14px;
+                border-radius: 16px;
                 background: #f8fafc;
                 border: 1px solid #edf2f7;
             }
             .onboarding-step-item.is-active {
-                background: #0f172a;
+                background: linear-gradient(135deg, var(--primary), var(--primary-dark));
                 color: #fff;
-                border-color: #0f172a;
+                border-color: rgba(59, 130, 246, 0.35);
+                box-shadow: 0 10px 22px rgba(59, 130, 246, 0.18);
             }
             .onboarding-step-item.is-done {
-                background: #f3fbdf;
-                border-color: #d8ebb0;
+                background: #eef7ff;
+                border-color: rgba(59, 130, 246, 0.16);
             }
             .onboarding-step-index {
                 font-size: 12px;
@@ -108,7 +119,7 @@ $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
                 opacity: .75;
             }
             .onboarding-content {
-                padding: 28px;
+                padding: 30px;
             }
             .onboarding-header h2 {
                 font-size: 30px;
@@ -136,6 +147,27 @@ $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
                 border-radius: 16px;
                 padding: 20px;
                 background: #fbfdff;
+            }
+            .onboarding-content .form-control,
+            .onboarding-content .form-control-file {
+                width: 100%;
+                min-height: 48px;
+                padding: 0.72rem 0.95rem;
+                border-radius: 0.95rem;
+                border: 1px solid #dbe4f5;
+                background: #fff;
+                color: #1f2937;
+                box-shadow: none;
+            }
+            .onboarding-content select.form-control {
+                appearance: auto;
+                -webkit-appearance: auto;
+                -moz-appearance: auto;
+                padding-right: 2.5rem;
+            }
+            .onboarding-content .form-control:focus {
+                border-color: rgba(59, 130, 246, 0.45);
+                box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.12);
             }
             .onboarding-summary-grid {
                 display: grid;
@@ -466,6 +498,7 @@ $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
         </div>
     </div>
 </section>
+</div>
 
 <?= view('Layouts/candidate_footer') ?>
 

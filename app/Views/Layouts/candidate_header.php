@@ -15,9 +15,10 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/candidate-pages.css?v=' . @filemtime(FCPATH . 'jobboard/css/candidate-pages.css')) ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
 </head>
-<body id="top">
+<body id="top" class="hirematrix-app candidate-app">
 <div id="overlayer"></div>
 <div class="loader">
     <div class="spinner-border text-primary" role="status">
@@ -87,7 +88,7 @@
         <div class="site-mobile-menu-body"></div>
     </div>
 
-    <header class="site-navbar mt-3 site-navbar-target">
+    <header class="site-navbar site-navbar-target">
         <div class="container-fluid">
             <div class="row align-items-center">
                 <div class="site-logo col-6 col-xl-2">
@@ -126,9 +127,8 @@
                             position: relative;
                             width: 42px;
                             height: 42px;
-                            border-radius: 50%;
-                            border: 1px solid rgba(0, 0, 0, 0.15);
-                            background: #fff;
+                            border: 0;
+                            background: transparent;
                             color: #111827;
                             display: inline-flex;
                             align-items: center;
@@ -138,24 +138,36 @@
                             transition: all .2s ease;
                         }
                         .header-notification-link:hover {
-                            background: #f3f6ff;
-                            border-color: #b8c6ea;
-                            color: #1f4bb8;
+                            color: #111827;
+                            background: rgba(59, 130, 246, 0.04);
+                            border-radius: 12px;
+                        }
+                        .header-notification-link .icon-bell {
+                            color: #111827;
+                            font-size: 20px;
+                            line-height: 1;
+                            width: 20px;
+                            height: 20px;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-shrink: 0;
                         }
                         .header-notification-badge {
                             position: absolute;
-                            top: -5px;
-                            right: -5px;
-                            min-width: 18px;
-                            height: 18px;
+                            top: -1px;
+                            right: 2px;
+                            min-width: 8px;
+                            height: 8px;
                             border-radius: 999px;
-                            background: #dc3545;
-                            color: #fff;
-                            font-size: 11px;
-                            font-weight: 700;
-                            line-height: 18px;
+                            background: #0b66ff;
+                            color: transparent;
+                            font-size: 0;
+                            line-height: 0;
                             text-align: center;
-                            padding: 0 4px;
+                            padding: 0;
+                            overflow: hidden;
+                            box-shadow: 0 0 0 2px #fff;
                         }
                         .header-notification-link.has-unread i {
                             animation: bell-ring 1.6s ease-in-out infinite;
@@ -171,6 +183,7 @@
                         .header-job-search-wrap {
                             position: relative;
                             margin-right: 10px;
+                            z-index: 5;
                         }
                         .header-job-search-trigger {
                             width: 220px;
@@ -185,6 +198,10 @@
                             padding: 0 14px;
                             font-size: 13px;
                             cursor: pointer;
+                            position: relative;
+                            z-index: 6;
+                            pointer-events: auto;
+                            -webkit-tap-highlight-color: transparent;
                         }
                         .header-job-search-trigger strong {
                             margin-left: 8px;
@@ -295,20 +312,24 @@
                         .candidate-avatar-btn {
                             width: 42px;
                             height: 42px;
-                            border-radius: 50%;
-                            border: 2px solid rgba(255, 255, 255, 0.8);
-                            background: #fff;
-                            color: #89ba16;
+                            border-radius: 12px;
+                            border: 0;
+                            background: linear-gradient(135deg, #3b82f6 0%, #ff7b2a 100%);
+                            color: #fff;
                             font-weight: 700;
+                            font-size: 16px;
                             display: inline-flex;
                             align-items: center;
                             justify-content: center;
                             cursor: pointer;
                             overflow: hidden;
                             padding: 0;
+                            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24);
+                            transition: transform .2s ease, box-shadow .2s ease;
                         }
                         .candidate-avatar-btn:hover {
-                            border-color: #fff;
+                            transform: translateY(-1px);
+                            box-shadow: 0 10px 22px rgba(59, 130, 246, 0.28);
                         }
                         .candidate-avatar-photo {
                             width: 100%;

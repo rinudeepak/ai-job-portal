@@ -1,49 +1,65 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Candidate Insights']) ?>
 
-<div class="container-fluid py-4">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="fas fa-trophy"></i> Candidate Insights Leaderboard</h2>
-            <p class="text-muted">Compare applicants by fit, scores, and profile signals. Use this page for review, not bulk actions.</p>
+<div class="recruiter-leaderboard-jobboard">
+<div class="container-fluid py-5">
+    <?php
+    $leaderboardAction = !empty($selectedJob['id'])
+        ? base_url('recruiter/jobs/' . $selectedJob['id'] . '/leaderboard')
+        : base_url('recruiter/dashboard/leaderboard');
+    $candidateCount = count($candidates ?? []);
+    $avgTech = !empty($candidates) ? array_sum(array_column($candidates, 'technical_score')) / count($candidates) : 0;
+    $avgComm = !empty($candidates) ? array_sum(array_column($candidates, 'communication_score')) / count($candidates) : 0;
+    $avgOverall = !empty($candidates) ? array_sum(array_column($candidates, 'overall_rating')) / count($candidates) : 0;
+    $atsScores = array_filter(array_column($candidates ?? [], 'ats_score'), static fn ($score) => $score !== null);
+    $avgAts = !empty($atsScores) ? array_sum($atsScores) / count($atsScores) : null;
+    ?>
+
+    <div class="page-board-header page-board-header-tight recruiter-page-board-header">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-trophy"></i> Recruiter insights</span>
+            <h1 class="page-board-title">Candidate Insights Leaderboard</h1>
+            <p class="page-board-subtitle">Compare applicants by fit, scores, and profile signals. Use this page for review, not bulk actions.</p>
+            <div class="company-profile-meta">
+                <span class="meta-chip"><strong><?= number_format($candidateCount) ?></strong> Candidates</span>
+                <span class="meta-chip"><strong><?= number_format($avgTech, 1) ?></strong> Avg technical</span>
+                <span class="meta-chip"><strong><?= number_format($avgOverall, 1) ?></strong> Avg overall</span>
+            </div>
         </div>
-        <div>
-            <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-secondary">
+        <div class="page-board-actions recruiter-leaderboard-actions">
+            <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to My Jobs
             </a>
             <?php if (!empty($selectedJob['id'])): ?>
-                <a href="<?= base_url('recruiter/jobs/' . $selectedJob['id'] . '/applications') ?>" class="btn btn-outline-primary">
+                <a href="<?= base_url('recruiter/jobs/' . $selectedJob['id'] . '/applications') ?>" class="btn btn-outline-secondary">
                     <i class="fas fa-users-cog"></i> Open Candidate List
                 </a>
             <?php endif; ?>
-            <a href="<?= base_url('recruiter/dashboard/export-excel?type=leaderboard') ?>" class="btn btn-success">
+            <a href="<?= base_url('recruiter/dashboard/export-excel?type=leaderboard') ?>" class="btn btn-primary">
                 <i class="fas fa-file-excel"></i> Export to Excel
             </a>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Review Filters</h6>
-        </div>
+    <div class="card shadow-sm recruiter-filter-card mb-4">
         <div class="card-body">
-            <?php $leaderboardAction = !empty($selectedJob['id']) ? base_url('recruiter/jobs/' . $selectedJob['id'] . '/leaderboard') : base_url('recruiter/dashboard/leaderboard'); ?>
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="m-0 font-weight-bold">Review Filters</h6>
+                    <p class="text-muted mb-0">Fine tune the leaderboard before reviewing applications.</p>
+                </div>
+                <div class="text-muted small">
+                    <?= !empty($selectedJob['id']) ? 'Locked to one job' : 'Across all jobs' ?>
+                </div>
+            </div>
             <form method="get" action="<?= $leaderboardAction ?>" id="filterForm">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="sort_by">Sort By</label>
                             <select name="sort_by" id="sort_by" class="form-control">
-                                <option value="technical_score" <?= ($filters['sort_by'] ?? '') === 'technical_score' ? 'selected' : '' ?>>
-                                    Technical Score
-                                </option>
-                                <option value="overall_rating" <?= ($filters['sort_by'] ?? '') === 'overall_rating' ? 'selected' : '' ?>>
-                                    Overall AI Rating
-                                </option>
-                                <option value="communication_score" <?= ($filters['sort_by'] ?? '') === 'communication_score' ? 'selected' : '' ?>>
-                                    Communication Score
-                                </option>
+                                <option value="technical_score" <?= ($filters['sort_by'] ?? '') === 'technical_score' ? 'selected' : '' ?>>Technical Score</option>
+                                <option value="overall_rating" <?= ($filters['sort_by'] ?? '') === 'overall_rating' ? 'selected' : '' ?>>Overall AI Rating</option>
+                                <option value="communication_score" <?= ($filters['sort_by'] ?? '') === 'communication_score' ? 'selected' : '' ?>>Communication Score</option>
                             </select>
                         </div>
                     </div>
@@ -93,15 +109,14 @@
         </div>
     </div>
 
-    <!-- Current Filters Display -->
     <?php if (!empty($filters['skill']) || !empty($filters['job_id']) || !empty($filters['sort_by'])): ?>
-        <div class="alert alert-info alert-dismissible fade show">
+        <div class="alert alert-info alert-dismissible fade show recruiter-alert" role="alert">
             <strong>Active Filters:</strong>
             <?php if (!empty($filters['sort_by'])): ?>
                 <span class="badge badge-primary">Sort: <?= ucwords(str_replace('_', ' ', $filters['sort_by'])) ?></span>
             <?php endif; ?>
             <?php if (!empty($filters['skill'])): ?>
-                <span class="badge badge-success">Skill: <?= esc($filters['skill']) ?></span>
+                <span class="badge badge-primary">Skill: <?= esc($filters['skill']) ?></span>
             <?php endif; ?>
             <?php if (!empty($filters['job_id'])): ?>
                 <span class="badge badge-info">Job Selected</span>
@@ -112,22 +127,21 @@
         </div>
     <?php endif; ?>
 
-    <!-- Leaderboard -->
-    <div class="card shadow">
+    <div class="card shadow-sm recruiter-leaderboard-card">
         <div class="card-header py-3 bg-gradient-primary text-white">
             <h6 class="m-0 font-weight-bold">
-                <i class="fas fa-crown"></i> Comparison View - 
-                <?= ucwords(str_replace('_', ' ', $filters['sort_by'] ?? 'technical_score')) ?>
+                <i class="fas fa-crown"></i> Comparison View - <?= ucwords(str_replace('_', ' ', $filters['sort_by'] ?? 'technical_score')) ?>
             </h6>
         </div>
         <div class="card-body">
             <div class="alert alert-light border mb-4">
                 <strong>How to use this page:</strong> compare candidate quality here, then open a candidate application to shortlist, reject, or message from the candidate list.
             </div>
+
             <?php if (empty($candidates)): ?>
                 <div class="text-center py-5">
                     <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No candidates found for this leaderboard</p>
+                    <p class="text-muted mb-0">No candidates found for this leaderboard</p>
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
@@ -152,17 +166,11 @@
                                 <tr class="<?= $candidate['rank'] <= 3 ? 'top-performer' : '' ?>">
                                     <td class="rank-cell">
                                         <?php if ($candidate['rank'] === 1): ?>
-                                            <span class="rank-badge gold">
-                                                <i class="fas fa-crown"></i> 1
-                                            </span>
+                                            <span class="rank-badge gold"><i class="fas fa-crown"></i> 1</span>
                                         <?php elseif ($candidate['rank'] === 2): ?>
-                                            <span class="rank-badge silver">
-                                                <i class="fas fa-medal"></i> 2
-                                            </span>
+                                            <span class="rank-badge silver"><i class="fas fa-medal"></i> 2</span>
                                         <?php elseif ($candidate['rank'] === 3): ?>
-                                            <span class="rank-badge bronze">
-                                                <i class="fas fa-medal"></i> 3
-                                            </span>
+                                            <span class="rank-badge bronze"><i class="fas fa-medal"></i> 3</span>
                                         <?php else: ?>
                                             <span class="rank-number"><?= $candidate['rank'] ?></span>
                                         <?php endif; ?>
@@ -178,13 +186,12 @@
                                     <td>
                                         <div class="skills-display">
                                             <?php if (!empty($candidate['required_skills'])): ?>
-                                                <!-- Skill Match Percentage -->
                                                 <div class="skill-match-badge mb-2">
                                                     <span class="badge badge-<?= $candidate['skill_match'] >= 80 ? 'success' : ($candidate['skill_match'] >= 60 ? 'warning' : 'danger') ?>">
                                                         <?= $candidate['skill_match'] ?>% Match
                                                     </span>
                                                     <small class="text-muted">
-                                                        (<?php 
+                                                        (<?php
                                                             $candidateSkillsLower = array_map('strtolower', $candidate['candidate_skills'] ?? []);
                                                             $requiredSkillsLower = array_map('strtolower', $candidate['required_skills']);
                                                             $matchedCount = count(array_intersect($candidateSkillsLower, $requiredSkillsLower));
@@ -192,15 +199,14 @@
                                                         ?>)
                                                     </small>
                                                 </div>
-                                                
-                                                <!-- Required Skills - Show which ones candidate has -->
+
                                                 <div class="required-skills">
-                                                    <?php 
+                                                    <?php
                                                     $candidateSkillsLower = array_map('strtolower', $candidate['candidate_skills'] ?? []);
-                                                    foreach ($candidate['required_skills'] as $requiredSkill): 
+                                                    foreach ($candidate['required_skills'] as $requiredSkill):
                                                         $hasSkill = in_array(strtolower($requiredSkill), $candidateSkillsLower);
                                                     ?>
-                                                        <span class="skill-badge <?= $hasSkill ? 'skill-has' : 'skill-missing' ?>" 
+                                                        <span class="skill-badge <?= $hasSkill ? 'skill-has' : 'skill-missing' ?>"
                                                               title="<?= $hasSkill ? 'Candidate has this skill' : 'Candidate does not have this skill' ?>">
                                                             <?= esc($requiredSkill) ?>
                                                             <?php if ($hasSkill): ?>
@@ -224,9 +230,7 @@
                                                 </div>
                                                 <div class="required-skills">
                                                     <?php foreach (array_slice($candidate['github_stack'], 0, 6) as $language): ?>
-                                                        <span class="skill-badge skill-has">
-                                                            <?= esc($language) ?>
-                                                        </span>
+                                                        <span class="skill-badge skill-has"><?= esc($language) ?></span>
                                                     <?php endforeach; ?>
                                                     <?php if (count($candidate['github_stack']) > 6): ?>
                                                         <span class="badge badge-light">+<?= count($candidate['github_stack']) - 6 ?></span>
@@ -263,9 +267,9 @@
                                                 <?= number_format($candidate['overall_rating'] ?? 0, 1) ?>
                                             </span>
                                             <div class="rating-stars">
-                                                <?php 
+                                                <?php
                                                 $stars = round(($candidate['overall_rating'] ?? 0) / 20);
-                                                for ($i = 1; $i <= 5; $i++): 
+                                                for ($i = 1; $i <= 5; $i++):
                                                 ?>
                                                     <i class="fas fa-star <?= $i <= $stars ? 'text-warning' : 'text-muted' ?>"></i>
                                                 <?php endfor; ?>
@@ -304,7 +308,7 @@
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <a href="<?= base_url('recruiter/candidate/' . $candidate['candidate_id'] . '?application_id=' . $candidate['id'] . '&job_id=' . $candidate['job_id']) ?>" class="btn btn-sm btn-outline-primary">
+                                        <a href="<?= base_url('recruiter/candidate/' . $candidate['candidate_id'] . '?application_id=' . $candidate['id'] . '&job_id=' . $candidate['job_id']) ?>" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-eye"></i> View Application
                                         </a>
                                     </td>
@@ -313,53 +317,39 @@
                         </tbody>
                     </table>
                 </div>
-<!-- Pagination -->
+
                 <div class="mt-4">
                     <?php if ($pager->getPageCount() > 1): ?>
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <!-- Results Info -->
                             <div class="pagination-info mb-2 mb-md-0">
                                 <span class="text-muted">
-                                    Showing 
+                                    Showing
                                     <strong><?= (($pager->getCurrentPage() - 1) * $pager->getPerPage()) + 1 ?></strong>
-                                    to 
+                                    to
                                     <strong><?= min($pager->getCurrentPage() * $pager->getPerPage(), $pager->getTotal()) ?></strong>
-                                    of 
-                                    <strong><?= number_format($pager->getTotal()) ?></strong> 
+                                    of
+                                    <strong><?= number_format($pager->getTotal()) ?></strong>
                                     candidates
                                 </span>
                             </div>
-                            
-                            <!-- Pagination Links -->
-                            <div>
-                                <?php
-                                echo $pager->links();
-                                ?>
-                            </div>
+                            <div><?= $pager->links() ?></div>
                         </div>
                     <?php else: ?>
                         <div class="text-center text-muted py-2">
                             <small>
-                                <i class="fas fa-info-circle"></i> 
+                                <i class="fas fa-info-circle"></i>
                                 Showing all <?= count($candidates) ?> candidate<?= count($candidates) != 1 ? 's' : '' ?>
                             </small>
                         </div>
                     <?php endif; ?>
                 </div>
 
-
-                <!-- Statistics Summary -->
                 <div class="row mt-4">
                     <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h5 class="text-muted">Average Technical Score</h5>
-                                <h3 class="text-primary">
-                                    <?php
-                                    $avgTech = !empty($candidates) ? array_sum(array_column($candidates, 'technical_score')) / count($candidates) : 0;
-                                    echo number_format($avgTech, 1);
-                                    ?>
-                                </h3>
+                                <h3 class="text-primary"><?= number_format($avgTech, 1) ?></h3>
                             </div>
                         </div>
                     </div>
@@ -367,12 +357,7 @@
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h5 class="text-muted">Average Communication Score</h5>
-                                <h3 class="text-success">
-                                    <?php
-                                    $avgComm = !empty($candidates) ? array_sum(array_column($candidates, 'communication_score')) / count($candidates) : 0;
-                                    echo number_format($avgComm, 1);
-                                    ?>
-                                </h3>
+                                <h3 class="text-info"><?= number_format($avgComm, 1) ?></h3>
                             </div>
                         </div>
                     </div>
@@ -380,12 +365,7 @@
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h5 class="text-muted">Average Overall Rating</h5>
-                                <h3 class="text-warning">
-                                    <?php
-                                    $avgOverall = !empty($candidates) ? array_sum(array_column($candidates, 'overall_rating')) / count($candidates) : 0;
-                                    echo number_format($avgOverall, 1);
-                                    ?>
-                                </h3>
+                                <h3 class="text-warning"><?= number_format($avgOverall, 1) ?></h3>
                             </div>
                         </div>
                     </div>
@@ -393,13 +373,7 @@
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h5 class="text-muted">Average ATS Score</h5>
-                                <h3 class="text-info">
-                                    <?php
-                                    $atsScores = array_filter(array_column($candidates, 'ats_score'), static fn ($score) => $score !== null);
-                                    $avgAts = !empty($atsScores) ? array_sum($atsScores) / count($atsScores) : null;
-                                    echo $avgAts !== null ? number_format($avgAts, 1) : 'N/A';
-                                    ?>
-                                </h3>
+                                <h3 class="text-info"><?= $avgAts !== null ? number_format($avgAts, 1) : 'N/A' ?></h3>
                             </div>
                         </div>
                     </div>
@@ -408,9 +382,6 @@
         </div>
     </div>
 </div>
-
-
-
-
+</div>
 
 <?= view('Layouts/recruiter_footer') ?>

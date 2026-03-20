@@ -1,22 +1,23 @@
 <?= view('Layouts/candidate_header', ['title' => 'Career Transition History']) ?>
 
 <div class="career-history-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">Career Transition History</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('career-transition') ?>">Career Transition AI</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>History</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-history"></i> Career paths</span>
+                <h1 class="page-board-title">Career Transition History</h1>
+                <p class="page-board-subtitle">Review, reactivate, or compare the learning paths you’ve already saved.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= count($transitions ?? []) ?></strong> Saved paths</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('career-transition') ?>" class="btn btn-primary">
+                    <i class="fas fa-rocket mr-1"></i> Go to Career Transition
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">

@@ -1,6 +1,6 @@
-<?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard']) ?>
+<?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard', 'showHero' => false]) ?>
 
-<div class="container-fluid py-5">
+<div class="recruiter-dashboard-jobboard">
     <?php
     $applicationsUrl = base_url('recruiter/jobs');
     $jobsUrl = base_url('recruiter/jobs');
@@ -38,55 +38,78 @@
         return ((float) $value) >= $goodThreshold ? 'success' : 'warning';
     };
     ?>
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="fas fa-tachometer-alt"></i> Recruitment Dashboard</h2>
-            <p class="text-muted">Track hiring pipeline, shortlist quality candidates, and move interviews faster.</p>
-        </div>
-        <div class="d-flex flex-wrap" style="gap:8px;">
-            <a href="<?= $postJobUrl ?>" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Post Job
-            </a>
-        </div>
-    </div>
+    <section class="recruiter-dashboard-hero">
+        <div class="container">
+            <div class="recruiter-dashboard-hero-grid">
+                <div class="recruiter-dashboard-hero-copy">
+                    <div class="status-pill recruiter-dashboard-status-pill">
+                        <i class="fas fa-arrow-trend-up" style="color: #ff7b2a;"></i>
+                        <?= number_format((int) $funnel['total_applications']) ?> Active Candidates
+                    </div>
 
-    <?php if (!empty($noJobs)): ?>
-    <div class="card shadow mb-4">
-        <div class="card-body p-4 text-center">
-            <h4 class="mb-2">No jobs posted yet</h4>
-            <p class="text-muted mb-3">Post your first job to start receiving applications and build your hiring pipeline.</p>
-            <a href="<?= $postJobUrl ?>" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Post Your First Job
-            </a>
+                    <h1 class="recruiter-dashboard-hero-title">
+                        Find Your Next Great <span class="gradient-text">Hire</span>
+                    </h1>
+
+                    <p class="recruiter-dashboard-hero-subtitle">
+                        Access a curated pool of talented professionals matched to your needs. Smart candidate matching powered by AI to fill your roles faster.
+                    </p>
+
+                </div>
+
+                <div class="recruiter-dashboard-hero-aside">
+                    <div class="recruiter-dashboard-hero-panel">
+                        <div class="recruiter-dashboard-hero-panel-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3>Recruiter Dashboard</h3>
+                        <p>Track applications, shortlist candidates, and manage hiring without losing context.</p>
+                        <a href="<?= $postJobUrl ?>" class="btn btn-primary w-100 mt-3">
+                            <i class="fas fa-plus"></i> Post Job
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <?php endif; ?>
+    </section>
 
-    <!-- Pending Actions Alert -->
-    <?php if (empty($noJobs) && array_sum($pendingActions) > 0): ?>
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <strong><i class="fas fa-exclamation-triangle"></i> Pending Actions:</strong>
-        <?php if ($pendingActions['pending_screening'] > 0): ?>
-            <span class="badge badge-warning"><?= $pendingActions['pending_screening'] ?></span> applications to screen, 
+    <div class="container recruiter-dashboard-main">
+        <?php if (!empty($noJobs)): ?>
+        <div class="card shadow mb-4">
+            <div class="card-body p-4 text-center">
+                <h4 class="mb-2">No jobs posted yet</h4>
+                <p class="text-muted mb-3">Post your first job to start receiving applications and build your hiring pipeline.</p>
+                <a href="<?= $postJobUrl ?>" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Post Your First Job
+                </a>
+            </div>
+        </div>
         <?php endif; ?>
-        <?php if ($pendingActions['ai_interviews_to_review'] > 0): ?>
-            <span class="badge badge-info"><?= $pendingActions['ai_interviews_to_review'] ?></span> screening reviews pending, 
-        <?php endif; ?>
-        <?php if ($pendingActions['hr_interviews_today'] > 0): ?>
-            <span class="badge badge-primary"><?= $pendingActions['hr_interviews_today'] ?></span> HR interviews today
-        <?php endif; ?>
-        <button type="button" class="close" data-dismiss="alert">
-            <span>&times;</span>
-        </button>
-    </div>
-    <?php endif; ?>
 
-    <!-- Quick Stats Row -->
-    <div class="row mb-4">
+        <!-- Pending Actions Alert -->
+        <?php if (empty($noJobs) && array_sum($pendingActions) > 0): ?>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong><i class="fas fa-exclamation-triangle"></i> Pending Actions:</strong>
+            <?php if ($pendingActions['pending_screening'] > 0): ?>
+                <span class="badge badge-warning"><?= $pendingActions['pending_screening'] ?></span> applications to screen, 
+            <?php endif; ?>
+            <?php if ($pendingActions['ai_interviews_to_review'] > 0): ?>
+                <span class="badge badge-info"><?= $pendingActions['ai_interviews_to_review'] ?></span> screening reviews pending, 
+            <?php endif; ?>
+            <?php if ($pendingActions['hr_interviews_today'] > 0): ?>
+                <span class="badge badge-primary"><?= $pendingActions['hr_interviews_today'] ?></span> HR interviews today
+            <?php endif; ?>
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+        <?php endif; ?>
+
+        <!-- Quick Stats Row -->
+        <div class="row mb-4">
         <div class="col-xl col-md-6 mb-3">
             <a href="<?= $applicationsUrl ?>" class="dashboard-stat-link">
-            <div class="card border-left-primary shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-applications shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -109,7 +132,7 @@
 
         <div class="col-xl col-md-6 mb-3">
             <a href="<?= $jobsUrl ?>" class="dashboard-stat-link">
-            <div class="card border-left-info shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-openjobs shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -132,7 +155,7 @@
 
         <div class="col-xl col-md-6 mb-3">
             <a href="<?= $conversionUrl ?>" class="dashboard-stat-link">
-            <div class="card border-left-warning shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-conversion shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -145,7 +168,7 @@
                             <small class="text-muted d-block">Pipeline efficiency</small>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                            <i class="fas fa-chart-pie fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -155,7 +178,7 @@
 
         <div class="col-xl col-md-6 mb-3">
             <a href="<?= $bookingsUrl ?>" class="dashboard-stat-link">
-            <div class="card border-left-info shadow h-100">
+            <div class="card recruiter-stat-card recruiter-stat-bookings shadow h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -175,10 +198,10 @@
             </div>
             </a>
         </div>
-    </div>
+        </div>
 
-    <?php if (empty($noJobs)): ?>
-    <div class="row mb-4 recruiter-action-center">
+        <?php if (empty($noJobs)): ?>
+        <div class="row mb-4 recruiter-action-center">
         <div class="col-xl-8 mb-3">
             <div class="card shadow h-100">
                 <div class="card-header py-3">
@@ -223,11 +246,11 @@
                 </div>
             </div>
         </div>
-    </div>
-    <?php endif; ?>
+        </div>
+        <?php endif; ?>
 
-    <!-- Main Content Row -->
-    <div class="row" id="conversion-metrics">
+        <!-- Main Content Row -->
+        <div class="row" id="conversion-metrics">
         <!-- Recruitment Pipeline -->
         <div class="col-xl-8 mb-4">
             <div class="card shadow">
@@ -340,10 +363,10 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
-    <!-- Conversion Metrics & Top Jobs Row -->
-    <div class="row">
+        <!-- Conversion Metrics & Top Jobs Row -->
+        <div class="row">
         <!-- Conversion Metrics -->
         <div class="col-xl-6 mb-4">
             <div class="card shadow">
@@ -436,10 +459,10 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
-    <!-- Recent Applications -->
-    <div class="row">
+        <!-- Recent Applications -->
+        <div class="row">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
@@ -500,6 +523,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 </div>

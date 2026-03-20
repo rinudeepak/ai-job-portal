@@ -30,6 +30,34 @@ if (!array_key_exists($recommendationType, $recommendationSets)) {
     $recommendationType = 'skills';
 }
 $activeRecommendedJobs = $recommendationSets[$recommendationType];
+$jobsHeroTitle = $showFilters ? 'Browse Jobs' : 'Jobs Matching Your Profile';
+$jobsHeroSubtitle = $showFilters
+    ? 'Use live filters to narrow roles by company, location, experience, and job type.'
+    : 'Based on your skills, preferences, and application history';
+
+$jobIconSet = [
+    'developer' => 'fas fa-code',
+    'engineer' => 'fas fa-cogs',
+    'designer' => 'fas fa-palette',
+    'manager' => 'fas fa-chart-line',
+    'data' => 'fas fa-database',
+    'marketing' => 'fas fa-bullhorn',
+    'product' => 'fas fa-briefcase',
+    'frontend' => 'fas fa-code',
+    'backend' => 'fas fa-server',
+    'full stack' => 'fas fa-layer-group',
+];
+
+$pickJobIcon = static function (string $title) use ($jobIconSet): string {
+    $needle = strtolower($title);
+    foreach ($jobIconSet as $key => $icon) {
+        if (str_contains($needle, $key)) {
+            return $icon;
+        }
+    }
+
+    return 'fas fa-briefcase';
+};
 
 $formatPostedMeta = static function (?string $createdAt): ?string {
     $raw = trim((string) $createdAt);
@@ -56,21 +84,22 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <div class="jobs-page-jobboard">
-<section class="section-hero overlay inner-page bg-image jobs-hero" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-8">
-                <h1 class="text-white font-weight-bold">Find Jobs</h1>
-                <div class="custom-breadcrumbs">
-                    <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                    <span class="mx-2 slash">/</span>
-                    <span class="text-white"><strong>Jobs</strong></span>
-                </div>
-                <p><?= $showFilters ? 'Search and filter jobs from the results.' : 'Get recommendations by applications, skills, preferences, and AI ranking.' ?></p>
+<div class="container">
+    <div class="page-board-header page-board-header-tight">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-sparkles"></i> AI-powered matching</span>
+            <h1 class="page-board-title"><?= esc($jobsHeroTitle) ?></h1>
+            <p class="page-board-subtitle"><?= esc($jobsHeroSubtitle) ?></p>
+            <?php if ($showFilters): ?>
+            <div class="custom-breadcrumbs">
+                <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
+                <span class="mx-2 slash">/</span>
+                <span><strong>Browse Jobs</strong></span>
             </div>
+            <?php endif; ?>
         </div>
     </div>
-</section>
+</div>
 
 <section class="site-section pt-0">
 <div class="container">
@@ -79,7 +108,7 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
     <input type="hidden" name="tab" id="activeTabInput" value="<?= esc($activeTab) ?>">
     <input type="hidden" name="rec" id="recommendationTypeInput" value="<?= esc($recommendationType) ?>">
 
-    <div class="jobs-layout">
+    <div class="jobs-layout <?= $showFilters ? '' : 'jobs-layout-no-sidebar' ?>">
 
         <?php if ($showFilters): ?>
             <div class="sidebar">
@@ -256,57 +285,50 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                 </div>
 
                 <?php if (!empty($jobs)): ?>
-                    <ul class="job-listings mb-4">
+                    <div class="row g-4 mb-4">
                     <?php foreach ($jobs as $job): ?>
                         <?php
-                            $initial = strtoupper(substr((string) ($job['company'] ?? 'J'), 0, 1));
+                            $title = (string) ($job['title'] ?? 'Untitled Role');
+                            $company = (string) ($job['company'] ?? 'Company');
+                            $location = (string) ($job['location'] ?? 'N/A');
+                            $postedMeta = $formatPostedMeta($job['created_at'] ?? null);
                             $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
+                            $type = strtolower((string) ($job['employment_type'] ?? ''));
+                            $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
-                            <a href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
-                            <div class="job-listing-logo">
-                                <?php if (!empty($job['company_logo'])): ?>
-                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="img-fluid">
-                                <?php else: ?>
-                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
-                                        <?= $initial ?>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
-                                <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                                    <h2><?= esc($job['title']) ?></h2>
-                                    <strong><?= esc($job['company']) ?></strong>
-                                    <?php $postedMeta = $formatPostedMeta($job['created_at'] ?? null); ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="job-card">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save <?= $isSaved ? 'border-success text-success' : '' ?>"
+                                    aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
+                                    title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
+                                    onclick="event.preventDefault();event.stopPropagation();window.location.href='<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>';"
+                                >
+                                    <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                                </button>
+                                <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
+                                <h3 class="job-card-title"><?= esc($title) ?></h3>
+                                <p class="job-card-company"><?= esc($company) ?></p>
+                                <div class="job-card-meta">
+                                    <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
                                     <?php if ($postedMeta !== null): ?>
-                                        <div class="small text-muted mt-1"><?= esc($postedMeta) ?></div>
+                                        <span><i class="fas fa-clock"></i> <?= esc($postedMeta) ?></span>
                                     <?php endif; ?>
                                 </div>
-                                <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                                    <span class="icon-room"></span> <?= esc($job['location']) ?>
-                                </div>
-                                <div class="job-listing-meta">
-                                    <?php
-                                        $type = strtolower((string) ($job['employment_type'] ?? ''));
-                                        $typeBadge = str_contains($type, 'part') ? 'badge-danger' : 'badge-success';
-                                    ?>
+                                <div class="job-card-tags">
                                     <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                    <div class="mt-2">
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-secondary py-0 px-2 <?= $isSaved ? 'border-success text-success' : '' ?>"
-                                            aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
-                                            title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
-                                            onclick="event.stopPropagation();window.location.href='<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>';"
-                                        >
-                                            <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
-                                        </button>
-                                    </div>
+                                    <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                 </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar-custom" style="width: 100%;"></div>
+                                    <span class="progress-label">Open role</span>
+                                </div>
+                                <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
                             </div>
-                        </li>
+                        </div>
                     <?php endforeach; ?>
-                    </ul>
+                    </div>
 
                     <?php if (isset($pager) && $pager->getPageCount() > 1): ?>
                     <div class="row pagination-wrap">
@@ -402,62 +424,53 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                         <span class="results-count"><strong><?= count($activeRecommendedJobs) ?></strong> jobs matched in this recommendation view</span>
                     </div>
 
-                    <ul class="job-listings mb-4">
+                    <div class="recommended-job-grid mb-4">
                     <?php foreach ($activeRecommendedJobs as $index => $job): ?>
                         <?php
-                            $score = $job['match_score'] ?? 0;
-                            $initial = strtoupper(substr((string) ($job['company'] ?? 'J'), 0, 1));
+                            $score = (float) ($job['match_score'] ?? 0);
+                            $title = (string) ($job['title'] ?? 'Untitled Role');
+                            $company = (string) ($job['company'] ?? 'Company');
+                            $location = (string) ($job['location'] ?? 'N/A');
+                            $postedMeta = $formatPostedMeta($job['created_at'] ?? null);
                             $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
+                            $type = strtolower((string) ($job['employment_type'] ?? ''));
+                            $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
+                            $matchPct = max(10, min(100, (int) round($score)));
                         ?>
-                        <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center">
-                            <a href="<?= base_url('job/' . $job['id']) ?>" aria-label="Open <?= esc($job['title']) ?>"></a>
-                            <div class="job-listing-logo">
-                                <?php if (!empty($job['company_logo'])): ?>
-                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($job['company']) ?>" class="img-fluid">
-                                <?php else: ?>
-                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 90px; height: 90px; font-size: 28px;">
-                                        <?= $initial ?>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
-                                <div class="job-listing-position custom-width w-50 mb-3 mb-sm-0">
-                                    <h2><?= esc($job['title']) ?></h2>
-                                    <strong><?= esc($job['company']) ?></strong>
-                                    <?php $postedMeta = $formatPostedMeta($job['created_at'] ?? null); ?>
+                        <article class="job-card recommended-job-card">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save <?= $isSaved ? 'border-success text-success' : '' ?>"
+                                    aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
+                                    title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
+                                    onclick="event.preventDefault();event.stopPropagation();window.location.href='<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>';"
+                                >
+                                    <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                                </button>
+                                <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
+                                <h3 class="job-card-title"><?= esc($title) ?></h3>
+                                <p class="job-card-company"><?= esc($company) ?></p>
+                                <div class="job-card-meta">
+                                    <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
                                     <?php if ($postedMeta !== null): ?>
-                                        <div class="small text-muted mt-1"><?= esc($postedMeta) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($job['match_reason'])): ?>
-                                    <div class="ai-reason mt-2"><i class="fas fa-lightbulb"></i> <?= esc($job['match_reason']) ?></div>
+                                        <span><i class="fas fa-clock"></i> <?= esc($postedMeta) ?></span>
                                     <?php endif; ?>
                                 </div>
-                                <div class="job-listing-location mb-3 mb-sm-0 custom-width w-25">
-                                    <span class="icon-room"></span> <?= esc($job['location']) ?>
-                                </div>
-                                <div class="job-listing-meta">
-                                    <?php
-                                        $type = strtolower((string) ($job['employment_type'] ?? ''));
-                                        $typeBadge = str_contains($type, 'part') ? 'badge-danger' : 'badge-success';
-                                    ?>
+                                <div class="job-card-tags">
                                     <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                    <div class="mt-1 small text-muted"><?= round((float) $score) ?>% match</div>
-                                    <div class="mt-2">
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-secondary py-0 px-2 <?= $isSaved ? 'border-success text-success' : '' ?>"
-                                            aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
-                                            title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
-                                            onclick="event.stopPropagation();window.location.href='<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>';"
-                                        >
-                                            <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
-                                        </button>
-                                    </div>
+                                    <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                 </div>
-                            </div>
-                        </li>
+                                <?php if (!empty($job['match_reason'])): ?>
+                                    <div class="small text-muted mb-2"><?= esc($job['match_reason']) ?></div>
+                                <?php endif; ?>
+                                <div class="progress-container">
+                                    <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
+                                    <span class="progress-label"><?= $matchPct ?>% match</span>
+                                </div>
+                                <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
+                        </article>
                     <?php endforeach; ?>
-                    </ul>
+                    </div>
                 <?php else: ?>
                     <div class="empty-state">
                         <i class="fas fa-star"></i>

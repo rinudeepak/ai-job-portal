@@ -1,22 +1,24 @@
 <?= view('Layouts/candidate_header', ['title' => 'Reschedule Interview']) ?>
 
 <div class="reschedule-slot-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <h1 class="text-white font-weight-bold">Reschedule Interview</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <a href="<?= base_url('candidate/my-bookings') ?>">My Bookings</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Reschedule</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-sync-alt"></i> Interview reschedule</span>
+                <h1 class="page-board-title">Reschedule Interview</h1>
+                <p class="page-board-subtitle">Choose a new slot if you need to move your upcoming interview within the allowed limit.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= (int) ($can_reschedule_info['remaining_reschedules'] ?? 0) ?></strong> Remaining</span>
+                    <span class="meta-chip"><strong><?= date('M j', strtotime($booking['slot_datetime'])) ?></strong> Current date</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> My Bookings
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">

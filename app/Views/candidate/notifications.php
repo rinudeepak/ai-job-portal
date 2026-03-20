@@ -1,34 +1,29 @@
 <?= view('Layouts/candidate_header', ['title' => 'Notifications']) ?>
 
 <div class="applications-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">Notifications</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>Notifications</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-bell"></i> Activity feed</span>
+                <h1 class="page-board-title">Notifications</h1>
+                <p class="page-board-subtitle">Track application updates, recruiter actions, and portal events in one place.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= (int) $unread_count ?></strong> Unread</span>
+                    <span class="meta-chip"><strong><?= count($notifications ?? []) ?></strong> Total</span>
                 </div>
             </div>
+            <div class="page-board-actions">
+                <?php if ($unread_count > 0): ?>
+                    <a href="<?= base_url('notifications/mark-all-read') ?>" class="btn btn-primary">
+                        <span class="icon-check mr-1"></span> Mark All as Read
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
-    </section>
+    </div>
 
     <div class="container content-wrap pb-5">
         <div class="row">
-            <div class="col-12 mb-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="contact-title mb-0">All Notifications</h2>
-                    <?php if ($unread_count > 0): ?>
-                        <a href="<?= base_url('notifications/mark-all-read') ?>" class="btn btn-primary">
-                            <span class="icon-check mr-1"></span> Mark All as Read
-                        </a>
-                    <?php endif; ?>
-                </div>
-            </div>
-
             <div class="col-lg-8 offset-lg-2">
                 <?php if (empty($notifications)): ?>
                     <div class="card text-center">

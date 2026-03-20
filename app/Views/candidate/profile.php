@@ -1,20 +1,29 @@
 <?= view('Layouts/candidate_header', ['title' => 'My Profile']) ?>
 
 <div class="profile-jobboard">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">My Profile</h1>
-                    <div class="custom-breadcrumbs">
-                        <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                        <span class="mx-2 slash">/</span>
-                        <span class="text-white"><strong>My Profile</strong></span>
-                    </div>
+    <div class="container">
+        <div class="page-board-header page-board-header-tight">
+            <div class="page-board-copy">
+                <span class="page-board-kicker"><i class="fas fa-user-circle"></i> Candidate profile</span>
+                <h1 class="page-board-title">My Profile</h1>
+                <p class="page-board-subtitle">Manage your personal details, career information, resume, and preferences from one place.</p>
+                <div class="company-profile-meta">
+                    <span class="meta-chip"><strong><?= (int) ($completion['percentage'] ?? 0) ?>%</strong> Profile complete</span>
+                    <span class="meta-chip"><strong><?= $stats['applications'] ?></strong> Applications</span>
+                    <span class="meta-chip"><strong><?= $stats['interviews'] ?></strong> Interviews</span>
+                    <span class="meta-chip"><strong><?= $stats['offers'] ?></strong> Offers</span>
                 </div>
             </div>
+            <div class="company-profile-actions">
+                <a href="<?= base_url('candidate/resume-studio') ?>" class="btn btn-primary">
+                    <i class="fas fa-magic mr-1"></i> AI Resume Studio
+                </a>
+                <a href="<?= base_url('jobs') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-search mr-1"></i> Find Jobs
+                </a>
+            </div>
         </div>
-    </section>
+    </div>
 
 <section class="site-section pt-0 content-wrap">
     <div class="container">
@@ -130,16 +139,26 @@
                 display: inline-flex !important;
             }
         </style>
-        <!-- Profile Completion Progress -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="fas fa-chart-line"></i> Profile Completion</h5>
-                        <div class="progress mb-2">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: <?= $completion['percentage'] ?>%" aria-valuenow="<?= $completion['percentage'] ?>" aria-valuemin="0" aria-valuemax="100"><?= $completion['percentage'] ?>%</div>
+        <div class="card profile-summary-card shadow-sm">
+            <div class="card-body">
+                <div class="profile-summary-grid">
+                    <div class="profile-summary-copy">
+                        <div class="profile-summary-heading">
+                            <i class="fas fa-chart-line"></i> Profile health
                         </div>
-                        <small class="text-muted">Complete your profile to increase job match accuracy</small>
+                        <h3 class="profile-summary-title">Keep your profile ready for matching jobs</h3>
+                        <p class="profile-summary-note">Complete your profile to improve matching accuracy and recruiter visibility.</p>
+                        <div class="profile-summary-progress mt-3">
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: <?= (int) $completion['percentage'] ?>%" aria-valuenow="<?= (int) $completion['percentage'] ?>" aria-valuemin="0" aria-valuemax="100"><?= (int) $completion['percentage'] ?>%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-summary-metrics">
+                        <span class="meta-chip"><strong><?= (int) ($completion['percentage'] ?? 0) ?>%</strong> Profile complete</span>
+                        <span class="meta-chip"><strong><?= $stats['applications'] ?></strong> Applications</span>
+                        <span class="meta-chip"><strong><?= $stats['interviews'] ?></strong> Interviews</span>
+                        <span class="meta-chip"><strong><?= $stats['offers'] ?></strong> Offers</span>
                     </div>
                 </div>
             </div>

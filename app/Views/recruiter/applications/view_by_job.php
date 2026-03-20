@@ -1,57 +1,91 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Applications - ' . $job['title']]) ?>
 
+<div class="recruiter-applications-jobboard">
 <div class="container-fluid py-5">
-    <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
-    <?php endif; ?>
-    <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
-    <?php endif; ?>
+    <?php
+    $applicationsCount = count($applications ?? []);
+    $statusCount = [];
+    foreach (($applications ?? []) as $app) {
+        $status = strtolower((string) ($app['status'] ?? 'pending'));
+        $statusCount[$status] = ($statusCount[$status] ?? 0) + 1;
+    }
+    $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
+    $policyMap = [
+        'OFF' => ['label' => 'Not Required', 'hint' => 'Candidates can apply directly', 'class' => 'ai-policy-chip-off'],
+        'OPTIONAL' => ['label' => 'Optional', 'hint' => 'AI can improve candidate ranking', 'class' => 'ai-policy-chip-optional'],
+        'REQUIRED_SOFT' => ['label' => 'Required + Recruiter Review', 'hint' => 'Recruiter can still decide after AI', 'class' => 'ai-policy-chip-soft'],
+        'REQUIRED_HARD' => ['label' => 'Mandatory Screening', 'hint' => 'AI result is strict gate', 'class' => 'ai-policy-chip-hard'],
+    ];
+    $policyMeta = $policyMap[$policy] ?? $policyMap['REQUIRED_HARD'];
+    $statusOptions = $statusOptions ?? [];
+    ?>
 
-    <div class="mb-4">
-        <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Jobs
-        </a>
+    <div class="page-board-header page-board-header-tight recruiter-page-board-header">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-users-cog"></i> Recruiter applications</span>
+            <h1 class="page-board-title"><?= esc($job['title']) ?></h1>
+            <p class="page-board-subtitle">
+                Review candidates, run actions, and compare application status for this role.
+            </p>
+            <div class="company-profile-meta">
+                <span class="meta-chip"><strong><?= number_format($applicationsCount) ?></strong> Applications</span>
+                <span class="meta-chip"><?= esc($job['location']) ?></span>
+                <span class="meta-chip"><?= date('M d, Y', strtotime($job['created_at'])) ?></span>
+            </div>
+        </div>
+        <div class="page-board-actions recruiter-applications-actions">
+            <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Jobs
+            </a>
+            <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/leaderboard') ?>" class="btn btn-outline-secondary">
+                <i class="fas fa-chart-line"></i> Open Leaderboard
+            </a>
+        </div>
     </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h5 class="m-0 font-weight-bold text-primary"><?= esc($job['title']) ?></h5>
-            <small class="text-muted">
-                <i class="fas fa-map-marker-alt"></i> <?= esc($job['location']) ?> | 
-                <i class="fas fa-calendar"></i> Posted on <?= date('M d, Y', strtotime($job['created_at'])) ?>
-            </small>
-            <?php $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
-            <?php
-            $policyMap = [
-                'OFF' => ['label' => 'Not Required', 'hint' => 'Candidates can apply directly', 'class' => 'ai-policy-chip-off'],
-                'OPTIONAL' => ['label' => 'Optional', 'hint' => 'AI can improve candidate ranking', 'class' => 'ai-policy-chip-optional'],
-                'REQUIRED_SOFT' => ['label' => 'Required + Recruiter Review', 'hint' => 'Recruiter can still decide after AI', 'class' => 'ai-policy-chip-soft'],
-                'REQUIRED_HARD' => ['label' => 'Mandatory Screening', 'hint' => 'AI result is strict gate', 'class' => 'ai-policy-chip-hard'],
-            ];
-            $policyMeta = $policyMap[$policy] ?? $policyMap['REQUIRED_HARD'];
-            ?>
-            <div class="mt-2">
-                <div class="ai-policy-chip <?= esc($policyMeta['class']) ?>">
-                    <strong>AI Interview: <?= esc($policyMeta['label']) ?></strong>
-                    <small><?= esc($policyMeta['hint']) ?></small>
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success recruiter-alert"><?= session()->getFlashdata('success') ?></div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger recruiter-alert"><?= session()->getFlashdata('error') ?></div>
+    <?php endif; ?>
+
+    <div class="card shadow-sm recruiter-job-summary-card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                    <h5 class="mb-1"><?= esc($job['title']) ?></h5>
+                    <small class="text-muted">
+                        <i class="fas fa-map-marker-alt"></i> <?= esc($job['location']) ?> |
+                        <i class="fas fa-calendar"></i> Posted on <?= date('M d, Y', strtotime($job['created_at'])) ?>
+                    </small>
                 </div>
-                <?php if (!empty($isAiCompulsory)): ?>
-                    <small class="text-muted ml-2">Recruiter decision follows application pipeline rules.</small>
-                <?php endif; ?>
+                <div>
+                    <div class="ai-policy-chip <?= esc($policyMeta['class']) ?>">
+                        <strong>AI Interview: <?= esc($policyMeta['label']) ?></strong>
+                        <small><?= esc($policyMeta['hint']) ?></small>
+                    </div>
+                    <?php if (!empty($isAiCompulsory)): ?>
+                        <small class="text-muted d-block mt-2">Recruiter decision follows application pipeline rules.</small>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-users-cog"></i> Candidate List & Actions (<?= count($applications) ?>)
-            </h6>
-            <small class="text-muted d-block mt-1">Use this page to shortlist, reject, and message candidates. For score comparison and fit review, use the leaderboard.</small>
-        </div>
+    <div class="card shadow-sm recruiter-filter-card mb-4">
         <div class="card-body">
-            <form method="get" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="mb-4">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="m-0 font-weight-bold">Review Filters</h6>
+                    <p class="text-muted mb-0">Filter by skills, experience, location, and scoring signals.</p>
+                </div>
+                <div class="text-muted small">
+                    <?= !empty($applicationsCount) ? 'Bulk actions available' : 'No candidates yet' ?>
+                </div>
+            </div>
+
+            <form method="get" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="recruiter-app-filters">
                 <div class="row g-2">
                     <div class="col-md-3">
                         <label class="small text-muted mb-1">Skills</label>
@@ -94,7 +128,7 @@
                         <label class="small text-muted mb-1">Status</label>
                         <select name="status" class="form-control">
                             <option value="">All</option>
-                            <?php foreach (($statusOptions ?? []) as $status): ?>
+                            <?php foreach ($statusOptions as $status): ?>
                                 <option value="<?= esc($status) ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>>
                                     <?= esc(ucwords(str_replace('_', ' ', $status))) ?>
                                 </option>
@@ -102,41 +136,53 @@
                         </select>
                     </div>
                 </div>
-                <div class="mt-3">
+                <div class="mt-3 recruiter-filter-actions">
                     <button type="submit" class="btn btn-primary btn-sm">
                         <i class="fas fa-filter"></i> Apply Filters
                     </button>
                     <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications') ?>" class="btn btn-outline-secondary btn-sm ml-2">
                         Clear
                     </a>
-                    <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/leaderboard') ?>" class="btn btn-outline-primary btn-sm ml-2">
+                    <a href="<?= base_url('recruiter/jobs/' . $job['id'] . '/leaderboard') ?>" class="btn btn-outline-secondary btn-sm ml-2">
                         <i class="fas fa-chart-line"></i> Open Leaderboard
                     </a>
                 </div>
             </form>
+        </div>
+    </div>
 
-            <?php if (!empty($applications)): ?>
-                <div class="alert alert-light border">
-                    <strong>Decision workspace:</strong> bulk actions and per-candidate decisions are handled here. The leaderboard is kept read-focused for comparison only.
-                </div>
-                <form method="post" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications/bulk') ?>" id="bulkActionForm" class="mb-3">
+    <?php if (!empty($filters['skills']) || !empty($filters['experience']) || !empty($filters['location']) || !empty($filters['score_min']) || !empty($filters['score_max']) || !empty($filters['ats_min']) || !empty($filters['ats_max']) || !empty($filters['sort']) || !empty($filters['status'])): ?>
+        <div class="alert alert-info recruiter-alert">
+            <strong>Active filters are applied.</strong> Use Clear to reset the search.
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($applications)): ?>
+        <div class="alert alert-light border recruiter-alert">
+            <strong>Decision workspace:</strong> bulk actions and per-candidate decisions are handled here. The leaderboard is kept read-focused for comparison only.
+        </div>
+
+        <div class="card shadow-sm recruiter-table-card">
+            <div class="card-body">
+                <form method="post" action="<?= base_url('recruiter/jobs/' . $job['id'] . '/applications/bulk') ?>" id="bulkActionForm" class="mb-3 recruiter-bulk-form">
                     <?= csrf_field() ?>
-                    <div class="d-flex flex-wrap align-items-center" style="gap: 10px;">
-                        <select name="bulk_action" id="bulkActionSelect" class="form-control form-control-sm" style="max-width: 240px;">
+                    <div class="recruiter-bulk-toolbar">
+                        <select name="bulk_action" id="bulkActionSelect" class="form-control form-control-sm recruiter-bulk-select">
                             <option value="">Bulk Action</option>
                             <option value="shortlist">Shortlist Selected</option>
                             <option value="reject">Reject Selected</option>
                             <option value="message">Message Selected</option>
                         </select>
-                        <input type="text" name="bulk_message" id="bulkMessageInput" class="form-control form-control-sm" style="min-width: 280px; max-width: 480px;" placeholder="Message for selected candidates (required only for Message action)">
+                        <input type="text" name="bulk_message" id="bulkMessageInput" class="form-control form-control-sm recruiter-bulk-message" placeholder="Message for selected candidates (required only for Message action)">
                         <button type="submit" class="btn btn-sm btn-primary">
                             <i class="fas fa-bolt"></i> Apply
                         </button>
                         <small class="text-muted">Select candidates using the first column.</small>
                     </div>
                 </form>
+
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover recruiter-applications-table">
                         <thead class="thead-light">
                             <tr>
                                 <th style="width: 40px;">
@@ -217,9 +263,7 @@
                                         ];
                                         $label = $statusLabels[$app['status']] ?? ucwords(str_replace('_', ' ', $app['status']));
                                         ?>
-                                        <span class="badge badge-<?= $color ?>">
-                                            <?= esc($label) ?>
-                                        </span>
+                                        <span class="badge badge-<?= $color ?>"><?= esc($label) ?></span>
                                     </td>
                                     <td>
                                         <?php
@@ -251,9 +295,9 @@
                                             <?php if (!empty($app['can_manual_decision'])): ?>
                                                 <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="application-action-form">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn btn-sm btn-success">
-                                                        <i class="fas fa-check"></i> Shortlist
-                                                    </button>
+                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-check"></i> Shortlist
+                                                </button>
                                                 </form>
                                                 <form method="post" action="<?= base_url('recruiter/applications/reject/' . $app['id']) ?>" class="application-action-form">
                                                     <?= csrf_field() ?>
@@ -271,15 +315,18 @@
                         </tbody>
                     </table>
                 </div>
-            <?php else: ?>
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h5>No applications yet</h5>
-                    <p class="text-muted">Applications will appear here once candidates apply</p>
-                </div>
-            <?php endif; ?>
+            </div>
         </div>
-    </div>
+    <?php else: ?>
+        <div class="card shadow-sm recruiter-empty-state">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5>No applications yet</h5>
+                <p class="text-muted mb-0">Applications will appear here once candidates apply</p>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
 </div>
 
 <script>
@@ -327,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            bulkForm.querySelectorAll('input[name=\"application_ids[]\"]').forEach(function (input) {
+            bulkForm.querySelectorAll('input[name="application_ids[]"]').forEach(function (input) {
                 input.remove();
             });
 

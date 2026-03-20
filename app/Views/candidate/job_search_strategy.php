@@ -13,20 +13,27 @@ if (empty($recommendedJobs)) {
 $source = (string) ($jobSearchStrategy['source'] ?? 'fallback');
 ?>
 
-<section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');" id="home-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-8">
-                <h1 class="text-white font-weight-bold">Job Search Strategy Coach</h1>
-                <div class="custom-breadcrumbs">
-                    <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                    <span class="mx-2 slash">/</span>
-                    <span class="text-white"><strong>Strategy Coach</strong></span>
-                </div>
+<div class="container">
+    <div class="page-board-header page-board-header-tight">
+        <div class="page-board-copy">
+            <span class="page-board-kicker"><i class="fas fa-compass"></i> Search guidance</span>
+            <h1 class="page-board-title">Job Search Strategy Coach</h1>
+            <p class="page-board-subtitle">Turn your profile into a sharper search plan with target roles, action steps, and weekly priorities.</p>
+            <div class="company-profile-meta">
+                <span class="meta-chip"><strong><?= count($recommendedJobs ?? []) ?></strong> Suggested roles</span>
+                <span class="meta-chip"><strong><?= strtoupper($source) ?></strong> Strategy source</span>
             </div>
         </div>
+        <div class="page-board-actions">
+            <a href="<?= base_url('jobs?tab=suggested') ?>" class="btn btn-outline-secondary">
+                <i class="fas fa-briefcase mr-1"></i> Suggested Jobs
+            </a>
+            <a href="<?= base_url('candidate/profile') ?>" class="btn btn-primary">
+                <i class="fas fa-user-edit mr-1"></i> Update Profile
+            </a>
+        </div>
     </div>
-</section>
+</div>
 
 <div class="container py-5">
     <style>
