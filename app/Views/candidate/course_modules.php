@@ -9,14 +9,9 @@
                 <span class="page-board-kicker"><i class="fas fa-graduation-cap"></i> Career learning path</span>
                 <h1 class="page-board-title">Course Modules</h1>
                 <p class="page-board-subtitle">Open a module to continue your role transition roadmap and keep learning at your own pace.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= count($modules ?? []) ?></strong> Modules</span>
-                    <span class="meta-chip"><strong><?= esc($transition['current_role'] ?? 'Current') ?></strong> From</span>
-                    <span class="meta-chip"><strong><?= esc($transition['target_role'] ?? 'Target') ?></strong> To</span>
-                </div>
             </div>
             <div class="page-board-actions">
-                <a href="<?= base_url('career-transition') ?>" class="btn btn-outline-secondary">
+                <a href="<?= base_url('career-transition') ?>" class="btn btn-outline-primary">
                     <i class="fas fa-arrow-left mr-1"></i> Back
                 </a>
             </div>

@@ -134,31 +134,4 @@
         </div>
     </div>
 </div>
-</div>
-
-<script>
-    (function () {
-        const policySelect = document.getElementById('ai_interview_policy');
-        const cutoffWrap = document.getElementById('minAiCutoffWrap');
-        const cutoffInput = document.getElementById('min_ai_cutoff_score');
-
-        if (!policySelect || !cutoffWrap || !cutoffInput) {
-            return;
-        }
-
-        function toggleCutoffField() {
-            const isAiOff = policySelect.value === 'OFF';
-            cutoffWrap.style.display = isAiOff ? 'none' : '';
-            cutoffInput.disabled = isAiOff;
-            cutoffInput.required = !isAiOff;
-            if (isAiOff) {
-                cutoffInput.value = '';
-            }
-        }
-
-        policySelect.addEventListener('change', toggleCutoffField);
-        toggleCutoffField();
-    })();
-</script>
-
 <?= view('Layouts/recruiter_footer') ?>

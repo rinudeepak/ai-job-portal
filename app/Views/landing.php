@@ -62,51 +62,7 @@ $formatAge = static function ($value): string {
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
 </head>
-<body id="top" class="hirematrix-app landing-page">
-<div id="overlayer"></div>
-<div class="loader">
-    <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
-</div>
-
-<div class="site-wrap">
-    <div class="site-mobile-menu site-navbar-target">
-        <div class="site-mobile-menu-header">
-            <div class="site-mobile-menu-close mt-3">
-                <span class="icon-close2 js-menu-toggle"></span>
-            </div>
-        </div>
-        <div class="site-mobile-menu-body"></div>
-    </div>
-
-    <header class="site-navbar site-navbar-target">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="site-logo col-6 col-xl-2">
-                    <a href="<?= base_url('/') ?>" class="d-inline-flex align-items-center">
-                        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 34px; width: auto; margin-right: 8px;">
-                        <span style="text-transform: none;">HireMatrix</span>
-                    </a>
-                </div>
-                <nav class="mx-auto site-navigation col-xl-7">
-                    <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
-                        <li><a class="active" href="<?= base_url('/') ?>">Home</a></li>
-                        <li><a href="<?= base_url('login') ?>">Browse Jobs</a></li>
-                        <li><a href="<?= base_url('login') ?>">Career Transition AI</a></li>
-                    </ul>
-                </nav>
-                <div class="right-cta-menu text-right d-flex justify-content-end align-items-center col-6 col-xl-3">
-                    <a href="<?= base_url('recruiter/register') ?>" class="btn btn-outline-secondary btn-sm me-2">
-                        <span class="d-none d-lg-inline ms-1">Recruiter</span>
-                    </a>
-                    <a href="<?= base_url('register') ?>" class="btn btn-ghost btn-sm me-2">Candidate</a>
-                    <a href="<?= base_url('login') ?>" class="btn btn-primary btn-sm">Log In</a>
-                    <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3">
-                        <span class="icon-menu h3 m-0 p-0 mt-2"></span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+<?= view('Layouts/public_header', ['body_class' => 'landing-page']) ?>
 
     <section class="hero py-5">
         <div class="container">
@@ -126,10 +82,10 @@ $formatAge = static function ($value): string {
                 AI-powered recommendations to fast-track your career.
             </p>
 
-            <div class="card mb-4" style="max-width: 800px;">
+            <div class="card mb-4 landing-search-panel" style="max-width: 800px;">
                 <div class="card-body p-3 p-md-4">
-                    <form action="<?= base_url('jobs') ?>" method="get">
-                        <div class="row g-3 g-md-2">
+                    <form action="<?= base_url('jobs') ?>" method="get" class="landing-search-form">
+                        <div class="row g-3 g-md-2 align-items-stretch">
                             <div class="col-12 col-md-6 col-lg-5">
                                 <div class="search-input-group">
                                     <i class="fas fa-search" style="color: var(--muted-foreground);"></i>
@@ -142,8 +98,8 @@ $formatAge = static function ($value): string {
                                     <input type="text" name="location" placeholder="City or location" class="form-control border-0">
                                 </div>
                             </div>
-                            <div class="col-12 col-lg-3">
-                                <button class="btn btn-primary w-100" type="submit">Search Jobs</button>
+                            <div class="col-12 col-lg-3 landing-search-submit-col">
+                                <button class="btn btn-primary w-100 landing-search-submit" type="submit">Search Jobs</button>
                             </div>
                         </div>
                     </form>
@@ -153,37 +109,13 @@ $formatAge = static function ($value): string {
             <div class="mb-5">
                 <span class="text-muted me-3" style="font-size: 0.875rem; font-weight: 500;">Popular:</span>
                 <div class="btn-group" role="group">
-                    <a class="btn btn-outline-primary btn-sm" href="<?= base_url('jobs?search=developer') ?>" style="border-width: 2px;">Developer</a>
+                    <a class="btn btn-outline-primary btn-sm landing-popular-developer" href="<?= base_url('jobs?search=developer') ?>" style="border-width: 2px;">Developer</a>
                     <a class="btn btn-sm" href="<?= base_url('jobs?search=designer') ?>" style="background: rgba(255, 123, 42, 0.2); color: var(--secondary); border: none;">Designer</a>
                     <a class="btn btn-sm" href="<?= base_url('jobs?search=marketing') ?>" style="background: rgba(0, 191, 165, 0.2); color: var(--accent); border: none;">Marketing</a>
                     <a class="btn btn-sm" href="<?= base_url('jobs?location=remote') ?>" style="background: rgba(59, 130, 246, 0.2); color: var(--primary); border: none;">Remote</a>
                     <a class="btn btn-sm" href="<?= base_url('jobs?employment_type=full-time') ?>" style="background: rgba(255, 123, 42, 0.2); color: var(--secondary); border: none;">Full-time</a>
                 </div>
             </div>
-
-            <section class="landing-career-transition">
-                <div class="landing-career-transition-inner">
-                    <div class="landing-career-transition-copy">
-                        <div class="landing-career-transition-kicker">
-                            <i class="fas fa-sparkles"></i>
-                            Career Transition AI
-                        </div>
-                        <h2 class="landing-career-transition-title">Career Transition AI</h2>
-                        <p class="landing-career-transition-text">
-                            We analyze your current skill set and generate a focused roadmap for your target role.
-                            Start your career transition journey today!
-                        </p>
-                        <a href="<?= base_url('career-transition') ?>" class="btn btn-light landing-career-transition-btn">
-                            Generate Roadmap <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    </div>
-                    <div class="landing-career-transition-art d-none d-lg-flex" aria-hidden="true">
-                        <div class="landing-career-transition-orb">
-                            <i class="fas fa-sparkles"></i>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
             <p class="text-center text-muted" style="font-size: 0.875rem;">
                 Sign in to view complete listings, AI match score, and application status.
@@ -308,6 +240,32 @@ $formatAge = static function ($value): string {
         </div>
     </section>
 
+    <section class="landing-career-transition">
+        <div class="container">
+            <div class="landing-career-transition-inner">
+                <div class="landing-career-transition-copy">
+                    <div class="landing-career-transition-kicker">
+                        <i class="fas fa-sparkles"></i>
+                        Career Transition AI
+                    </div>
+                    <h2 class="landing-career-transition-title">Career Transition AI</h2>
+                    <p class="landing-career-transition-text">
+                        We analyze your current skill set and generate a focused roadmap for your target role.
+                        Start your career transition journey today!
+                    </p>
+                    <a href="<?= base_url('career-transition') ?>" class="btn btn-light landing-career-transition-btn">
+                        Generate Roadmap <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+                <div class="landing-career-transition-art d-none d-lg-flex" aria-hidden="true">
+                    <div class="landing-career-transition-orb">
+                        <i class="fas fa-sparkles"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="landing-get-started" id="get-started">
         <div class="container">
             <div class="text-center landing-get-started-head">
@@ -357,57 +315,6 @@ $formatAge = static function ($value): string {
         </div>
     </section>
 
-    <footer class="footer mt-5">
-        <div class="container">
-            <div class="row g-5 mb-5">
-                <div class="col-md-3">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 40px; width: auto;">
-                        <span style="font-weight: 700; font-size: 1.125rem;">HireMatrix</span>
-                    </div>
-                    <p style="font-size: 0.875rem; opacity: 0.8;">
-                        Connecting talent with opportunities through AI-powered recommendations.
-                    </p>
-                </div>
-
-                <div class="footer-section col-md-3">
-                    <h3>For Job Seekers</h3>
-                    <a href="<?= base_url('jobs') ?>">Browse Jobs</a>
-                    <a href="<?= base_url('/#get-started') ?>">Get Started</a>
-                    <a href="<?= base_url('register') ?>">Create Candidate Account</a>
-                </div>
-
-                <div class="footer-section col-md-3">
-                    <h3>For Recruiters</h3>
-                    <a href="<?= base_url('recruiter/register') ?>">Join as Recruiter</a>
-                    <a href="<?= base_url('login') ?>">Sign In</a>
-                </div>
-
-            </div>
-
-            <div class="footer-bottom">
-                <div class="footer-social">
-                    <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                    <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
-                </div>
-                <p>&copy; <?= date('Y') ?> HireMatrix. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-</div>
-
-<script src="<?= base_url('jobboard/js/jquery.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/isotope.pkgd.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/stickyfill.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.fancybox.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.easing.1.3.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.waypoints.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.animateNumber.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/custom.js') ?>"></script>
+<?= view('Layouts/public_footer') ?>
 </body>
 </html>

@@ -17,11 +17,6 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                 <span class="page-board-kicker"><i class="fas fa-list-check"></i> Application tracking</span>
                 <h1 class="page-board-title">Application Status</h1>
                 <p class="page-board-subtitle">Track recruiter activity, interview preparation, and application progress in one view.</p>
-                <div class="custom-breadcrumbs">
-                    <a href="<?= base_url('candidate/dashboard') ?>">Home</a>
-                    <span class="mx-2 slash">/</span>
-                    <span><strong>Applications</strong></span>
-                </div>
             </div>
             <div class="page-board-metrics">
                 <span class="hero-stat-chip"><strong><?= $totalApplications ?></strong>Total</span>
@@ -135,7 +130,7 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                     <div class="alert alert-success mb-0"><i class="fas fa-check-circle"></i> <?= $application['status'] === 'hired' ? 'You are hired for this role.' : 'You have been selected for this role.' ?></div>
                                 <?php else: ?>
                                     <div class="progress detail-progress">
-                                        <div class="progress-bar bg-success" style="width: <?= $progress ?>%">
+                                        <div class="progress-bar application-progress-bar" style="width: <?= $progress ?>%">
                                             <?= esc($stages[$application['status']] ?? 'In Progress') ?>
                                         </div>
                                     </div>
@@ -228,34 +223,6 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
         <?php endif; ?>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var applicationButtons = document.querySelectorAll('.application-list-item');
-    var applicationCards = document.querySelectorAll('.application-detail-card');
-
-    applicationButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            var targetId = button.getAttribute('data-application-target');
-
-            applicationButtons.forEach(function (item) {
-                item.classList.remove('is-active');
-            });
-
-            applicationCards.forEach(function (card) {
-                card.classList.remove('is-active');
-            });
-
-            button.classList.add('is-active');
-
-            var activeCard = document.getElementById(targetId);
-            if (activeCard) {
-                activeCard.classList.add('is-active');
-            }
-        });
-    });
-});
-</script>
 
 <?php
 function getStatusBadgeColor($status)

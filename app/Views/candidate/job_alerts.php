@@ -1,61 +1,6 @@
 <?= view('Layouts/candidate_header', ['title' => 'Job Alerts']) ?>
 
 <div class="job-alerts-jobboard">
-    <style>
-        .switch-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 10px 0;
-        }
-        .switch-copy {
-            flex: 1;
-        }
-        .switch-toggle {
-            position: relative;
-            width: 42px;
-            height: 24px;
-            margin: 0;
-            flex-shrink: 0;
-        }
-        .switch-toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-            position: absolute;
-        }
-        .switch-toggle-slider {
-            position: absolute;
-            inset: 0;
-            cursor: pointer;
-            background: #c7ced8;
-            border-radius: 999px;
-            transition: background .2s ease;
-        }
-        .switch-toggle-slider::before {
-            content: '';
-            position: absolute;
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            top: 3px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 1px 4px rgba(15, 23, 42, .25);
-            transition: transform .2s ease;
-        }
-        .switch-toggle input:checked + .switch-toggle-slider {
-            background: #89ba16;
-        }
-        .switch-toggle input:checked + .switch-toggle-slider::before {
-            transform: translateX(18px);
-        }
-        .switch-toggle input:disabled + .switch-toggle-slider {
-            cursor: not-allowed;
-            opacity: .65;
-        }
-    </style>
     <div class="container">
         <div class="page-board-header page-board-header-tight">
             <div class="page-board-copy">

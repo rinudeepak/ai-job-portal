@@ -93,7 +93,7 @@ $resumeTargets = $resumeTargets ?? [];
                                 </label>
                             </div>
 
-                            <div class="generation-panel <?= $prefillGenerationMode === 'role' ? 'is-active' : '' ?>" data-generation-panel="role-field">
+                            <div class="generation-role-field">
                                 <label class="form-label">Target Role</label>
                                 <input type="text" name="target_role" class="form-control" placeholder="e.g. Product Designer, PHP Developer">
                                 <small class="text-muted">Used only for role-based generation.</small>
@@ -101,7 +101,7 @@ $resumeTargets = $resumeTargets ?? [];
 
                             <div class="generation-panel <?= $prefillGenerationMode === 'job' ? 'is-active' : '' ?>" data-generation-panel="job">
                                 <label class="form-label">Specific Job Version</label>
-                                <select name="job_id" class="form-control">
+                                <select name="job_id" class="form-control resume-studio-select">
                                     <option value="">Select a job</option>
                                     <?php foreach (($resumeTargets ?? []) as $target): ?>
                                         <option value="<?= (int) $target['job_id'] ?>" <?= $prefillJobId === (int) $target['job_id'] ? 'selected' : '' ?>><?= esc($target['title']) ?></option>
@@ -239,62 +239,3 @@ $resumeTargets = $resumeTargets ?? [];
 </div>
 
 <?= view('Layouts/candidate_footer') ?>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var loadingForms = document.querySelectorAll('form[data-loading-form]');
-    var generationModeInputs = document.querySelectorAll('input[name="generation_mode"]');
-    var generationPanels = document.querySelectorAll('[data-generation-panel]');
-    var targetRoleInput = document.querySelector('input[name="target_role"]');
-    var jobSelectInput = document.querySelector('select[name="job_id"]');
-
-    function syncGenerationMode(mode) {
-        generationPanels.forEach(function (panel) {
-            panel.classList.toggle('is-active', panel.getAttribute('data-generation-panel') === mode);
-        });
-
-        if (targetRoleInput) {
-            if (mode === 'role') {
-                targetRoleInput.disabled = false;
-            } else {
-                targetRoleInput.value = '';
-                targetRoleInput.disabled = true;
-            }
-        }
-
-        if (jobSelectInput) {
-            if (mode === 'job') {
-                jobSelectInput.disabled = false;
-            } else {
-                jobSelectInput.value = '';
-                jobSelectInput.disabled = true;
-            }
-        }
-    }
-
-    generationModeInputs.forEach(function (input) {
-        input.addEventListener('change', function () {
-            syncGenerationMode(input.value);
-        });
-    });
-
-    loadingForms.forEach(function (form) {
-        form.addEventListener('submit', function () {
-            var button = form.querySelector('[data-loading-button]');
-            if (!button || button.disabled) {
-                return;
-            }
-
-            button.disabled = true;
-            button.classList.add('is-loading');
-
-            var submitText = button.querySelector('.btn-submit-text');
-            var loadingState = button.querySelector('.btn-loading-state');
-            if (submitText) submitText.classList.add('is-hidden');
-            if (loadingState) loadingState.style.display = 'inline-flex';
-        });
-    });
-
-    syncGenerationMode((document.querySelector('input[name="generation_mode"]:checked') || { value: 'role' }).value);
-});
-</script>

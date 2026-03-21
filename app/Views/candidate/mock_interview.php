@@ -10,19 +10,13 @@ $status = (string) ($application['status'] ?? '');
 $aiPolicy = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRED_HARD'));
 ?>
 
+<div class="mock-interview-jobboard">
 <div class="container">
     <div class="page-board-header page-board-header-tight">
         <div class="page-board-copy">
             <span class="page-board-kicker"><i class="fas fa-video"></i> Interview practice</span>
             <h1 class="page-board-title">Detailed Mock Interview</h1>
             <p class="page-board-subtitle">Practice the most likely interview questions and answer patterns for this role.</p>
-            <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= esc($jobTitle) ?></strong> Role</span>
-                <?php if ($companyName !== ''): ?>
-                    <span class="meta-chip"><strong><?= esc($companyName) ?></strong> Company</span>
-                <?php endif; ?>
-                <span class="meta-chip"><strong><?= esc(ucwords(str_replace('_', ' ', $status))) ?></strong> Status</span>
-            </div>
         </div>
         <div class="page-board-actions">
             <a href="<?= base_url('candidate/applications') ?>" class="btn btn-outline-secondary">
@@ -42,168 +36,7 @@ $aiPolicy = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRE
 </div>
 
 <div class="container py-5">
-    <style>
-        .mock-interview-shell {
-            display: grid;
-            grid-template-columns: 320px minmax(0, 1fr);
-            gap: 24px;
-            align-items: start;
-        }
-        .mock-card,
-        .mock-sidebar {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 18px;
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
-        }
-        .mock-sidebar {
-            position: sticky;
-            top: 110px;
-            padding: 22px;
-        }
-        .mock-main {
-            display: grid;
-            gap: 20px;
-        }
-        .mock-card {
-            padding: 24px;
-        }
-        .mock-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .05em;
-            text-transform: uppercase;
-            margin-bottom: 14px;
-            border: 1px solid #bfdbfe;
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-        .mock-eyebrow.is-ai {
-            border-color: #bbf7d0;
-            background: #dcfce7;
-            color: #166534;
-        }
-        .mock-page-title {
-            font-size: 2rem;
-            line-height: 1.15;
-            margin-bottom: 8px;
-            color: #111827;
-        }
-        .mock-submeta {
-            color: #6b7280;
-            margin-bottom: 14px;
-        }
-        .mock-intro {
-            color: #475569;
-            font-size: 1rem;
-            line-height: 1.7;
-            margin-bottom: 0;
-        }
-        .mock-chip-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .mock-chip {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 999px;
-            border: 1px solid #bfdbfe;
-            background: #f8fbff;
-            color: #1d4ed8;
-            font-size: 13px;
-            font-weight: 700;
-        }
-        .mock-section-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 14px;
-        }
-        .mock-round + .mock-round {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eef2f7;
-        }
-        .mock-round-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 6px;
-        }
-        .mock-round-objective {
-            color: #64748b;
-            margin-bottom: 14px;
-        }
-        .mock-question {
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 16px;
-            background: #fbfdff;
-        }
-        .mock-question + .mock-question {
-            margin-top: 12px;
-        }
-        .mock-question-title {
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 10px;
-        }
-        .mock-question-meta {
-            display: grid;
-            gap: 8px;
-            color: #475569;
-            font-size: .95rem;
-        }
-        .mock-note-list {
-            margin: 0;
-            padding-left: 18px;
-            color: #475569;
-        }
-        .mock-note-list li + li {
-            margin-top: 8px;
-        }
-        .mock-sidebar h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #111827;
-        }
-        .mock-sidebar-meta {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 20px;
-            color: #475569;
-        }
-        .mock-sidebar-meta strong {
-            display: block;
-            color: #111827;
-            font-size: .82rem;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            margin-bottom: 4px;
-        }
-        .mock-sidebar-actions {
-            display: grid;
-            gap: 10px;
-        }
-        @media (max-width: 991.98px) {
-            .mock-interview-shell {
-                grid-template-columns: 1fr;
-            }
-            .mock-sidebar {
-                position: static;
-            }
-        }
-    </style>
-
-    <div class="mock-interview-shell">
+        <div class="mock-interview-shell">
         <aside class="mock-sidebar">
             <h3>Application Context</h3>
             <div class="mock-sidebar-meta">
@@ -334,6 +167,7 @@ $aiPolicy = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRE
             </section>
         </div>
     </div>
+</div>
 </div>
 
 <?= view('Layouts/candidate_footer') ?>

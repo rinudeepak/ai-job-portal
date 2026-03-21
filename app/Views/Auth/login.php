@@ -15,44 +15,22 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
+    <link rel="stylesheet" href="<?= base_url('custom/public-pages.css?v=' . @filemtime(FCPATH . 'custom/public-pages.css')) ?>">
 </head>
-<body style="background: var(--background);" class="hirematrix-app">
-  <nav class="navbar navbar-expand-lg navbar-light">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="<?= base_url('/') ?>">
-        <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 40px; width: auto;">
-        <span class="d-none d-sm-inline">HireMatrix</span>
-      </a>
+<?= view('Layouts/public_header', ['body_class' => 'public-auth-page']) ?>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="<?= base_url('/') ?>">For Job Seekers</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="<?= base_url('recruiter/register') ?>">For Recruiters</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
-  <section style="min-height: calc(100vh - 160px); display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
-    <div style="width: 100%; max-width: 420px;">
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-          <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 48px; width: auto;">
-          <span style="font-weight: 700; font-size: 1.5rem; color: var(--foreground);">HireMatrix</span>
+  <section class="auth-page-shell">
+    <div class="auth-page-column auth-page-column--sm">
+      <div class="auth-page-head">
+        <div class="auth-page-brand">
+          <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo">
+          <span class="auth-page-brand-text">HireMatrix</span>
         </div>
-        <h1 style="font-size: 1.875rem; font-weight: 700; color: var(--foreground); margin-bottom: 0.5rem;">Welcome Back</h1>
-        <p style="color: var(--muted-foreground); font-size: 0.875rem;">Sign in to your account to continue</p>
+        <h1 class="auth-page-title">Welcome Back</h1>
+        <p class="auth-page-subtitle">Sign in to your account to continue</p>
       </div>
 
-      <div class="card rounded-5 border-1" style="margin-bottom: 1.5rem;">
+      <div class="card rounded-5 border-1 auth-page-card">
         <div class="card-body p-4 p-md-5">
           <?php if (session()->getFlashdata('error')) : ?>
               <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
@@ -74,126 +52,59 @@
               <span>Continue with Google</span>
           </a>
 
-          <div style="display: flex; align-items: center; gap: 1rem; margin: 1.25rem 0;">
-            <div style="flex: 1; height: 1px; background: var(--border);"></div>
-            <span style="font-size: 0.75rem; color: var(--muted-foreground);">OR</span>
-            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+          <div class="auth-divider">
+            <div class="auth-divider-line"></div>
+            <span class="auth-divider-text">OR</span>
+            <div class="auth-divider-line"></div>
           </div>
 
-          <form method="post" action="<?= base_url('login') ?>" style="display: flex; flex-direction: column; gap: 1rem;">
+          <form method="post" action="<?= base_url('login') ?>" class="auth-form">
               <?= csrf_field() ?>
               <input type="hidden" name="next" value="<?= esc($next ?? '') ?>">
 
               <div>
-                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Email Address</label>
-                <div style="position: relative;">
-                  <i class="fas fa-envelope" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
-                  <input type="email" id="email" name="email" placeholder="your@email.com" class="form-control" style="padding-left: 2.5rem;" required>
+                <label class="form-label auth-field-label">Email Address</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-envelope auth-field-icon"></i>
+                  <input type="email" id="email" name="email" placeholder="your@email.com" class="form-control auth-input" required>
                 </div>
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">Password</label>
-                <div style="position: relative;">
-                  <i class="fas fa-lock" style="position: absolute; left: 1rem; top: 0.875rem; color: var(--muted-foreground); pointer-events: none;"></i>
-                  <input type="password" id="passwordInput" name="password" placeholder="••••••••" class="form-control" style="padding-left: 2.5rem; padding-right: 2.5rem;" required>
-                  <button type="button" onclick="togglePassword()" style="position: absolute; right: 1rem; top: 0.875rem; background: transparent; border: none; color: var(--muted-foreground); cursor: pointer;">
+                <label class="form-label auth-field-label">Password</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-lock auth-field-icon"></i>
+                  <input type="password" id="passwordInput" name="password" placeholder="Password" class="form-control auth-input auth-input--password" required>
+                  <button type="button" class="auth-password-toggle" data-password-target="passwordInput">
                     <i class="fas fa-eye" id="eyeIcon"></i>
                   </button>
                 </div>
               </div>
 
-              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem;">
-                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--foreground);">
+              <div class="auth-meta-row">
+                <label class="auth-remember">
                   <input type="checkbox" class="form-check-input">
                   Remember me
                 </label>
-                <a href="<?= base_url('forgot-password') ?>" style="color: var(--primary); text-decoration: none; font-weight: 600;">
-                  Forgot password?
-                </a>
+                <a href="<?= base_url('forgot-password') ?>" class="auth-footer-link">Forgot password?</a>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-lg" style="margin-top: 1rem; width: 100%;">
+              <button type="submit" class="btn btn-primary btn-lg auth-primary-btn">
                 Sign In
               </button>
           </form>
         </div>
       </div>
 
-      <div style="text-align: center;">
-        <p style="color: var(--muted-foreground); font-size: 0.875rem;">
+      <div class="auth-footer-copy">
+        <p>
           Don't have an account?
-          <a href="<?= base_url('register') ?>" style="color: var(--primary); text-decoration: none; font-weight: 600;">Create one</a>
+          <a href="<?= base_url('register') ?>" class="auth-footer-link">Create one</a>
         </p>
       </div>
     </div>
   </section>
 
-  <footer class="footer mt-5">
-    <div class="container">
-      <div class="row g-5 mb-5">
-        <div class="col-md-3">
-          <div class="d-flex align-items-center gap-2 mb-3">
-            <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 40px; width: auto;">
-            <span style="font-weight: 700; font-size: 1.125rem;">HireMatrix</span>
-          </div>
-          <p style="font-size: 0.875rem; opacity: 0.8;">
-            Connecting talent with opportunities through AI-powered recommendations.
-          </p>
-        </div>
-
-        <div class="footer-section col-md-3">
-          <h3>For Job Seekers</h3>
-          <a href="<?= base_url('jobs') ?>">Browse Jobs</a>
-          <a href="<?= base_url('/#get-started') ?>">Get Started</a>
-          <a href="<?= base_url('register') ?>">Create Candidate Account</a>
-        </div>
-
-        <div class="footer-section col-md-3">
-          <h3>For Employers</h3>
-          <a href="<?= base_url('recruiter/register') ?>">Join as Recruiter</a>
-          <a href="<?= base_url('login') ?>">Sign In</a>
-        </div>
-
-      </div>
-
-      <div class="footer-bottom">
-        <div class="footer-social">
-          <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
-          <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-          <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-          <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
-        </div>
-        <p>© 2026 HireMatrix. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-
-  <script src="<?= base_url('jobboard/js/jquery.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/bootstrap.bundle.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/isotope.pkgd.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/stickyfill.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/jquery.fancybox.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/jquery.easing.1.3.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/jquery.waypoints.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/jquery.animateNumber.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
-  <script src="<?= base_url('jobboard/js/custom.js') ?>"></script>
-  <script>
-    function togglePassword() {
-      const input = document.getElementById('passwordInput');
-      const icon = document.getElementById('eyeIcon');
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      }
-    }
-  </script>
+<?= view('Layouts/public_footer') ?>
 </body>
 </html>

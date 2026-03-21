@@ -7,12 +7,6 @@
                 <span class="page-board-kicker"><i class="fas fa-calendar-check"></i> Recruiter scheduling</span>
                 <h1 class="page-board-title">Interview Bookings</h1>
                 <p class="page-board-subtitle">Track confirmed interviews, manage reschedules, and complete finished booking flows.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= number_format($stats['total_bookings']) ?></strong> Total bookings</span>
-                    <span class="meta-chip"><strong><?= number_format($stats['upcoming']) ?></strong> Upcoming</span>
-                    <span class="meta-chip"><strong><?= number_format($stats['completed']) ?></strong> Completed</span>
-                    <span class="meta-chip"><strong><?= number_format($stats['rescheduled']) ?></strong> Rescheduled</span>
-                </div>
             </div>
             <div class="page-board-actions">
                 <a href="<?= base_url('recruiter/slots') ?>" class="btn btn-outline-primary">

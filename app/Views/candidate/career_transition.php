@@ -14,31 +14,21 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
 ?>
 
 <div class="career-transition-jobboard">
-    <section class="hero career-transition-hero">
-        <div class="container">
-            <div class="status-pill">
-                <i class="fas fa-sparkles" style="color: var(--primary);"></i>
-                Career Transition AI
-            </div>
-
-            <h1 class="hero-title">
-                Build Your Next
-                <span class="gradient-text">Career Path</span>
-            </h1>
-
-            <p class="hero-subtitle">
-                Get a personalized roadmap, identify skill gaps, and follow a day-by-day learning plan toward your target role.
-            </p>
-
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="#transition-form" class="btn btn-primary">Start Now</a>
-                <a href="<?= base_url('career-transition/history') ?>" class="btn btn-outline-primary">View History</a>
-            </div>
-        </div>
-    </section>
-
     <section class="career-transition-content">
         <div class="container">
+            <div class="page-board-header page-board-header-tight">
+                <div class="page-board-copy">
+                    <span class="page-board-kicker"><i class="fas fa-route"></i> Career learning path</span>
+                    <h1 class="page-board-title">Career Transition AI</h1>
+                    <p class="page-board-subtitle">Get a personalized roadmap, identify skill gaps, and follow a day-by-day learning plan toward your target role.</p>
+                </div>
+                <div class="page-board-actions">
+                    <a href="<?= base_url('career-transition/history') ?>" class="btn btn-outline-primary">
+                        <i class="fas fa-history mr-1"></i> View History
+                    </a>
+                </div>
+            </div>
+
             <?php if (session()->getFlashdata('error')): ?>
                 <div class="alert alert-warning alert-dismissible fade show" role="alert">
                     <?= esc(session()->getFlashdata('error')) ?>
@@ -103,7 +93,7 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                                         </datalist>
                                         <small class="text-muted">Choose from suggestions or type your own role</small>
                                     </div>
-                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <button type="submit" class="btn btn-primary career-transition-submit-btn" id="submitBtn">
                                         <span id="btnText"><i class="fas fa-rocket"></i> Generate Personalized Roadmap</span>
                                         <span id="btnLoading" class="transition-btn-loading">
                                             <span class="spinner-border spinner-border-sm" role="status"></span>
@@ -162,11 +152,11 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                                     <i class="fas fa-route"></i>
                                     Current Path
                                 </div>
-                                <h3 class="section-title mb-2"><?= esc($transition['current_role']) ?></h3>
+                                <h3 class="section-title career-transition-role-title career-transition-current-role mb-2"><?= esc($transition['current_role']) ?></h3>
                                 <div class="transition-arrow my-3" style="font-size: 2rem; color: var(--primary);">
                                     <i class="fas fa-arrow-down"></i>
                                 </div>
-                                <h3 class="section-title mb-0"><?= esc($transition['target_role']) ?></h3>
+                                <h3 class="section-title career-transition-role-title career-transition-target-role mb-0"><?= esc($transition['target_role']) ?></h3>
 
                                 <?php if ($reactivationCount > 0): ?>
                                     <div class="badge badge-info mt-3">
@@ -175,7 +165,7 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                                 <?php endif; ?>
                             </div>
                             <div class="panel-body">
-                                <a href="<?= base_url('career-transition/course') ?>" class="btn btn-success w-100 mb-2">
+                                <a href="<?= base_url('career-transition/course') ?>" class="btn btn-primary w-100 mb-2">
                                     <i class="fas fa-book-open"></i> View Full Course
                                 </a>
                                 <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-info w-100 mb-2">
@@ -244,11 +234,11 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                                                 </div>
                                                 <div>
                                                     <?php if (empty($task['is_completed'])): ?>
-                                                        <button class="btn btn-sm btn-success" onclick="completeTask(<?= (int) $task['id'] ?>)">
+                                                        <button class="btn btn-sm btn-primary" onclick="completeTask(<?= (int) $task['id'] ?>)">
                                                             <i class="fas fa-check"></i> Complete
                                                         </button>
                                                     <?php else: ?>
-                                                        <span class="badge badge-success"><i class="fas fa-check"></i> Done</span>
+                                                        <span class="badge badge-primary"><i class="fas fa-check"></i> Done</span>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
@@ -273,21 +263,5 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
         </div>
     </section>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var form = document.getElementById('transitionForm');
-    var submitBtn = document.getElementById('submitBtn');
-
-    if (!form || !submitBtn) {
-        return;
-    }
-
-    form.addEventListener('submit', function () {
-        submitBtn.classList.add('is-loading');
-        submitBtn.disabled = true;
-    });
-});
-</script>
 
 <?= view('Layouts/candidate_footer') ?>

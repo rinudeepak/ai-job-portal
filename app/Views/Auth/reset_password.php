@@ -15,53 +15,60 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
+    <link rel="stylesheet" href="<?= base_url('custom/public-pages.css?v=' . @filemtime(FCPATH . 'custom/public-pages.css')) ?>">
 </head>
-<body id="top" class="hirematrix-app">
-<div class="site-wrap">
-    <section class="section-hero overlay inner-page bg-image" style="background-image: url('<?= base_url('jobboard/images/hero_1.jpg') ?>');">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-7">
-                    <h1 class="text-white font-weight-bold">Reset Password</h1>
-                </div>
-            </div>
+<?= view('Layouts/public_header', ['body_class' => 'public-auth-page']) ?>
+
+  <section class="auth-page-shell">
+    <div class="auth-page-column auth-page-column--sm">
+      <div class="auth-page-head">
+        <div class="auth-page-brand">
+          <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo">
+          <span class="auth-page-brand-text">HireMatrix</span>
         </div>
-    </section>
+        <h1 class="auth-page-title">Reset Password</h1>
+        <p class="auth-page-subtitle">Choose a new password for your account.</p>
+      </div>
 
-    <section class="site-section">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <h2 class="mb-3">Choose a new password</h2>
+      <div class="card rounded-5 border-1 auth-page-card">
+        <div class="card-body p-4 p-md-5">
+          <h2 class="h5 mb-3">Choose a new password</h2>
 
-                    <form method="post" action="<?= base_url('reset-password/' . $token) ?>" class="p-4 border rounded bg-white">
-                        <?= csrf_field() ?>
+          <form method="post" action="<?= base_url('reset-password/' . $token) ?>" class="auth-form">
+              <?= csrf_field() ?>
 
-                        <?php if (session()->getFlashdata('error')): ?>
-                            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
-                        <?php endif; ?>
+              <?php if (session()->getFlashdata('error')): ?>
+                  <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+              <?php endif; ?>
 
-                        <?php $validation = session()->getFlashdata('validation'); ?>
-                        <?php if ($validation): ?>
-                            <div class="alert alert-danger"><?= $validation->listErrors() ?></div>
-                        <?php endif; ?>
+              <?php $validation = session()->getFlashdata('validation'); ?>
+              <?php if ($validation): ?>
+                  <div class="alert alert-danger"><?= $validation->listErrors() ?></div>
+              <?php endif; ?>
 
-                        <div class="form-group">
-                            <label for="password">New Password</label>
-                            <input type="password" id="password" name="password" class="form-control" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="confirm_password">Confirm Password</label>
-                            <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Reset password</button>
-                    </form>
+              <div>
+                <label class="form-label auth-field-label">New Password</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-lock auth-field-icon"></i>
+                  <input type="password" id="password" name="password" class="form-control auth-input auth-input--password" required>
                 </div>
-            </div>
+              </div>
+
+              <div>
+                <label class="form-label auth-field-label">Confirm Password</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-lock auth-field-icon"></i>
+                  <input type="password" id="confirm_password" name="confirm_password" class="form-control auth-input auth-input--password" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg auth-primary-btn">Reset password</button>
+          </form>
         </div>
-    </section>
-</div>
+      </div>
+    </div>
+  </section>
+
+<?= view('Layouts/public_footer') ?>
 </body>
 </html>

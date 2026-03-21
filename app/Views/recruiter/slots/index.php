@@ -7,11 +7,6 @@
             <span class="page-board-kicker"><i class="fas fa-calendar-alt"></i> Recruiter scheduling</span>
             <h1 class="page-board-title">Interview Slots Management</h1>
             <p class="page-board-subtitle">Create, review, and manage slots before candidates book interview windows.</p>
-            <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= number_format($stats['total_slots']) ?></strong> Total slots</span>
-                <span class="meta-chip"><strong><?= number_format($stats['available_slots']) ?></strong> Available</span>
-                <span class="meta-chip"><strong><?= number_format($stats['total_bookings']) ?></strong> Bookings</span>
-            </div>
         </div>
         <div class="page-board-actions">
             <a href="<?= base_url('recruiter/slots/create') ?>" class="btn btn-primary">
@@ -45,7 +40,7 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Available Slots</div>
+                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">Available Slots</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['available_slots'] ?></div>
                         </div>
                         <div class="col-auto">
@@ -194,7 +189,7 @@
                                         <?php elseif ($isFull): ?>
                                             <span class="badge badge-danger">Full</span>
                                         <?php elseif ($isAvailable): ?>
-                                            <span class="badge badge-success">Available</span>
+                                            <span class="badge badge-dark">Available</span>
                                         <?php else: ?>
                                             <span class="badge badge-warning">Unavailable</span>
                                         <?php endif; ?>

@@ -27,11 +27,6 @@
             <p class="page-board-subtitle">
                 Review candidates, run actions, and compare application status for this role.
             </p>
-            <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= number_format($applicationsCount) ?></strong> Applications</span>
-                <span class="meta-chip"><?= esc($job['location']) ?></span>
-                <span class="meta-chip"><?= date('M d, Y', strtotime($job['created_at'])) ?></span>
-            </div>
         </div>
         <div class="page-board-actions recruiter-applications-actions">
             <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-outline-secondary">
@@ -327,67 +322,4 @@
         </div>
     <?php endif; ?>
 </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var selectAll = document.getElementById('selectAllApplications');
-    var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.application-checkbox'));
-    var bulkForm = document.getElementById('bulkActionForm');
-    var bulkAction = document.getElementById('bulkActionSelect');
-    var bulkMessage = document.getElementById('bulkMessageInput');
-
-    if (selectAll) {
-        selectAll.addEventListener('change', function () {
-            checkboxes.forEach(function (cb) {
-                cb.checked = selectAll.checked;
-            });
-        });
-    }
-
-    checkboxes.forEach(function (cb) {
-        cb.addEventListener('change', function () {
-            if (!selectAll) {
-                return;
-            }
-            var allChecked = checkboxes.length > 0 && checkboxes.every(function (item) { return item.checked; });
-            selectAll.checked = allChecked;
-        });
-    });
-
-    if (bulkForm) {
-        bulkForm.addEventListener('submit', function (event) {
-            var selected = checkboxes.filter(function (cb) { return cb.checked; });
-            if (!bulkAction || !bulkAction.value) {
-                event.preventDefault();
-                alert('Please choose a bulk action.');
-                return;
-            }
-            if (selected.length === 0) {
-                event.preventDefault();
-                alert('Please select at least one candidate.');
-                return;
-            }
-            if (bulkAction.value === 'message' && (!bulkMessage || bulkMessage.value.trim() === '')) {
-                event.preventDefault();
-                alert('Please enter a message for selected candidates.');
-                return;
-            }
-
-            bulkForm.querySelectorAll('input[name="application_ids[]"]').forEach(function (input) {
-                input.remove();
-            });
-
-            selected.forEach(function (cb) {
-                var hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = 'application_ids[]';
-                hidden.value = cb.value;
-                bulkForm.appendChild(hidden);
-            });
-        });
-    }
-});
-</script>
-
 <?= view('Layouts/recruiter_footer') ?>

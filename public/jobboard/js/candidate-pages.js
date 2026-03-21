@@ -99,6 +99,27 @@
         }
     };
 
+    window.editProject = function (project) {
+        var form = document.getElementById('projectForm');
+        if (!form || !project) {
+            return;
+        }
+
+        form.querySelector('[name="id"]').value = project.id || '';
+        form.querySelector('[name="project_name"]').value = project.project_name || '';
+        form.querySelector('[name="role_name"]').value = project.role_name || '';
+        form.querySelector('[name="tech_stack"]').value = project.tech_stack || '';
+        form.querySelector('[name="project_url"]').value = project.project_url || '';
+        form.querySelector('[name="start_date"]').value = project.start_date || '';
+        form.querySelector('[name="end_date"]').value = project.end_date || '';
+        form.querySelector('[name="project_summary"]').value = project.project_summary || '';
+        form.querySelector('[name="impact_metrics"]').value = project.impact_metrics || '';
+
+        if (window.jQuery) {
+            window.jQuery('#addProjectModal').modal('show');
+        }
+    };
+
     window.quickAddInterest = function (value) {
         var input = document.getElementById('quickInterestValue');
         var form = document.getElementById('quickInterestForm');
@@ -220,6 +241,8 @@
                 }
                 if (submitBtn) {
                     submitBtn.disabled = true;
+                    submitBtn.classList.add('is-loading');
+                    submitBtn.setAttribute('aria-busy', 'true');
                 }
             });
         }
@@ -294,4 +317,433 @@
                 window.alert('Failed to mark task as complete. Please try again.');
             });
     };
+
+    window.switchTab = function (tab, e) {
+        if (e) {
+            e.preventDefault();
+        }
+
+        var url = new URL(getBaseUrl() + '/jobs', window.location.origin);
+        var recInput = document.getElementById('recommendationTypeInput');
+        var recType = recInput ? recInput.value : 'skills';
+
+        if (tab === 'recommended') {
+            url.searchParams.set('tab', 'recommended');
+            url.searchParams.set('rec', recType || 'skills');
+            window.location.href = url.toString();
+            return;
+        }
+
+        url.searchParams.set('tab', 'all');
+        window.location.href = url.toString();
+    };
+
+    window.switchRecommendation = function (recType, e) {
+        if (e) {
+            e.preventDefault();
+        }
+
+        var url = new URL(getBaseUrl() + '/jobs', window.location.origin);
+        url.searchParams.set('tab', 'recommended');
+        url.searchParams.set('rec', recType);
+        window.location.href = url.toString();
+    };
+
+    window.submitFilters = function () {
+        var activeTabInput = document.getElementById('activeTabInput');
+        var filterForm = document.getElementById('filterForm');
+        if (!activeTabInput || !filterForm) {
+            return;
+        }
+
+        activeTabInput.value = 'all';
+        filterForm.submit();
+    };
+
+    window.toggleMobileFilters = function () {
+        var drawer = document.getElementById('mobileFilterDrawer');
+        var icon = document.getElementById('mobileFilterIcon');
+        if (!drawer || !icon) {
+            return;
+        }
+
+        var isOpen = drawer.classList.contains('open');
+        drawer.classList.toggle('open', !isOpen);
+        icon.className = isOpen ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+    };
+
+    window.applyMobileFilters = function () {
+        var mobileCategory = document.getElementById('mobileCategory');
+        var mobileLocation = document.getElementById('mobileLocation');
+        var mobileExperience = document.getElementById('mobileExperience');
+        var mobileEmploymentType = document.getElementById('mobileEmploymentType');
+
+        var desktopCategory = document.querySelector('.sidebar select[name="category"]');
+        var desktopLocation = document.querySelector('.sidebar select[name="location"]');
+
+        if (desktopCategory && mobileCategory) {
+            desktopCategory.value = mobileCategory.value;
+        }
+
+        if (desktopLocation && mobileLocation) {
+            desktopLocation.value = mobileLocation.value;
+        }
+
+        var expChecks = document.querySelectorAll('.sidebar input[name="experience_level[]"]');
+        expChecks.forEach(function (cb) {
+            cb.checked = !!(mobileExperience && mobileExperience.value && cb.value === mobileExperience.value);
+        });
+
+        var typeChecks = document.querySelectorAll('.sidebar input[name="employment_type[]"]');
+        typeChecks.forEach(function (cb) {
+            cb.checked = !!(mobileEmploymentType && mobileEmploymentType.value && cb.value === mobileEmploymentType.value);
+        });
+
+        var activeTabInput = document.getElementById('activeTabInput');
+        if (activeTabInput) {
+            activeTabInput.value = 'all';
+        }
+
+        window.submitFilters();
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var settingsNav = document.getElementById('settingsNav');
+        if (settingsNav) {
+            var navLinks = settingsNav.querySelectorAll('[data-settings-tab]');
+            var panels = document.querySelectorAll('[data-settings-panel]');
+
+            var activateTab = function (tabName) {
+                navLinks.forEach(function (link) {
+                    link.classList.toggle('is-active', link.getAttribute('data-settings-tab') === tabName);
+                });
+
+                panels.forEach(function (panel) {
+                    panel.classList.toggle('is-active', panel.getAttribute('data-settings-panel') === tabName);
+                });
+            };
+
+            navLinks.forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    var tabName = link.getAttribute('data-settings-tab') || 'visibility';
+                    activateTab(tabName);
+                    if (window.history && window.history.replaceState) {
+                        var url = new URL(window.location.href);
+                        url.searchParams.set('tab', tabName);
+                        window.history.replaceState({}, '', url.toString());
+                    }
+                });
+            });
+        }
+
+        var notificationForm = document.getElementById('notificationSettingsForm');
+        if (notificationForm) {
+            var toggleInputs = notificationForm.querySelectorAll('input[type="checkbox"]');
+            toggleInputs.forEach(function (input) {
+                input.addEventListener('change', function () {
+                    notificationForm.submit();
+                });
+            });
+        }
+
+        var visibilityForm = document.getElementById('visibilitySettingsForm');
+        if (visibilityForm) {
+            var visibilityToggle = visibilityForm.querySelector('input[type="checkbox"]');
+            if (visibilityToggle) {
+                visibilityToggle.addEventListener('change', function () {
+                    visibilityForm.submit();
+                });
+            }
+        }
+
+        var loadingForms = document.querySelectorAll('form[data-loading-form]');
+        var generationModeInputs = document.querySelectorAll('input[name="generation_mode"]');
+        var generationPanels = document.querySelectorAll('[data-generation-panel]');
+        var targetRoleInput = document.querySelector('input[name="target_role"]');
+        var jobSelectInput = document.querySelector('select[name="job_id"]');
+
+        if (generationModeInputs.length || generationPanels.length) {
+            var syncGenerationMode = function (mode) {
+                generationPanels.forEach(function (panel) {
+                    panel.classList.toggle('is-active', panel.getAttribute('data-generation-panel') === mode);
+                });
+
+                if (targetRoleInput) {
+                    if (mode === 'role') {
+                        targetRoleInput.disabled = false;
+                    } else {
+                        targetRoleInput.value = '';
+                        targetRoleInput.disabled = true;
+                    }
+                }
+
+                if (jobSelectInput) {
+                    if (mode === 'job') {
+                        jobSelectInput.disabled = false;
+                    } else {
+                        jobSelectInput.value = '';
+                        jobSelectInput.disabled = true;
+                    }
+                }
+            };
+
+            generationModeInputs.forEach(function (input) {
+                input.addEventListener('change', function () {
+                    syncGenerationMode(input.value);
+                });
+            });
+
+            syncGenerationMode((document.querySelector('input[name="generation_mode"]:checked') || { value: 'role' }).value);
+        }
+
+        loadingForms.forEach(function (form) {
+            form.addEventListener('submit', function () {
+                var button = form.querySelector('[data-loading-button]');
+                if (!button || button.disabled) {
+                    return;
+                }
+
+                button.disabled = true;
+                button.classList.add('is-loading');
+
+                var submitText = button.querySelector('.btn-submit-text');
+                var loadingState = button.querySelector('.btn-loading-state');
+                if (submitText) {
+                    submitText.classList.add('is-hidden');
+                }
+                if (loadingState) {
+                    loadingState.style.display = 'inline-flex';
+                }
+            });
+        });
+
+        var applicationButtons = document.querySelectorAll('.application-list-item');
+        var applicationCards = document.querySelectorAll('.application-detail-card');
+        if (applicationButtons.length && applicationCards.length) {
+            applicationButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var targetId = button.getAttribute('data-application-target');
+
+                    applicationButtons.forEach(function (item) {
+                        item.classList.remove('is-active');
+                    });
+
+                    applicationCards.forEach(function (card) {
+                        card.classList.remove('is-active');
+                    });
+
+                    button.classList.add('is-active');
+
+                    var activeCard = document.getElementById(targetId);
+                    if (activeCard) {
+                        activeCard.classList.add('is-active');
+                    }
+                });
+            });
+        }
+
+        var fresherCheckbox = document.getElementById('is_fresher_candidate');
+        var experienceFields = document.getElementById('experienceFields');
+        var educationList = document.getElementById('educationList');
+        var addEducationItem = document.getElementById('addEducationItem');
+        var addExperienceItem = document.getElementById('addExperienceItem');
+        var onboardingForms = document.querySelectorAll('[data-onboarding-form]');
+
+        if (onboardingForms.length) {
+            var fieldHasValue = function (field) {
+                if (!field || field.disabled) {
+                    return true;
+                }
+
+                if (field.type === 'file') {
+                    return field.files && field.files.length > 0;
+                }
+
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    return field.checked;
+                }
+
+                return String(field.value || '').trim() !== '';
+            };
+
+            var syncOnboardingSubmit = function (form) {
+                var submit = form.querySelector('[data-onboarding-submit]');
+                if (!submit) {
+                    return;
+                }
+
+                var requiredFields = Array.prototype.slice.call(form.querySelectorAll('[required]'));
+                var allValid = requiredFields.every(function (field) {
+                    return fieldHasValue(field) && (!field.checkValidity || field.checkValidity());
+                });
+
+                if (form.action.indexOf('/candidate/onboarding/experience') !== -1) {
+                    if (fresherCheckbox && fresherCheckbox.checked) {
+                        allValid = true;
+                    } else {
+                        var experienceItems = Array.prototype.slice.call(form.querySelectorAll('.experience-item'));
+                        allValid = experienceItems.length > 0 && experienceItems.every(function (item) {
+                            var jobTitle = item.querySelector('input[name="job_title[]"]');
+                            var companyName = item.querySelector('input[name="company_name[]"]');
+                            var startDate = item.querySelector('input[name="start_date[]"]');
+                            if (jobTitle.disabled) {
+                                return true;
+                            }
+                            return [jobTitle, companyName, startDate].every(function (field) {
+                                return fieldHasValue(field) && (!field.checkValidity || field.checkValidity());
+                            });
+                        });
+                    }
+                }
+
+                submit.disabled = !allValid;
+            };
+
+            onboardingForms.forEach(function (form) {
+                form.addEventListener('input', function () {
+                    syncOnboardingSubmit(form);
+                });
+                form.addEventListener('change', function () {
+                    syncOnboardingSubmit(form);
+                });
+                syncOnboardingSubmit(form);
+            });
+
+            if (fresherCheckbox && experienceFields) {
+                var syncExperienceFields = function () {
+                    var disabled = fresherCheckbox.checked;
+                    experienceFields.querySelectorAll('input, select, textarea').forEach(function (field) {
+                        if (field.id === 'is_current') {
+                            return;
+                        }
+                        field.disabled = disabled;
+                    });
+
+                    onboardingForms.forEach(function (form) {
+                        syncOnboardingSubmit(form);
+                    });
+                };
+
+                fresherCheckbox.addEventListener('change', syncExperienceFields);
+                syncExperienceFields();
+            }
+
+            document.addEventListener('click', function (event) {
+                if (!event.target.matches('[data-remove-item]')) {
+                    return;
+                }
+
+                event.preventDefault();
+                var item = event.target.closest('.repeatable-item');
+                if (!item) {
+                    return;
+                }
+                var container = item.parentElement;
+                if (container && container.children.length > 1) {
+                    item.remove();
+                    onboardingForms.forEach(function (form) {
+                        syncOnboardingSubmit(form);
+                    });
+                }
+            });
+
+            if (addEducationItem && educationList) {
+                addEducationItem.addEventListener('click', function () {
+                    var itemCount = educationList.querySelectorAll('.education-item').length + 1;
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'repeatable-item education-item';
+                    wrapper.innerHTML = '<div class="repeatable-item-title">Education ' + itemCount + '</div>'
+                        + '<button type="button" class="btn btn-sm btn-outline-danger repeatable-remove" data-remove-item>Remove</button>'
+                        + '<div class="row">'
+                        + '<div class="col-md-6 mb-3"><label>Degree</label><input type="text" name="degree[]" class="form-control" minlength="2" required></div>'
+                        + '<div class="col-md-6 mb-3"><label>Field of Study</label><input type="text" name="field_of_study[]" class="form-control" minlength="2" required></div>'
+                        + '<div class="col-md-6 mb-3"><label>Institution</label><input type="text" name="institution[]" class="form-control" minlength="2" required></div>'
+                        + '<div class="col-md-3 mb-3"><label>Start Year</label><input type="number" name="start_year[]" class="form-control" required></div>'
+                        + '<div class="col-md-3 mb-3"><label>End Year</label><input type="number" name="end_year[]" class="form-control" required></div>'
+                        + '<div class="col-md-6 mb-3"><label>Grade / CGPA</label><input type="text" name="grade[]" class="form-control"></div>'
+                        + '</div>';
+                    educationList.appendChild(wrapper);
+                    onboardingForms.forEach(function (form) {
+                        syncOnboardingSubmit(form);
+                    });
+                });
+            }
+
+            if (addExperienceItem && experienceFields) {
+                addExperienceItem.addEventListener('click', function () {
+                    var index = experienceFields.querySelectorAll('.experience-item').length;
+                    var itemCount = index + 1;
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'repeatable-item experience-item';
+                    wrapper.innerHTML = '<div class="repeatable-item-title">Experience ' + itemCount + '</div>'
+                        + '<button type="button" class="btn btn-sm btn-outline-danger repeatable-remove" data-remove-item>Remove</button>'
+                        + '<div class="row">'
+                        + '<div class="col-md-6 mb-3"><label>Job Title</label><input type="text" name="job_title[]" class="form-control" minlength="2"></div>'
+                        + '<div class="col-md-6 mb-3"><label>Company Name</label><input type="text" name="company_name[]" class="form-control" minlength="2"></div>'
+                        + '<div class="col-md-6 mb-3"><label>Employment Type</label><select name="employment_type[]" class="form-control"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option><option>Freelance</option></select></div>'
+                        + '<div class="col-md-6 mb-3"><label>Location</label><input type="text" name="location[]" class="form-control"></div>'
+                        + '<div class="col-md-6 mb-3"><label>Start Date</label><input type="date" name="start_date[]" class="form-control"></div>'
+                        + '<div class="col-md-6 mb-3"><label>End Date</label><input type="date" name="end_date[]" class="form-control"></div>'
+                        + '<div class="col-12 mb-3"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="is_current_' + index + '" name="is_current[' + index + ']" value="1"><label class="custom-control-label" for="is_current_' + index + '">I currently work here</label></div></div>'
+                        + '<div class="col-12 mb-3"><label>Work Summary</label><textarea name="description[]" class="form-control" rows="4"></textarea></div>'
+                        + '</div>';
+                    experienceFields.appendChild(wrapper);
+                    if (fresherCheckbox) {
+                        var disabled = fresherCheckbox.checked;
+                        experienceFields.querySelectorAll('input, select, textarea').forEach(function (field) {
+                            if (field.id === 'is_current') {
+                                return;
+                            }
+                            field.disabled = disabled;
+                        });
+                    }
+                });
+            }
+        }
+
+        var profileSections = document.querySelectorAll('.profile-section');
+        if (profileSections.length) {
+            profileSections.forEach(function (section) {
+                var toggle = section.querySelector('[data-edit-toggle]');
+                var cancel = section.querySelector('[data-edit-cancel]');
+
+                if (toggle) {
+                    toggle.addEventListener('click', function () {
+                        section.classList.add('is-editing');
+                    });
+                }
+
+                if (cancel) {
+                    cancel.addEventListener('click', function () {
+                        section.classList.remove('is-editing');
+                    });
+                }
+            });
+
+            var profileLoadingForms = document.querySelectorAll('form[data-loading-form]');
+            profileLoadingForms.forEach(function (form) {
+                form.addEventListener('submit', function () {
+                    var button = form.querySelector('[data-loading-button]');
+                    if (!button || button.disabled) {
+                        return;
+                    }
+
+                    button.disabled = true;
+                    button.classList.add('is-loading');
+
+                    var submitText = button.querySelector('.btn-submit-text');
+                    var loadingState = button.querySelector('.btn-loading-state');
+
+                    if (submitText) {
+                        submitText.classList.add('is-hidden');
+                    }
+
+                    if (loadingState) {
+                        loadingState.style.display = 'inline-flex';
+                    }
+                });
+            });
+        }
+    });
 })();

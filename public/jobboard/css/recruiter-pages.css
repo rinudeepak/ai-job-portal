@@ -131,6 +131,114 @@
     padding-bottom: 80px;
 }
 
+.recruiter-jobboard .recruiter-notification-link {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border: 0;
+    background: transparent;
+    color: #111827;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    text-decoration: none;
+}
+
+.recruiter-jobboard .recruiter-notification-link:hover {
+    color: #111827;
+    background: rgba(255, 123, 42, 0.04);
+    border-radius: 12px;
+}
+
+.recruiter-jobboard .recruiter-notification-link .icon-bell {
+    color: #111827;
+}
+
+.recruiter-jobboard .recruiter-notification-badge {
+    position: absolute;
+    top: -1px;
+    right: 2px;
+    min-width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #0b66ff;
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    text-align: center;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+.recruiter-jobboard .recruiter-avatar-menu {
+    position: relative;
+}
+
+.recruiter-jobboard .recruiter-avatar-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 0;
+    background: linear-gradient(135deg, #3b82f6 0%, #ff7b2a 100%);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    overflow: hidden;
+    padding: 0;
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.recruiter-jobboard .recruiter-avatar-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(59, 130, 246, 0.28);
+}
+
+.recruiter-jobboard .recruiter-avatar-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    min-width: 170px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    padding: 8px 0;
+    z-index: 1000;
+    display: none;
+}
+
+.recruiter-jobboard .recruiter-avatar-dropdown.is-open {
+    display: block;
+}
+
+.recruiter-jobboard .recruiter-avatar-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    color: #212529;
+    text-decoration: none;
+    text-align: left;
+    font-size: 14px;
+}
+
+.recruiter-jobboard .recruiter-avatar-dropdown a:hover {
+    background: #f8f9fa;
+}
+
+.recruiter-jobboard .recruiter-avatar-dropdown a i {
+    width: 16px;
+    text-align: center;
+    color: #64748b;
+}
+
 .recruiter-jobboard main > .container-fluid,
 .recruiter-jobboard main > .container {
     margin-top: 0;
@@ -936,6 +1044,27 @@
     min-width: 0;
 }
 
+.recruiter-candidate-profile-jobboard .candidate-profile-shell {
+    display: grid;
+    grid-template-columns: minmax(290px, 0.9fr) minmax(0, 1.5fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-side {
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-main {
+    min-width: 0;
+    display: grid;
+    gap: 1rem;
+}
+
 .recruiter-candidate-profile-jobboard .candidate-summary-card,
 .recruiter-candidate-profile-jobboard .candidate-profile-side .card,
 .recruiter-company-edit-jobboard .company-edit-card,
@@ -947,9 +1076,50 @@
     box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
 }
 
+.recruiter-candidate-profile-jobboard .candidate-summary-card .card-body,
+.recruiter-candidate-profile-jobboard .candidate-profile-side .card .card-body {
+    padding: 1.25rem 1.25rem 1.35rem;
+}
+
 .recruiter-candidate-profile-jobboard .candidate-name {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1.1;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-summary-avatar {
+    width: 128px;
+    height: 128px;
+    border-radius: 999px;
+    border: 1px solid #d9e2f1;
+    background: #fff;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.recruiter-candidate-profile-jobboard .candidate-summary-fallback {
+    width: 128px;
+    height: 128px;
+    border-radius: 999px;
+    border: 1px solid #d9e2f1;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.04), rgba(255, 123, 42, 0.04));
+    margin: 0 auto 14px;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-summary-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 0.95rem;
+    justify-content: center;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-summary-actions {
+    margin-top: 14px;
 }
 
 .recruiter-candidate-profile-jobboard .candidate-meta {
@@ -981,6 +1151,129 @@
     margin-bottom: 0;
 }
 
+.recruiter-candidate-profile-jobboard .candidate-profile-actions .candidate-contact-btn {
+    background: #fff;
+    color: #2f5bd3;
+    border-color: rgba(47, 91, 211, 0.35);
+    box-shadow: none;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-actions .candidate-contact-btn:hover,
+.recruiter-candidate-profile-jobboard .candidate-profile-actions .candidate-contact-btn:focus {
+    background: rgba(47, 91, 211, 0.06);
+    color: #2446a8;
+    border-color: rgba(47, 91, 211, 0.5);
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card .candidate-message-btn {
+    color: #2f5bd3;
+    border-color: rgba(47, 91, 211, 0.35);
+    background: #fff;
+    box-shadow: none;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card .candidate-message-btn:hover,
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card .candidate-message-btn:focus {
+    color: #2446a8;
+    border-color: rgba(47, 91, 211, 0.55);
+    background: rgba(47, 91, 211, 0.06);
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card .candidate-message-btn i {
+    color: currentColor;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0.4rem 0.4rem 0;
+    padding: 0.42rem 0.78rem;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-pill-blue {
+    background: rgba(47, 91, 211, 0.12);
+    color: #2446a8;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-pill-orange {
+    background: rgba(255, 123, 42, 0.14);
+    color: #d65e00;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-pill-sky {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2f5bd3;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card .card-body {
+    padding: 1.2rem 1.25rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card h6,
+.recruiter-candidate-profile-jobboard .candidate-profile-section h5 {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: #20315f;
+    margin-bottom: 0;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card h6 {
+    font-size: 1rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card p {
+    color: #475569;
+    line-height: 1.65;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-section .card-body {
+    padding: 1.2rem 1.25rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-section .section-copy {
+    margin-top: 0.4rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-section .section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-section .section-header h5 {
+    margin: 0;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-section .section-header {
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid #edf1fa;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-section .section-header h5 i,
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card h6 i {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.09);
+    color: #3451a3;
+    flex-shrink: 0;
+}
+
 .recruiter-candidate-profile-jobboard .candidate-detail-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -992,6 +1285,12 @@
     border-radius: 12px;
     padding: 12px 14px;
     background: #fbfdff;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-detail-item div {
+    color: #20315f;
+    font-size: 0.98rem;
+    line-height: 1.55;
 }
 
 .recruiter-candidate-profile-jobboard .candidate-detail-item label {
@@ -1006,6 +1305,41 @@
 
 .recruiter-candidate-profile-jobboard .candidate-detail-item .value-empty {
     color: #94a3b8;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-stream {
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-entry {
+    border-bottom: 1px solid #edf1f7;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-entry:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-entry h6 {
+    font-weight: 700;
+    color: #1f2f57;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-entry .text-muted {
+    color: #6b7280 !important;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-main .card {
+    border-radius: 1.15rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-main .card + .card {
+    margin-top: 0;
 }
 
 .recruiter-company-edit-jobboard .company-edit-layout {
@@ -1434,6 +1768,20 @@
     align-items: flex-start;
 }
 
+.recruiter-slot-bookings-jobboard .btn.btn-outline-primary {
+    border-color: rgba(59, 130, 246, 0.35) !important;
+    color: #2563eb !important;
+    background: #fff !important;
+}
+
+.recruiter-slot-bookings-jobboard .btn.btn-outline-primary:hover,
+.recruiter-slot-bookings-jobboard .btn.btn-outline-primary:focus,
+.recruiter-slot-bookings-jobboard .btn.btn-outline-primary:active {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+}
+
 .recruiter-slot-bookings-jobboard .recruiter-summary-card,
 .recruiter-slot-bookings-jobboard .recruiter-filter-card,
 .recruiter-slot-bookings-jobboard .recruiter-table-card {
@@ -1649,6 +1997,80 @@
 
 .recruiter-slot-create-jobboard .recruiter-help-list li {
     line-height: 1.5;
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-job-select {
+    height: calc(1.9em + 0.95rem + 2px);
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+    border: 1px solid #d6deec;
+    border-radius: 0.85rem;
+    background-color: #fff;
+    color: #20315f;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-job-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0.18rem rgba(59, 130, 246, 0.12);
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control,
+.recruiter-slot-create-jobboard .recruiter-slot-form .custom-control-label::before {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control:focus,
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control:focus-visible,
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control:active {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 0.18rem rgba(59, 130, 246, 0.12) !important;
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control:valid,
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control.is-valid {
+    border-color: #d6deec !important;
+    box-shadow: none !important;
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control:invalid,
+.recruiter-slot-create-jobboard .recruiter-slot-form .form-control.is-invalid {
+    border-color: #d6deec !important;
+    box-shadow: none !important;
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-form .input-group .form-control:focus,
+.recruiter-slot-create-jobboard .recruiter-slot-form .input-group .form-control:active {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 0.18rem rgba(59, 130, 246, 0.12) !important;
+}
+
+.recruiter-slot-create-jobboard .recruiter-slot-form select.form-control:focus,
+.recruiter-slot-create-jobboard .recruiter-slot-form input.form-control:focus,
+.recruiter-slot-create-jobboard .recruiter-slot-form textarea.form-control:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 0.18rem rgba(59, 130, 246, 0.12) !important;
+}
+
+.recruiter-slot-create-jobboard .custom-control-label {
+    color: #20315f;
+    font-weight: 600;
+}
+
+.recruiter-slot-create-jobboard .custom-control-label::before {
+    border-color: #cfd8e6;
+    background-color: #fff;
+    box-shadow: none;
+}
+
+.recruiter-slot-create-jobboard .custom-control-input:checked ~ .custom-control-label::before {
+    border-color: #3b82f6;
+    background-color: #3b82f6;
+}
+
+.recruiter-slot-create-jobboard .custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0.18rem rgba(59, 130, 246, 0.12);
 }
 
 .recruiter-slot-edit-jobboard {

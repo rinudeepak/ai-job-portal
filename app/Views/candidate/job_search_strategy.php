@@ -13,16 +13,13 @@ if (empty($recommendedJobs)) {
 $source = (string) ($jobSearchStrategy['source'] ?? 'fallback');
 ?>
 
+<div class="strategy-jobboard">
 <div class="container">
     <div class="page-board-header page-board-header-tight">
         <div class="page-board-copy">
             <span class="page-board-kicker"><i class="fas fa-compass"></i> Search guidance</span>
             <h1 class="page-board-title">Job Search Strategy Coach</h1>
             <p class="page-board-subtitle">Turn your profile into a sharper search plan with target roles, action steps, and weekly priorities.</p>
-            <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= count($recommendedJobs ?? []) ?></strong> Suggested roles</span>
-                <span class="meta-chip"><strong><?= strtoupper($source) ?></strong> Strategy source</span>
-            </div>
         </div>
         <div class="page-board-actions">
             <a href="<?= base_url('jobs?tab=suggested') ?>" class="btn btn-outline-secondary">
@@ -36,142 +33,7 @@ $source = (string) ($jobSearchStrategy['source'] ?? 'fallback');
 </div>
 
 <div class="container py-5">
-    <style>
-        .strategy-shell {
-            display: grid;
-            grid-template-columns: 320px minmax(0, 1fr);
-            gap: 24px;
-            align-items: start;
-        }
-        .strategy-sidebar,
-        .strategy-card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 18px;
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
-        }
-        .strategy-sidebar {
-            position: sticky;
-            top: 110px;
-            padding: 22px;
-        }
-        .strategy-main {
-            display: grid;
-            gap: 20px;
-        }
-        .strategy-card {
-            padding: 24px;
-        }
-        .strategy-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .05em;
-            text-transform: uppercase;
-            border: 1px solid #bfdbfe;
-            background: #eff6ff;
-            color: #1d4ed8;
-            margin-bottom: 14px;
-        }
-        .strategy-badge.is-ai {
-            border-color: #bbf7d0;
-            background: #dcfce7;
-            color: #166534;
-        }
-        .strategy-title {
-            font-size: 2rem;
-            line-height: 1.15;
-            color: #111827;
-            margin-bottom: 10px;
-        }
-        .strategy-summary {
-            color: #475569;
-            font-size: 1rem;
-            line-height: 1.7;
-            margin-bottom: 0;
-        }
-        .strategy-section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 14px;
-        }
-        .strategy-list {
-            margin: 0;
-            padding-left: 18px;
-            color: #475569;
-        }
-        .strategy-list li + li {
-            margin-top: 8px;
-        }
-        .strategy-chip-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .strategy-chip {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 999px;
-            border: 1px solid #dbeafe;
-            background: #f8fbff;
-            color: #1d4ed8;
-            font-size: 13px;
-            font-weight: 700;
-        }
-        .strategy-sidebar h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 12px;
-        }
-        .strategy-sidebar-block + .strategy-sidebar-block {
-            margin-top: 18px;
-            padding-top: 18px;
-            border-top: 1px solid #eef2f7;
-        }
-        .strategy-job {
-            border: 1px solid #eef2f7;
-            border-radius: 14px;
-            padding: 16px;
-            background: #fbfdff;
-        }
-        .strategy-job + .strategy-job {
-            margin-top: 12px;
-        }
-        .strategy-job-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 4px;
-        }
-        .strategy-job-title a {
-            color: inherit;
-            text-decoration: none;
-        }
-        .strategy-job-title a:hover {
-            color: #1d4ed8;
-        }
-        .strategy-job-meta {
-            color: #64748b;
-            font-size: .94rem;
-            margin-bottom: 10px;
-        }
-        @media (max-width: 991.98px) {
-            .strategy-shell {
-                grid-template-columns: 1fr;
-            }
-            .strategy-sidebar {
-                position: static;
-            }
-        }
-    </style>
-
-    <div class="strategy-shell">
+        <div class="strategy-shell">
         <aside class="strategy-sidebar">
             <div class="strategy-sidebar-block">
                 <h3>Focus Now</h3>
@@ -281,6 +143,7 @@ $source = (string) ($jobSearchStrategy['source'] ?? 'fallback');
             <?php endif; ?>
         </div>
     </div>
+</div>
 </div>
 
 <?= view('Layouts/candidate_footer') ?>

@@ -299,8 +299,8 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                             <span>Apply</span>
                         </div>
                         <?php if ($alreadyApplied): ?>
-                            <button class="btn btn-block btn-light btn-md" disabled>
-                                <span class="icon-check mr-2 text-success"></span>Already Applied
+                            <button class="btn btn-block btn-outline-primary btn-md job-details-applied-btn" disabled>
+                                <span class="icon-check mr-2"></span>Already Applied
                             </button>
                         <?php else: ?>
                             <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">

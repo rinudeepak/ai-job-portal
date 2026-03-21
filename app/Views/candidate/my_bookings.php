@@ -7,11 +7,6 @@
                 <span class="page-board-kicker"><i class="fas fa-calendar-check"></i> Interview calendar</span>
                 <h1 class="page-board-title">My Interview Bookings</h1>
                 <p class="page-board-subtitle">Review upcoming interviews, track completed bookings, and reschedule when needed.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= count($bookings ?? []) ?></strong> Total</span>
-                    <span class="meta-chip"><strong><?= (int) $upcomingCount ?></strong> Upcoming</span>
-                    <span class="meta-chip"><strong><?= (int) $completedCount ?></strong> Completed</span>
-                </div>
             </div>
             <div class="page-board-actions">
                 <a href="<?= base_url('candidate/dashboard') ?>" class="btn btn-outline-secondary">

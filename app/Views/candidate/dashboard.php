@@ -11,6 +11,19 @@ $activeSuggestions = array_filter($activeSuggestions, static function ($suggesti
 });
 $activeSuggestionsCount = count($activeSuggestions);
 $topRecommendedCount = count($topSuggestedJobs);
+$dashboardStrategy = is_array($jobSearchStrategy ?? null) ? $jobSearchStrategy : [];
+$dashboardStrategySource = (string) ($dashboardStrategy['source'] ?? 'fallback');
+$dashboardStrategyHeading = $dashboardStrategySource === 'ai' ? 'AI-generated strategy' : 'Job Search Strategy Coach';
+$dashboardStrategyBadge = $dashboardStrategySource === 'ai' ? 'AI-generated' : 'Strategy preview';
+$dashboardStrategyRoles = array_values(array_filter(array_map('trim', (array) ($dashboardStrategy['target_roles'] ?? []))));
+if (empty($dashboardStrategyRoles)) {
+    $dashboardStrategyRoles = array_slice(array_values(array_filter(array_map(static function (array $job): string {
+        return trim((string) ($job['title'] ?? ''));
+    }, $topSuggestedJobs))), 0, 3);
+}
+if (empty($dashboardStrategyRoles)) {
+    $dashboardStrategyRoles = ['Web Developer', 'Software Developer', 'Frontend Developer'];
+}
 
 $pickJobIcon = static function (string $title): string {
     $needle = strtolower($title);
@@ -57,40 +70,6 @@ $formatDate = static function ($value, string $fallback = 'Recently'): string {
                 Track your applications, interviews, and AI progress. Discover live opportunities that match your career goals.
             </p>
 
-            <div class="card mb-4" style="max-width: 800px;">
-                <div class="card-body p-3 p-md-4">
-                    <form action="<?= base_url('jobs') ?>" method="get">
-                        <div class="row g-3 g-md-2">
-                            <div class="col-12 col-md-6 col-lg-5">
-                                <div class="search-input-group">
-                                    <i class="fas fa-search" style="color: var(--muted-foreground);"></i>
-                                    <input type="text" name="search" placeholder="Job title, skills, or company" class="form-control border-0">
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6 col-lg-4">
-                                <div class="search-input-group">
-                                    <i class="fas fa-map-pin" style="color: var(--muted-foreground);"></i>
-                                    <input type="text" name="location" placeholder="City or location" class="form-control border-0">
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-3">
-                                <button type="submit" class="btn btn-primary w-100">Search Jobs</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <span class="text-muted me-3" style="font-size: 0.875rem; font-weight: 500;">Popular:</span>
-                <div class="btn-group flex-wrap" role="group">
-                    <a href="<?= base_url('jobs?search=developer') ?>" class="btn btn-outline-primary btn-sm" style="border-width: 2px;">Developer</a>
-                    <a href="<?= base_url('jobs?search=designer') ?>" class="btn btn-sm" style="background: rgba(255, 123, 42, 0.2); color: var(--secondary); border: none;">Designer</a>
-                    <a href="<?= base_url('jobs?search=marketing') ?>" class="btn btn-sm" style="background: rgba(0, 191, 165, 0.2); color: var(--accent); border: none;">Marketing</a>
-                    <a href="<?= base_url('jobs?search=remote') ?>" class="btn btn-sm" style="background: rgba(59, 130, 246, 0.2); color: var(--primary); border: none;">Remote</a>
-                    <a href="<?= base_url('jobs?employment_type=full-time') ?>" class="btn btn-sm" style="background: rgba(255, 123, 42, 0.2); color: var(--secondary); border: none;">Full-time</a>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -177,6 +156,47 @@ $formatDate = static function ($value, string $fallback = 'Recently'): string {
                         </div>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-section pt-0">
+        <div class="container">
+            <div class="dashboard-strategy-banner">
+                <div class="dashboard-strategy-banner-inner">
+                    <div class="dashboard-strategy-copy">
+                        <div class="dashboard-strategy-kicker">
+                            <i class="fas fa-compass"></i>
+                            <?= esc($dashboardStrategyHeading) ?>
+                        </div>
+                        <h2 class="dashboard-strategy-title"><?= esc((string) ($dashboardStrategy['title'] ?? 'Job Search Strategy Coach')) ?></h2>
+                        <p class="dashboard-strategy-text">
+                            <?= esc((string) ($dashboardStrategy['summary'] ?? 'Use a focused plan to refine your resume, prioritize applications, and target roles that align with your strongest skills.')) ?>
+                        </p>
+                        <ul class="dashboard-strategy-list">
+                            <?php foreach (array_slice((array) ($dashboardStrategy['priority_actions'] ?? []), 0, 3) as $item): ?>
+                                <li><?= esc($item) ?></li>
+                            <?php endforeach; ?>
+                            <?php if (empty($dashboardStrategy['priority_actions'])): ?>
+                                <li>Refine your resume around the skills that matter most.</li>
+                                <li>Focus on applications with the highest match potential.</li>
+                                <li>Set weekly priorities instead of applying broadly.</li>
+                            <?php endif; ?>
+                        </ul>
+                        <a href="<?= base_url('candidate/job-search-strategy') ?>" class="btn btn-primary dashboard-strategy-btn">
+                            Open Full Strategy <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                    <div class="dashboard-strategy-panel">
+                        <span class="dashboard-strategy-badge"><?= esc($dashboardStrategyBadge) ?></span>
+                        <div class="dashboard-strategy-panel-label">Target Roles</div>
+                        <div class="dashboard-strategy-role-list">
+                            <?php foreach ($dashboardStrategyRoles as $role): ?>
+                                <span class="dashboard-strategy-role-pill"><?= esc($role) ?></span>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

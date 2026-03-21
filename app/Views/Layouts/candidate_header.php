@@ -99,7 +99,6 @@
                 </div>
                 <nav class="mx-auto site-navigation col-xl-7">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
-                        <li><a href="<?= base_url('candidate/dashboard') ?>" class="<?= $homeNavClass ?>">Home</a></li>
                         <li class="has-children">
                             <a href="<?= base_url('jobs') ?>" class="<?= $jobsNavClass ?>">Jobs</a>
                             <ul class="dropdown">

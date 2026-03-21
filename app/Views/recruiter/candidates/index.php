@@ -13,13 +13,6 @@
             <span class="page-board-kicker"><i class="fas fa-database"></i> Recruiter candidate search</span>
             <h1 class="page-board-title">Candidate Database</h1>
             <p class="page-board-subtitle">Search and discover candidates beyond direct applicants. Compare profiles and jump into the candidate workspace.</p>
-            <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= number_format($candidateCount) ?></strong> Results</span>
-                <?php if (!empty($selectedJobTitle)): ?>
-                    <span class="meta-chip"><?= esc($selectedJobTitle) ?></span>
-                    <span class="meta-chip"><strong><?= number_format($aiSuggestionCount) ?></strong> AI suggestions</span>
-                <?php endif; ?>
-            </div>
         </div>
     </div>
 

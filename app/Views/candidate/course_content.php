@@ -9,13 +9,9 @@
                 <span class="page-board-kicker"><i class="fas fa-book-open"></i> Learning content</span>
                 <h1 class="page-board-title"><?= esc($module['title']) ?></h1>
                 <p class="page-board-subtitle">Read through the lessons, resources, and practice exercises for this module.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong>Module <?= (int) $module['module_number'] ?></strong></span>
-                    <span class="meta-chip"><strong><?= (int) $module['duration_weeks'] ?></strong> Week(s)</span>
-                </div>
             </div>
             <div class="page-board-actions">
-                <a href="<?= base_url('career-transition/course') ?>" class="btn btn-outline-secondary">
+                <a href="<?= base_url('career-transition/course') ?>" class="btn btn-outline-primary">
                     <i class="fas fa-arrow-left mr-1"></i> All Modules
                 </a>
             </div>

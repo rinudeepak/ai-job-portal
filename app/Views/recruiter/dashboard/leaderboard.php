@@ -19,11 +19,6 @@
             <span class="page-board-kicker"><i class="fas fa-trophy"></i> Recruiter insights</span>
             <h1 class="page-board-title">Candidate Insights Leaderboard</h1>
             <p class="page-board-subtitle">Compare applicants by fit, scores, and profile signals. Use this page for review, not bulk actions.</p>
-            <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= number_format($candidateCount) ?></strong> Candidates</span>
-                <span class="meta-chip"><strong><?= number_format($avgTech, 1) ?></strong> Avg technical</span>
-                <span class="meta-chip"><strong><?= number_format($avgOverall, 1) ?></strong> Avg overall</span>
-            </div>
         </div>
         <div class="page-board-actions recruiter-leaderboard-actions">
             <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-outline-secondary">

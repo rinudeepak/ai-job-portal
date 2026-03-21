@@ -12,10 +12,6 @@ $filters = $filters ?? [];
                 <span class="page-board-kicker"><i class="fas fa-building"></i> Employer directory</span>
                 <h1 class="page-board-title">Explore Companies</h1>
                 <p class="page-board-subtitle">Search employers, compare company profiles, and discover open roles.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= number_format($totalCompanies) ?></strong> Companies</span>
-                    <span class="meta-chip"><strong><?= number_format($totalOpenJobs) ?></strong> Open Jobs</span>
-                </div>
             </div>
             <div class="company-profile-actions">
                 <a href="#companies-filter" class="btn btn-primary">

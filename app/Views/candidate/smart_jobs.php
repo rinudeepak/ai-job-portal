@@ -296,7 +296,7 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                             $type = strtolower((string) ($job['employment_type'] ?? ''));
                             $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
                         ?>
-                        <div class="col-md-6 col-lg-4">
+                        <div class="col-12">
                             <div class="job-card">
                                 <button
                                     type="button"
@@ -308,23 +308,25 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                                     <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
                                 </button>
                                 <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
-                                <h3 class="job-card-title"><?= esc($title) ?></h3>
-                                <p class="job-card-company"><?= esc($company) ?></p>
-                                <div class="job-card-meta">
-                                    <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
-                                    <?php if ($postedMeta !== null): ?>
-                                        <span><i class="fas fa-clock"></i> <?= esc($postedMeta) ?></span>
-                                    <?php endif; ?>
+                                <div class="job-card-body">
+                                    <h3 class="job-card-title"><?= esc($title) ?></h3>
+                                    <p class="job-card-company"><?= esc($company) ?></p>
+                                    <div class="job-card-meta">
+                                        <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
+                                        <?php if ($postedMeta !== null): ?>
+                                            <span><i class="fas fa-clock"></i> <?= esc($postedMeta) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="job-card-tags">
+                                        <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
+                                        <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
+                                    </div>
+                                    <div class="progress-container">
+                                        <div class="progress-bar-custom" style="width: 100%;"></div>
+                                        <span class="progress-label">Open role</span>
+                                    </div>
+                                    <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
                                 </div>
-                                <div class="job-card-tags">
-                                    <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                    <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
-                                </div>
-                                <div class="progress-container">
-                                    <div class="progress-bar-custom" style="width: 100%;"></div>
-                                    <span class="progress-label">Open role</span>
-                                </div>
-                                <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -448,26 +450,28 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                                     <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
                                 </button>
                                 <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
-                                <h3 class="job-card-title"><?= esc($title) ?></h3>
-                                <p class="job-card-company"><?= esc($company) ?></p>
-                                <div class="job-card-meta">
-                                    <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
-                                    <?php if ($postedMeta !== null): ?>
-                                        <span><i class="fas fa-clock"></i> <?= esc($postedMeta) ?></span>
+                                <div class="job-card-body">
+                                    <h3 class="job-card-title"><?= esc($title) ?></h3>
+                                    <p class="job-card-company"><?= esc($company) ?></p>
+                                    <div class="job-card-meta">
+                                        <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
+                                        <?php if ($postedMeta !== null): ?>
+                                            <span><i class="fas fa-clock"></i> <?= esc($postedMeta) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="job-card-tags">
+                                        <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
+                                        <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
+                                    </div>
+                                    <?php if (!empty($job['match_reason'])): ?>
+                                        <div class="small text-muted mb-2"><?= esc($job['match_reason']) ?></div>
                                     <?php endif; ?>
+                                    <div class="progress-container">
+                                        <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
+                                        <span class="progress-label"><?= $matchPct ?>% match</span>
+                                    </div>
+                                    <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
                                 </div>
-                                <div class="job-card-tags">
-                                    <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                    <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
-                                </div>
-                                <?php if (!empty($job['match_reason'])): ?>
-                                    <div class="small text-muted mb-2"><?= esc($job['match_reason']) ?></div>
-                                <?php endif; ?>
-                                <div class="progress-container">
-                                    <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
-                                    <span class="progress-label"><?= $matchPct ?>% match</span>
-                                </div>
-                                <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
                         </article>
                     <?php endforeach; ?>
                     </div>
@@ -487,75 +491,5 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
 </div>
 </section>
 </div>
-
-<script>
-function switchTab(tab, e) {
-    if (e) e.preventDefault();
-
-    const url = new URL('<?= base_url('jobs') ?>', window.location.origin);
-    const recInput = document.getElementById('recommendationTypeInput');
-    const recType = recInput ? recInput.value : 'skills';
-
-    if (tab === 'recommended') {
-        url.searchParams.set('tab', 'recommended');
-        url.searchParams.set('rec', recType || 'skills');
-        window.location.href = url.toString();
-        return;
-    }
-
-    url.searchParams.set('tab', 'all');
-    window.location.href = url.toString();
-}
-
-function switchRecommendation(recType, e) {
-    if (e) e.preventDefault();
-
-    const url = new URL('<?= base_url('jobs') ?>', window.location.origin);
-    url.searchParams.set('tab', 'recommended');
-    url.searchParams.set('rec', recType);
-    window.location.href = url.toString();
-}
-
-function submitFilters() {
-    document.getElementById('activeTabInput').value = 'all';
-    document.getElementById('filterForm').submit();
-}
-
-function toggleMobileFilters() {
-    const drawer = document.getElementById('mobileFilterDrawer');
-    const icon = document.getElementById('mobileFilterIcon');
-    if (!drawer || !icon) return;
-
-    const isOpen = drawer.classList.contains('open');
-    drawer.classList.toggle('open', !isOpen);
-    icon.className = isOpen ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
-}
-
-function applyMobileFilters() {
-    const mobileCategory = document.getElementById('mobileCategory');
-    const mobileLocation = document.getElementById('mobileLocation');
-    const mobileExperience = document.getElementById('mobileExperience');
-    const mobileEmploymentType = document.getElementById('mobileEmploymentType');
-
-    const desktopCategory = document.querySelector('.sidebar select[name="category"]');
-    const desktopLocation = document.querySelector('.sidebar select[name="location"]');
-
-    if (desktopCategory && mobileCategory) desktopCategory.value = mobileCategory.value;
-    if (desktopLocation && mobileLocation) desktopLocation.value = mobileLocation.value;
-
-    const expChecks = document.querySelectorAll('.sidebar input[name="experience_level[]"]');
-    expChecks.forEach(function (cb) {
-        cb.checked = !!(mobileExperience && mobileExperience.value && cb.value === mobileExperience.value);
-    });
-
-    const typeChecks = document.querySelectorAll('.sidebar input[name="employment_type[]"]');
-    typeChecks.forEach(function (cb) {
-        cb.checked = !!(mobileEmploymentType && mobileEmploymentType.value && cb.value === mobileEmploymentType.value);
-    });
-
-    document.getElementById('activeTabInput').value = 'all';
-    submitFilters();
-}
-</script>
 
 <?= view('Layouts/candidate_footer') ?>

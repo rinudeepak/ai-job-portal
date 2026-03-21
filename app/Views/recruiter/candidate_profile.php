@@ -43,7 +43,7 @@
         </div>
         <div class="page-board-actions candidate-profile-actions">
             <?php if (!$showContact): ?>
-                <a href="<?= $contactViewUrl ?>" class="btn btn-outline-primary">
+                <a href="<?= $contactViewUrl ?>" class="btn btn-outline-primary candidate-contact-btn">
                     <i class="fas fa-address-card"></i> View Contact
                 </a>
             <?php endif; ?>
@@ -60,14 +60,14 @@
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
     <?php endif; ?>
-    <div class="row candidate-profile-layout">
-        <div class="col-lg-4 candidate-profile-side">
-            <div class="card shadow-sm candidate-summary-card">
+    <div class="candidate-profile-shell">
+        <div class="candidate-profile-side">
+            <div class="card shadow-sm candidate-summary-card candidate-profile-rail-card">
                 <div class="card-body text-center">
                     <?php if (!empty($candidate['profile_photo'])): ?>
-                        <img src="<?= base_url($candidate['profile_photo']) ?>" alt="Profile" class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
+                        <img src="<?= base_url($candidate['profile_photo']) ?>" alt="Profile" class="candidate-summary-avatar">
                     <?php else: ?>
-                        <div class="rounded-circle mx-auto mb-3" style="width: 120px; height: 120px; border: 1px solid #dee2e6; background: transparent;"></div>
+                        <div class="candidate-summary-fallback"></div>
                     <?php endif; ?>
                     <h4 class="candidate-name"><?= esc($candidate['name']) ?></h4>
                     <div class="candidate-meta">
@@ -85,7 +85,7 @@
             </div>
             
             <?php if($candidate['bio']): ?>
-            <div class="card shadow-sm mt-3">
+            <div class="card shadow-sm mt-3 candidate-profile-rail-card">
                 <div class="card-body">
                     <h6><i class="fas fa-info-circle"></i> About</h6>
                     <p><?= nl2br(esc($candidate['bio'])) ?></p>
@@ -93,7 +93,7 @@
             </div>
             <?php endif; ?>
 
-            <div class="card shadow-sm mt-3">
+            <div class="card shadow-sm mt-3 candidate-profile-rail-card">
                 <div class="card-body">
                     <h6><i class="fas fa-sticky-note"></i> Recruiter Notes & Tags</h6>
                     <?php if (!empty($recruiterNote['tags'])): ?>
@@ -126,15 +126,15 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm mt-3">
+            <div class="card shadow-sm mt-3 candidate-profile-rail-card">
                 <div class="card-body">
                     <h6><i class="icon-mail_outline"></i> Message Candidate</h6>
                     <?php if (!empty($messages)): ?>
-                        <div class="mb-2 p-2 border rounded" style="max-height: 180px; overflow-y: auto;">
+                        <div class="candidate-profile-stream mb-2">
                             <?php foreach (array_slice($messages, -8) as $msg): ?>
                                 <?php $isRecruiterMsg = ($msg['sender_role'] ?? '') === 'recruiter'; ?>
-                                <div class="mb-2">
-                                    <small class="text-muted d-block">
+                                <div class="candidate-profile-entry">
+                                    <small class="text-muted d-block mb-1">
                                         <?= $isRecruiterMsg ? 'You' : esc($candidate['name']) ?> • <?= date('M d, h:i A', strtotime($msg['created_at'])) ?>
                                     </small>
                                     <div><?= nl2br(esc($msg['message'] ?? '')) ?></div>
@@ -150,7 +150,7 @@
                         <div class="form-group mb-2">
                             <textarea name="message" class="form-control" rows="4" maxlength="1000" placeholder="Write a message to candidate..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <button type="submit" class="btn btn-sm btn-outline-primary candidate-message-btn">
                             <i class="icon-send mr-1"></i> Send Message
                         </button>
                     </form>
@@ -158,8 +158,8 @@
             </div>
         </div>
         
-        <div class="col-lg-8 candidate-profile-main">
-            <div class="card shadow-sm mb-3">
+        <div class="candidate-profile-main">
+            <div class="card shadow-sm mb-3 candidate-profile-section">
                 <div class="card-body">
                     <h5><i class="fas fa-id-card"></i> Personal Information</h5>
                     <div class="candidate-detail-grid mt-3">
@@ -191,7 +191,7 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-3">
+            <div class="card shadow-sm mb-3 candidate-profile-section">
                 <div class="card-body">
                     <h5><i class="fas fa-briefcase"></i> Career Details</h5>
                     <div class="candidate-detail-grid mt-3">
@@ -211,7 +211,7 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-3">
+            <div class="card shadow-sm mb-3 candidate-profile-section">
                 <div class="card-body">
                     <h5><i class="fas fa-sliders-h"></i> Preferences</h5>
                     <div class="candidate-detail-grid mt-3">
@@ -237,14 +237,14 @@
 
             <!-- Skills -->
             <?php if (!empty($skills['skill_name']) || !empty($github['languages_used'])): ?>
-            <div class="card shadow-sm mb-3">
+            <div class="card shadow-sm mb-3 candidate-profile-section">
                 <div class="card-body">
                     <h5><i class="fas fa-code"></i> Skills & Technologies</h5>
                     <?php if (!empty($skills['skill_name'])): ?>
                         <h6 class="mt-3">Resume Skills</h6>
                         <div>
                             <?php foreach(explode(',', $skills['skill_name']) as $skill): ?>
-                                <span class="badge bg-primary me-1 mb-1"><?= esc(trim($skill)) ?></span>
+                                <span class="candidate-profile-pill candidate-profile-pill-blue"><?= esc(trim($skill)) ?></span>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -252,7 +252,7 @@
                         <h6 class="mt-3">GitHub Languages</h6>
                         <div>
                             <?php foreach(explode(',', $github['languages_used']) as $lang): ?>
-                                <span class="badge bg-success me-1 mb-1"><?= esc(trim($lang)) ?></span>
+                                <span class="candidate-profile-pill candidate-profile-pill-orange"><?= esc(trim($lang)) ?></span>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -261,12 +261,12 @@
             <?php endif; ?>
 
             <?php if (!empty($interests)): ?>
-            <div class="card shadow-sm mb-3">
+            <div class="card shadow-sm mb-3 candidate-profile-section">
                 <div class="card-body">
                     <h5><i class="fas fa-heart"></i> Job Interests</h5>
                     <div class="mt-3">
                         <?php foreach ($interests as $interest): ?>
-                            <span class="badge bg-success me-1 mb-1"><?= esc($interest) ?></span>
+                            <span class="candidate-profile-pill candidate-profile-pill-sky"><?= esc($interest) ?></span>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -275,7 +275,7 @@
             
             <!-- Work Experience -->
             <?php if (!empty($workExperiences)): ?>
-            <div class="card shadow-sm mb-3">
+            <div class="card shadow-sm mb-3 candidate-profile-section">
                 <div class="card-body">
                     <h5><i class="fas fa-briefcase"></i> Work Experience</h5>
                     <?php foreach($workExperiences as $exp): ?>

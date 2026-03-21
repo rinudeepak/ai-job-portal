@@ -67,7 +67,6 @@
                                 <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                             </div>
                             <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
-                            <a href="<?= base_url('job/unsave/' . $job['id']) ?>" class="saved-job-remove-link">Remove from saved</a>
                         </article>
                     <?php endforeach; ?>
                 </div>

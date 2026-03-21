@@ -7,12 +7,6 @@
                 <span class="page-board-kicker"><i class="fas fa-user-circle"></i> Candidate profile</span>
                 <h1 class="page-board-title">My Profile</h1>
                 <p class="page-board-subtitle">Manage your personal details, career information, resume, and preferences from one place.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= (int) ($completion['percentage'] ?? 0) ?>%</strong> Profile complete</span>
-                    <span class="meta-chip"><strong><?= $stats['applications'] ?></strong> Applications</span>
-                    <span class="meta-chip"><strong><?= $stats['interviews'] ?></strong> Interviews</span>
-                    <span class="meta-chip"><strong><?= $stats['offers'] ?></strong> Offers</span>
-                </div>
             </div>
             <div class="company-profile-actions">
                 <a href="<?= base_url('candidate/resume-studio') ?>" class="btn btn-primary">
@@ -31,114 +25,6 @@
         $globalSuccess = session()->getFlashdata('success');
         $globalError = session()->getFlashdata('error');
         ?>
-        <style>
-            .profile-quick-actions .btn {
-                width: 100%;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                border-radius: 8px;
-                font-weight: 600;
-                margin-bottom: 10px;
-            }
-            .profile-quick-actions .btn:last-child {
-                margin-bottom: 0;
-            }
-            @media (min-width: 992px) {
-                .profile-two-pane {
-                    align-items: flex-start;
-                    min-height: calc(100vh - 130px);
-                }
-                .profile-two-pane .profile-left-pane {
-                    max-height: calc(100vh - 130px);
-                    overflow-y: auto;
-                    padding-right: 8px;
-                    align-self: flex-start;
-                }
-                .profile-two-pane .profile-right-pane {
-                    max-height: calc(100vh - 130px);
-                    overflow-y: auto;
-                    padding-right: 8px;
-                }
-            }
-            .btn-loading-state {
-                display: none;
-                align-items: center;
-                gap: 8px;
-            }
-            .btn-submit-text.is-hidden {
-                display: none;
-            }
-            .btn.is-loading {
-                pointer-events: none;
-                opacity: .85;
-            }
-            .profile-edit-toggle {
-                border: 1px solid #d9e2ec;
-                background: #fff;
-                color: #334155;
-                width: 36px;
-                height: 36px;
-                border-radius: 999px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .profile-edit-toggle:hover {
-                background: #f8fafc;
-                color: #0f172a;
-                text-decoration: none;
-            }
-            .profile-edit-toggle i {
-                font-size: 14px;
-                color: #334155;
-                line-height: 1;
-            }
-            .profile-edit-toggle-text {
-                font-size: 16px;
-                font-weight: 700;
-                color: #334155;
-                line-height: 1;
-            }
-            .profile-readonly-field {
-                padding: 10px 12px;
-                min-height: 44px;
-                border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                background: #f8fafc;
-                color: #0f172a;
-            }
-            .profile-readonly-field.is-empty {
-                color: #94a3b8;
-            }
-            .profile-edit-form {
-                display: none;
-            }
-            .profile-section.is-editing .profile-read-view {
-                display: none;
-            }
-            .profile-section.is-editing .profile-edit-form {
-                display: block;
-            }
-            .profile-edit-actions {
-                display: none;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            .profile-section.is-editing .profile-edit-actions {
-                display: flex;
-            }
-            .profile-edit-controls {
-                display: none;
-            }
-            .profile-section.is-editing .profile-edit-controls {
-                display: block;
-            }
-            .profile-section.is-editing .profile-header-add {
-                display: inline-flex !important;
-            }
-        </style>
         <div class="card profile-summary-card shadow-sm">
             <div class="card-body">
                 <div class="profile-summary-grid">
@@ -149,16 +35,10 @@
                         <h3 class="profile-summary-title">Keep your profile ready for matching jobs</h3>
                         <p class="profile-summary-note">Complete your profile to improve matching accuracy and recruiter visibility.</p>
                         <div class="profile-summary-progress mt-3">
-                            <div class="progress">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: <?= (int) $completion['percentage'] ?>%" aria-valuenow="<?= (int) $completion['percentage'] ?>" aria-valuemin="0" aria-valuemax="100"><?= (int) $completion['percentage'] ?>%</div>
+                                <div class="progress">
+                                <div class="progress-bar profile-progress-bar" role="progressbar" style="width: <?= (int) $completion['percentage'] ?>%" aria-valuenow="<?= (int) $completion['percentage'] ?>" aria-valuemin="0" aria-valuemax="100"><?= (int) $completion['percentage'] ?>%</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="profile-summary-metrics">
-                        <span class="meta-chip"><strong><?= (int) ($completion['percentage'] ?? 0) ?>%</strong> Profile complete</span>
-                        <span class="meta-chip"><strong><?= $stats['applications'] ?></strong> Applications</span>
-                        <span class="meta-chip"><strong><?= $stats['interviews'] ?></strong> Interviews</span>
-                        <span class="meta-chip"><strong><?= $stats['offers'] ?></strong> Offers</span>
                     </div>
                 </div>
             </div>
@@ -178,7 +58,7 @@
                             <div class="mt-2">
                                 <form method="post" action="<?= base_url('candidate/upload-photo') ?>" enctype="multipart/form-data" style="display: inline;">
                                     <?= csrf_field() ?>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('profilePhoto').click()">
+                                    <button type="button" class="btn btn-sm btn-outline-primary profile-action-btn" onclick="document.getElementById('profilePhoto').click()">
                                         <i class="fas fa-camera"></i> Change Photo
                                     </button>
                                     <input type="file" id="profilePhoto" name="profile_photo" accept="image/*" style="display: none;" onchange="this.form.submit()">
@@ -219,7 +99,7 @@
                         <div class="profile-quick-actions">
                             <?php if (!empty($user['resume_path'])): ?>
                                 <a href="<?= base_url('candidate/download-resume') ?>" class="btn btn-outline-primary btn-sm"><i class="fas fa-download"></i> Download Resume</a>
-                                <button class="btn btn-outline-success btn-sm" onclick="previewResume()"><i class="fas fa-eye"></i> Preview Profile</button>
+                                <button class="btn btn-outline-primary btn-sm profile-action-btn" onclick="previewResume()"><i class="fas fa-eye"></i> Preview Profile</button>
                             <?php else: ?>
                                 <button class="btn btn-outline-secondary btn-sm" disabled><i class="fas fa-download"></i> No Resume</button>
                                 <button class="btn btn-outline-secondary btn-sm" disabled><i class="fas fa-eye"></i> Upload Resume First</button>
@@ -547,8 +427,8 @@
                                                     <small class="text-muted"><?= esc($user['resume_path']) ?></small>
                                                 </div>
                                                 <div>
-                                                    <button class="btn btn-outline-primary btn-sm me-2" onclick="previewResume()"><i class="fas fa-eye"></i> Preview</button>
-                                                    <a href="<?= base_url('candidate/download-resume') ?>" class="btn btn-outline-success btn-sm"><i class="fas fa-download"></i> Download</a>
+                                                    <button class="btn btn-outline-primary btn-sm profile-action-btn me-2" onclick="previewResume()"><i class="fas fa-eye"></i> Preview</button>
+                                                    <a href="<?= base_url('candidate/download-resume') ?>" class="btn btn-outline-primary btn-sm profile-action-btn"><i class="fas fa-download"></i> Download</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -708,7 +588,7 @@
                                                 $trimmedSkill = trim($skill);
                                                 if($trimmedSkill): 
                                             ?>
-                                                <span class="badge bg-primary me-2 mb-2"><?= esc($trimmedSkill) ?></span>
+                                                <span class="profile-chip profile-chip-blue me-2 mb-2"><?= esc($trimmedSkill) ?></span>
                                             <?php 
                                                 endif;
                                             endforeach; 
@@ -728,7 +608,7 @@
                                                 $trimmedLang = trim($lang);
                                                 if($trimmedLang): 
                                             ?>
-                                                <span class="badge bg-success me-2 mb-2"><?= esc($trimmedLang) ?></span>
+                                                <span class="profile-chip profile-chip-blue me-2 mb-2"><?= esc($trimmedLang) ?></span>
                                             <?php 
                                                 endif;
                                             endforeach; 
@@ -745,7 +625,7 @@
                                         <p class="text-muted">Upload your resume or connect GitHub to extract skills automatically</p>
                                         <div class="mt-3">
                                             <button class="btn btn-primary me-2" type="button" onclick="document.getElementById('resume').scrollIntoView({ behavior: 'smooth', block: 'start' })">Upload Resume</button>
-                                            <button class="btn btn-success" type="button" onclick="document.getElementById('github').scrollIntoView({ behavior: 'smooth', block: 'start' })">Connect GitHub</button>
+                                            <button class="btn btn-primary" type="button" onclick="document.getElementById('github').scrollIntoView({ behavior: 'smooth', block: 'start' })">Connect GitHub</button>
                                         </div>
                                     </div>
                                 <?php endif; ?>
@@ -786,7 +666,7 @@
                                         <h6><i class="fas fa-tags"></i> Your Interests</h6>
                                         <div class="d-flex flex-wrap gap-2">
                                             <?php foreach ($interests as $interest): ?>
-                                                <span class="badge bg-success d-inline-flex align-items-center gap-1 px-3 py-2" style="font-size:.85rem;">
+                                                <span class="profile-chip profile-chip-sky d-inline-flex align-items-center gap-1 px-3 py-2" style="font-size:.85rem;">
                                                     <?= esc($interest) ?>
                                                     <span class="profile-edit-controls">
                                                         <a href="<?= base_url('candidate/delete-interest/' . urlencode($interest)) ?>"
@@ -815,7 +695,7 @@
                                         <?= csrf_field() ?>
                                         <input type="text" name="interest" class="form-control"
                                                placeholder="e.g. Web Development, Data Science, React, Remote…" required>
-                                        <button type="submit" class="btn btn-success text-nowrap">
+                                        <button type="submit" class="btn btn-primary text-nowrap">
                                             <i class="fas fa-plus"></i> Add
                                         </button>
                                     </form>
@@ -1253,74 +1133,6 @@
 </div>
 
 <?= view('Layouts/candidate_footer') ?>
-
-<script>
-function editProject(project) {
-    var form = document.getElementById('projectForm');
-    if (!form || !project) {
-        return;
-    }
-
-    form.querySelector('[name="id"]').value = project.id || '';
-    form.querySelector('[name="project_name"]').value = project.project_name || '';
-    form.querySelector('[name="role_name"]').value = project.role_name || '';
-    form.querySelector('[name="tech_stack"]').value = project.tech_stack || '';
-    form.querySelector('[name="project_url"]').value = project.project_url || '';
-    form.querySelector('[name="start_date"]').value = project.start_date || '';
-    form.querySelector('[name="end_date"]').value = project.end_date || '';
-    form.querySelector('[name="project_summary"]').value = project.project_summary || '';
-    form.querySelector('[name="impact_metrics"]').value = project.impact_metrics || '';
-
-    if (window.jQuery) {
-        window.jQuery('#addProjectModal').modal('show');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    var loadingForms = document.querySelectorAll('form[data-loading-form]');
-    var editableSections = document.querySelectorAll('.profile-section');
-
-    loadingForms.forEach(function (form) {
-        form.addEventListener('submit', function () {
-            var button = form.querySelector('[data-loading-button]');
-            if (!button || button.disabled) {
-                return;
-            }
-
-            button.disabled = true;
-            button.classList.add('is-loading');
-
-            var submitText = button.querySelector('.btn-submit-text');
-            var loadingState = button.querySelector('.btn-loading-state');
-
-            if (submitText) {
-                submitText.classList.add('is-hidden');
-            }
-
-            if (loadingState) {
-                loadingState.style.display = 'inline-flex';
-            }
-        });
-    });
-
-    editableSections.forEach(function (section) {
-        var toggle = section.querySelector('[data-edit-toggle]');
-        var cancel = section.querySelector('[data-edit-cancel]');
-
-        if (toggle) {
-            toggle.addEventListener('click', function () {
-                section.classList.add('is-editing');
-            });
-        }
-
-        if (cancel) {
-            cancel.addEventListener('click', function () {
-                section.classList.remove('is-editing');
-            });
-        }
-    });
-});
-</script>
 
 
 

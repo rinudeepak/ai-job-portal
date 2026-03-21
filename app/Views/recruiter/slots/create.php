@@ -33,7 +33,7 @@
 
                         <div class="form-group">
                             <label for="job_id">Select Job <span class="text-danger">*</span></label>
-                            <select name="job_id" id="job_id" class="form-control" required>
+                            <select name="job_id" id="job_id" class="form-control recruiter-slot-job-select" required>
                                 <option value="">-- Select Job --</option>
                                 <?php foreach ($jobs as $job): ?>
                                     <option value="<?= $job['id'] ?>">
@@ -134,65 +134,5 @@
 </div>
 </div>
 
-<script>
-    (function () {
-        const slotForm = document.getElementById('slotForm');
-        const addTimeBtn = document.getElementById('addTime');
-        const timeSlots = document.getElementById('timeSlots');
-        const summary = document.getElementById('slotSummary');
-
-        if (addTimeBtn && timeSlots) {
-            addTimeBtn.addEventListener('click', function () {
-                const row = document.createElement('div');
-                row.className = 'input-group mb-2';
-                row.innerHTML = `
-                    <input type="time" name="times[]" class="form-control" required>
-                    <div class="input-group-append">
-                        <button type="button" class="btn btn-outline-danger remove-time">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </div>
-                `;
-                timeSlots.appendChild(row);
-            });
-        }
-
-        if (timeSlots) {
-            timeSlots.addEventListener('click', function (event) {
-                const btn = event.target.closest('.remove-time');
-                if (!btn) return;
-                const row = btn.closest('.input-group');
-                if (row) row.remove();
-            });
-        }
-
-        if (slotForm && summary) {
-            const updateSummary = function () {
-                const job = document.getElementById('job_id');
-                const start = document.getElementById('start_date');
-                const end = document.getElementById('end_date');
-                const capacity = document.getElementById('capacity');
-                const times = Array.from(document.querySelectorAll('input[name="times[]"]')).map(function (input) {
-                    return input.value.trim();
-                }).filter(Boolean);
-                const weekends = document.getElementById('exclude_weekends');
-
-                summary.textContent = [
-                    job && job.selectedOptions.length ? `Job: ${job.selectedOptions[0].textContent.trim()}` : 'Job not selected',
-                    start && start.value ? `Start: ${start.value}` : 'Start date pending',
-                    end && end.value ? `End: ${end.value}` : 'Single day or open range',
-                    capacity && capacity.value ? `Capacity: ${capacity.value}` : 'Capacity pending',
-                    times.length ? `${times.length} time slot(s)` : 'No times added yet',
-                    weekends && weekends.checked ? 'Weekends excluded' : 'Weekends included'
-                ].join(' • ');
-            };
-
-            ['change', 'input'].forEach(function (eventName) {
-                slotForm.addEventListener(eventName, updateSummary, true);
-            });
-            updateSummary();
-        }
-    })();
-</script>
-
 <?= view('Layouts/recruiter_footer') ?>
+

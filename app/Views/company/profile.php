@@ -51,14 +51,6 @@ $companyMeta = [
                 <p class="page-board-subtitle">
                     <?= $companyShortDescription !== '' ? esc($companyShortDescription) : 'Explore the company overview, open roles, workplace culture, and reviews before you apply.' ?>
                 </p>
-                <div class="company-profile-meta">
-                    <?php foreach ($companyMeta as [$label, $value]): ?>
-                        <span class="meta-chip">
-                            <strong><?= esc($label) ?>:</strong>
-                            <?= esc($value) ?>
-                        </span>
-                    <?php endforeach; ?>
-                </div>
             </div>
             <div class="company-profile-actions">
                 <a href="<?= base_url('jobs') ?>" class="btn btn-outline-secondary">

@@ -7,10 +7,6 @@
                 <span class="page-board-kicker"><i class="fas fa-bell"></i> Activity feed</span>
                 <h1 class="page-board-title">Notifications</h1>
                 <p class="page-board-subtitle">Track application updates, recruiter actions, and portal events in one place.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= (int) $unread_count ?></strong> Unread</span>
-                    <span class="meta-chip"><strong><?= count($notifications ?? []) ?></strong> Total</span>
-                </div>
             </div>
             <div class="page-board-actions">
                 <?php if ($unread_count > 0): ?>
@@ -37,7 +33,7 @@
                     <?php foreach ($notifications as $notification): ?>
                         <?php $config = model('NotificationModel')->getNotificationConfig($notification['type']); ?>
                         
-                        <div class="card mb-3 <?= $notification['is_read'] ? '' : 'border-primary' ?>">
+                        <div class="card mb-3 notification-card <?= $notification['is_read'] ? '' : 'is-unread' ?>">
                             <div class="card-body">
                                 <div class="d-flex">
                                     <div class="notification-icon <?= $config['color'] ?> mr-3">
@@ -62,7 +58,7 @@
                                         <div class="d-flex justify-content-between align-items-center">
                                             <?php if ($notification['action_link']): ?>
                                                 <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" 
-                                                   class="btn btn-sm btn-outline-primary">
+                                                   class="btn btn-sm btn-outline-primary notification-action-btn">
                                                     <?= esc($config['action_text'] ?? 'Take Action') ?> <span class="icon-arrow-right ml-1"></span>
                                                 </a>
                                             <?php else: ?>
@@ -72,12 +68,12 @@
                                             <div>
                                                 <?php if (!$notification['is_read']): ?>
                                                     <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" 
-                                                       class="btn btn-sm btn-link">
+                                                       class="btn btn-sm btn-link notification-link-action">
                                                         <span class="icon-check mr-1"></span> Mark as Read
                                                     </a>
                                                 <?php endif; ?>
                                                 <a href="<?= base_url('notifications/delete/' . $notification['id']) ?>" 
-                                                   class="btn btn-sm btn-link text-danger"
+                                                   class="btn btn-sm btn-link notification-link-danger"
                                                    onclick="return confirm('Delete this notification?')">
                                                     <span class="icon-trash mr-1"></span> Delete
                                                 </a>

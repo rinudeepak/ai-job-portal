@@ -9,12 +9,20 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
 </head>
-<body class="hirematrix-app">
+<body class="hirematrix-app public-auth-page">
 <div class="site-wrap">
     <section class="site-section">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-6">
+                <div class="col-lg-6" id="recruiterVerificationApp"
+                     data-email="<?= esc($email ?? '', 'attr') ?>"
+                     data-phone-e164="<?= esc($phoneE164 ?? '', 'attr') ?>"
+                     data-firebase-configured="<?= !empty($firebaseConfigured) ? '1' : '0' ?>"
+                     data-firebase-api-key="<?= esc((string) ($firebaseConfig['apiKey'] ?? ''), 'attr') ?>"
+                     data-firebase-auth-domain="<?= esc((string) ($firebaseConfig['authDomain'] ?? ''), 'attr') ?>"
+                     data-firebase-project-id="<?= esc((string) ($firebaseConfig['projectId'] ?? ''), 'attr') ?>"
+                     data-firebase-app-id="<?= esc((string) ($firebaseConfig['appId'] ?? ''), 'attr') ?>"
+                     data-firebase-messaging-sender-id="<?= esc((string) ($firebaseConfig['messagingSenderId'] ?? ''), 'attr') ?>">
                     <h2 class="mb-4">Recruiter Verification</h2>
                     <p class="text-muted">Complete company email verification first, then finish phone OTP verification to activate recruiter access.</p>
                     <p class="text-muted mb-3"><small>For local testing without billing, use Firebase Authentication test phone numbers.</small></p>
@@ -93,7 +101,7 @@
                                     <input type="hidden" name="firebase_id_token" id="firebaseIdToken">
                                     <button type="button" id="verifyOtpBtn" class="btn btn-primary">Verify OTP</button>
 
-                                    <div id="recaptcha-container" style="display:none;"></div>
+                                    <div id="recaptcha-container" class="d-none"></div>
                                     <p id="otpStatus" class="small mt-3 mb-0 text-muted"></p>
                                 </form>
                             </div>
@@ -127,140 +135,7 @@
 <?php if (($isEmailVerified ?? false) && !($isPhoneVerified ?? false) && ($firebaseConfigured ?? false)): ?>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-<script>
-(function () {
-    const verifyBtn = document.getElementById("verifyOtpBtn");
-    const formEl = document.getElementById("phoneVerifyForm");
-    const otpInput = document.getElementById("otpCode");
-    const phoneE164 = (document.getElementById("phoneE164").value || "").trim();
-    const tokenInput = document.getElementById("firebaseIdToken");
-    const statusEl = document.getElementById("otpStatus");
-    let confirmationResult = null;
-    let verifiedIdToken = "";
-
-    function setStatus(message, isError) {
-        if (!statusEl) {
-            return;
-        }
-        statusEl.textContent = message;
-        statusEl.className = "small mt-3 mb-0 " + (isError ? "text-danger" : "text-muted");
-    }
-
-    function disableOtpButtons() {
-        if (verifyBtn) {
-            verifyBtn.disabled = true;
-        }
-    }
-
-    window.addEventListener("error", function (e) {
-        setStatus("Script error: " + (e.message || "Unknown error"), true);
-    });
-    window.addEventListener("unhandledrejection", function (e) {
-        const msg = e && e.reason && e.reason.message ? e.reason.message : "Unhandled promise error";
-        setStatus("Runtime error: " + msg, true);
-    });
-
-    try {
-        if (typeof firebase === "undefined" || !firebase.auth) {
-            setStatus("Firebase SDK failed to load. Check internet/firewall or blocked scripts.", true);
-            disableOtpButtons();
-            return;
-        }
-
-        if (!phoneE164) {
-            setStatus("Invalid phone number format. Update phone number and try again.", true);
-            disableOtpButtons();
-            return;
-        }
-
-        const firebaseConfig = {
-            apiKey: "<?= esc((string) ($firebaseConfig['apiKey'] ?? ''), 'js') ?>",
-            authDomain: "<?= esc((string) ($firebaseConfig['authDomain'] ?? ''), 'js') ?>",
-            projectId: "<?= esc((string) ($firebaseConfig['projectId'] ?? ''), 'js') ?>",
-            appId: "<?= esc((string) ($firebaseConfig['appId'] ?? ''), 'js') ?>",
-            messagingSenderId: "<?= esc((string) ($firebaseConfig['messagingSenderId'] ?? ''), 'js') ?>"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-
-        const auth = firebase.auth();
-        const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        if (isLocalHost) {
-            // For local testing with Firebase "Phone numbers for testing".
-            auth.settings.appVerificationDisabledForTesting = true;
-        }
-
-        if (typeof navigator !== "undefined" && navigator.onLine === false) {
-            setStatus("No internet connection. Please reconnect and reload.", true);
-            disableOtpButtons();
-            return;
-        }
-
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
-            size: "invisible"
-        });
-
-        window.recaptchaVerifier.render()
-            .then(function () {
-                setStatus("Firebase initialized. Sending OTP...", false);
-                return auth.signInWithPhoneNumber(phoneE164, window.recaptchaVerifier);
-            })
-            .then(function (result) {
-                confirmationResult = result;
-                setStatus("OTP sent successfully.", false);
-            })
-            .catch(function (error) {
-                if (error && error.code === "auth/network-request-failed") {
-                    setStatus("Network request failed. Check internet, firewall/proxy, and allow access to googleapis.com/gstatic.com.", true);
-                } else {
-                    setStatus(error && error.message ? error.message : "Failed to send OTP.", true);
-                }
-                disableOtpButtons();
-            });
-
-        verifyBtn.addEventListener("click", function () {
-            const code = (otpInput.value || "").trim();
-            if (!confirmationResult) {
-                setStatus("OTP not initialized. Please reload and try again.", true);
-                return;
-            }
-            if (code.length < 6) {
-                setStatus("Enter a valid 6-digit OTP.", true);
-                return;
-            }
-
-            verifyBtn.disabled = true;
-            setStatus("Verifying OTP...", false);
-
-            confirmationResult.confirm(code)
-                .then(function (result) {
-                    return result.user.getIdToken(true);
-                })
-                .then(function (idToken) {
-                    verifiedIdToken = idToken;
-                    tokenInput.value = idToken;
-                    setStatus("OTP verified. Completing verification...", false);
-                    if (formEl) {
-                        formEl.submit();
-                    }
-                })
-                .catch(function (error) {
-                    setStatus(error && error.message ? error.message : "Invalid OTP.", true);
-                    verifiedIdToken = "";
-                    tokenInput.value = "";
-                })
-                .finally(function () {
-                    verifyBtn.disabled = false;
-                });
-        });
-    } catch (error) {
-        setStatus(error && error.message ? error.message : "Failed to initialize Firebase phone auth.", true);
-        disableOtpButtons();
-    }
-})();
-</script>
+<script src="<?= base_url('custom/recruiter-verification.js') ?>"></script>
 <?php endif; ?>
 
 </body>
