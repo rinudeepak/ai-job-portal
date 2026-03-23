@@ -43,17 +43,17 @@
                 <div class="row">
                     <?php foreach ($transitions as $transition): ?>
                         <div class="col-md-6 mb-4">
-                            <div class="card history-panel h-100 <?= $transition['status'] === 'active' ? 'history-active' : '' ?>">
-                                <div class="card-header <?= $transition['status'] === 'active' ? 'bg-success text-white' : 'bg-white' ?>">
+                            <div class="card history-panel h-100 <?= $transition['status'] === 'active' ? 'history-active history-active-card' : '' ?>" <?= $transition['status'] === 'active' ? 'style="border-color:#3b82f6; box-shadow:0 14px 28px rgba(59,130,246,.12);"' : '' ?>>
+                                <div class="card-header <?= $transition['status'] === 'active' ? 'history-active-header' : 'bg-white' ?>" <?= $transition['status'] === 'active' ? 'style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; border-bottom: 0 !important; color: #fff !important;"' : '' ?>>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">
+                                        <h5 class="mb-0 <?= $transition['status'] === 'active' ? 'history-active-header-text' : '' ?>" <?= $transition['status'] === 'active' ? 'style="color:#fff !important;"' : '' ?>>
                                             <?php if ($transition['status'] === 'active'): ?>
                                                 <i class="fas fa-check-circle"></i> Active Path
                                             <?php else: ?>
                                                 <i class="fas fa-archive"></i> Saved Path
                                             <?php endif; ?>
                                         </h5>
-                                        <span class="badge badge-<?= $transition['status'] === 'active' ? 'light' : 'secondary' ?>">
+                                        <span class="badge badge-<?= $transition['status'] === 'active' ? 'light' : 'secondary' ?> history-created-badge">
                                             Created: <?= date('M d, Y', strtotime($transition['created_at'])) ?>
                                         </span>
                                     </div>
@@ -61,9 +61,9 @@
 
                                 <div class="card-body">
                                     <div class="text-center mb-3">
-                                        <h6 class="text-primary"><?= esc($transition['current_role']) ?></h6>
+                                        <h6 class="history-role-current"><?= esc($transition['current_role']) ?></h6>
                                         <i class="fas fa-arrow-down fa-2x my-2 text-muted"></i>
-                                        <h6 class="text-success"><?= esc($transition['target_role']) ?></h6>
+                                        <h6 class="history-role-target"><?= esc($transition['target_role']) ?></h6>
                                     </div>
 
                                     <div class="mt-3">
@@ -112,7 +112,7 @@
 
                                 <div class="card-footer bg-white">
                                     <?php if ($transition['status'] === 'active'): ?>
-                                        <button class="btn btn-success btn-block" disabled>
+                                        <button class="btn btn-block history-active-button" disabled style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; border: 1px solid #2563eb !important; color: #fff !important;">
                                             <i class="fas fa-check"></i> Currently Active
                                         </button>
                                     <?php else: ?>

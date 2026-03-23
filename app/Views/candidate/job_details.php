@@ -15,6 +15,16 @@ if (is_string($brandingPhotosRaw) && trim($brandingPhotosRaw) !== '') {
         $brandingPhotos = array_values(array_filter(array_map('strval', $decodedBrandingPhotos)));
     }
 }
+$resolveAssetUrl = static function (string $path): string {
+    $path = trim($path);
+    if ($path === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $path) || str_starts_with($path, '//')) {
+        return $path;
+    }
+    return base_url(ltrim($path, '/'));
+};
 $benefitsRaw = trim((string) ($company['employee_benefits'] ?? ''));
 $benefits = [];
 if ($benefitsRaw !== '') {
@@ -112,7 +122,7 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                     <span class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-1"></span><?= $isSaved ? 'Saved' : 'Save Job' ?>
                 </a>
                 <?php if ($alreadyApplied): ?>
-                    <button class="btn btn-primary" disabled>
+                    <button class="btn job-details-applied-btn" disabled>
                         <i class="fas fa-check mr-1"></i> Already Applied
                     </button>
                 <?php else: ?>
@@ -286,7 +296,7 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                             <?php if (!empty($brandingPhotos)): ?>
                                 <div class="job-details-gallery">
                                     <?php foreach (array_slice($brandingPhotos, 0, 3) as $photo): ?>
-                                        <img src="<?= esc($photo) ?>" alt="<?= esc($jobCompany) ?>" loading="lazy">
+                                        <img src="<?= esc($resolveAssetUrl($photo)) ?>" alt="<?= esc($jobCompany) ?>" loading="lazy">
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>

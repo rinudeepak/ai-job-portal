@@ -74,9 +74,30 @@
                         'booked' => 'primary',
                         'rescheduled' => 'warning',
                         'completed' => 'success',
+                        'no_show' => 'danger',
                         'cancelled' => 'danger'
                     ];
+                    $decisionColors = [
+                        'shortlisted' => 'success',
+                        'hold' => 'secondary',
+                        'selected' => 'primary',
+                        'rejected' => 'danger',
+                    ];
+                    $statusLabels = [
+                        'booked' => 'Booked',
+                        'rescheduled' => 'Rescheduled',
+                        'completed' => 'Completed',
+                        'no_show' => 'No Show',
+                        'cancelled' => 'Cancelled'
+                    ];
+                    $decisionLabels = [
+                        'shortlisted' => 'Shortlisted',
+                        'hold' => 'On Hold',
+                        'selected' => 'Selected',
+                        'rejected' => 'Rejected'
+                    ];
                     $statusColor = $statusColors[$booking['booking_status']] ?? 'secondary';
+                    $hasReview = !empty($booking['review_reviewed_at']) || !empty($booking['review_decision']);
                     ?>
 
                     <div class="card booking-card mb-4 <?= $isPast ? 'booking-past' : 'booking-upcoming' ?>">
@@ -86,7 +107,7 @@
                                     <i class="fas fa-briefcase mr-2"></i><?= esc($booking['job_title']) ?>
                                 </h5>
                                 <span class="badge badge-<?= $statusColor ?> booking-status-badge">
-                                    <?= ucfirst($booking['booking_status']) ?>
+                                    <?= esc($statusLabels[$booking['booking_status']] ?? ucwords(str_replace('_', ' ', $booking['booking_status']))) ?>
                                 </span>
                             </div>
                         </div>
@@ -127,6 +148,31 @@
                                             <strong>Last rescheduled:</strong>
                                             <?= date('M j, Y h:i A', strtotime($booking['last_rescheduled_at'])) ?>
                                         </p>
+                                    <?php endif; ?>
+
+                                    <?php if ($hasReview): ?>
+                                        <div class="mt-3 p-3 bg-light rounded">
+                                            <div class="d-flex flex-wrap align-items-center mb-2" style="gap: 8px;">
+                                                <strong class="mr-1">Recruiter review:</strong>
+                                                <?php if (!empty($booking['review_attendance_status'])): ?>
+                                                    <span class="badge badge-info"><?= esc(ucwords(str_replace('_', ' ', (string) $booking['review_attendance_status']))) ?></span>
+                                                <?php endif; ?>
+                                                <?php if (!empty($booking['review_decision'])): ?>
+                                                    <span class="badge badge-<?= $decisionColors[$booking['review_decision']] ?? 'secondary' ?>">
+                                                        <?= esc($decisionLabels[$booking['review_decision']] ?? ucwords(str_replace('_', ' ', (string) $booking['review_decision']))) ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if (!empty($booking['review_notes'])): ?>
+                                                <?php
+                                                    $reviewText = trim((string) $booking['review_notes']);
+                                                    $shortReviewText = mb_strlen($reviewText) > 120 ? mb_substr($reviewText, 0, 120) . '...' : $reviewText;
+                                                ?>
+                                                <small class="text-muted d-block" title="<?= esc($reviewText) ?>">
+                                                    <?= esc($shortReviewText) ?>
+                                                </small>
+                                            <?php endif; ?>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
                             </div>

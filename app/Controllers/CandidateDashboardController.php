@@ -30,6 +30,7 @@ class CandidateDashboardController extends BaseController
         
         // Get statistics
         $stats = $this->calculateStats($candidateId);
+        $profileStrength = $this->calculateProfileStrength($candidateId);
         
         // Get pending actions
         $pendingActions = $this->getPendingActions($candidateId);
@@ -44,6 +45,7 @@ class CandidateDashboardController extends BaseController
         return view('candidate/dashboard', [
             'applications' => $applications,
             'stats' => $stats,
+            'profileStrength' => $profileStrength,
             'pendingActions' => $pendingActions,
             'notifications' => $notifications,
             'topSuggestedJobs' => $topSuggestedJobs,
@@ -256,6 +258,36 @@ class CandidateDashboardController extends BaseController
             'unread_notifications' => $unreadNotifications
         ];
     }
+
+    /**
+     * Calculate a simple profile strength score from the core profile fields.
+     */
+    private function calculateProfileStrength(int $candidateId): int
+    {
+        $userModel = model('UserModel');
+        $skillsModel = new CandidateSkillsModel();
+        $user = $userModel->findCandidateWithProfile($candidateId) ?? [];
+        $skillsRow = $skillsModel->where('candidate_id', $candidateId)->first() ?? [];
+
+        $profileFields = [
+            !empty($user['name']),
+            !empty($user['email']),
+            !empty($user['phone']),
+            !empty($user['profile_photo']),
+            !empty($user['resume_path']),
+            !empty($user['bio']),
+            !empty($user['location']),
+            !empty($user['preferred_job_titles']),
+            !empty($user['preferred_locations']),
+            !empty($user['preferred_employment_type']),
+            !empty($skillsRow['skill_name']),
+        ];
+
+        $filled = array_sum($profileFields);
+        $total = max(1, count($profileFields));
+
+        return (int) round(($filled / $total) * 100);
+    }
     
     /**
      * Get pending actions for candidate
@@ -421,6 +453,9 @@ class CandidateDashboardController extends BaseController
 
             case 'hired':
                 return 'Congratulations! Your hiring process is complete.';
+
+            case 'hold':
+                return 'Your application is on hold. The recruiter may revisit it later.';
                 
             case 'rejected':
                 return 'Unfortunately, we are proceeding with other candidates at this time.';

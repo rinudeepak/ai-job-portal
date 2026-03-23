@@ -202,7 +202,7 @@
 .career-transition-jobboard .transition-panel {
     border: 1px solid #e8edf8;
     border-radius: 12px;
-    box-shadow: 0 10px 22px rgba(35, 54, 106, .08);
+    box-shadow: none;
 }
 
 .career-transition-jobboard .transition-arrow {
@@ -213,7 +213,7 @@
 .career-transition-jobboard .transition-task-card {
     border-left: 4px solid #3f63c8;
     border-radius: 10px;
-    transition: all .2s ease;
+    transition: border-color .2s ease, background-color .2s ease;
 }
 
 .career-transition-jobboard .transition-task-card.task-completed {
@@ -228,6 +228,72 @@
 
 .career-transition-jobboard .transition-btn-loading {
     display: none;
+}
+
+.career-transition-jobboard .career-transition-simple-layout {
+    display: grid;
+    gap: 1rem;
+}
+
+.career-transition-jobboard .career-transition-note {
+    border: 1px solid #e8edf8;
+    border-radius: 12px;
+    background: #fff;
+    padding: 1.15rem 1.25rem;
+    box-shadow: none;
+}
+
+.career-transition-jobboard .career-transition-note h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2f57;
+}
+
+.career-transition-jobboard .career-transition-note p,
+.career-transition-jobboard .career-transition-note ul {
+    color: #64748b;
+    margin-bottom: 0;
+}
+
+.career-transition-jobboard .career-transition-note ul {
+    padding-left: 1.15rem;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.career-transition-jobboard .career-transition-path {
+    display: grid;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.career-transition-jobboard .career-transition-role {
+    font-size: clamp(1.1rem, 1.7vw, 1.45rem);
+    line-height: 1.2;
+    font-weight: 800;
+    color: #172554;
+    word-break: break-word;
+}
+
+.career-transition-jobboard .career-transition-role-target {
+    color: var(--primary);
+}
+
+.career-transition-jobboard .career-transition-path-arrow {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.career-transition-jobboard .career-transition-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1rem;
+}
+
+.career-transition-jobboard .career-transition-actions .btn {
+    border-radius: 999px;
 }
 
 .career-transition-jobboard .career-transition-role-title {
@@ -650,24 +716,65 @@
     color: #2563eb;
 }
 
-.notifications-jobboard .notification-action-btn {
-    border-color: rgba(59, 130, 246, 0.35) !important;
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:visited,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:focus,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:active {
+    border: 1px solid rgba(59, 130, 246, 0.35) !important;
     color: #2563eb !important;
     background: #fff !important;
+    box-shadow: none !important;
 }
 
-.notifications-jobboard .notification-action-btn:hover,
-.notifications-jobboard .notification-action-btn:focus {
-    background: #2563eb !important;
-    border-color: #2563eb !important;
-    color: #fff;
-}
-
-.notifications-jobboard .notification-link-action {
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn *,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn i,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn span {
     color: #2563eb !important;
 }
 
-.notifications-jobboard .notification-link-danger {
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:hover,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:focus,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:active {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+}
+
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:hover *,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:focus *,
+.notifications-jobboard .btn.btn-sm.btn-outline-primary.notification-action-btn:active * {
+    color: #fff !important;
+}
+
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action:visited,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action:hover,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action:focus,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action:active {
+    color: #2563eb !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action *,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action i,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-action span {
+    color: #2563eb !important;
+}
+
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger:visited,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger:hover,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger:focus,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger:active {
+    color: #dc3545 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger *,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger i,
+.notifications-jobboard .btn.btn-sm.btn-link.notification-link-danger span {
     color: #dc3545 !important;
 }
 
@@ -1454,7 +1561,75 @@
 }
 
 .career-history-jobboard .history-panel.history-active {
-    border: 2px solid #28a745;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 14px 28px rgba(59, 130, 246, .12);
+}
+
+.career-history-jobboard .history-panel.history-active > .card-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border-bottom: 0;
+}
+
+.career-history-jobboard .history-active-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border-bottom: 0 !important;
+    color: #fff !important;
+}
+
+.career-history-jobboard .history-active-header-text,
+.career-history-jobboard .history-active-header-text i {
+    color: #fff !important;
+}
+
+.career-history-jobboard .history-created-badge {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    font-weight: 700;
+}
+
+.career-history-jobboard .history-role-current {
+    color: #3b82f6 !important;
+    font-weight: 700;
+}
+
+.career-history-jobboard .history-role-target {
+    color: #2563eb !important;
+    font-weight: 700;
+}
+
+.career-history-jobboard .history-panel.history-active > .card-header .badge {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+}
+
+.career-history-jobboard .history-panel.history-active > .card-header h5,
+.career-history-jobboard .history-panel.history-active > .card-header i {
+    color: #fff !important;
+}
+
+.career-history-jobboard .history-panel.history-active .card-footer .btn.btn-block {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+}
+
+.career-history-jobboard .history-active-button,
+.career-history-jobboard .history-active-button:hover,
+.career-history-jobboard .history-active-button:focus,
+.career-history-jobboard .history-active-button:active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: 1px solid #2563eb !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+.career-history-jobboard .history-active-button i {
+    color: #fff !important;
+}
+
+.career-history-jobboard .history-panel.history-active .card-footer .btn.btn-block i {
+    color: #fff !important;
 }
 
 .career-history-jobboard .history-info-box {

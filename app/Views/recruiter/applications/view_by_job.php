@@ -243,6 +243,7 @@
                                             'pending' => 'warning',
                                             'applied' => 'warning',
                                             'shortlisted' => 'success',
+                                            'hold' => 'secondary',
                                             'interview_slot_booked' => 'success',
                                             'selected' => 'success',
                                             'rejected' => 'danger'
@@ -252,6 +253,7 @@
                                             'pending' => 'Applied',
                                             'applied' => 'Applied',
                                             'shortlisted' => 'Shortlisted',
+                                            'hold' => 'On Hold',
                                             'interview_slot_booked' => 'Interview Booked',
                                             'selected' => 'Selected',
                                             'rejected' => 'Rejected',

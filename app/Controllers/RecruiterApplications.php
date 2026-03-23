@@ -292,6 +292,7 @@ class RecruiterApplications extends BaseController
         $targetStatus = $bulkAction === 'shortlist' ? 'shortlisted' : 'rejected';
         $updated = 0;
         $skipped = 0;
+        $notificationModel = new NotificationModel();
 
         foreach ($applications as $application) {
             if ((int) $application['recruiter_id'] !== $currentUserId) {
@@ -315,6 +316,12 @@ class RecruiterApplications extends BaseController
                 (int) $application['id'],
                 $targetStatus === 'shortlisted' ? 'Shortlisted (Recruiter Override)' : 'Rejected (Recruiter Override)'
             );
+            $this->notifyApplicationStatusChange(
+                $notificationModel,
+                (int) $application['candidate_id'],
+                (int) $application['id'],
+                $targetStatus
+            );
             $updated++;
         }
 
@@ -330,6 +337,7 @@ class RecruiterApplications extends BaseController
     private function updateApplicationStatus(int $applicationId, string $status)
     {
         $applicationModel = model('ApplicationModel');
+        $notificationModel = model('NotificationModel');
         $currentUserId = session()->get('user_id');
 
         $application = $applicationModel
@@ -356,6 +364,13 @@ class RecruiterApplications extends BaseController
         $stageModel = model('StageHistoryModel');
         $stageModel->moveToStage($applicationId, $status === 'shortlisted' ? 'Shortlisted (Recruiter Override)' : 'Rejected (Recruiter Override)');
 
+        $this->notifyApplicationStatusChange(
+            $notificationModel,
+            (int) $application['candidate_id'],
+            $applicationId,
+            $status
+        );
+
         return redirect()->back()->with('success', 'Application status updated to ' . ucwords(str_replace('_', ' ', $status)));
     }
 
@@ -379,6 +394,33 @@ class RecruiterApplications extends BaseController
         }
 
         return in_array($applicationStatus, ['applied', 'shortlisted', 'rejected'], true);
+    }
+
+    private function notifyApplicationStatusChange(
+        NotificationModel $notificationModel,
+        int $candidateId,
+        int $applicationId,
+        string $status
+    ): void {
+        $label = ucwords(str_replace('_', ' ', $status));
+        $type = in_array($status, ['selected', 'hired'], true) ? 'offer_sent' : 'application_status_changed';
+        $message = match ($status) {
+            'shortlisted' => 'Good news! Your application has been shortlisted.',
+            'selected' => 'Congratulations! Your application has moved to the offer stage.',
+            'hired' => 'Congratulations! Your application has been marked as hired.',
+            'rejected' => 'Your application has been updated to Rejected.',
+            'hold' => 'Your application has been placed on hold for future review.',
+            default => 'Your application status was updated to ' . $label . '.',
+        };
+
+        $notificationModel->createNotification(
+            $candidateId,
+            $applicationId,
+            $type,
+            $message,
+            base_url('candidate/applications'),
+            true
+        );
     }
 
     private function calculateAtsScore(array $application, array $job): int

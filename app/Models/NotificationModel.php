@@ -66,6 +66,36 @@ class NotificationModel extends Model
             'color' => 'success',
             'priority' => 6
         ],
+        'interview_booked' => [
+            'title' => 'Interview Booked',
+            'icon' => 'fas fa-calendar-check',
+            'color' => 'success',
+            'priority' => 6
+        ],
+        'interview_rescheduled' => [
+            'title' => 'Interview Rescheduled',
+            'icon' => 'fas fa-calendar-alt',
+            'color' => 'warning',
+            'priority' => 6
+        ],
+        'interview_reviewed' => [
+            'title' => 'Interview Reviewed',
+            'icon' => 'fas fa-clipboard-check',
+            'color' => 'info',
+            'priority' => 6
+        ],
+        'application_status_changed' => [
+            'title' => 'Application Status Updated',
+            'icon' => 'fas fa-layer-group',
+            'color' => 'primary',
+            'priority' => 6
+        ],
+        'offer_sent' => [
+            'title' => 'Offer Sent',
+            'icon' => 'fas fa-file-signature',
+            'color' => 'success',
+            'priority' => 6
+        ],
         'result_published' => [
             'title' => 'Interview Result Available',
             'icon' => 'fas fa-check-circle',
@@ -117,7 +147,7 @@ class NotificationModel extends Model
     /**
      * Create a notification
      */
-    public function createNotification(int $userId, ?int $applicationId, string $type, string $message, ?string $actionLink = null): bool
+    public function createNotification(int $userId, ?int $applicationId, string $type, string $message, ?string $actionLink = null, bool $sendEmail = false): bool
     {
         // Build query for duplicate check
         $builder = $this->where('user_id', $userId)
@@ -142,7 +172,7 @@ class NotificationModel extends Model
             'icon' => 'fas fa-bell'
         ];
         
-        return $this->insert([
+        $created = (bool) $this->insert([
             'user_id' => $userId,
             'application_id' => $applicationId,
             'type' => $type,
@@ -152,6 +182,12 @@ class NotificationModel extends Model
             'is_read' => 0,
             'created_at' => date('Y-m-d H:i:s')
         ]);
+
+        if ($created && $sendEmail) {
+            $this->sendEmailNotification($userId, (string) ($config['title'] ?? 'Notification'), $message, $actionLink);
+        }
+
+        return $created;
     }
 
     
@@ -241,8 +277,11 @@ class NotificationModel extends Model
         $statusToType = [
             'applied' => 'ai_not_started',
             'shortlisted' => 'slot_not_booked',
+            'interview_slot_booked' => 'interview_booked',
             'reschedule_required' => 'reschedule_required',
-            'interview_scheduled' => 'interview_scheduled'
+            'interview_scheduled' => 'interview_scheduled',
+            'selected' => 'offer_sent',
+            'hired' => 'offer_sent',
         ];
         
         $type = $statusToType[$status] ?? null;
@@ -270,8 +309,11 @@ class NotificationModel extends Model
         $statusToType = [
             'applied' => 'ai_not_started',
             'shortlisted' => 'slot_not_booked',
+            'interview_slot_booked' => 'interview_booked',
             'reschedule_required' => 'reschedule_required',
-            'interview_scheduled' => 'interview_scheduled'
+            'interview_scheduled' => 'interview_scheduled',
+            'selected' => 'offer_sent',
+            'hired' => 'offer_sent'
         ];
 
         $currentType = $statusToType[$status] ?? null;
@@ -310,6 +352,20 @@ class NotificationModel extends Model
                 }
                 break;
 
+            case 'interview_slot_booked':
+                $slotDate = !empty($application['interview_slot'])
+                    ? date('M d, Y h:i A', strtotime($application['interview_slot']))
+                    : 'your scheduled slot';
+                $this->createNotification(
+                    $userId,
+                    $applicationId,
+                    'interview_booked',
+                    "Your interview has been booked for {$slotDate}.",
+                    base_url('candidate/my-bookings'),
+                    true
+                );
+                break;
+
             case 'reschedule_required':
                 $this->createNotification(
                     $userId,
@@ -330,6 +386,52 @@ class NotificationModel extends Model
                     base_url('candidate/interview-details/' . $applicationId)
                 );
                 break;
+
+            case 'selected':
+            case 'hired':
+                $this->createNotification(
+                    $userId,
+                    $applicationId,
+                    'offer_sent',
+                    $status === 'hired'
+                        ? 'Congratulations! Your offer stage has been updated to hired.'
+                        : 'Congratulations! Your offer has been sent or your application has moved to the final stage.',
+                    base_url('candidate/applications'),
+                    true
+                );
+                break;
+        }
+    }
+
+    /**
+     * Send a simple plain-text email for a notification.
+     */
+    private function sendEmailNotification(int $userId, string $subject, string $message, ?string $actionLink = null): void
+    {
+        $user = model('UserModel')->find($userId);
+        $recipient = trim((string) ($user['email'] ?? ''));
+        if ($recipient === '') {
+            return;
+        }
+
+        try {
+            $email = service('email');
+            $config = config('Email');
+
+            $email->setFrom($config->fromEmail, $config->fromName);
+            $email->setTo($recipient);
+            $email->setSubject($subject);
+
+            $body = $subject . "\n\n" . $message;
+            if (!empty($actionLink)) {
+                $body .= "\n\nOpen link: " . $actionLink;
+            }
+            $body .= "\n\n--\nHireMatrix";
+
+            $email->setMessage($body);
+            $email->send(false);
+        } catch (\Throwable $e) {
+            log_message('error', 'Failed sending notification email to user ' . $userId . ': ' . $e->getMessage());
         }
     }
 

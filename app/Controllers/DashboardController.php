@@ -74,15 +74,19 @@ class DashboardController extends BaseController
         ];
 
         // Pending Actions Count
+        $todayStart = date('Y-m-d 00:00:00');
+        $todayEnd = date('Y-m-d 23:59:59');
+
         $pendingActions = [
             'pending_screening' => $applicationModel->where('status', 'pending')
                 ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults(),
-            'ai_interviews_to_review' => 0,
+            'ai_interviews_to_review' => $this->countAiInterviewsToReview($jobIds, $currentUserId),
 
             'hr_interviews_today' => model('InterviewBookingModel')
-                ->where('slot_datetime', date('Y-m-d'))
-                ->where('booking_status', 'confirmed')
+                ->where('slot_datetime >=', $todayStart)
+                ->where('slot_datetime <=', $todayEnd)
+                ->whereIn('booking_status', ['booked', 'rescheduled', 'confirmed'])
                 ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults()
             // 'pending_offers' => $applicationModel->where('status', 'selected')
@@ -90,6 +94,40 @@ class DashboardController extends BaseController
             // ->whereIn('job_id', $jobIds ?: [0])
             //                                      ->countAllResults()
         ];
+
+        $reminders = [];
+        if ((int) ($pendingActions['pending_screening'] ?? 0) > 0) {
+            $count = (int) $pendingActions['pending_screening'];
+            $reminders[] = [
+                'label' => 'Review ' . $count . ' application' . ($count === 1 ? '' : 's'),
+                'description' => 'Pending candidates are waiting for your screening decision.',
+                'link' => base_url('recruiter/jobs'),
+                'icon' => 'fas fa-file-signature',
+                'tone' => 'warning',
+            ];
+        }
+
+        if ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0) {
+            $count = (int) $pendingActions['hr_interviews_today'];
+            $reminders[] = [
+                'label' => $count . ' interview' . ($count === 1 ? '' : 's') . ' today',
+                'description' => 'Check today\'s booked interview schedule and update candidate status.',
+                'link' => base_url('recruiter/slots/bookings'),
+                'icon' => 'fas fa-calendar-check',
+                'tone' => 'primary',
+            ];
+        }
+
+        if ((int) ($pendingActions['ai_interviews_to_review'] ?? 0) > 0) {
+            $count = (int) $pendingActions['ai_interviews_to_review'];
+            $reminders[] = [
+                'label' => 'Review ' . $count . ' AI interview' . ($count === 1 ? '' : 's'),
+                'description' => 'Take recruiter decisions for candidates cleared by AI screening.',
+                'link' => base_url('recruiter/jobs'),
+                'icon' => 'fas fa-robot',
+                'tone' => 'info',
+            ];
+        }
 
         // Recent Activity
         $recentApplicationsBuilder = $applicationModel
@@ -163,7 +201,32 @@ class DashboardController extends BaseController
             'topJobs' => $topJobs,
             'conversionMetrics' => $conversionMetrics,
             'monthlyTrends' => $monthlyTrends
+            ,'reminders' => $reminders
         ]);
+    }
+
+    /**
+     * Count recruiter AI interviews that are completed and awaiting review.
+     */
+    private function countAiInterviewsToReview(array $jobIds, int $recruiterId): int
+    {
+        $db = \Config\Database::connect();
+        if (!$db->tableExists('interview_sessions') || !$db->fieldExists('application_id', 'interview_sessions')) {
+            return 0;
+        }
+
+        $builder = $db->table('interview_sessions')
+            ->select('COUNT(DISTINCT interview_sessions.application_id) AS total')
+            ->join('applications', 'applications.id = interview_sessions.application_id', 'left')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->where('jobs.recruiter_id', $recruiterId)
+            ->whereIn('applications.job_id', $jobIds ?: [0])
+            ->where('interview_sessions.status', 'completed')
+            ->where('interview_sessions.overall_rating IS NOT NULL');
+
+        $row = $builder->get()->getRowArray();
+
+        return (int) ($row['total'] ?? 0);
     }
 
     /**

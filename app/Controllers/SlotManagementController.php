@@ -378,10 +378,11 @@ class SlotManagementController extends BaseController
         $jobId = $this->request->getGet('job_id');
 
         $builder = $bookingModel
-            ->select('interview_bookings.*, users.name as candidate_name, users.email, jobs.title as job_title, interview_slots.slot_date, interview_slots.slot_time')
+            ->select('interview_bookings.*, users.name as candidate_name, users.email, jobs.title as job_title, interview_slots.slot_date, interview_slots.slot_time, interview_booking_reviews.id as review_id, interview_booking_reviews.attendance_status as review_attendance_status, interview_booking_reviews.decision as review_decision, interview_booking_reviews.notes as review_notes, interview_booking_reviews.reviewed_at as review_reviewed_at')
             ->join('users', 'users.id = interview_bookings.user_id', 'left')
             ->join('jobs', 'jobs.id = interview_bookings.job_id', 'left')
             ->join('interview_slots', 'interview_slots.id = interview_bookings.slot_id', 'left')
+            ->join('interview_booking_reviews', 'interview_booking_reviews.booking_id = interview_bookings.id', 'left')
             ->orderBy('interview_bookings.slot_datetime', 'ASC');
         // Filter by recruiter's jobs
         if ($jobIds !== null) {
@@ -422,6 +423,165 @@ class SlotManagementController extends BaseController
                 'job_id' => $jobId
             ]
         ]);
+    }
+
+    /**
+     * Open booking review form.
+     */
+    public function review($bookingId)
+    {
+        $bookingModel = model('InterviewBookingModel');
+        $bookingReviewModel = model('InterviewBookingReviewModel');
+        $currentUserId = (int) session()->get('user_id');
+
+        $booking = $bookingModel
+            ->select('interview_bookings.*, users.name as candidate_name, users.email, jobs.title as job_title, jobs.recruiter_id, interview_slots.slot_date, interview_slots.slot_time')
+            ->join('users', 'users.id = interview_bookings.user_id', 'left')
+            ->join('jobs', 'jobs.id = interview_bookings.job_id', 'left')
+            ->join('interview_slots', 'interview_slots.id = interview_bookings.slot_id', 'left')
+            ->where('interview_bookings.id', (int) $bookingId)
+            ->first();
+
+        if (!$booking) {
+            return redirect()->back()->with('error', 'Booking not found.');
+        }
+
+        if ((int) ($booking['recruiter_id'] ?? 0) !== $currentUserId && session()->get('role') === 'recruiter') {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        $review = $bookingReviewModel->getByBookingId((int) $bookingId);
+
+        return view('recruiter/slots/review', [
+            'booking' => $booking,
+            'review' => $review,
+        ]);
+    }
+
+    /**
+     * Save booking review, attendance and recruiter decision.
+     */
+    public function saveReview($bookingId)
+    {
+        $bookingModel = model('InterviewBookingModel');
+        $bookingReviewModel = model('InterviewBookingReviewModel');
+        $applicationModel = model('ApplicationModel');
+        $stageModel = model('StageHistoryModel');
+        $currentUserId = (int) session()->get('user_id');
+
+        $booking = $bookingModel
+            ->select('interview_bookings.*, jobs.recruiter_id, jobs.title as job_title, users.name as candidate_name, users.email')
+            ->join('jobs', 'jobs.id = interview_bookings.job_id', 'left')
+            ->join('users', 'users.id = interview_bookings.user_id', 'left')
+            ->where('interview_bookings.id', (int) $bookingId)
+            ->first();
+
+        if (!$booking) {
+            return redirect()->back()->with('error', 'Booking not found.');
+        }
+
+        if ((int) ($booking['recruiter_id'] ?? 0) !== $currentUserId && session()->get('role') === 'recruiter') {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        $attendanceStatus = (string) $this->request->getPost('attendance_status');
+        $decision = trim((string) $this->request->getPost('decision'));
+        $notes = trim((string) $this->request->getPost('notes'));
+        $strengths = trim((string) $this->request->getPost('strengths'));
+        $concerns = trim((string) $this->request->getPost('concerns'));
+
+        $allowedAttendance = ['attended', 'late', 'no_show'];
+        $allowedDecision = ['shortlisted', 'hold', 'selected', 'rejected'];
+
+        if (!in_array($attendanceStatus, $allowedAttendance, true)) {
+            return redirect()->back()->with('error', 'Please choose a valid attendance status.');
+        }
+
+        if ($attendanceStatus !== 'no_show' && !in_array($decision, $allowedDecision, true)) {
+            return redirect()->back()->with('error', 'Please choose a valid recruiter decision.');
+        }
+
+        if (mb_strlen($notes) > 5000 || mb_strlen($strengths) > 3000 || mb_strlen($concerns) > 3000) {
+            return redirect()->back()->with('error', 'One or more review fields are too long.');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $reviewData = [
+            'booking_id' => (int) $bookingId,
+            'application_id' => (int) ($booking['application_id'] ?? 0),
+            'candidate_id' => (int) ($booking['user_id'] ?? 0),
+            'job_id' => (int) ($booking['job_id'] ?? 0),
+            'recruiter_id' => $currentUserId,
+            'attendance_status' => $attendanceStatus,
+            'decision' => $attendanceStatus === 'no_show' ? 'rejected' : $decision,
+            'strengths' => $strengths !== '' ? $strengths : null,
+            'concerns' => $concerns !== '' ? $concerns : null,
+            'notes' => $notes !== '' ? $notes : null,
+            'reviewed_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $existingReview = $bookingReviewModel->getByBookingId((int) $bookingId);
+        if ($existingReview) {
+            $bookingReviewModel->update((int) $existingReview['id'], $reviewData);
+        } else {
+            $bookingReviewModel->insert($reviewData);
+        }
+
+        $bookingStatus = $attendanceStatus === 'no_show' ? 'no_show' : 'completed';
+        $bookingModel->update((int) $bookingId, [
+            'booking_status' => $bookingStatus,
+        ]);
+
+        if (!empty($booking['application_id'])) {
+            $applicationStatus = $attendanceStatus === 'no_show'
+                ? 'rejected'
+                : $decision;
+
+            $applicationModel->update((int) $booking['application_id'], [
+                'status' => $applicationStatus,
+            ]);
+
+            $stageLabel = $attendanceStatus === 'no_show'
+                ? 'HR Interview No Show'
+                : ('HR Interview Reviewed - ' . ucwords(str_replace('_', ' ', $decision)));
+            $stageModel->moveToStage((int) $booking['application_id'], $stageLabel);
+
+            $notificationModel = model('NotificationModel');
+            $candidateId = (int) ($booking['user_id'] ?? 0);
+            $applicationId = (int) $booking['application_id'];
+
+            $notificationModel->createNotification(
+                $candidateId,
+                $applicationId,
+                'interview_reviewed',
+                $attendanceStatus === 'no_show'
+                    ? 'Your interview was marked as no show by the recruiter.'
+                    : 'Your interview review is complete. Final status: ' . ucwords(str_replace('_', ' ', $applicationStatus)) . '.',
+                base_url('candidate/applications'),
+                true
+            );
+
+            $notificationModel->createNotification(
+                $candidateId,
+                $applicationId,
+                in_array($applicationStatus, ['selected', 'hired'], true) ? 'offer_sent' : 'application_status_changed',
+                in_array($applicationStatus, ['selected', 'hired'], true)
+                    ? 'Congratulations! Your application has moved to the offer stage.'
+                    : 'Your application status was updated to ' . ucwords(str_replace('_', ' ', $applicationStatus)) . '.',
+                base_url('candidate/applications'),
+                true
+            );
+        }
+
+        $db->transComplete();
+
+        if (!$db->transStatus()) {
+            return redirect()->back()->with('error', 'Failed to save interview review.');
+        }
+
+        return redirect()->to('/recruiter/slots/bookings')->with('success', 'Interview review saved successfully.');
     }
 
     /**
@@ -545,9 +705,10 @@ class SlotManagementController extends BaseController
         $notificationModel->createNotification(
             $booking['user_id'],
             $booking['application_id'],
-            'reschedule_required',
+            'interview_rescheduled',
             'Your interview has been rescheduled by the admin.',
-            base_url('candidate/my-bookings')
+            base_url('candidate/my-bookings'),
+            true
         );
 
         $db->transComplete();

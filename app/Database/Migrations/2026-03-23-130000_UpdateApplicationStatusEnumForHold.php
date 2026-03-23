@@ -4,7 +4,7 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class AddWithdrawnStatusToApplications extends Migration
+class UpdateApplicationStatusEnumForHold extends Migration
 {
     public function up()
     {
@@ -34,9 +34,11 @@ class AddWithdrawnStatusToApplications extends Migration
                 'ai_interview_completed',
                 'ai_evaluated',
                 'shortlisted',
-                'hold',
                 'rejected',
-                'interview_slot_booked'
+                'interview_slot_booked',
+                'selected',
+                'hired',
+                'withdrawn'
             ) DEFAULT NULL"
         );
     }

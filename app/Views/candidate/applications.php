@@ -44,13 +44,15 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                         <p class="text-muted mb-0 small"><?= $totalApplications ?> total, <?= $activeApplications ?> active</p>
                     </div>
                     <div class="applications-sidebar-list">
-                        <?php foreach ($applications as $index => $application): ?>
-                            <?php
+                            <?php foreach ($applications as $index => $application): ?>
+                                <?php
                             $listActivity = $application['recruiter_activity'] ?? [];
                             $activityCount = (int) ($listActivity['profile_viewed_count'] ?? 0)
                                 + (int) ($listActivity['contact_viewed_count'] ?? 0)
                                 + (int) ($listActivity['resume_downloaded_count'] ?? 0);
-                            ?>
+                            $statusLabel = ucwords(str_replace('_', ' ', (string) ($application['status'] ?? '')));
+                            $statusTone = in_array((string) ($application['status'] ?? ''), ['shortlisted', 'interview_slot_booked', 'selected', 'hired'], true) ? 'text-primary' : 'text-muted';
+                                ?>
                             <button type="button" class="application-list-item<?= $index === 0 ? ' is-active' : '' ?>" data-application-target="application-<?= (int) $application['id'] ?>">
                                 <div class="application-list-title"><?= esc($application['job_title']) ?></div>
                                 <div class="application-list-meta">
@@ -59,9 +61,12 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                         <span class="d-block"><?= esc($application['company']) ?></span>
                                     <?php endif; ?>
                                 </div>
+                                <div class="small <?= $statusTone ?> mb-2">
+                                    Status: <?= esc($statusLabel) ?>
+                                </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="badge status-badge badge-<?= getStatusBadgeColor($application['status']) ?>">
-                                        <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
+                                        <?= esc($statusLabel) ?>
                                     </span>
                                     <small class="text-muted"><?= $activityCount ?> activity</small>
                                 </div>
@@ -76,6 +81,7 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                         $stages = [
                             'applied' => 'Applied',
                             'shortlisted' => 'Shortlisted',
+                            'hold' => 'On Hold',
                             'interview_slot_booked' => 'Interview Booked',
                             'selected' => 'Selected',
                             'hired' => 'Hired',
@@ -230,6 +236,7 @@ function getStatusBadgeColor($status)
     $colors = [
         'applied' => 'warning',
         'shortlisted' => 'success',
+        'hold' => 'secondary',
         'rejected' => 'danger',
         'interview_slot_booked' => 'warning',
         'selected' => 'success',

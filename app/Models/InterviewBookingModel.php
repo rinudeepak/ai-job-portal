@@ -142,9 +142,11 @@ class InterviewBookingModel extends Model
      */
     public function getUserBookings(int $userId): array
     {
-        return $this->select('interview_bookings.*, jobs.title as job_title, interview_slots.slot_date, interview_slots.slot_time')
+        return $this->select('interview_bookings.*, applications.status as application_status, jobs.title as job_title, interview_slots.slot_date, interview_slots.slot_time, interview_booking_reviews.attendance_status as review_attendance_status, interview_booking_reviews.decision as review_decision, interview_booking_reviews.notes as review_notes, interview_booking_reviews.reviewed_at as review_reviewed_at')
+                    ->join('applications', 'applications.id = interview_bookings.application_id', 'left')
                     ->join('jobs', 'jobs.id = interview_bookings.job_id', 'left')
                     ->join('interview_slots', 'interview_slots.id = interview_bookings.slot_id', 'left')
+                    ->join('interview_booking_reviews', 'interview_booking_reviews.booking_id = interview_bookings.id', 'left')
                     ->where('interview_bookings.user_id', $userId)
                     ->orderBy('interview_bookings.slot_datetime', 'ASC')
                     ->findAll();

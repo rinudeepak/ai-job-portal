@@ -5,6 +5,8 @@ $applicationCount = count($applications ?? []);
 $recentApps = array_slice($applications ?? [], 0, 5);
 $topSuggestedJobs = $topSuggestedJobs ?? [];
 $avgScore = (int) round((float) ($stats['average_ai_score'] ?? 0));
+$profileStrength = (int) ($profileStrength ?? 0);
+$activeMatches = count($topSuggestedJobs);
 $activeSuggestions = session()->get('career_suggestions') ?? [];
 $activeSuggestions = array_filter($activeSuggestions, static function ($suggestion): bool {
     return isset($suggestion['expires_at']) && time() < (int) $suggestion['expires_at'];
@@ -51,6 +53,17 @@ $formatDate = static function ($value, string $fallback = 'Recently'): string {
     $timestamp = strtotime((string) $value);
     return $timestamp ? date('M d, Y', $timestamp) : $fallback;
 };
+
+$resolveAssetUrl = static function (string $path): string {
+    $path = trim($path);
+    if ($path === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $path) || str_starts_with($path, '//')) {
+        return $path;
+    }
+    return base_url(ltrim($path, '/'));
+};
 ?>
 
 <div class="dashboard-jobboard">
@@ -76,26 +89,26 @@ $formatDate = static function ($value, string $fallback = 'Recently'): string {
     <section class="dashboard-section">
         <div class="container">
             <div class="dashboard-metric-grid">
-                <div class="dashboard-metric-card">
-                    <div class="dashboard-metric-label">Applications</div>
-                    <div class="dashboard-metric-value"><?= $applicationCount ?></div>
-                    <div class="dashboard-metric-note">Across all active roles</div>
-                </div>
-                <div class="dashboard-metric-card">
-                    <div class="dashboard-metric-label">AI Score</div>
-                    <div class="dashboard-metric-value"><?= $avgScore ?>%</div>
-                    <div class="dashboard-metric-note">Average recommendation fit</div>
-                </div>
-                <div class="dashboard-metric-card">
-                    <div class="dashboard-metric-label">Live Matches</div>
-                    <div class="dashboard-metric-value"><?= $topRecommendedCount ?></div>
-                    <div class="dashboard-metric-note">Dynamic jobs for your profile</div>
-                </div>
-                <div class="dashboard-metric-card">
-                    <div class="dashboard-metric-label">Active AI Paths</div>
-                    <div class="dashboard-metric-value"><?= $activeSuggestionsCount ?></div>
-                    <div class="dashboard-metric-note">Current career transition plans</div>
-                </div>
+                <a href="<?= base_url('candidate/profile') ?>" class="dashboard-metric-card dashboard-metric-link">
+                    <div class="dashboard-metric-label">Profile strength</div>
+                    <div class="dashboard-metric-value"><?= $profileStrength ?>%</div>
+                    <div class="dashboard-metric-note">How complete your profile looks to recruiters</div>
+                </a>
+                <a href="<?= base_url('jobs?tab=suggested') ?>" class="dashboard-metric-card dashboard-metric-link">
+                    <div class="dashboard-metric-label">Active matches</div>
+                    <div class="dashboard-metric-value"><?= $activeMatches ?></div>
+                    <div class="dashboard-metric-note">Recommended roles currently in view</div>
+                </a>
+                <a href="<?= base_url('candidate/my-bookings') ?>" class="dashboard-metric-card dashboard-metric-link">
+                    <div class="dashboard-metric-label">Interviews booked</div>
+                    <div class="dashboard-metric-value"><?= (int) ($stats['interviews_scheduled'] ?? 0) ?></div>
+                    <div class="dashboard-metric-note">Confirmed interview slots on your calendar</div>
+                </a>
+                <a href="<?= base_url('candidate/applications') ?>" class="dashboard-metric-card dashboard-metric-link">
+                    <div class="dashboard-metric-label">Applications in progress</div>
+                    <div class="dashboard-metric-value"><?= (int) ($stats['active_applications'] ?? 0) ?></div>
+                    <div class="dashboard-metric-note">Open applications still moving forward</div>
+                </a>
             </div>
         </div>
     </section>
@@ -123,10 +136,21 @@ $formatDate = static function ($value, string $fallback = 'Recently'): string {
                         $company = (string) ($job['company'] ?? 'Company');
                         $location = (string) ($job['location'] ?? 'N/A');
                         $postedAt = isset($job['posted_at']) ? $formatDate($job['posted_at']) : 'Recently';
+                        $companyInitial = strtoupper(substr($company, 0, 1) ?: 'C');
+                        $companyLogo = trim((string) ($job['company_logo'] ?? ''));
+                        $matchPct = max(10, min(100, $score));
+                        $matchLabel = $score > 0 ? $matchPct . '% match' : 'Open role';
                         ?>
                         <div class="col-md-6 col-lg-4">
                             <div class="job-card dashboard-card">
-                                <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
+                                <div class="job-card-icon">
+                                    <?php if ($companyLogo !== ''): ?>
+                                        <img src="<?= esc($resolveAssetUrl($companyLogo)) ?>" alt="<?= esc($company) ?>">
+                                    <?php else: ?>
+                                        <span><?= esc($companyInitial) ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="job-card-match-badge"><?= esc($matchLabel) ?></div>
                                 <h3 class="job-card-title"><?= esc($title) ?></h3>
                                 <p class="job-card-company"><?= esc($company) ?></p>
                                 <div class="job-card-meta">
@@ -136,10 +160,6 @@ $formatDate = static function ($value, string $fallback = 'Recently'): string {
                                 <div class="job-card-tags">
                                     <span class="badge badge-primary">Full-time</span>
                                     <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
-                                </div>
-                                <div class="progress-container">
-                                    <div class="progress-bar-custom" style="width: <?= max(10, min(100, $score)) ?>%;"></div>
-                                    <span class="progress-label"><?= max(10, min(100, $score)) ?>%</span>
                                 </div>
                                 <a href="<?= base_url('job/' . (int) $job['id']) ?>" class="view-details">View Details &rarr;</a>
                             </div>
@@ -286,42 +306,6 @@ $formatDate = static function ($value, string $fallback = 'Recently'): string {
         </div>
     </section>
 
-    <section class="dashboard-section pt-0">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
-                <div>
-                    <h2 class="section-title">Quick Actions</h2>
-                    <p class="section-subtitle">Everything you need, one click away</p>
-                </div>
-            </div>
-
-            <div class="dashboard-actions-grid">
-                <a href="<?= base_url('jobs') ?>" class="quick-action-card">
-                    <div class="quick-action-icon"><i class="fas fa-search"></i></div>
-                    <div class="quick-action-title">Browse Jobs</div>
-                    <div class="quick-action-text">Find matching roles.</div>
-                </a>
-
-                <a href="<?= base_url('candidate/my-bookings') ?>" class="quick-action-card">
-                    <div class="quick-action-icon"><i class="fas fa-calendar"></i></div>
-                    <div class="quick-action-title">My Interviews</div>
-                    <div class="quick-action-text">Check your schedule.</div>
-                </a>
-
-                <a href="<?= base_url('candidate/profile') ?>" class="quick-action-card">
-                    <div class="quick-action-icon"><i class="fas fa-user"></i></div>
-                    <div class="quick-action-title">My Profile</div>
-                    <div class="quick-action-text">Update profile data.</div>
-                </a>
-
-                <a href="<?= base_url('career-transition') ?>" class="quick-action-card">
-                    <div class="quick-action-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="quick-action-title">Career Transition AI</div>
-                    <div class="quick-action-text">Build your path.</div>
-                </a>
-            </div>
-        </div>
-    </section>
 </div>
 
 <?= view('Layouts/candidate_footer') ?>

@@ -16,16 +16,6 @@
     $interests = $interests ?? [];
     $projects = $projects ?? [];
     ?>
-    <?php
-    $candidateHeadline = trim((string) ($candidate['resume_headline'] ?? ''));
-    $candidateLocation = trim((string) ($candidate['location'] ?? ''));
-    $candidateMetaBits = array_filter([
-        $candidateHeadline !== '' ? $candidateHeadline : null,
-        $candidateLocation !== '' ? $candidateLocation : null,
-        $showContact ? 'Contact visible' : 'Contact hidden',
-        !empty($candidate['resume_path']) ? 'Resume available' : null,
-    ]);
-    ?>
     <div class="page-board-header page-board-header-tight recruiter-page-board-header">
         <div class="page-board-copy">
             <span class="page-board-kicker"><i class="fas fa-id-card"></i> Candidate profile</span>
@@ -33,13 +23,6 @@
             <p class="page-board-subtitle">
                 Review candidate details, notes, skills, and history before moving forward.
             </p>
-            <?php if (!empty($candidateMetaBits)): ?>
-            <div class="company-profile-meta">
-                <?php foreach ($candidateMetaBits as $metaBit): ?>
-                    <span class="meta-chip"><?= esc($metaBit) ?></span>
-                <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
         </div>
         <div class="page-board-actions candidate-profile-actions">
             <?php if (!$showContact): ?>

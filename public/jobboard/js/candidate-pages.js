@@ -377,9 +377,13 @@
         var mobileLocation = document.getElementById('mobileLocation');
         var mobileExperience = document.getElementById('mobileExperience');
         var mobileEmploymentType = document.getElementById('mobileEmploymentType');
+        var mobileWorkMode = document.getElementById('mobileWorkMode');
+        var mobileSalaryRange = document.getElementById('mobileSalaryRange');
 
         var desktopCategory = document.querySelector('.sidebar select[name="category"]');
         var desktopLocation = document.querySelector('.sidebar select[name="location"]');
+        var desktopWorkMode = document.querySelector('.sidebar select[name="work_mode"]');
+        var desktopSalaryRange = document.querySelector('.sidebar select[name="salary_range"]');
 
         if (desktopCategory && mobileCategory) {
             desktopCategory.value = mobileCategory.value;
@@ -387,6 +391,14 @@
 
         if (desktopLocation && mobileLocation) {
             desktopLocation.value = mobileLocation.value;
+        }
+
+        if (desktopWorkMode && mobileWorkMode) {
+            desktopWorkMode.value = mobileWorkMode.value;
+        }
+
+        if (desktopSalaryRange && mobileSalaryRange) {
+            desktopSalaryRange.value = mobileSalaryRange.value;
         }
 
         var expChecks = document.querySelectorAll('.sidebar input[name="experience_level[]"]');

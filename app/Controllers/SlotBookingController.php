@@ -62,6 +62,7 @@ class SlotBookingController extends BaseController
         $slotModel = model('InterviewSlotModel');
         $bookingModel = model('InterviewBookingModel');
         $notificationModel = model('NotificationModel');
+        $candidateName = (string) (session()->get('user_name') ?? 'A candidate');
         
         // Verify application
         $application = $applicationModel->find($applicationId);
@@ -117,8 +118,29 @@ class SlotBookingController extends BaseController
         $stageModel = model('StageHistoryModel');
             $stageModel->moveToStage($applicationId, 'Interview Slot Booked');
         
-        // Create notification
-        $notificationModel->triggerApplicationNotifications($userId, $applicationModel->find($applicationId));
+        $slotLabel = date('M d, Y h:i A', strtotime($slot['slot_datetime']));
+
+        // Notify candidate
+        $notificationModel->createNotification(
+            $userId,
+            (int) $applicationId,
+            'interview_booked',
+            "Your interview has been booked for {$slotLabel}.",
+            base_url('candidate/my-bookings'),
+            true
+        );
+
+        // Notify recruiter
+            if (!empty($job['recruiter_id'])) {
+                $notificationModel->createNotification(
+                    (int) $job['recruiter_id'],
+                    (int) $applicationId,
+                    'interview_booked',
+                    "{$candidateName} booked an interview for {$job['title']} on {$slotLabel}.",
+                    base_url('recruiter/slots/bookings'),
+                    true
+                );
+            }
             
         $db->transComplete();
         
@@ -195,6 +217,8 @@ class SlotBookingController extends BaseController
         $applicationModel = model('ApplicationModel');
         $bookingModel = model('InterviewBookingModel');
         $notificationModel = model('NotificationModel');
+        $jobModel = model('JobModel');
+        $candidateName = (string) (session()->get('user_name') ?? 'A candidate');
         
         // Verify application
         $application = $applicationModel->find($applicationId);
@@ -217,9 +241,30 @@ class SlotBookingController extends BaseController
             $applicationModel->update($applicationId, [
                 'interview_slot' => $updatedBooking['slot_datetime']
             ]);
-            
-            // Trigger notification
-            $notificationModel->triggerApplicationNotifications($userId, $applicationModel->find($applicationId));
+
+            $slotLabel = date('M d, Y h:i A', strtotime($updatedBooking['slot_datetime']));
+            $application = $applicationModel->find($applicationId);
+
+            $notificationModel->createNotification(
+                $userId,
+                (int) $applicationId,
+                'interview_rescheduled',
+                "Your interview has been rescheduled to {$slotLabel}.",
+                base_url('candidate/my-bookings'),
+                true
+            );
+
+            $job = $jobModel->find((int) ($application['job_id'] ?? 0));
+            if (!empty($job['recruiter_id'])) {
+                $notificationModel->createNotification(
+                    (int) $job['recruiter_id'],
+                    (int) $applicationId,
+                    'interview_rescheduled',
+                    "{$candidateName} rescheduled the interview for {$job['title']} to {$slotLabel}.",
+                    base_url('recruiter/slots/bookings'),
+                    true
+                );
+            }
             
             return redirect()->to('/candidate/my-bookings')->with('success', 'Interview rescheduled successfully!');
         } else {

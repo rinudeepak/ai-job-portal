@@ -74,6 +74,25 @@
     </section>
 
     <div class="container recruiter-dashboard-main">
+        <?php if (!empty($reminders ?? [])): ?>
+        <div class="recruiter-reminders-grid mb-4">
+            <?php foreach ($reminders as $reminder): ?>
+                <a href="<?= esc($reminder['link'] ?? '#') ?>" class="recruiter-reminder-card tone-<?= esc($reminder['tone'] ?? 'primary') ?>">
+                    <div class="recruiter-reminder-icon">
+                        <i class="<?= esc($reminder['icon'] ?? 'fas fa-bell') ?>"></i>
+                    </div>
+                    <div class="recruiter-reminder-copy">
+                        <div class="recruiter-reminder-title"><?= esc($reminder['label'] ?? '') ?></div>
+                        <div class="recruiter-reminder-text"><?= esc($reminder['description'] ?? '') ?></div>
+                    </div>
+                    <div class="recruiter-reminder-action">
+                        View <i class="fas fa-arrow-right ms-1"></i>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
         <?php if (!empty($noJobs)): ?>
         <div class="card shadow mb-4">
             <div class="card-body p-4 text-center">
@@ -208,27 +227,38 @@
                     <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-bolt"></i> Action Center</h6>
                 </div>
                 <div class="card-body p-0">
-                    <a href="<?= $jobsUrl ?>" class="action-item-link">
-                        <div class="action-item-label">
-                            <strong>Screen New Applications</strong>
-                            <small class="text-muted d-block">Review and shortlist incoming candidates.</small>
-                        </div>
-                        <span class="badge badge-warning"><?= (int) ($pendingActions['pending_screening'] ?? 0) ?></span>
-                    </a>
-                    <a href="<?= $jobsUrl ?>" class="action-item-link">
-                        <div class="action-item-label">
-                            <strong>Review AI Interview Results</strong>
-                            <small class="text-muted d-block">Take recruiter decisions for AI-cleared candidates.</small>
-                        </div>
-                        <span class="badge badge-info"><?= (int) ($pendingActions['ai_interviews_to_review'] ?? 0) ?></span>
-                    </a>
-                    <a href="<?= $bookingsUrl ?>" class="action-item-link">
-                        <div class="action-item-label">
-                            <strong>Interviews Today</strong>
-                            <small class="text-muted d-block">Track today’s booked interviews and status.</small>
-                        </div>
-                        <span class="badge badge-primary"><?= (int) ($pendingActions['hr_interviews_today'] ?? 0) ?></span>
-                    </a>
+                    <?php $hasActionCenterItems = ((int) ($pendingActions['pending_screening'] ?? 0) > 0) || ((int) ($pendingActions['ai_interviews_to_review'] ?? 0) > 0) || ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0); ?>
+                    <?php if ($hasActionCenterItems): ?>
+                        <?php if ((int) ($pendingActions['pending_screening'] ?? 0) > 0): ?>
+                            <a href="<?= $jobsUrl ?>" class="action-item-link">
+                                <div class="action-item-label">
+                                    <strong>Screen New Applications</strong>
+                                    <small class="text-muted d-block">Review and shortlist incoming candidates.</small>
+                                </div>
+                                <span class="badge badge-warning"><?= (int) ($pendingActions['pending_screening'] ?? 0) ?></span>
+                            </a>
+                        <?php endif; ?>
+                        <?php if ((int) ($pendingActions['ai_interviews_to_review'] ?? 0) > 0): ?>
+                            <a href="<?= $jobsUrl ?>" class="action-item-link">
+                                <div class="action-item-label">
+                                    <strong>Review AI Interview Results</strong>
+                                    <small class="text-muted d-block">Take recruiter decisions for AI-cleared candidates.</small>
+                                </div>
+                                <span class="badge badge-info"><?= (int) ($pendingActions['ai_interviews_to_review'] ?? 0) ?></span>
+                            </a>
+                        <?php endif; ?>
+                        <?php if ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0): ?>
+                            <a href="<?= $bookingsUrl ?>" class="action-item-link">
+                                <div class="action-item-label">
+                                    <strong>Interviews Today</strong>
+                                    <small class="text-muted d-block">Track today&#39;s booked interviews and status.</small>
+                                </div>
+                                <span class="badge badge-primary"><?= (int) ($pendingActions['hr_interviews_today'] ?? 0) ?></span>
+                            </a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <div class="p-4 text-center text-muted small">No pending actions right now.</div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

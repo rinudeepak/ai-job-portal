@@ -19,6 +19,20 @@ $categories                 = $categories ?? [];
 $experienceLevels           = $experienceLevels ?? [];
 $employmentTypes            = $employmentTypes ?? [];
 $savedJobIds                = $savedJobIds ?? [];
+$salaryRanges = [
+    '' => 'Any Salary',
+    'under_3' => 'Under 3 LPA',
+    '3_5' => '3 - 5 LPA',
+    '5_8' => '5 - 8 LPA',
+    '8_12' => '8 - 12 LPA',
+    '12_plus' => '12+ LPA',
+];
+$workModes = [
+    '' => 'Any mode',
+    'remote' => 'Remote',
+    'hybrid' => 'Hybrid',
+    'onsite' => 'On-site',
+];
 
 $recommendationSets = [
     'applies' => $suggestedJobsByApplies,
@@ -32,7 +46,7 @@ if (!array_key_exists($recommendationType, $recommendationSets)) {
 $activeRecommendedJobs = $recommendationSets[$recommendationType];
 $jobsHeroTitle = $showFilters ? 'Browse Jobs' : 'Jobs Matching Your Profile';
 $jobsHeroSubtitle = $showFilters
-    ? 'Use live filters to narrow roles by company, location, experience, and job type.'
+    ? 'Use live filters to narrow roles by company, location, experience, job type, salary, and work mode.'
     : 'Based on your skills, preferences, and application history';
 
 $jobIconSet = [
@@ -57,6 +71,17 @@ $pickJobIcon = static function (string $title) use ($jobIconSet): string {
     }
 
     return 'fas fa-briefcase';
+};
+
+$resolveAssetUrl = static function (string $path): string {
+    $path = trim($path);
+    if ($path === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $path) || str_starts_with($path, '//')) {
+        return $path;
+    }
+    return base_url(ltrim($path, '/'));
 };
 
 $formatPostedMeta = static function (?string $createdAt): ?string {
@@ -144,6 +169,28 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                 </select>
             </div>
             <?php endif; ?>
+
+            <div class="filter-section">
+                <span class="filter-label">Work Mode</span>
+                <select name="work_mode" onchange="submitFilters()">
+                    <?php foreach ($workModes as $modeValue => $modeLabel): ?>
+                        <option value="<?= esc($modeValue) ?>" <?= ($filters['work_mode'] ?? '') === $modeValue ? 'selected' : '' ?>>
+                            <?= esc($modeLabel) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <span class="filter-label">Salary Range</span>
+                <select name="salary_range" onchange="submitFilters()">
+                    <?php foreach ($salaryRanges as $rangeValue => $rangeLabel): ?>
+                        <option value="<?= esc($rangeValue) ?>" <?= ($filters['salary_range'] ?? '') === $rangeValue ? 'selected' : '' ?>>
+                            <?= esc($rangeLabel) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
             <?php if (!empty($employmentTypes)): ?>
             <div class="filter-section">
@@ -245,6 +292,26 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                                 <?php endforeach; ?>
                             </select>
                         </div>
+                        <div class="col-6 mb-3">
+                            <label style="font-size:.8rem;font-weight:600;color:var(--slate)">Work Mode</label>
+                            <select id="mobileWorkMode" class="form-control" style="font-size:.85rem">
+                                <?php foreach ($workModes as $modeValue => $modeLabel): ?>
+                                    <option value="<?= esc($modeValue) ?>" <?= ($filters['work_mode'] ?? '') === $modeValue ? 'selected' : '' ?>>
+                                        <?= esc($modeLabel) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label style="font-size:.8rem;font-weight:600;color:var(--slate)">Salary Range</label>
+                            <select id="mobileSalaryRange" class="form-control" style="font-size:.85rem">
+                                <?php foreach ($salaryRanges as $rangeValue => $rangeLabel): ?>
+                                    <option value="<?= esc($rangeValue) ?>" <?= ($filters['salary_range'] ?? '') === $rangeValue ? 'selected' : '' ?>>
+                                        <?= esc($rangeLabel) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                     <div class="d-flex gap-2">
                         <button type="button" onclick="applyMobileFilters()" style="flex:1;background:var(--ink);color:white;border:none;border-radius:8px;padding:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Apply</button>
@@ -295,6 +362,10 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                             $isSaved = in_array((int) ($job['id'] ?? 0), $savedJobIds, true);
                             $type = strtolower((string) ($job['employment_type'] ?? ''));
                             $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
+                            $companyInitial = strtoupper(substr($company, 0, 1) ?: 'C');
+                            $companyLogo = trim((string) ($job['company_logo'] ?? ''));
+                            $score = (int) round((float) ($job['match_score'] ?? 0));
+                            $matchLabel = $score > 0 ? max(10, min(100, $score)) . '% match' : 'Open role';
                         ?>
                         <div class="col-12">
                             <div class="job-card">
@@ -307,8 +378,15 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                                 >
                                     <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
                                 </button>
-                                <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
+                                <div class="job-card-icon">
+                                    <?php if ($companyLogo !== ''): ?>
+                                        <img src="<?= esc($resolveAssetUrl($companyLogo)) ?>" alt="<?= esc($company) ?>">
+                                    <?php else: ?>
+                                        <span><?= esc($companyInitial) ?></span>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="job-card-body">
+                                    <div class="job-card-match-badge"><?= esc($matchLabel) ?></div>
                                     <h3 class="job-card-title"><?= esc($title) ?></h3>
                                     <p class="job-card-company"><?= esc($company) ?></p>
                                     <div class="job-card-meta">
@@ -438,6 +516,9 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                             $type = strtolower((string) ($job['employment_type'] ?? ''));
                             $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
                             $matchPct = max(10, min(100, (int) round($score)));
+                            $companyInitial = strtoupper(substr($company, 0, 1) ?: 'C');
+                            $companyLogo = trim((string) ($job['company_logo'] ?? ''));
+                            $matchLabel = $matchPct . '% match';
                         ?>
                         <article class="job-card recommended-job-card">
                                 <button
@@ -449,8 +530,15 @@ $formatPostedMeta = static function (?string $createdAt): ?string {
                                 >
                                     <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
                                 </button>
-                                <div class="job-card-icon"><i class="<?= esc($pickJobIcon($title)) ?>"></i></div>
+                                <div class="job-card-icon">
+                                    <?php if ($companyLogo !== ''): ?>
+                                        <img src="<?= esc($resolveAssetUrl($companyLogo)) ?>" alt="<?= esc($company) ?>">
+                                    <?php else: ?>
+                                        <span><?= esc($companyInitial) ?></span>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="job-card-body">
+                                    <div class="job-card-match-badge"><?= esc($matchLabel) ?></div>
                                     <h3 class="job-card-title"><?= esc($title) ?></h3>
                                     <p class="job-card-company"><?= esc($company) ?></p>
                                     <div class="job-card-meta">

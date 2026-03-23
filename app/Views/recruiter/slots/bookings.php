@@ -50,7 +50,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
                     <div>
-                        <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+                        <h6 class="m-0 font-weight-bold text-dark">Filters</h6>
                         <p class="text-muted mb-0">Narrow bookings by job and status.</p>
                     </div>
                 </div>
@@ -78,6 +78,7 @@
                                     <option value="confirmed" <?= ($filters['status'] ?? '') === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
                                     <option value="completed" <?= ($filters['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Completed</option>
                                     <option value="rescheduled" <?= ($filters['status'] ?? '') === 'rescheduled' ? 'selected' : '' ?>>Rescheduled</option>
+                                    <option value="no_show" <?= ($filters['status'] ?? '') === 'no_show' ? 'selected' : '' ?>>No Show</option>
                                     <option value="cancelled" <?= ($filters['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
                                 </select>
                             </div>
@@ -125,12 +126,23 @@
                                     $isPast = strtotime($booking['slot_datetime']) < time();
                                     $isUpcoming = strtotime($booking['slot_datetime']) > time();
                                     $statusColors = [
+                                        'booked' => 'primary',
                                         'confirmed' => 'success',
                                         'completed' => 'info',
                                         'rescheduled' => 'warning',
+                                        'no_show' => 'danger',
                                         'cancelled' => 'danger'
                                     ];
                                     $color = $statusColors[$booking['booking_status']] ?? 'secondary';
+                                    $hasReview = !empty($booking['review_id']);
+                                    $statusLabels = [
+                                        'booked' => 'Booked',
+                                        'confirmed' => 'Confirmed',
+                                        'completed' => 'Completed',
+                                        'rescheduled' => 'Rescheduled',
+                                        'no_show' => 'No Show',
+                                        'cancelled' => 'Cancelled',
+                                    ];
                                     ?>
                                     <tr class="<?= $isPast ? 'table-secondary' : '' ?>">
                                         <td><?= $booking['id'] ?></td>
@@ -147,8 +159,18 @@
                                         </td>
                                         <td>
                                             <span class="badge badge-<?= $color ?>">
-                                                <?= ucfirst($booking['booking_status']) ?>
+                                                <?= esc($statusLabels[$booking['booking_status']] ?? ucwords(str_replace('_', ' ', $booking['booking_status']))) ?>
                                             </span>
+                                            <?php if ($hasReview): ?>
+                                                <div><small class="text-success"><i class="fas fa-check-circle"></i> Reviewed</small></div>
+                                                <?php if (!empty($booking['review_decision'])): ?>
+                                                    <div><small class="text-muted">Decision: <?= esc(ucwords(str_replace('_', ' ', (string) $booking['review_decision']))) ?></small></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($booking['review_notes'])): ?>
+                                                    <?php $reviewPreview = mb_strlen((string) $booking['review_notes']) > 70 ? mb_substr((string) $booking['review_notes'], 0, 70) . '...' : (string) $booking['review_notes']; ?>
+                                                    <div><small class="text-muted" title="<?= esc((string) $booking['review_notes']) ?>"><?= esc($reviewPreview) ?></small></div>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                             <?php if ($booking['reschedule_count'] > 0): ?>
                                                 <div><small class="text-muted">Rescheduled: <?= $booking['reschedule_count'] ?>x</small></div>
                                             <?php endif; ?>
@@ -157,24 +179,16 @@
                                             <small><?= date('M d, Y', strtotime($booking['booked_at'])) ?></small>
                                         </td>
                                         <td>
-                                            <div class="job-actions-wrap recruiter-booking-actions">
-                                                <?php if ($isUpcoming && $booking['booking_status'] === 'confirmed'): ?>
+                                        <div class="job-actions-wrap recruiter-booking-actions">
+                                                <?php if ($isUpcoming && in_array($booking['booking_status'], ['confirmed', 'rescheduled'], true)): ?>
                                                     <a href="<?= base_url('recruiter/slots/reschedule/' . $booking['id']) ?>" class="btn btn-sm btn-warning btn-action" title="Reschedule">
                                                         <i class="fas fa-sync"></i> Reschedule
                                                     </a>
-                                                    <form method="post" action="<?= base_url('recruiter/slots/mark-completed/' . $booking['id']) ?>" class="d-inline">
-                                                        <?= csrf_field() ?>
-                                                        <button type="submit" class="btn btn-sm btn-success btn-action" title="Mark Completed" onclick="return confirm('Mark this interview as completed?')">
-                                                            <i class="fas fa-check"></i> Complete
-                                                        </button>
-                                                    </form>
-                                                <?php elseif ($isPast && $booking['booking_status'] === 'confirmed'): ?>
-                                                    <form method="post" action="<?= base_url('recruiter/slots/mark-completed/' . $booking['id']) ?>" class="d-inline">
-                                                        <?= csrf_field() ?>
-                                                        <button type="submit" class="btn btn-sm btn-success btn-action" title="Mark Completed" onclick="return confirm('Mark this interview as completed?')">
-                                                            <i class="fas fa-check"></i> Complete
-                                                        </button>
-                                                    </form>
+                                                <?php endif; ?>
+                                                <?php if ($isPast || in_array($booking['booking_status'], ['completed', 'no_show', 'rescheduled'], true)): ?>
+                                                    <a href="<?= base_url('recruiter/slots/review/' . $booking['id']) ?>" class="btn btn-sm btn-primary btn-action" title="<?= $hasReview ? 'Edit Review' : 'Review Interview' ?>">
+                                                        <i class="fas fa-clipboard-check"></i> <?= $hasReview ? 'Edit Review' : 'Review Interview' ?>
+                                                    </a>
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>

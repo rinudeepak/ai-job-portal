@@ -28,6 +28,17 @@ if ($officeTourTitle === '') {
     $officeTourTitle = 'Take a Virtual Tour';
 }
 
+$resolveAssetUrl = static function (string $path): string {
+    $path = trim($path);
+    if ($path === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $path) || str_starts_with($path, '//')) {
+        return $path;
+    }
+    return base_url(ltrim($path, '/'));
+};
+
 $averageRating = (float) ($reviewSummary['average_rating'] ?? 0);
 $totalReviews = (int) ($reviewSummary['total_reviews'] ?? 0);
 $reviewEligibility = is_array($reviewEligibility ?? null) ? $reviewEligibility : ['canInterviewReview' => false, 'canEmployeeReview' => false];
@@ -174,8 +185,9 @@ $companyMeta = [
                                     </div>
                                     <div class="company-photo-grid">
                                         <?php foreach ($brandingPhotos as $photo): ?>
-                                            <a href="<?= base_url($photo) ?>" target="_blank" rel="noopener" class="company-photo-tile">
-                                                <img src="<?= base_url($photo) ?>" alt="<?= esc($companyName . ' workplace photo') ?>" loading="lazy">
+                                            <?php $photoUrl = $resolveAssetUrl($photo); ?>
+                                            <a href="<?= esc($photoUrl) ?>" target="_blank" rel="noopener" class="company-photo-tile">
+                                                <img src="<?= esc($photoUrl) ?>" alt="<?= esc($companyName . ' workplace photo') ?>" loading="lazy">
                                             </a>
                                         <?php endforeach; ?>
                                     </div>

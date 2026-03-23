@@ -96,7 +96,6 @@ $filters = $filters ?? [];
                                 <span class="badge badge-primary"><?= esc($company['size'] ?: 'Size not specified') ?></span>
                             </div>
                             <div class="company-directory-actions">
-                                <a href="<?= base_url('company/' . (int) $company['id']) ?>" class="view-details">View Company &rarr;</a>
                                 <?php if ((int) ($company['open_jobs_count'] ?? 0) > 0): ?>
                                     <a href="<?= base_url('jobs?company=' . urlencode($companyName)) ?>" class="company-directory-jobs-link">See jobs</a>
                                 <?php endif; ?>

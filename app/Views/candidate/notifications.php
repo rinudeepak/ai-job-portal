@@ -1,6 +1,6 @@
 <?= view('Layouts/candidate_header', ['title' => 'Notifications']) ?>
 
-<div class="applications-jobboard">
+<div class="notifications-jobboard">
     <div class="container">
         <div class="page-board-header page-board-header-tight">
             <div class="page-board-copy">

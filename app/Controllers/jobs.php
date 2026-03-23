@@ -30,7 +30,8 @@ class Jobs extends BaseController
             'category'         => $this->request->getGet('category'),
             'experience_level' => $this->request->getGet('experience_level'),
             'employment_type'  => $this->request->getGet('employment_type'),
-            'remote'           => $this->request->getGet('remote'),
+            'work_mode'        => (string) ($this->request->getGet('work_mode') ?? $this->request->getGet('remote') ?? ''),
+            'salary_range'     => (string) ($this->request->getGet('salary_range') ?? ''),
             'posted_within'    => $this->request->getGet('posted_within'),
             'skills_match'     => $this->request->getGet('skills_match'),
             'sort'             => $this->request->getGet('sort') ?: 'newest',
@@ -79,8 +80,12 @@ class Jobs extends BaseController
             }
         }
 
-        if (!empty($filters['remote'])) {
-            $builder->like('location', 'Remote');
+        if (!empty($filters['work_mode'])) {
+            $this->applyWorkModeFilter($builder, (string) $filters['work_mode']);
+        }
+
+        if (!empty($filters['salary_range'])) {
+            $this->applySalaryRangeFilter($builder, (string) $filters['salary_range']);
         }
 
         if (!empty($filters['posted_within'])) {
@@ -155,7 +160,8 @@ class Jobs extends BaseController
             'category',
             'experience_level',
             'employment_type',
-            'remote',
+            'work_mode',
+            'salary_range',
             'posted_within',
             'skills_match',
         ];
@@ -664,5 +670,93 @@ class Jobs extends BaseController
         }
 
         return array_values(array_unique($tokens));
+    }
+
+    private function applyWorkModeFilter($builder, string $workMode): void
+    {
+        $mode = strtolower(trim($workMode));
+        if ($mode === '') {
+            return;
+        }
+
+        switch ($mode) {
+            case 'remote':
+                $builder->groupStart()
+                    ->like('location', 'Remote')
+                    ->orLike('location', 'Work from home')
+                    ->orLike('location', 'WFH')
+                    ->groupEnd();
+                break;
+
+            case 'hybrid':
+                $builder->groupStart()
+                    ->like('location', 'Hybrid')
+                    ->groupEnd();
+                break;
+
+            case 'onsite':
+            case 'on-site':
+            case 'office':
+                $builder->groupStart()
+                    ->notLike('location', 'Remote')
+                    ->notLike('location', 'Hybrid')
+                    ->groupEnd();
+                break;
+        }
+    }
+
+    private function applySalaryRangeFilter($builder, string $salaryRange): void
+    {
+        $range = strtolower(trim($salaryRange));
+        if ($range === '') {
+            return;
+        }
+
+        $salaryExpr = "CAST(TRIM(SUBSTRING_INDEX(REPLACE(COALESCE(salary_range, ''), '-', ' '), ' ', 1)) AS DECIMAL(10,2))";
+
+        switch ($range) {
+            case 'under_3':
+                $builder->groupStart()
+                    ->where('salary_range IS NOT NULL', null, false)
+                    ->where('salary_range !=', '')
+                    ->where($salaryExpr . ' <', 3, false)
+                    ->groupEnd();
+                break;
+
+            case '3_5':
+                $builder->groupStart()
+                    ->where('salary_range IS NOT NULL', null, false)
+                    ->where('salary_range !=', '')
+                    ->where($salaryExpr . ' >=', 3, false)
+                    ->where($salaryExpr . ' <', 5, false)
+                    ->groupEnd();
+                break;
+
+            case '5_8':
+                $builder->groupStart()
+                    ->where('salary_range IS NOT NULL', null, false)
+                    ->where('salary_range !=', '')
+                    ->where($salaryExpr . ' >=', 5, false)
+                    ->where($salaryExpr . ' <', 8, false)
+                    ->groupEnd();
+                break;
+
+            case '8_12':
+                $builder->groupStart()
+                    ->where('salary_range IS NOT NULL', null, false)
+                    ->where('salary_range !=', '')
+                    ->where($salaryExpr . ' >=', 8, false)
+                    ->where($salaryExpr . ' <', 12, false)
+                    ->groupEnd();
+                break;
+
+            case '12_plus':
+                $builder->groupStart()
+                    ->where('salary_range IS NOT NULL', null, false)
+                    ->where('salary_range !=', '')
+                    ->where($salaryExpr . ' >=', 12, false)
+                    ->groupEnd();
+                break;
+        }
     }
 }

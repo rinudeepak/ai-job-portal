@@ -19,11 +19,6 @@
             <span class="page-board-kicker"><i class="fas fa-briefcase"></i> Recruiter jobs</span>
             <h1 class="page-board-title">My Posted Jobs</h1>
             <p class="page-board-subtitle">Manage job postings, applications, screening policy, and leaderboard access.</p>
-            <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= number_format($totalJobs) ?></strong> Total jobs</span>
-                <span class="meta-chip"><strong><?= number_format($openJobs) ?></strong> Open</span>
-                <span class="meta-chip"><strong><?= number_format($closedJobs) ?></strong> Closed</span>
-            </div>
         </div>
         <div class="page-board-actions">
             <a href="<?= base_url('recruiter/post_job') ?>" class="btn btn-primary">

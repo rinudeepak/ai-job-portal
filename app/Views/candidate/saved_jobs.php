@@ -1,5 +1,17 @@
 <?= view('Layouts/candidate_header', ['title' => 'Saved Jobs']) ?>
 <?php $jobs = $jobs ?? []; ?>
+<?php
+$resolveAssetUrl = static function (string $path): string {
+    $path = trim($path);
+    if ($path === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $path) || str_starts_with($path, '//')) {
+        return $path;
+    }
+    return base_url(ltrim($path, '/'));
+};
+?>
 
 <div class="jobs-page-jobboard saved-jobs-jobboard">
     <div class="container">
@@ -35,6 +47,8 @@
                             $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
                             $initial = strtoupper(substr($company, 0, 1) ?: 'J');
                             $postedAt = !empty($job['created_at']) ? date('d M Y', strtotime((string) $job['created_at'])) : null;
+                            $companyLogo = trim((string) ($job['company_logo'] ?? ''));
+                            $matchLabel = 'Saved job';
                         ?>
                         <article class="job-card saved-job-card">
                             <button
@@ -47,12 +61,13 @@
                                 <i class="fas fa-bookmark"></i>
                             </button>
                             <div class="job-card-icon saved-job-logo">
-                                <?php if (!empty($job['company_logo'])): ?>
-                                    <img src="<?= base_url($job['company_logo']) ?>" alt="<?= esc($company) ?>">
+                                <?php if ($companyLogo !== ''): ?>
+                                    <img src="<?= esc($resolveAssetUrl($companyLogo)) ?>" alt="<?= esc($company) ?>">
                                 <?php else: ?>
                                     <span><?= esc($initial) ?></span>
                                 <?php endif; ?>
                             </div>
+                            <div class="job-card-match-badge job-card-match-badge-neutral"><?= esc($matchLabel) ?></div>
                             <h3 class="job-card-title"><?= esc($title) ?></h3>
                             <p class="job-card-company"><?= esc($company) ?></p>
                             <div class="job-card-meta">

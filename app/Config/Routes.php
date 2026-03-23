@@ -195,6 +195,8 @@ $routes->group('recruiter', ['filter' => 'recruiter'], function($routes) {
     $routes->get('slots/reschedule/(:num)', 'SlotManagementController::adminReschedule/$1');
     $routes->post('slots/process-reschedule', 'SlotManagementController::processAdminReschedule');
     $routes->post('slots/mark-completed/(:num)', 'SlotManagementController::markCompleted/$1');
+    $routes->get('slots/review/(:num)', 'SlotManagementController::review/$1');
+    $routes->post('slots/review/(:num)', 'SlotManagementController::saveReview/$1');
     
     // Bulk Actions
     $routes->post('slots/bulk-shortlist', 'SlotManagementController::bulkShortlist');
