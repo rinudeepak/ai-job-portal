@@ -127,21 +127,24 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                    data-save-label-saved="Saved">
                     <span class="js-save-icon <?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-1"></span><span class="js-save-label"><?= $isSaved ? 'Saved' : 'Save Job' ?></span>
                 </a>
-                <?php if ($alreadyApplied): ?>
-                    <button class="btn job-details-applied-btn" disabled>
-                        <i class="fas fa-check mr-1"></i> Already Applied
-                    </button>
-                <?php else: ?>
-                    <a href="#apply-job" class="btn btn-primary">
-                        <i class="fas fa-paper-plane mr-1"></i> Apply Now
-                    </a>
-                <?php endif; ?>
+                <div id="jobDetailsTopAction">
+                    <?php if ($alreadyApplied): ?>
+                        <button class="btn job-details-applied-btn js-job-details-top-applied" disabled>
+                            <i class="fas fa-check mr-1"></i> Already Applied
+                        </button>
+                    <?php else: ?>
+                        <a href="#apply-job" class="btn btn-primary js-job-details-apply-link">
+                            <i class="fas fa-paper-plane mr-1"></i> Apply Now
+                        </a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
 
     <section class="site-section pt-0 content-wrap">
         <div class="container">
+            <div id="candidateApplicationAjaxAlert"></div>
             <?php if ($successFlash): ?>
                 <div class="alert alert-success">
                     <?= esc($successFlash) ?>
@@ -315,11 +318,11 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                             <span>Apply</span>
                         </div>
                         <?php if ($alreadyApplied): ?>
-                            <button class="btn btn-block btn-outline-primary btn-md job-details-applied-btn" disabled>
+                            <button class="btn btn-block btn-outline-primary btn-md job-details-applied-btn" disabled data-application-state="applied">
                                 <span class="icon-check mr-2"></span>Already Applied
                             </button>
                         <?php else: ?>
-                            <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>">
+                            <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>" class="js-apply-job-form" data-job-id="<?= (int) $job['id'] ?>">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-block btn-primary btn-md">Apply Now</button>
                             </form>

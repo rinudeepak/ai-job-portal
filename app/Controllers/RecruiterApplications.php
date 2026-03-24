@@ -339,6 +339,7 @@ class RecruiterApplications extends BaseController
         $applicationModel = model('ApplicationModel');
         $notificationModel = model('NotificationModel');
         $currentUserId = session()->get('user_id');
+        $isAjax = $this->request->isAJAX();
 
         $application = $applicationModel
             ->select('applications.*, jobs.recruiter_id, jobs.ai_interview_policy')
@@ -347,16 +348,29 @@ class RecruiterApplications extends BaseController
             ->first();
 
         if (!$application || (int) $application['recruiter_id'] !== (int) $currentUserId) {
+            if ($isAjax) {
+                return $this->respondApplicationStatus(false, 'Application not found', null, 404);
+            }
+
             return redirect()->back()->with('error', 'Application not found');
         }
 
         if ($application['status'] === 'interview_slot_booked') {
+            if ($isAjax) {
+                return $this->respondApplicationStatus(false, 'Booked interview applications cannot be changed here', null, 422);
+            }
+
             return redirect()->back()->with('error', 'Booked interview applications cannot be changed here');
         }
 
         $aiPolicy = JobModel::normalizeAiPolicy($application['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
         if (!$this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''))) {
-            return redirect()->back()->with('error', 'For AI compulsory jobs, recruiter decision is allowed only after AI interview completion.');
+            $message = 'For AI compulsory jobs, recruiter decision is allowed only after AI interview completion.';
+            if ($isAjax) {
+                return $this->respondApplicationStatus(false, $message, null, 422);
+            }
+
+            return redirect()->back()->with('error', $message);
         }
 
         $applicationModel->update($applicationId, ['status' => $status]);
@@ -371,7 +385,48 @@ class RecruiterApplications extends BaseController
             $status
         );
 
-        return redirect()->back()->with('success', 'Application status updated to ' . ucwords(str_replace('_', ' ', $status)));
+        $statusLabel = ucwords(str_replace('_', ' ', $status));
+        if ($isAjax) {
+            return $this->respondApplicationStatus(true, 'Application status updated to ' . $statusLabel, [
+                'application_id' => $applicationId,
+                'status' => $status,
+                'status_label' => $statusLabel,
+                'status_badge' => $this->getApplicationStatusBadgeClass($status),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Application status updated to ' . $statusLabel);
+    }
+
+    private function respondApplicationStatus(bool $success, string $message, ?array $data = null, int $statusCode = 200)
+    {
+        $payload = [
+            'success' => $success,
+            'message' => $message,
+            'csrf_token_name' => csrf_token(),
+            'csrf_hash' => csrf_hash(),
+        ];
+
+        if ($data !== null) {
+            $payload = array_merge($payload, $data);
+        }
+
+        return $this->response->setStatusCode($statusCode)->setJSON($payload);
+    }
+
+    private function getApplicationStatusBadgeClass(string $status): string
+    {
+        $statusColors = [
+            'pending' => 'warning',
+            'applied' => 'warning',
+            'shortlisted' => 'success',
+            'hold' => 'secondary',
+            'interview_slot_booked' => 'success',
+            'selected' => 'success',
+            'rejected' => 'danger',
+        ];
+
+        return $statusColors[$status] ?? 'secondary';
     }
 
     private function isAiCompulsory(string $aiPolicy): bool

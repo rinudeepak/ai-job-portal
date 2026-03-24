@@ -10,12 +10,16 @@
             </div>
             <div class="page-board-actions">
                 <?php if ($unread_count > 0): ?>
-                    <a href="<?= base_url('notifications/mark-all-read') ?>" class="btn btn-primary">
+                    <a href="<?= base_url('notifications/mark-all-read') ?>" class="btn btn-primary js-mark-all-notifications-read">
                         <span class="icon-check mr-1"></span> Mark All as Read
                     </a>
                 <?php endif; ?>
             </div>
         </div>
+    </div>
+
+    <div class="container">
+        <div id="candidateNotificationAjaxAlert"></div>
     </div>
 
     <div class="container content-wrap pb-5">
@@ -33,7 +37,7 @@
                     <?php foreach ($notifications as $notification): ?>
                         <?php $config = model('NotificationModel')->getNotificationConfig($notification['type']); ?>
                         
-                        <div class="card mb-3 notification-card <?= $notification['is_read'] ? '' : 'is-unread' ?>">
+                        <div class="card mb-3 notification-card <?= $notification['is_read'] ? '' : 'is-unread' ?>" data-notification-card="<?= (int) $notification['id'] ?>">
                             <div class="card-body">
                                 <div class="d-flex">
                                     <div class="notification-icon <?= $config['color'] ?> mr-3">
@@ -68,13 +72,15 @@
                                             <div>
                                                 <?php if (!$notification['is_read']): ?>
                                                     <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" 
-                                                       class="btn btn-sm btn-link notification-link-action">
+                                                       class="btn btn-sm btn-link notification-link-action js-mark-notification-read"
+                                                       data-notification-id="<?= (int) $notification['id'] ?>">
                                                         <span class="icon-check mr-1"></span> Mark as Read
                                                     </a>
                                                 <?php endif; ?>
                                                 <a href="<?= base_url('notifications/delete/' . $notification['id']) ?>" 
-                                                   class="btn btn-sm btn-link notification-link-danger"
-                                                   onclick="return confirm('Delete this notification?')">
+                                                   class="btn btn-sm btn-link notification-link-danger js-delete-notification"
+                                                   data-notification-id="<?= (int) $notification['id'] ?>"
+                                                   data-confirm-message="Delete this notification?">
                                                     <span class="icon-trash mr-1"></span> Delete
                                                 </a>
                                             </div>

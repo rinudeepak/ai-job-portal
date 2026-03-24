@@ -11,8 +11,12 @@ class Applications extends BaseController
     public function apply($jobId)
     {
         $session = session();
+        $isAjax = $this->request->isAJAX();
 
         if (!$session->get('logged_in')) {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'Please log in to continue.', null, 401, base_url('login'));
+            }
             return redirect()->to(base_url('login'));
         }
 
@@ -23,6 +27,15 @@ class Applications extends BaseController
         $user = $userModel->findCandidateWithProfile((int) $candidateId) ?? $userModel->find($candidateId);
         
         if (empty($user['resume_path'])) {
+            if ($isAjax) {
+                return $this->respondApplicationAction(
+                    false,
+                    'Please upload your resume to continue your job application.',
+                    null,
+                    422,
+                    base_url('candidate/profile')
+                );
+            }
             return redirect()->to(base_url('candidate/profile'))->with('error', 'Please upload your resume to continue your job application. You have been redirected to your profile page.');
         }
         
@@ -35,6 +48,14 @@ class Applications extends BaseController
             ->first();
 
         if ($alreadyApplied) {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'You have already applied for this job.', [
+                    'application_id' => (int) $alreadyApplied['id'],
+                    'status' => (string) ($alreadyApplied['status'] ?? ''),
+                    'status_label' => ucwords(str_replace('_', ' ', (string) ($alreadyApplied['status'] ?? ''))),
+                    'already_applied' => true,
+                ], 409);
+            }
             return redirect()->back()->with('error', 'You have already applied for this job');
         }
 
@@ -123,7 +144,26 @@ class Applications extends BaseController
                 $session->set('career_suggestions', $suggestions);
             }
             
+            if ($isAjax) {
+                return $this->respondApplicationAction(true, $this->getApplySuccessMessage($aiPolicy), [
+                    'application_id' => $applicationId,
+                    'status' => $initialStatus,
+                    'status_label' => ucwords(str_replace('_', ' ', $initialStatus)),
+                    'redirect_url' => base_url('candidate/dashboard'),
+                    'mismatch' => true,
+                ]);
+            }
+
             return redirect()->to('candidate/dashboard')->with('success', $this->getApplySuccessMessage($aiPolicy));
+        }
+
+        if ($isAjax) {
+            return $this->respondApplicationAction(true, $this->getApplySuccessMessage($aiPolicy), [
+                'application_id' => $applicationId,
+                'status' => $initialStatus,
+                'status_label' => ucwords(str_replace('_', ' ', $initialStatus)),
+                'mismatch' => false,
+            ]);
         }
 
         return redirect()->back()->with('success', $this->getApplySuccessMessage($aiPolicy));
@@ -132,8 +172,12 @@ class Applications extends BaseController
     public function withdraw($applicationId)
     {
         $session = session();
+        $isAjax = $this->request->isAJAX();
 
         if (!$session->get('logged_in') || $session->get('role') !== 'candidate') {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'Please log in to continue.', null, 401, base_url('login'));
+            }
             return redirect()->to(base_url('login'));
         }
 
@@ -148,26 +192,76 @@ class Applications extends BaseController
             ->first();
 
         if (!$application) {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'Application not found.', null, 404);
+            }
             return redirect()->back()->with('error', 'Application not found.');
         }
 
         $status = (string) ($application['status'] ?? '');
         if ($status === 'withdrawn') {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'This application is already withdrawn.', [
+                    'application_id' => (int) $applicationId,
+                    'status' => 'withdrawn',
+                    'status_label' => 'Withdrawn',
+                ], 409);
+            }
             return redirect()->back()->with('info', 'This application is already withdrawn.');
         }
 
         if (in_array($status, ['rejected', 'selected', 'hired'], true)) {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'This application can no longer be withdrawn.', null, 422);
+            }
             return redirect()->back()->with('error', 'This application can no longer be withdrawn.');
         }
 
         if ($status === 'interview_slot_booked' || !empty($application['booking_id'])) {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'Booked interview applications cannot be withdrawn here.', null, 422);
+            }
             return redirect()->back()->with('error', 'Booked interview applications cannot be withdrawn here.');
         }
 
         $applicationModel->update((int) $applicationId, ['status' => 'withdrawn']);
         model('StageHistoryModel')->moveToStage((int) $applicationId, 'Withdrawn by Candidate');
 
+        if ($isAjax) {
+            return $this->respondApplicationAction(true, 'Application withdrawn successfully.', [
+                'application_id' => (int) $applicationId,
+                'status' => 'withdrawn',
+                'status_label' => 'Withdrawn',
+                'status_badge' => 'secondary',
+            ]);
+        }
+
         return redirect()->to(base_url('candidate/applications'))->with('success', 'Application withdrawn successfully.');
+    }
+
+    private function respondApplicationAction(
+        bool $success,
+        string $message,
+        ?array $data = null,
+        int $statusCode = 200,
+        ?string $redirectUrl = null
+    ) {
+        $payload = [
+            'success' => $success,
+            'message' => $message,
+            'csrf_token_name' => csrf_token(),
+            'csrf_hash' => csrf_hash(),
+        ];
+
+        if ($redirectUrl !== null) {
+            $payload['redirect_url'] = $redirectUrl;
+        }
+
+        if ($data !== null) {
+            $payload = array_merge($payload, $data);
+        }
+
+        return $this->response->setStatusCode($statusCode)->setJSON($payload);
     }
 
     private function getApplySuccessMessage(string $aiPolicy): string

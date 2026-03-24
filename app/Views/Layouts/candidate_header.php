@@ -401,12 +401,12 @@
                             </form>
                         </div>
                     </div>
-                    <a href="<?= base_url('notifications') ?>" class="header-notification-link d-none d-lg-inline-flex <?= $unreadNotificationCount > 0 ? 'has-unread' : '' ?>" title="Notifications" aria-label="Notifications">
-                        <span class="icon-bell" style="font-size: 18px; line-height: 1;"></span>
-                        <?php if ($unreadNotificationCount > 0): ?>
-                            <span class="header-notification-badge"><?= $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount ?></span>
-                        <?php endif; ?>
-                    </a>
+                        <a href="<?= base_url('notifications') ?>" class="header-notification-link d-none d-lg-inline-flex <?= $unreadNotificationCount > 0 ? 'has-unread' : '' ?>" title="Notifications" aria-label="Notifications">
+                            <span class="icon-bell" style="font-size: 18px; line-height: 1;"></span>
+                            <?php if ($unreadNotificationCount > 0): ?>
+                                <span class="header-notification-badge js-notification-badge" data-unread-count="<?= $unreadNotificationCount ?>"><?= $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount ?></span>
+                            <?php endif; ?>
+                        </a>
                     <div class="d-none d-lg-inline-block candidate-avatar-menu" id="candidateAvatarMenu">
                         <button type="button" class="candidate-avatar-btn" id="candidateAvatarBtn" aria-haspopup="true" aria-expanded="false" title="<?= esc($candidateName) ?>">
                             <?php if ($candidatePhoto !== ''): ?>

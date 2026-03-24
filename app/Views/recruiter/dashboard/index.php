@@ -1,4 +1,4 @@
-<?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard', 'showHero' => false]) ?>
+﻿<?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard', 'showHero' => false]) ?>
 
 <div class="recruiter-dashboard-jobboard">
     <?php
@@ -9,20 +9,6 @@
     $postJobUrl = base_url('recruiter/post_job');
     $slotsUrl = base_url('recruiter/slots');
     $leaderboardUrl = base_url('recruiter/dashboard/leaderboard');
-    $formatStageLabel = static function ($raw): string {
-        $normalized = strtolower(trim((string) $raw));
-        $map = [
-            'applied' => 'Applied',
-            'shortlisted (recruiter override)' => 'Shortlisted',
-            'rejected (recruiter override)' => 'Rejected',
-            'shortlisted' => 'Shortlisted',
-            'rejected' => 'Rejected',
-            'interview slot booked' => 'Interview Slot Booked',
-            'selected' => 'Selected',
-        ];
-
-        return $map[$normalized] ?? ucwords(str_replace('_', ' ', (string) $raw));
-    };
     $formatRate = static function ($value): string {
         if ($value === null || $value === '') {
             return 'N/A';
@@ -52,18 +38,18 @@
                     </h1>
 
                     <p class="recruiter-dashboard-hero-subtitle">
-                        Access a curated pool of talented professionals matched to your needs. Smart candidate matching powered by AI to fill your roles faster.
+                        A quick view of open roles, active applications, and what needs attention today.
                     </p>
 
                 </div>
 
                 <div class="recruiter-dashboard-hero-aside">
-                    <div class="recruiter-dashboard-hero-panel">
-                        <div class="recruiter-dashboard-hero-panel-icon">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <h3>Post a New Job</h3>
-                        <p>Create a role, define the requirements, and start receiving qualified applicants faster.</p>
+                        <div class="recruiter-dashboard-hero-panel">
+                            <div class="recruiter-dashboard-hero-panel-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                        <h3>Post a role</h3>
+                        <p>Create a role and start receiving qualified applicants faster.</p>
                         <a href="<?= $postJobUrl ?>" class="btn btn-primary w-100 mt-3">
                             <i class="fas fa-plus"></i> Post Job
                         </a>
@@ -74,27 +60,8 @@
     </section>
 
     <div class="container recruiter-dashboard-main">
-        <?php if (!empty($reminders ?? [])): ?>
-        <div class="recruiter-reminders-grid mb-4">
-            <?php foreach ($reminders as $reminder): ?>
-                <a href="<?= esc($reminder['link'] ?? '#') ?>" class="recruiter-reminder-card tone-<?= esc($reminder['tone'] ?? 'primary') ?>">
-                    <div class="recruiter-reminder-icon">
-                        <i class="<?= esc($reminder['icon'] ?? 'fas fa-bell') ?>"></i>
-                    </div>
-                    <div class="recruiter-reminder-copy">
-                        <div class="recruiter-reminder-title"><?= esc($reminder['label'] ?? '') ?></div>
-                        <div class="recruiter-reminder-text"><?= esc($reminder['description'] ?? '') ?></div>
-                    </div>
-                    <div class="recruiter-reminder-action">
-                        View <i class="fas fa-arrow-right ms-1"></i>
-                    </div>
-                </a>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
-
         <?php if (!empty($noJobs)): ?>
-        <div class="card shadow mb-4">
+        <div class="card shadow mb-4 recruiter-dashboard-panel-card">
             <div class="card-body p-4 text-center">
                 <h4 class="mb-2">No jobs posted yet</h4>
                 <p class="text-muted mb-3">Post your first job to start receiving applications and build your hiring pipeline.</p>
@@ -221,8 +188,8 @@
 
         <?php if (empty($noJobs)): ?>
         <div class="row mb-4 recruiter-action-center">
-        <div class="col-xl-8 mb-3">
-            <div class="card shadow h-100">
+        <div class="col-12 mb-3">
+            <div class="card shadow h-100 recruiter-dashboard-panel-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-bolt"></i> Action Center</h6>
                 </div>
@@ -271,34 +238,23 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-4 mb-3">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-link"></i> Quick Links</h6>
-                </div>
-                <div class="card-body recruiter-quick-links">
-                    <a href="<?= $jobsUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-briefcase"></i> My Jobs</a>
-                    <a href="<?= $postJobUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-plus-circle"></i> Post New Job</a>
-                    <a href="<?= $slotsUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-calendar-alt"></i> Interview Slots</a>
-                    <a href="<?= $bookingsUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-calendar-check"></i> Interview Bookings</a>
-                    <a href="<?= $leaderboardUrl ?>" class="btn btn-outline-secondary btn-block"><i class="fas fa-trophy"></i> Leaderboard</a>
-                </div>
-            </div>
-        </div>
         </div>
         <?php endif; ?>
 
         <!-- Main Content Row -->
         <div class="row recruiter-pipeline-row" id="conversion-metrics">
-        <!-- Recruitment Pipeline -->
-        <div class="col-xl-8 mb-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar"></i> Recruitment Pipeline</h6>
+        <div class="col-12 mb-4">
+            <div class="card shadow h-100 recruiter-dashboard-panel-card recruiter-pipeline-card">
+                <div class="card-header py-3 recruiter-section-header">
+                    <div>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar"></i> Recruitment Pipeline</h6>
+                        <small class="text-muted">A quick read on volume, screening progress, and where the process slows down.</small>
+                    </div>
+                    <a href="<?= $jobsUrl ?>" class="btn btn-outline-primary btn-sm">Review jobs</a>
                 </div>
                 <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-3">
+                    <div class="row text-center recruiter-pipeline-stats">
+                        <div class="col-md-3 col-6 mb-3 mb-md-0">
                             <div class="pipeline-stat">
                                 <div class="stat-icon bg-primary">
                                     <i class="fas fa-inbox"></i>
@@ -308,7 +264,7 @@
                             </div>
                         </div>
                         <?php $screeningCompleted = (int) ($funnel['shortlisted'] ?? 0) + (int) ($funnel['rejected'] ?? 0); ?>
-                        <div class="col-3">
+                        <div class="col-md-3 col-6 mb-3 mb-md-0">
                             <div class="pipeline-stat">
                                 <div class="stat-icon bg-info">
                                     <i class="fas fa-robot"></i>
@@ -318,7 +274,7 @@
                                 <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($screeningCompleted / $funnel['total_applications']) * 100, 1) : 0 ?>% from applications</small>
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-md-3 col-6">
                             <div class="pipeline-stat">
                                 <div class="stat-icon bg-success">
                                     <i class="fas fa-star"></i>
@@ -328,7 +284,7 @@
                                 <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $screeningCompleted > 0 ? round(($funnel['shortlisted'] / $screeningCompleted) * 100, 1) : 0 ?>% from screened</small>
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-md-3 col-6">
                             <div class="pipeline-stat">
                                 <div class="stat-icon bg-warning">
                                     <i class="fas fa-calendar-check"></i>
@@ -339,195 +295,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="alert alert-light mt-3 mb-0">
-                        <small class="text-muted"><i class="fas fa-info-circle"></i> Each stage shows conversion rate from previous stage</small>
+                    <div class="alert alert-light mt-3 mb-0 recruiter-pipeline-note">
+                        <small class="text-muted"><i class="fas fa-info-circle"></i> Each stage shows conversion rate from the previous stage.</small>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Stage Time Analytics -->
-        <div class="col-xl-4 mb-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-clock"></i> Stage Time Analytics</h6>
-                </div>
-                <div class="card-body">
-                    <?php if (!empty($stageTimeAnalytics)): ?>
-                        <?php
-                        $stageAnalytics = $stageTimeAnalytics;
-                        $maxHours = max(array_column($stageAnalytics, 'hours'));
-                        $avgDays = array_sum(array_map(static function ($stage) {
-                            return (float) ($stage['days'] ?? 0);
-                        }, $stageAnalytics)) / max(count($stageAnalytics), 1);
-                        $slowestStage = $stageAnalytics[0];
-                        $fastestStage = $stageAnalytics[0];
-                        foreach ($stageAnalytics as $stageItem) {
-                            if ((float) ($stageItem['hours'] ?? 0) > (float) ($slowestStage['hours'] ?? 0)) {
-                                $slowestStage = $stageItem;
-                            }
-                            if ((float) ($stageItem['hours'] ?? 0) < (float) ($fastestStage['hours'] ?? 0)) {
-                                $fastestStage = $stageItem;
-                            }
-                        }
-                        ?>
-                        <div class="stage-insight-strip">
-                            <div class="stage-insight-item">
-                                <span class="stage-insight-label">Average stage time</span>
-                                <strong><?= number_format($avgDays, 1) ?> days</strong>
-                            </div>
-                            <div class="stage-insight-item">
-                                <span class="stage-insight-label">Slowest stage</span>
-                                <strong><?= esc($formatStageLabel($slowestStage['stage'])) ?></strong>
-                            </div>
-                            <div class="stage-insight-item">
-                                <span class="stage-insight-label">Fastest stage</span>
-                                <strong><?= esc($formatStageLabel($fastestStage['stage'])) ?></strong>
-                            </div>
-                        </div>
-
-                        <div class="stage-time-list">
-                            <?php foreach (array_slice($stageAnalytics, 0, 3) as $stage): ?>
-                                <?php $isBottleneck = $stage['hours'] > ($maxHours * 0.7); ?>
-                                <div class="stage-time-item mb-3" data-aos="fade-left">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <span class="stage-name-label"><?= esc($formatStageLabel($stage['stage'])) ?></span>
-                                            <?php if ($isBottleneck): ?>
-                                                <span class="badge badge-danger ml-1" title="Potential bottleneck">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="text-right">
-                                            <strong class="text-primary"><?= $stage['days'] ?> days</strong>
-                                            <small class="text-muted d-block"><?= $stage['hours'] ?>h</small>
-                                        </div>
-                                    </div>
-                                    <div class="progress" style="height: 10px;">
-                                        <div class="progress-bar <?= $stage['days'] > 7 ? 'bg-danger' : ($stage['days'] > 3 ? 'bg-warning' : 'bg-success') ?>"
-                                             style="width: <?= min(($stage['hours'] / $maxHours) * 100, 100) ?>%"
-                                             data-toggle="tooltip"
-                                             title="<?= $stage['count'] ?> candidates">
-                                        </div>
-                                    </div>
-                                    <small class="text-muted">
-                                        <i class="fas fa-users"></i> <?= $stage['count'] ?> candidates
-                                    </small>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">No stage data available yet</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
         </div>
-        </div>
-
-        <!-- Conversion Metrics & Top Jobs Row -->
-        <div class="row">
-        <!-- Conversion Metrics -->
-        <div class="col-xl-6 mb-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Conversion Metrics</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Stage Transition</th>
-                                    <th class="text-right">Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Application → AI Interview</td>
-                                    <td class="text-right">
-                                        <span class="badge badge-<?= $rateClass($conversionMetrics['application_to_ai_interview'] ?? null, 50) ?>">
-                                            <?= $formatRate($conversionMetrics['application_to_ai_interview'] ?? null) ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>AI Interview → Shortlist</td>
-                                    <td class="text-right">
-                                        <span class="badge badge-<?= $rateClass($conversionMetrics['ai_interview_to_shortlist'] ?? null, 40) ?>">
-                                            <?= $formatRate($conversionMetrics['ai_interview_to_shortlist'] ?? null) ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Shortlist → HR Interview</td>
-                                    <td class="text-right">
-                                        <span class="badge badge-<?= $rateClass($conversionMetrics['shortlist_to_hr_interview'] ?? null, 60) ?>">
-                                            <?= $formatRate($conversionMetrics['shortlist_to_hr_interview'] ?? null) ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>HR Interview → Selection</td>
-                                    <td class="text-right">
-                                        <span class="badge badge-<?= $rateClass($conversionMetrics['hr_interview_to_selection'] ?? null, 30) ?>">
-                                            <?= $formatRate($conversionMetrics['hr_interview_to_selection'] ?? null) ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr class="font-weight-bold">
-                                    <td>Overall Conversion</td>
-                                    <td class="text-right">
-                                        <span class="badge badge-primary badge-lg">
-                                            <?= number_format((float) ($conversionMetrics['overall_conversion'] ?? 0), 1) ?>%
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Jobs by Applications -->
-        <div class="col-xl-6 mb-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top Jobs by Applications</h6>
-                </div>
-                <div class="card-body">
-                    <?php if (!empty($topJobs)): ?>
-                        <?php 
-                        $maxCount = max(array_column($topJobs, 'application_count'));
-                        foreach ($topJobs as $job): 
-                            $percentage = $maxCount > 0 ? ($job['application_count'] / $maxCount * 100) : 0;
-                        ?>
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span class="font-weight-bold"><?= esc($job['title']) ?></span>
-                                    <span class="badge badge-primary"><?= $job['application_count'] ?></span>
-                                </div>
-                                <div class="progress" style="height: 12px;">
-                                    <div class="progress-bar bg-gradient-primary" style="width: <?= $percentage ?>%"></div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p class="text-muted text-center">No job data available</p>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-        </div>
-
         <!-- Recent Applications -->
-        <div class="row">
+        <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow">
+            <div class="card shadow recruiter-dashboard-panel-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Recent Applications</h6>
                 </div>
@@ -588,9 +366,86 @@
             </div>
         </div>
         </div>
+
+        <!-- Conversion Metrics -->
+        <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow h-100 recruiter-dashboard-panel-card">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Conversion Metrics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="conversion-summary-row">
+                        <div class="conversion-summary-card">
+                            <span class="conversion-summary-label">Overall conversion</span>
+                            <div class="conversion-summary-value"><?= number_format((float) ($conversionMetrics['overall_conversion'] ?? 0), 1) ?>%</div>
+                            <small class="text-muted">Pipeline efficiency</small>
+                        </div>
+                        <div class="conversion-summary-note">
+                            <strong>Stage transitions</strong>
+                            <p class="mb-0 text-muted">Quick view of where candidates move forward or slow down.</p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm conversion-table">
+                            <thead>
+                                <tr>
+                                    <th>Stage Transition</th>
+                                    <th class="text-right">Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Application → AI Interview</td>
+                                    <td class="text-right">
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['application_to_ai_interview'] ?? null, 50) ?>">
+                                            <?= $formatRate($conversionMetrics['application_to_ai_interview'] ?? null) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>AI Interview → Shortlist</td>
+                                    <td class="text-right">
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['ai_interview_to_shortlist'] ?? null, 40) ?>">
+                                            <?= $formatRate($conversionMetrics['ai_interview_to_shortlist'] ?? null) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Shortlist → HR Interview</td>
+                                    <td class="text-right">
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['shortlist_to_hr_interview'] ?? null, 60) ?>">
+                                            <?= $formatRate($conversionMetrics['shortlist_to_hr_interview'] ?? null) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>HR Interview → Selection</td>
+                                    <td class="text-right">
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['hr_interview_to_selection'] ?? null, 30) ?>">
+                                            <?= $formatRate($conversionMetrics['hr_interview_to_selection'] ?? null) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr class="font-weight-bold">
+                                    <td>Overall Conversion</td>
+                                    <td class="text-right">
+                                        <span class="badge badge-primary badge-lg">
+                                            <?= number_format((float) ($conversionMetrics['overall_conversion'] ?? 0), 1) ?>%
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
     </div>
 </div>
 
 
 
 <?= view('Layouts/recruiter_footer') ?>
+

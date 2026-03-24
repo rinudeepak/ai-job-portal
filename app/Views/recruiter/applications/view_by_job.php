@@ -45,6 +45,8 @@
         <div class="alert alert-danger recruiter-alert"><?= session()->getFlashdata('error') ?></div>
     <?php endif; ?>
 
+    <div id="recruiterAjaxAlert"></div>
+
     <div class="card shadow-sm recruiter-job-summary-card mb-4">
         <div class="card-body">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
@@ -199,7 +201,7 @@
                         </thead>
                         <tbody>
                             <?php foreach ($applications as $app): ?>
-                                <tr>
+                                <tr data-application-row="<?= (int) $app['id'] ?>">
                                     <td>
                                         <input type="checkbox" class="application-checkbox" value="<?= (int) $app['id'] ?>">
                                     </td>
@@ -260,7 +262,9 @@
                                         ];
                                         $label = $statusLabels[$app['status']] ?? ucwords(str_replace('_', ' ', $app['status']));
                                         ?>
-                                        <span class="badge badge-<?= $color ?>"><?= esc($label) ?></span>
+                                        <span class="badge badge-<?= $color ?> application-status-badge" data-status="<?= esc($app['status']) ?>">
+                                            <?= esc($label) ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <?php
@@ -290,13 +294,13 @@
                                                 <i class="fas fa-user"></i> View Profile
                                             </a>
                                             <?php if (!empty($app['can_manual_decision'])): ?>
-                                                <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="application-action-form">
+                                                <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="application-action-form" data-application-id="<?= (int) $app['id'] ?>">
                                                     <?= csrf_field() ?>
                                                 <button type="submit" class="btn btn-sm btn-primary">
                                                     <i class="fas fa-check"></i> Shortlist
                                                 </button>
                                                 </form>
-                                                <form method="post" action="<?= base_url('recruiter/applications/reject/' . $app['id']) ?>" class="application-action-form">
+                                                <form method="post" action="<?= base_url('recruiter/applications/reject/' . $app['id']) ?>" class="application-action-form" data-application-id="<?= (int) $app['id'] ?>">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn btn-sm btn-danger">
                                                         <i class="fas fa-times"></i> Reject
@@ -324,4 +328,107 @@
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+(function () {
+    const alertHost = document.getElementById('recruiterAjaxAlert');
+
+    function showAlert(type, message) {
+        if (!alertHost) {
+            return;
+        }
+
+        alertHost.innerHTML = '<div class="alert alert-' + type + ' recruiter-alert">' + message + '</div>';
+    }
+
+    function refreshCsrfTokens(tokenName, tokenHash) {
+        if (!tokenName || !tokenHash) {
+            return;
+        }
+
+        document.querySelectorAll('input[name="' + tokenName + '"]').forEach(function (input) {
+            input.value = tokenHash;
+        });
+    }
+
+    function setButtonBusy(button, busy) {
+        if (!button) {
+            return;
+        }
+
+        if (busy) {
+            if (!button.dataset.originalHtml) {
+                button.dataset.originalHtml = button.innerHTML;
+            }
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>Saving';
+            return;
+        }
+
+        if (button.dataset.originalHtml) {
+            button.innerHTML = button.dataset.originalHtml;
+        }
+        button.disabled = false;
+    }
+
+    document.addEventListener('submit', function (event) {
+        const form = event.target;
+        if (!form.classList.contains('application-action-form')) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const row = form.closest('[data-application-row]');
+        const button = form.querySelector('button[type="submit"]');
+
+        setButtonBusy(button, true);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: new FormData(form)
+        })
+            .then(async function (response) {
+                const contentType = response.headers.get('content-type') || '';
+                let payload = null;
+
+                if (contentType.indexOf('application/json') !== -1) {
+                    payload = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(text || 'Unexpected response from the server.');
+                }
+
+                if (payload.csrf_token_name && payload.csrf_hash) {
+                    refreshCsrfTokens(payload.csrf_token_name, payload.csrf_hash);
+                }
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.message || 'Could not update application status.');
+                }
+
+                showAlert('success', payload.message);
+
+                if (row) {
+                    const badge = row.querySelector('.application-status-badge');
+                    if (badge) {
+                        badge.className = 'badge badge-' + (payload.status_badge || 'secondary') + ' application-status-badge';
+                        badge.textContent = payload.status_label || badge.textContent;
+                        badge.dataset.status = payload.status || '';
+                    }
+                }
+            })
+            .catch(function (error) {
+                showAlert('danger', error.message || 'Could not update application status.');
+            })
+            .finally(function () {
+                setButtonBusy(button, false);
+            });
+    });
+})();
+</script>
 <?= view('Layouts/recruiter_footer') ?>

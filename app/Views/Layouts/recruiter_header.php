@@ -42,16 +42,16 @@
         <div class="site-mobile-menu-body"></div>
     </div>
 
-    <header class="site-navbar mt-3 site-navbar-target">
+    <header class="site-navbar site-navbar-target">
         <div class="container-fluid">
             <div class="row align-items-center">
-                <div class="site-logo col-6">
+                <div class="site-logo col-6 col-xl-2">
                     <a href="<?= base_url('recruiter/dashboard') ?>" class="d-inline-flex align-items-center">
                         <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 34px; width: auto; margin-right: 8px;">
                         <span style="text-transform: none;">HireMatrix</span>
                     </a>
                 </div>
-                <nav class="mx-auto site-navigation">
+                <nav class="mx-auto site-navigation col-xl-7">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
                         <li class="has-children">
                             <a href="<?= base_url('recruiter/jobs') ?>" class="nav-link">Jobs</a>
@@ -64,12 +64,12 @@
                         <li><a href="<?= base_url('recruiter/slots') ?>" class="nav-link">Interview Slots</a></li>
                     </ul>
                 </nav>
-                <div class="right-cta-menu text-right d-flex align-items-center col-6">
+                <div class="right-cta-menu text-right d-flex justify-content-end align-items-center col-6 col-xl-3">
                     <div class="ml-auto d-flex align-items-center">
                         <a href="<?= base_url('notifications') ?>" class="recruiter-notification-link d-none d-lg-inline-flex" title="Notifications" aria-label="Notifications">
                             <span class="icon-bell" style="font-size: 18px; line-height: 1;"></span>
                             <?php if ($recruiterUnreadNotificationCount > 0): ?>
-                                <span class="recruiter-notification-badge"><?= $recruiterUnreadNotificationCount > 99 ? '99+' : $recruiterUnreadNotificationCount ?></span>
+                                <span class="recruiter-notification-badge js-notification-badge" data-unread-count="<?= $recruiterUnreadNotificationCount ?>"><?= $recruiterUnreadNotificationCount > 99 ? '99+' : $recruiterUnreadNotificationCount ?></span>
                             <?php endif; ?>
                         </a>
                         <div class="d-none d-lg-inline-block recruiter-avatar-menu" id="recruiterAvatarMenu">

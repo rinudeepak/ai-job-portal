@@ -56,7 +56,7 @@ $resumeTargets = $resumeTargets ?? [];
                     <?php if (!empty($activeTransition)): ?>
                         <div class="detail-card resume-transition-card">
                             <div class="detail-card-title">
-                                <span class="detail-card-icon"><i class="fas fa-route"></i></span>
+                                <span class="detail-card-icon"><i class="fas fa-exchange-alt"></i></span>
                                 <span>Active Transition</span>
                             </div>
                             <div class="resume-transition-flow">

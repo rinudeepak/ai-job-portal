@@ -8,18 +8,20 @@
             <h1 class="page-board-title">All Notifications</h1>
             <p class="page-board-subtitle">Track candidate activity, applications, and recruiter actions in one place.</p>
             <div class="company-profile-meta">
-                <span class="meta-chip"><strong><?= number_format((int) $unread_count) ?></strong> Unread</span>
+                <span class="meta-chip"><strong id="recruiterUnreadCount"><?= number_format((int) $unread_count) ?></strong> Unread</span>
                 <span class="meta-chip"><strong><?= number_format(count($notifications ?? [])) ?></strong> Total</span>
             </div>
         </div>
         <div class="page-board-actions">
             <?php if ($unread_count > 0): ?>
-                <a href="<?= base_url('notifications/mark-all-read') ?>" class="btn btn-primary">
+                <a href="<?= base_url('notifications/mark-all-read') ?>" class="btn btn-primary js-mark-all-notifications-read">
                     <span class="icon-check mr-1"></span> Mark All as Read
                 </a>
             <?php endif; ?>
         </div>
     </div>
+
+    <div id="recruiterNotificationAjaxAlert"></div>
 
     <?php if (empty($notifications)): ?>
         <div class="card shadow-sm recruiter-notification-empty">
@@ -33,7 +35,7 @@
         <div class="recruiter-notification-list">
             <?php foreach ($notifications as $notification): ?>
                 <?php $config = model('NotificationModel')->getNotificationConfig($notification['type']); ?>
-                <div class="card shadow-sm recruiter-notification-card <?= $notification['is_read'] ? '' : 'is-unread' ?>">
+                <div class="card shadow-sm recruiter-notification-card <?= $notification['is_read'] ? '' : 'is-unread' ?>" data-notification-card="<?= (int) $notification['id'] ?>">
                     <div class="card-body">
                         <div class="recruiter-notification-row">
                             <div class="recruiter-notification-icon <?= esc($config['color']) ?>">
@@ -62,11 +64,11 @@
 
                                     <div class="recruiter-notification-links">
                                         <?php if (!$notification['is_read']): ?>
-                                            <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" class="btn btn-sm btn-link">
+                                            <a href="<?= base_url('notifications/mark-read/' . $notification['id']) ?>" class="btn btn-sm btn-link js-mark-notification-read" data-notification-id="<?= (int) $notification['id'] ?>">
                                                 <span class="icon-check mr-1"></span> Mark as Read
                                             </a>
                                         <?php endif; ?>
-                                        <a href="<?= base_url('notifications/delete/' . $notification['id']) ?>" class="btn btn-sm btn-link text-danger" onclick="return confirm('Delete this notification?')">
+                                        <a href="<?= base_url('notifications/delete/' . $notification['id']) ?>" class="btn btn-sm btn-link text-danger js-delete-notification" data-notification-id="<?= (int) $notification['id'] ?>" data-confirm-message="Delete this notification?">
                                             <span class="icon-trash mr-1"></span> Delete
                                         </a>
                                     </div>

@@ -62,10 +62,10 @@
 <script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
 <script src="<?= base_url('jobboard/js/custom.js') ?>"></script>
 <script src="<?= base_url('jobboard/js/recruiter-pages.js') ?>"></script>
+<script src="<?= base_url('jobboard/js/notification-actions.js?v=' . @filemtime(FCPATH . 'jobboard/js/notification-actions.js')) ?>"></script>
 
 </div>
 </body>
 </html>
-
 
 
