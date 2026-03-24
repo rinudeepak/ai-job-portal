@@ -4,6 +4,220 @@
         return meta ? meta.getAttribute('content').replace(/\/$/, '') : window.location.origin;
     }
 
+    function fetchHtml(url) {
+        return fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+            return response.text();
+        });
+    }
+
+    function normalizeUrl(url) {
+        return new URL(url, window.location.origin).toString();
+    }
+
+    function replaceJobsMainFromHtml(html, url) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var newJobsMain = doc.querySelector('.jobs-page-jobboard .jobs-main');
+        var currentJobsMain = document.querySelector('.jobs-page-jobboard .jobs-main');
+
+        if (!newJobsMain || !currentJobsMain) {
+            window.location.href = url;
+            return false;
+        }
+
+        currentJobsMain.replaceWith(newJobsMain);
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, '', url);
+        }
+        return true;
+    }
+
+    function replaceFilterFormFromHtml(html, url) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var newFilterForm = doc.querySelector('.jobs-page-jobboard #filterForm');
+        var currentFilterForm = document.querySelector('.jobs-page-jobboard #filterForm');
+
+        if (!newFilterForm || !currentFilterForm) {
+            window.location.href = url;
+            return false;
+        }
+
+        currentFilterForm.replaceWith(newFilterForm);
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, '', url);
+        }
+        return true;
+    }
+
+    function setRecommendationTabState(recType) {
+        var tabButtons = document.querySelectorAll('.jobs-page-jobboard .tab-pill');
+        tabButtons.forEach(function (button) {
+            var buttonRecType = button.getAttribute('data-rec-type') || '';
+            var isActive = buttonRecType === recType;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    }
+
+    function setJobsLoadingState(isLoading) {
+        var jobsMain = document.querySelector('.jobs-page-jobboard .jobs-main');
+        if (jobsMain) {
+            jobsMain.classList.toggle('is-switching', !!isLoading);
+        }
+        var filterForm = document.getElementById('filterForm');
+        if (filterForm) {
+            filterForm.classList.toggle('is-switching', !!isLoading);
+        }
+        var recommendedStage = document.querySelector('.jobs-page-jobboard .recommended-jobs-stage');
+        if (recommendedStage) {
+            recommendedStage.classList.toggle('is-switching', !!isLoading);
+        }
+    }
+
+    function showRecommendationPane(recType) {
+        var panes = document.querySelectorAll('.jobs-page-jobboard [data-rec-pane]');
+        if (!panes.length) {
+            return false;
+        }
+
+        panes.forEach(function (pane) {
+            var isActive = pane.getAttribute('data-rec-pane') === recType;
+            pane.classList.toggle('d-none', !isActive);
+        });
+
+        return true;
+    }
+
+    function updateSaveButtonState(button, saved) {
+        var icon = button.querySelector('.js-save-icon') || button.querySelector('i');
+        var label = button.querySelector('.js-save-label');
+        var savedLabel = button.getAttribute('data-save-label-saved') || 'Saved';
+        var saveLabel = button.getAttribute('data-save-label-save') || 'Save Job';
+        var jobId = button.getAttribute('data-job-id') || '';
+        var nextUrl = jobId
+            ? getBaseUrl() + '/job/' + (saved ? 'unsave/' : 'save/') + jobId
+            : (button.getAttribute('data-save-url') || '');
+
+        button.setAttribute('data-saved', saved ? '1' : '0');
+        button.setAttribute('aria-label', saved ? 'Saved job' : 'Save job');
+        button.setAttribute('title', saved ? 'Saved' : 'Save Job');
+        button.classList.toggle('is-saved', !!saved);
+
+        if (icon) {
+            icon.className = (saved ? 'fas' : 'far') + ' fa-bookmark' + (label ? ' mr-1' : '');
+        }
+
+        if (label) {
+            label.textContent = saved ? savedLabel : saveLabel;
+        }
+
+        if (nextUrl) {
+            var absoluteNextUrl = normalizeUrl(nextUrl);
+            button.setAttribute('data-save-url', absoluteNextUrl);
+            if (button.tagName === 'A') {
+                button.setAttribute('href', absoluteNextUrl);
+            }
+        }
+    }
+
+    function handleSavedJobsRemoval(button) {
+        var card = button.closest('.job-card');
+        var grid = button.closest('.saved-job-grid');
+        if (card) {
+            card.remove();
+        }
+        if (grid && !grid.querySelector('.saved-job-card')) {
+            var resultsBar = document.querySelector('.saved-jobs-jobboard .results-bar');
+            if (resultsBar) {
+                resultsBar.remove();
+            }
+            grid.outerHTML = '<div class="empty-state"><i class="fas fa-bookmark"></i><h5>No saved jobs yet</h5><p>Save jobs from listings and they will appear here.</p><a href="' + getBaseUrl() + '/jobs" style="display:inline-block;margin-top:12px;background:var(--ink);color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-family:\'Syne\',sans-serif;font-weight:700;">Browse Jobs</a></div>';
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        var saveButton = event.target.closest('.js-save-job-toggle');
+        if (!saveButton) {
+            var filterLink = event.target.closest('.jobs-page-jobboard a[data-jobs-filter-link]');
+            if (!filterLink) {
+                return;
+            }
+
+            var filterUrl = normalizeUrl(filterLink.getAttribute('href') || '');
+            if (!filterUrl) {
+                return;
+            }
+
+            event.preventDefault();
+            if (filterLink.getAttribute('data-saving') === '1') {
+                return;
+            }
+
+            filterLink.setAttribute('data-saving', '1');
+            setJobsLoadingState(true);
+            fetchHtml(filterUrl)
+                .then(function (html) {
+                    if (!replaceFilterFormFromHtml(html, filterUrl)) {
+                        window.location.href = filterUrl;
+                    }
+                })
+                .catch(function () {
+                    window.location.href = filterUrl;
+                })
+                .finally(function () {
+                    filterLink.removeAttribute('data-saving');
+                    setJobsLoadingState(false);
+                });
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (saveButton.getAttribute('data-saving') === '1') {
+            return;
+        }
+
+        var url = normalizeUrl(saveButton.getAttribute('data-save-url') || '');
+        if (!url) {
+            return;
+        }
+
+        saveButton.setAttribute('data-saving', '1');
+        saveButton.disabled = true;
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Request failed');
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                var isSaved = !!(data && data.saved);
+                updateSaveButtonState(saveButton, isSaved);
+
+                if (saveButton.closest('.saved-jobs-jobboard') && !isSaved) {
+                    handleSavedJobsRemoval(saveButton);
+                }
+            })
+            .catch(function () {
+                window.location.href = url;
+            })
+            .finally(function () {
+                saveButton.removeAttribute('data-saving');
+                saveButton.disabled = false;
+            });
+    });
+
     window.dismissAllSuggestions = function () {
         fetch(getBaseUrl() + '/career-transition/dismiss-suggestion', {
             method: 'POST',
@@ -330,12 +544,36 @@
         if (tab === 'recommended') {
             url.searchParams.set('tab', 'recommended');
             url.searchParams.set('rec', recType || 'skills');
-            window.location.href = url.toString();
+            setJobsLoadingState(true);
+            fetchHtml(url.toString())
+                .then(function (html) {
+                    if (!replaceJobsMainFromHtml(html, url.toString())) {
+                        window.location.href = url.toString();
+                    }
+                })
+                .catch(function () {
+                    window.location.href = url.toString();
+                })
+                .finally(function () {
+                    setJobsLoadingState(false);
+                });
             return;
         }
 
         url.searchParams.set('tab', 'all');
-        window.location.href = url.toString();
+        setJobsLoadingState(true);
+        fetchHtml(url.toString())
+            .then(function (html) {
+                if (!replaceJobsMainFromHtml(html, url.toString())) {
+                    window.location.href = url.toString();
+                }
+            })
+            .catch(function () {
+                window.location.href = url.toString();
+            })
+            .finally(function () {
+                setJobsLoadingState(false);
+            });
     };
 
     window.switchRecommendation = function (recType, e) {
@@ -343,10 +581,34 @@
             e.preventDefault();
         }
 
+        setRecommendationTabState(recType);
+        if (showRecommendationPane(recType)) {
+            var instantUrl = new URL(getBaseUrl() + '/jobs', window.location.origin);
+            instantUrl.searchParams.set('tab', 'recommended');
+            instantUrl.searchParams.set('rec', recType);
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, '', instantUrl.toString());
+            }
+            setJobsLoadingState(false);
+            return;
+        }
+
         var url = new URL(getBaseUrl() + '/jobs', window.location.origin);
         url.searchParams.set('tab', 'recommended');
         url.searchParams.set('rec', recType);
-        window.location.href = url.toString();
+        setJobsLoadingState(true);
+        fetchHtml(url.toString())
+            .then(function (html) {
+                if (!replaceJobsMainFromHtml(html, url.toString())) {
+                    window.location.href = url.toString();
+                }
+            })
+            .catch(function () {
+                window.location.href = url.toString();
+            })
+            .finally(function () {
+                setJobsLoadingState(false);
+            });
     };
 
     window.submitFilters = function () {
@@ -357,7 +619,31 @@
         }
 
         activeTabInput.value = 'all';
-        filterForm.submit();
+        var url = new URL(filterForm.getAttribute('action') || (getBaseUrl() + '/jobs'), window.location.origin);
+        var formData = new FormData(filterForm);
+
+        url.search = '';
+        formData.forEach(function (value, key) {
+            if (value === null || value === '') {
+                return;
+            }
+            url.searchParams.append(key, value);
+        });
+        url.searchParams.set('tab', 'all');
+
+        setJobsLoadingState(true);
+        fetchHtml(url.toString())
+            .then(function (html) {
+                if (!replaceFilterFormFromHtml(html, url.toString())) {
+                    window.location.href = url.toString();
+                }
+            })
+            .catch(function () {
+                window.location.href = url.toString();
+            })
+            .finally(function () {
+                setJobsLoadingState(false);
+            });
     };
 
     window.toggleMobileFilters = function () {

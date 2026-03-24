@@ -588,6 +588,83 @@
     font-size: 12px;
 }
 
+.recruiter-dashboard-jobboard .recruiter-pipeline-row {
+    align-items: flex-start;
+}
+
+.recruiter-dashboard-jobboard .stage-insight-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.recruiter-dashboard-jobboard .stage-insight-item {
+    border: 1px solid #edf1fa;
+    border-radius: 1rem;
+    background: #f8fbff;
+    padding: 0.75rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.recruiter-dashboard-jobboard .stage-insight-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 800;
+    color: #6b7ca5;
+}
+
+.recruiter-dashboard-jobboard .stage-insight-item strong {
+    color: #1f2f57;
+    font-size: 0.98rem;
+    line-height: 1.2;
+}
+
+.recruiter-dashboard-jobboard .stage-time-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.recruiter-dashboard-jobboard .recruiter-action-center-empty {
+    min-height: 230px;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+}
+
+.recruiter-dashboard-jobboard .recruiter-action-center-empty-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: rgba(255, 123, 42, 0.1);
+    color: #ff7b2a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.9rem;
+    font-size: 18px;
+}
+
+.recruiter-dashboard-jobboard .recruiter-action-center-empty h6 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2f57;
+}
+
+.recruiter-dashboard-jobboard .recruiter-action-center-empty p {
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem !important;
+}
+
 .recruiter-jobboard .recruiter-quick-links .btn {
     text-align: left;
     font-weight: 600;
@@ -912,6 +989,10 @@
     border: 1px solid #edf1fa;
     border-radius: 1rem;
     background: #fbfdff;
+}
+
+.recruiter-dashboard-jobboard .stage-time-item .progress {
+    margin-bottom: 0.35rem;
 }
 
 .recruiter-dashboard-jobboard .stage-name-label {

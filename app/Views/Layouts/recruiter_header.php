@@ -53,7 +53,6 @@
                 </div>
                 <nav class="mx-auto site-navigation">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
-                        <li><a href="<?= base_url('recruiter/dashboard') ?>" class="nav-link">Dashboard</a></li>
                         <li class="has-children">
                             <a href="<?= base_url('recruiter/jobs') ?>" class="nav-link">Jobs</a>
                             <ul class="dropdown">

@@ -84,6 +84,15 @@ class SavedJobs extends BaseController
             ]);
         }
 
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => true,
+                'saved' => true,
+                'job_id' => $jobId,
+                'message' => 'Job saved.',
+            ]);
+        }
+
         return redirect()->back();
     }
 
@@ -98,6 +107,15 @@ class SavedJobs extends BaseController
             ->where('candidate_id', $candidateId)
             ->where('job_id', $jobId)
             ->delete();
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => true,
+                'saved' => false,
+                'job_id' => $jobId,
+                'message' => 'Job removed from saved list.',
+            ]);
+        }
 
         return redirect()->back();
     }

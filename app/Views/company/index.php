@@ -13,14 +13,6 @@ $filters = $filters ?? [];
                 <h1 class="page-board-title">Explore Companies</h1>
                 <p class="page-board-subtitle">Search employers, compare company profiles, and discover open roles.</p>
             </div>
-            <div class="company-profile-actions">
-                <a href="#companies-filter" class="btn btn-primary">
-                    <i class="fas fa-search mr-1"></i> Search Companies
-                </a>
-                <a href="<?= base_url('jobs') ?>" class="btn btn-outline-secondary">
-                    <i class="fas fa-briefcase mr-1"></i> Browse Jobs
-                </a>
-            </div>
         </div>
     </div>
 

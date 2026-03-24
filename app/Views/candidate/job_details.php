@@ -118,8 +118,14 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                 <a href="<?= esc($companyProfileUrl) ?>" class="btn btn-outline-secondary">
                     <i class="fas fa-store mr-1"></i> Company Profile
                 </a>
-                <a href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>" class="btn btn-outline-secondary">
-                    <span class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-1"></span><?= $isSaved ? 'Saved' : 'Save Job' ?>
+                <a href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
+                   class="btn btn-outline-secondary js-save-job-toggle"
+                   data-save-url="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
+                   data-job-id="<?= (int) $job['id'] ?>"
+                   data-saved="<?= $isSaved ? '1' : '0' ?>"
+                   data-save-label-save="Save Job"
+                   data-save-label-saved="Saved">
+                    <span class="js-save-icon <?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-1"></span><span class="js-save-label"><?= $isSaved ? 'Saved' : 'Save Job' ?></span>
                 </a>
                 <?php if ($alreadyApplied): ?>
                     <button class="btn job-details-applied-btn" disabled>

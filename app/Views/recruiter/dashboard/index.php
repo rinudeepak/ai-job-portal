@@ -62,8 +62,8 @@
                         <div class="recruiter-dashboard-hero-panel-icon">
                             <i class="fas fa-briefcase"></i>
                         </div>
-                        <h3>Recruiter Dashboard</h3>
-                        <p>Track applications, shortlist candidates, and manage hiring without losing context.</p>
+                        <h3>Post a New Job</h3>
+                        <p>Create a role, define the requirements, and start receiving qualified applicants faster.</p>
                         <a href="<?= $postJobUrl ?>" class="btn btn-primary w-100 mt-3">
                             <i class="fas fa-plus"></i> Post Job
                         </a>
@@ -257,7 +257,16 @@
                             </a>
                         <?php endif; ?>
                     <?php else: ?>
-                        <div class="p-4 text-center text-muted small">No pending actions right now.</div>
+                        <div class="recruiter-action-center-empty">
+                            <div class="recruiter-action-center-empty-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <h6 class="mb-2">Everything is up to date</h6>
+                            <p class="text-muted mb-3">No pending screenings or interviews right now. You&#39;re all caught up.</p>
+                            <a href="<?= $jobsUrl ?>" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-briefcase mr-1"></i> Review Jobs
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -280,7 +289,7 @@
         <?php endif; ?>
 
         <!-- Main Content Row -->
-        <div class="row" id="conversion-metrics">
+        <div class="row recruiter-pipeline-row" id="conversion-metrics">
         <!-- Recruitment Pipeline -->
         <div class="col-xl-8 mb-4">
             <div class="card shadow">
@@ -345,44 +354,68 @@
                 </div>
                 <div class="card-body">
                     <?php if (!empty($stageTimeAnalytics)): ?>
-                        <?php 
-                        $maxHours = max(array_column($stageTimeAnalytics, 'hours'));
-                        foreach ($stageTimeAnalytics as $stage): 
-                            $isBottleneck = $stage['hours'] > ($maxHours * 0.7);
+                        <?php
+                        $stageAnalytics = $stageTimeAnalytics;
+                        $maxHours = max(array_column($stageAnalytics, 'hours'));
+                        $avgDays = array_sum(array_map(static function ($stage) {
+                            return (float) ($stage['days'] ?? 0);
+                        }, $stageAnalytics)) / max(count($stageAnalytics), 1);
+                        $slowestStage = $stageAnalytics[0];
+                        $fastestStage = $stageAnalytics[0];
+                        foreach ($stageAnalytics as $stageItem) {
+                            if ((float) ($stageItem['hours'] ?? 0) > (float) ($slowestStage['hours'] ?? 0)) {
+                                $slowestStage = $stageItem;
+                            }
+                            if ((float) ($stageItem['hours'] ?? 0) < (float) ($fastestStage['hours'] ?? 0)) {
+                                $fastestStage = $stageItem;
+                            }
+                        }
                         ?>
-                            <div class="stage-time-item mb-3" data-aos="fade-left">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div>
-                                        <span class="stage-name-label"><?= esc($formatStageLabel($stage['stage'])) ?></span>
-                                        <?php if ($isBottleneck): ?>
-                                            <span class="badge badge-danger ml-1" title="Potential bottleneck">
-                                                <i class="fas fa-exclamation-triangle"></i>
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="text-right">
-                                        <strong class="text-primary"><?= $stage['days'] ?> days</strong>
-                                        <small class="text-muted d-block"><?= $stage['hours'] ?>h</small>
-                                    </div>
-                                </div>
-                                <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar <?= $stage['days'] > 7 ? 'bg-danger' : ($stage['days'] > 3 ? 'bg-warning' : 'bg-success') ?>" 
-                                         style="width: <?= min(($stage['hours'] / $maxHours) * 100, 100) ?>%"
-                                         data-toggle="tooltip" 
-                                         title="<?= $stage['count'] ?> candidates">
-                                    </div>
-                                </div>
-                                <small class="text-muted">
-                                    <i class="fas fa-users"></i> <?= $stage['count'] ?> candidates
-                                </small>
+                        <div class="stage-insight-strip">
+                            <div class="stage-insight-item">
+                                <span class="stage-insight-label">Average stage time</span>
+                                <strong><?= number_format($avgDays, 1) ?> days</strong>
                             </div>
-                        <?php endforeach; ?>
-                        
-                        <div class="alert alert-info mt-3 mb-0">
-                            <small>
-                                <i class="fas fa-info-circle"></i> 
-                                <strong>Tip:</strong> Stages over 7 days may indicate bottlenecks
-                            </small>
+                            <div class="stage-insight-item">
+                                <span class="stage-insight-label">Slowest stage</span>
+                                <strong><?= esc($formatStageLabel($slowestStage['stage'])) ?></strong>
+                            </div>
+                            <div class="stage-insight-item">
+                                <span class="stage-insight-label">Fastest stage</span>
+                                <strong><?= esc($formatStageLabel($fastestStage['stage'])) ?></strong>
+                            </div>
+                        </div>
+
+                        <div class="stage-time-list">
+                            <?php foreach (array_slice($stageAnalytics, 0, 3) as $stage): ?>
+                                <?php $isBottleneck = $stage['hours'] > ($maxHours * 0.7); ?>
+                                <div class="stage-time-item mb-3" data-aos="fade-left">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <span class="stage-name-label"><?= esc($formatStageLabel($stage['stage'])) ?></span>
+                                            <?php if ($isBottleneck): ?>
+                                                <span class="badge badge-danger ml-1" title="Potential bottleneck">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="text-right">
+                                            <strong class="text-primary"><?= $stage['days'] ?> days</strong>
+                                            <small class="text-muted d-block"><?= $stage['hours'] ?>h</small>
+                                        </div>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar <?= $stage['days'] > 7 ? 'bg-danger' : ($stage['days'] > 3 ? 'bg-warning' : 'bg-success') ?>"
+                                             style="width: <?= min(($stage['hours'] / $maxHours) * 100, 100) ?>%"
+                                             data-toggle="tooltip"
+                                             title="<?= $stage['count'] ?> candidates">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-users"></i> <?= $stage['count'] ?> candidates
+                                    </small>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4">

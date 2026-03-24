@@ -20,15 +20,21 @@
         <div class="container">
             <?php
             $bookings = $bookings ?? [];
-            $upcomingCount = 0;
-            $completedCount = 0;
-            foreach ($bookings as $b) {
-                if (strtotime($b['slot_datetime']) >= time()) {
-                    $upcomingCount++;
-                } elseif (($b['booking_status'] ?? '') === 'completed') {
-                    $completedCount++;
-                }
-            }
+            usort($bookings, static function (array $a, array $b): int {
+                return strtotime((string) ($a['slot_datetime'] ?? '')) <=> strtotime((string) ($b['slot_datetime'] ?? ''));
+            });
+
+            $upcomingBookings = array_values(array_filter($bookings, static function (array $booking): bool {
+                return strtotime((string) ($booking['slot_datetime'] ?? '')) >= time();
+            }));
+            $pastBookings = array_values(array_filter($bookings, static function (array $booking): bool {
+                return strtotime((string) ($booking['slot_datetime'] ?? '')) < time();
+            }));
+            $nextBooking = $upcomingBookings[0] ?? null;
+            $upcomingCount = count($upcomingBookings);
+            $completedCount = count(array_filter($pastBookings, static function (array $booking): bool {
+                return ($booking['booking_status'] ?? '') === 'completed';
+            }));
             ?>
 
             <div class="bookings-summary-row">
@@ -63,153 +69,235 @@
                     </div>
                 </div>
             <?php else: ?>
-                <?php foreach ($bookings as $booking): ?>
+                <?php if (!empty($nextBooking)): ?>
                     <?php
-                    $isPast = strtotime($booking['slot_datetime']) < time();
-                    $isUpcoming = !$isPast;
-                    $canReschedule = $isUpcoming && $booking['reschedule_count'] < $booking['max_reschedules']
-                                  && (strtotime($booking['slot_datetime']) - time()) > 86400;
-
-                    $statusColors = [
-                        'booked' => 'primary',
-                        'rescheduled' => 'warning',
-                        'completed' => 'success',
-                        'no_show' => 'danger',
-                        'cancelled' => 'danger'
-                    ];
-                    $decisionColors = [
-                        'shortlisted' => 'success',
-                        'hold' => 'secondary',
-                        'selected' => 'primary',
-                        'rejected' => 'danger',
-                    ];
-                    $statusLabels = [
-                        'booked' => 'Booked',
-                        'rescheduled' => 'Rescheduled',
-                        'completed' => 'Completed',
-                        'no_show' => 'No Show',
-                        'cancelled' => 'Cancelled'
-                    ];
-                    $decisionLabels = [
-                        'shortlisted' => 'Shortlisted',
-                        'hold' => 'On Hold',
-                        'selected' => 'Selected',
-                        'rejected' => 'Rejected'
-                    ];
-                    $statusColor = $statusColors[$booking['booking_status']] ?? 'secondary';
-                    $hasReview = !empty($booking['review_reviewed_at']) || !empty($booking['review_decision']);
+                    $nextDiff = strtotime($nextBooking['slot_datetime']) - time();
+                    $nextDays = max(0, (int) floor($nextDiff / 86400));
+                    $nextHours = max(0, (int) floor(($nextDiff % 86400) / 3600));
+                    $nextCanReschedule = $nextBooking['reschedule_count'] < $nextBooking['max_reschedules']
+                        && $nextDiff > 86400;
                     ?>
-
-                    <div class="card booking-card mb-4 <?= $isPast ? 'booking-past' : 'booking-upcoming' ?>">
-                        <div class="card-header booking-card-head">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-briefcase mr-2"></i><?= esc($booking['job_title']) ?>
-                                </h5>
-                                <span class="badge badge-<?= $statusColor ?> booking-status-badge">
-                                    <?= esc($statusLabels[$booking['booking_status']] ?? ucwords(str_replace('_', ' ', $booking['booking_status']))) ?>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-body booking-card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3 mb-md-0">
-                                    <h6 class="booking-label"><i class="fas fa-calendar-day mr-2"></i>Interview Date</h6>
-                                    <p class="mb-2">
-                                        <?= date('l, F j, Y', strtotime($booking['slot_datetime'])) ?><br>
-                                        <strong><?= date('h:i A', strtotime($booking['slot_datetime'])) ?></strong>
-                                    </p>
-
-                                    <?php if ($isUpcoming): ?>
-                                        <?php
-                                        $diff = strtotime($booking['slot_datetime']) - time();
-                                        $days = floor($diff / 86400);
-                                        $hours = floor(($diff % 86400) / 3600);
-                                        ?>
-                                        <div class="alert alert-info booking-time-alert mb-0">
-                                            <strong><i class="fas fa-clock mr-1"></i>Time Remaining:</strong>
-                                            <?php if ($days > 0): ?>
-                                                <?= $days ?> day(s) <?= $hours ?> hour(s)
-                                            <?php else: ?>
-                                                <?= $hours ?> hour(s)
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6 class="booking-label"><i class="fas fa-info-circle mr-2"></i>Booking Details</h6>
-                                    <p class="mb-2"><strong>Booked on:</strong> <?= date('M j, Y', strtotime($booking['booked_at'])) ?></p>
-                                    <p class="mb-2">
-                                        <strong>Reschedules used:</strong>
-                                        <?= $booking['reschedule_count'] ?> / <?= $booking['max_reschedules'] ?>
-                                    </p>
-                                    <?php if ($booking['last_rescheduled_at']): ?>
-                                        <p class="mb-0">
-                                            <strong>Last rescheduled:</strong>
-                                            <?= date('M j, Y h:i A', strtotime($booking['last_rescheduled_at'])) ?>
-                                        </p>
-                                    <?php endif; ?>
-
-                                    <?php if ($hasReview): ?>
-                                        <div class="mt-3 p-3 bg-light rounded">
-                                            <div class="d-flex flex-wrap align-items-center mb-2" style="gap: 8px;">
-                                                <strong class="mr-1">Recruiter review:</strong>
-                                                <?php if (!empty($booking['review_attendance_status'])): ?>
-                                                    <span class="badge badge-info"><?= esc(ucwords(str_replace('_', ' ', (string) $booking['review_attendance_status']))) ?></span>
-                                                <?php endif; ?>
-                                                <?php if (!empty($booking['review_decision'])): ?>
-                                                    <span class="badge badge-<?= $decisionColors[$booking['review_decision']] ?? 'secondary' ?>">
-                                                        <?= esc($decisionLabels[$booking['review_decision']] ?? ucwords(str_replace('_', ' ', (string) $booking['review_decision']))) ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <?php if (!empty($booking['review_notes'])): ?>
-                                                <?php
-                                                    $reviewText = trim((string) $booking['review_notes']);
-                                                    $shortReviewText = mb_strlen($reviewText) > 120 ? mb_substr($reviewText, 0, 120) . '...' : $reviewText;
-                                                ?>
-                                                <small class="text-muted d-block" title="<?= esc($reviewText) ?>">
-                                                    <?= esc($shortReviewText) ?>
-                                                </small>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
-                            <hr class="my-4">
-
-                            <div class="d-flex justify-content-between align-items-center flex-wrap booking-actions-row" style="gap: 10px;">
-                                <div>
-                                    <?php if ($canReschedule): ?>
-                                        <a href="<?= base_url('candidate/reschedule-slot/' . $booking['application_id']) ?>" class="btn btn-warning">
-                                            <i class="fas fa-sync mr-1"></i>Reschedule Interview
-                                        </a>
-                                    <?php elseif ($isUpcoming && !$canReschedule): ?>
-                                        <button class="btn btn-secondary" disabled>
-                                            <i class="fas fa-ban mr-1"></i>Cannot Reschedule
-                                        </button>
-                                        <small class="text-muted d-block mt-2">
-                                            <?php if ($booking['reschedule_count'] >= $booking['max_reschedules']): ?>
-                                                Reschedule limit reached
-                                            <?php else: ?>
-                                                Too close to interview time (&lt; 24 hours)
-                                            <?php endif; ?>
-                                        </small>
-                                    <?php else: ?>
-                                        <span class="text-muted">Interview completed</span>
-                                    <?php endif; ?>
-                                </div>
-
-                                <?php if ($isUpcoming): ?>
-                                    <div class="alert alert-danger mb-0 py-2 px-3">
-                                        <small><strong>Note:</strong> Cancellation not allowed</small>
-                                    </div>
+                    <div class="booking-next-step">
+                        <div class="booking-next-step-copy">
+                            <span class="booking-next-step-kicker">Next action</span>
+                            <h3><?= esc($nextBooking['job_title']) ?></h3>
+                            <p>
+                                <?= date('l, F j, Y', strtotime($nextBooking['slot_datetime'])) ?> at <?= date('h:i A', strtotime($nextBooking['slot_datetime'])) ?>.
+                                <?php if ($nextDays > 0): ?>
+                                    You have <?= $nextDays ?> day(s) and <?= $nextHours ?> hour(s) left to prepare.
+                                <?php else: ?>
+                                    You have <?= $nextHours ?> hour(s) left to prepare.
                                 <?php endif; ?>
-                            </div>
+                            </p>
+                        </div>
+                        <div class="booking-next-step-actions">
+                            <?php if ($nextCanReschedule): ?>
+                                <a href="<?= base_url('candidate/reschedule-slot/' . $nextBooking['application_id']) ?>" class="btn btn-warning">
+                                    <i class="fas fa-sync mr-1"></i>Reschedule now
+                                </a>
+                            <?php else: ?>
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="fas fa-ban mr-1"></i>Reschedule closed
+                                </button>
+                            <?php endif; ?>
+                            <a href="<?= base_url('candidate/dashboard') ?>" class="btn btn-outline-secondary">
+                                <i class="fas fa-home mr-1"></i>Open dashboard
+                            </a>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
+
+                <div class="booking-timeline">
+                    <?php foreach ($upcomingBookings as $booking): ?>
+                        <?php
+                        $diff = strtotime($booking['slot_datetime']) - time();
+                        $days = max(0, (int) floor($diff / 86400));
+                        $hours = max(0, (int) floor(($diff % 86400) / 3600));
+                        $canReschedule = $booking['reschedule_count'] < $booking['max_reschedules'] && $diff > 86400;
+                        $statusColors = [
+                            'booked' => 'primary',
+                            'rescheduled' => 'warning',
+                            'completed' => 'success',
+                            'no_show' => 'danger',
+                            'cancelled' => 'danger'
+                        ];
+                        $statusLabels = [
+                            'booked' => 'Booked',
+                            'rescheduled' => 'Rescheduled',
+                            'completed' => 'Completed',
+                            'no_show' => 'No Show',
+                            'cancelled' => 'Cancelled'
+                        ];
+                        $statusColor = $statusColors[$booking['booking_status']] ?? 'secondary';
+                        $candidateStatus = $statusLabels[$booking['booking_status']] ?? ucwords(str_replace('_', ' ', (string) $booking['booking_status']));
+                        $statusSummary = $booking['booking_status'] === 'completed'
+                            ? 'Your interview is complete and the next update will appear here when the team reviews it.'
+                            : ($canReschedule
+                                ? 'Your slot is confirmed. You can still reschedule if your plans change.'
+                                : 'Your slot is locked, so the best next step is preparation.');
+                        $statusNextStep = $booking['booking_status'] === 'completed'
+                            ? 'Await the recruiter update in your booking history.'
+                            : ($canReschedule
+                                ? 'Reschedule only if you need a different time.'
+                                : 'Review the role details and prepare for the call.');
+                        ?>
+                        <article class="booking-timeline-item is-upcoming<?= isset($nextBooking) && $nextBooking && $nextBooking['application_id'] === $booking['application_id'] ? ' is-next' : '' ?>">
+                            <div class="booking-timeline-marker">
+                                <span>Next</span>
+                            </div>
+                            <div class="booking-timeline-card">
+                                <div class="booking-timeline-head">
+                                    <div>
+                                        <div class="booking-timeline-title-row">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-briefcase mr-2"></i><?= esc($booking['job_title']) ?>
+                                            </h5>
+                                            <span class="badge badge-<?= $statusColor ?> booking-status-badge">
+                                                <?= esc($statusLabels[$booking['booking_status']] ?? ucwords(str_replace('_', ' ', $booking['booking_status']))) ?>
+                                            </span>
+                                        </div>
+                                        <p class="booking-timeline-meta mb-0">
+                                            <?= date('l, F j, Y', strtotime($booking['slot_datetime'])) ?> at <?= date('h:i A', strtotime($booking['slot_datetime'])) ?>
+                                        </p>
+                                    </div>
+                                    <div class="booking-timeline-pill">
+                                        <?= $days > 0 ? $days . ' day(s)' : $hours . ' hour(s)' ?> left
+                                    </div>
+                                </div>
+
+                                <div class="booking-timeline-body">
+                                    <div class="booking-timeline-column">
+                                        <span class="booking-timeline-label">What to do</span>
+                                        <p class="booking-timeline-text">
+                                            <?= $canReschedule ? 'Confirm this slot, or reschedule if you need more time.' : 'Focus on preparation because rescheduling is no longer available.' ?>
+                                        </p>
+                                        <ul class="booking-timeline-checklist">
+                                            <li>Review the job description and match your answers to it.</li>
+                                            <li>Prepare a short introduction and 2 to 3 role examples.</li>
+                                            <li>Check your time zone and join details before the interview.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="booking-timeline-column">
+                                        <span class="booking-timeline-label">Booking details</span>
+                                        <ul class="booking-timeline-facts">
+                                            <li><strong>Booked on:</strong> <?= date('M j, Y', strtotime($booking['booked_at'])) ?></li>
+                                            <li><strong>Reschedules:</strong> <?= $booking['reschedule_count'] ?> / <?= $booking['max_reschedules'] ?></li>
+                                            <?php if ($booking['last_rescheduled_at']): ?>
+                                                <li><strong>Last rescheduled:</strong> <?= date('M j, Y h:i A', strtotime($booking['last_rescheduled_at'])) ?></li>
+                                            <?php endif; ?>
+                                        </ul>
+
+                                        <div class="booking-status-card">
+                                            <span class="booking-timeline-label">Current status</span>
+                                            <div class="d-flex flex-wrap align-items-center mb-2" style="gap: 8px;">
+                                                <strong class="mr-1">Application status:</strong>
+                                                <span class="badge badge-<?= $statusColor ?>"><?= esc($candidateStatus) ?></span>
+                                            </div>
+                                            <p class="booking-timeline-text mb-2"><?= esc($statusSummary) ?></p>
+                                            <small class="text-muted d-block"><?= esc($statusNextStep) ?></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="booking-timeline-actions">
+                                    <?php if ($canReschedule): ?>
+                                        <a href="<?= base_url('candidate/reschedule-slot/' . $booking['application_id']) ?>" class="btn btn-warning">
+                                            <i class="fas fa-sync mr-1"></i>Reschedule interview
+                                        </a>
+                                    <?php else: ?>
+                                        <button class="btn btn-secondary" disabled>
+                                            <i class="fas fa-ban mr-1"></i>Reschedule closed
+                                        </button>
+                                    <?php endif; ?>
+                                    <span class="booking-timeline-note">Cancellation is not allowed.</span>
+                                </div>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+
+                    <?php foreach ($pastBookings as $booking): ?>
+                        <?php
+                        $statusColors = [
+                            'booked' => 'primary',
+                            'rescheduled' => 'warning',
+                            'completed' => 'success',
+                            'no_show' => 'danger',
+                            'cancelled' => 'danger'
+                        ];
+                        $statusLabels = [
+                            'booked' => 'Booked',
+                            'rescheduled' => 'Rescheduled',
+                            'completed' => 'Completed',
+                            'no_show' => 'No Show',
+                            'cancelled' => 'Cancelled'
+                        ];
+                        $statusColor = $statusColors[$booking['booking_status']] ?? 'secondary';
+                        $candidateStatus = $statusLabels[$booking['booking_status']] ?? ucwords(str_replace('_', ' ', (string) $booking['booking_status']));
+                        $statusSummary = match ($booking['booking_status']) {
+                            'completed' => 'This interview has finished. Watch this card for the next update from the hiring team.',
+                            'no_show' => 'The interview was missed. If needed, check whether the role still allows another slot.',
+                            'cancelled' => 'This booking is no longer active.',
+                            default => 'This booking is complete. Keep your timeline handy for future references.',
+                        };
+                        $statusNextStep = match ($booking['booking_status']) {
+                            'completed' => 'Stay ready for a recruiter response or next-round invitation.',
+                            'no_show' => 'If the role is still open, consider reaching out to the recruiter.',
+                            'cancelled' => 'Look for a new interview slot or apply again if the role reopens.',
+                            default => 'Continue tracking your interview history here.',
+                        };
+                        ?>
+                        <article class="booking-timeline-item is-past">
+                            <div class="booking-timeline-marker">
+                                <span>Done</span>
+                            </div>
+                            <div class="booking-timeline-card">
+                                <div class="booking-timeline-head">
+                                    <div>
+                                        <div class="booking-timeline-title-row">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-briefcase mr-2"></i><?= esc($booking['job_title']) ?>
+                                            </h5>
+                                            <span class="badge badge-<?= $statusColor ?> booking-status-badge">
+                                                <?= esc($statusLabels[$booking['booking_status']] ?? ucwords(str_replace('_', ' ', $booking['booking_status']))) ?>
+                                            </span>
+                                        </div>
+                                        <p class="booking-timeline-meta mb-0">
+                                            <?= date('l, F j, Y', strtotime($booking['slot_datetime'])) ?> at <?= date('h:i A', strtotime($booking['slot_datetime'])) ?>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="booking-timeline-body">
+                                    <div class="booking-timeline-column">
+                                        <span class="booking-timeline-label">Outcome</span>
+                                        <p class="booking-timeline-text">This interview is complete. Watch this card for your next update.</p>
+                                    </div>
+                                    <div class="booking-timeline-column">
+                                        <span class="booking-timeline-label">Booking details</span>
+                                        <ul class="booking-timeline-facts">
+                                            <li><strong>Booked on:</strong> <?= date('M j, Y', strtotime($booking['booked_at'])) ?></li>
+                                            <li><strong>Reschedules:</strong> <?= $booking['reschedule_count'] ?> / <?= $booking['max_reschedules'] ?></li>
+                                        </ul>
+
+                                        <div class="booking-status-card">
+                                            <span class="booking-timeline-label">Current status</span>
+                                            <div class="d-flex flex-wrap align-items-center mb-2" style="gap: 8px;">
+                                                <strong class="mr-1">Application status:</strong>
+                                                <span class="badge badge-<?= $statusColor ?>"><?= esc($candidateStatus) ?></span>
+                                            </div>
+                                            <p class="booking-timeline-text mb-2"><?= esc($statusSummary) ?></p>
+                                            <small class="text-muted d-block"><?= esc($statusNextStep) ?></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="booking-timeline-actions">
+                                    <span class="booking-timeline-note">Interview completed</span>
+                                </div>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </div>
     </section>

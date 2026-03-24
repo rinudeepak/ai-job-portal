@@ -83,6 +83,22 @@ $resolveAssetUrl = static function (string $path): string {
                 Track your applications, interviews, and AI progress. Discover live opportunities that match your career goals.
             </p>
 
+            <div class="dashboard-primary-action">
+                <div class="dashboard-primary-action-copy">
+                    <span class="dashboard-primary-action-kicker">Recommended next step</span>
+                    <h2 class="dashboard-primary-action-title">Review your best job matches and apply first</h2>
+                    <p class="dashboard-primary-action-text">Start with the strongest-fit roles, then use your strategy plan to refine the rest of your search.</p>
+                </div>
+                <div class="dashboard-primary-action-buttons">
+                    <a href="<?= base_url('jobs?tab=suggested') ?>" class="btn btn-primary btn-lg dashboard-primary-btn">
+                        Browse Suggested Jobs
+                    </a>
+                    <a href="<?= base_url('candidate/job-search-strategy') ?>" class="btn btn-outline-light btn-lg dashboard-secondary-btn">
+                        Open Strategy Plan
+                    </a>
+                </div>
+            </div>
+
         </div>
     </section>
 

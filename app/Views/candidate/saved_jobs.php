@@ -53,12 +53,16 @@ $resolveAssetUrl = static function (string $path): string {
                         <article class="job-card saved-job-card">
                             <button
                                 type="button"
-                                class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save"
+                                class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save js-save-job-toggle is-saved"
                                 aria-label="Remove saved job"
                                 title="Remove"
-                                onclick="event.preventDefault();event.stopPropagation();window.location.href='<?= base_url('job/unsave/' . $job['id']) ?>';"
+                                data-save-url="<?= base_url('job/unsave/' . $job['id']) ?>"
+                                data-job-id="<?= (int) $job['id'] ?>"
+                                data-saved="1"
+                                data-save-label-save="Save Job"
+                                data-save-label-saved="Saved"
                             >
-                                <i class="fas fa-bookmark"></i>
+                                <i class="js-save-icon fas fa-bookmark"></i>
                             </button>
                             <div class="job-card-icon saved-job-logo">
                                 <?php if ($companyLogo !== ''): ?>
@@ -67,7 +71,6 @@ $resolveAssetUrl = static function (string $path): string {
                                     <span><?= esc($initial) ?></span>
                                 <?php endif; ?>
                             </div>
-                            <div class="job-card-match-badge job-card-match-badge-neutral"><?= esc($matchLabel) ?></div>
                             <h3 class="job-card-title"><?= esc($title) ?></h3>
                             <p class="job-card-company"><?= esc($company) ?></p>
                             <div class="job-card-meta">

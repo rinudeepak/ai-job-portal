@@ -7,9 +7,6 @@
                 <span class="page-board-kicker"><i class="fas fa-history"></i> Career paths</span>
                 <h1 class="page-board-title">Career Transition History</h1>
                 <p class="page-board-subtitle">Review, reactivate, or compare the learning paths you’ve already saved.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= count($transitions ?? []) ?></strong> Saved paths</span>
-                </div>
             </div>
             <div class="page-board-actions">
                 <a href="<?= base_url('career-transition') ?>" class="btn btn-primary">

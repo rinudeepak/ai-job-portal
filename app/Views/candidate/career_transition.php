@@ -131,9 +131,9 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                     <div class="career-transition-note">
                         <h3>Skill gaps</h3>
                         <?php if (!empty($skillGaps)): ?>
-                            <div class="job-card-tags">
+                            <div class="career-transition-chip-row">
                                 <?php foreach ($skillGaps as $skill): ?>
-                                    <span class="badge badge-secondary"><?= esc($skill) ?></span>
+                                    <span class="career-transition-chip"><?= esc($skill) ?></span>
                                 <?php endforeach; ?>
                             </div>
                         <?php else: ?>
@@ -155,10 +155,10 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                                 <?php foreach ($tasks as $task): ?>
                                     <div class="dashboard-panel transition-task-card <?= !empty($task['is_completed']) ? 'task-completed' : '' ?>">
                                         <div class="panel-body">
-                                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                            <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
                                                 <div class="flex-grow-1">
                                                     <h4 class="mb-1">Day <?= (int) $task['day_number'] ?>: <?= esc($task['task_title']) ?></h4>
-                                                    <p class="mb-0 text-muted"><?= esc($task['task_description']) ?></p>
+                                                    <p class="mb-0 text-muted transition-task-description"><?= esc($task['task_description']) ?></p>
                                                 </div>
                                                 <div>
                                                     <?php if (empty($task['is_completed'])): ?>

@@ -6,6 +6,61 @@
     font-size: 14px;
 }
 
+.candidate-app .page-board-title,
+.candidate-app .section-title,
+.candidate-app .dashboard-strategy-title,
+.candidate-app .strategy-title,
+.candidate-app .strategy-section-title,
+.candidate-app .booking-label,
+.candidate-app .dashboard-metric-value {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+}
+
+.candidate-app .page-board-subtitle,
+.candidate-app .section-subtitle,
+.candidate-app .dashboard-strategy-text,
+.candidate-app .strategy-summary,
+.candidate-app .strategy-section-heading p,
+.candidate-app .strategy-job-meta,
+.candidate-app .booking-card p,
+.candidate-app .dashboard-metric-note {
+    color: #5b6476;
+    line-height: 1.65;
+}
+
+.candidate-app .page-board-kicker,
+.candidate-app .strategy-badge,
+.candidate-app .strategy-plan-state,
+.candidate-app .dashboard-strategy-badge,
+.candidate-app .dashboard-cta-kicker,
+.candidate-app .dashboard-strategy-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+}
+
+.candidate-app .page-board-title {
+    font-size: clamp(1.9rem, 3vw, 2.5rem);
+}
+
+.candidate-app .section-title {
+    font-size: clamp(1.45rem, 2vw, 1.95rem);
+}
+
+.candidate-app .strategy-title {
+    font-size: clamp(1.7rem, 2.4vw, 2.2rem);
+}
+
+.candidate-app .strategy-section-title {
+    font-size: 1.08rem;
+}
+
+.candidate-app .booking-label {
+    font-size: 0.96rem;
+}
+
 .dashboard-jobboard {
     background: #f8f9fa;
 }
@@ -201,8 +256,8 @@
 
 .career-transition-jobboard .transition-panel {
     border: 1px solid #e8edf8;
-    border-radius: 12px;
-    box-shadow: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
 .career-transition-jobboard .transition-arrow {
@@ -212,8 +267,8 @@
 
 .career-transition-jobboard .transition-task-card {
     border-left: 4px solid #3f63c8;
-    border-radius: 10px;
-    transition: border-color .2s ease, background-color .2s ease;
+    border-radius: 14px;
+    transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
 }
 
 .career-transition-jobboard .transition-task-card.task-completed {
@@ -232,20 +287,20 @@
 
 .career-transition-jobboard .career-transition-simple-layout {
     display: grid;
-    gap: 1rem;
+    gap: 0.9rem;
 }
 
 .career-transition-jobboard .career-transition-note {
     border: 1px solid #e8edf8;
-    border-radius: 12px;
+    border-radius: 16px;
     background: #fff;
-    padding: 1.15rem 1.25rem;
-    box-shadow: none;
+    padding: 1rem 1.15rem;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
 .career-transition-jobboard .career-transition-note h3 {
     margin: 0 0 0.35rem;
-    font-size: 1rem;
+    font-size: 0.96rem;
     font-weight: 700;
     color: #1f2f57;
 }
@@ -259,17 +314,37 @@
 .career-transition-jobboard .career-transition-note ul {
     padding-left: 1.15rem;
     display: grid;
-    gap: 0.35rem;
+    gap: 0.3rem;
+}
+
+.career-transition-jobboard .career-transition-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.career-transition-jobboard .career-transition-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.85rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    color: #2446a8;
+    font-size: 0.82rem;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .career-transition-jobboard .career-transition-path {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.35rem;
     text-align: center;
 }
 
 .career-transition-jobboard .career-transition-role {
-    font-size: clamp(1.1rem, 1.7vw, 1.45rem);
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
     line-height: 1.2;
     font-weight: 800;
     color: #172554;
@@ -281,23 +356,24 @@
 }
 
 .career-transition-jobboard .career-transition-path-arrow {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     color: var(--primary);
 }
 
 .career-transition-jobboard .career-transition-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.7rem;
-    margin-top: 1rem;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
 }
 
 .career-transition-jobboard .career-transition-actions .btn {
     border-radius: 999px;
+    padding: 0.68rem 1rem;
 }
 
 .career-transition-jobboard .career-transition-role-title {
-    font-size: clamp(1.05rem, 1.25vw, 1.35rem);
+    font-size: clamp(0.98rem, 1.15vw, 1.18rem);
     line-height: 1.18;
     letter-spacing: -0.02em;
     max-width: 100%;
@@ -325,15 +401,45 @@
 }
 
 .career-transition-jobboard .transition-header-row {
-    gap: 12px;
-}
-
-.career-transition-jobboard .transition-task-head {
     gap: 10px;
 }
 
+.career-transition-jobboard .transition-task-head {
+    gap: 8px;
+}
+
 .career-transition-jobboard .transition-task-row {
-    gap: 12px;
+    gap: 10px;
+}
+
+.career-transition-jobboard .panel-header {
+    padding: 1rem 1rem 0.4rem;
+}
+
+.career-transition-jobboard .panel-body {
+    padding: 1rem;
+}
+
+.career-transition-jobboard .transition-task-card .panel-body {
+    padding: 0.82rem 0.95rem;
+}
+
+.career-transition-jobboard .dashboard-panel,
+.career-transition-jobboard .career-transition-card {
+    border-radius: 18px;
+}
+
+.career-transition-jobboard .career-transition-task-list .section-title {
+    font-size: clamp(1.4rem, 2vw, 1.7rem);
+}
+
+.career-transition-jobboard .career-transition-task-list .section-subtitle {
+    margin-top: 0.1rem;
+}
+
+.career-transition-jobboard .transition-task-description {
+    font-size: 0.95rem;
+    line-height: 1.45;
 }
 
 .transition-btn-loading {
@@ -1082,23 +1188,24 @@
 }
 
 .strategy-jobboard .strategy-title {
-    font-size: 2rem;
-    line-height: 1.15;
+    font-size: clamp(1.7rem, 2.4vw, 2.2rem);
+    line-height: 1.12;
     color: #111827;
-    margin-bottom: 10px;
+    margin-bottom: 0.75rem;
 }
 
 .strategy-jobboard .strategy-summary {
-    color: #475569;
+    color: #5b6476;
     font-size: 1rem;
-    line-height: 1.7;
+    line-height: 1.65;
     margin-bottom: 0;
 }
 
 .strategy-jobboard .strategy-section-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #0f172a;
+    letter-spacing: -0.02em;
     margin-bottom: 14px;
 }
 
@@ -1204,6 +1311,241 @@
     color: #fff !important;
 }
 
+.strategy-jobboard .strategy-sidebar-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.strategy-jobboard .strategy-mini-timeline {
+    display: grid;
+    gap: 12px;
+}
+
+.strategy-jobboard .strategy-mini-timeline-item {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 12px;
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    background: #fbfdff;
+}
+
+.strategy-jobboard .strategy-mini-timeline-value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #eff6ff, #dbeafe);
+    color: #1d4ed8;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.strategy-jobboard .strategy-mini-timeline-item strong {
+    display: block;
+    color: #111827;
+    font-size: .95rem;
+    margin-bottom: 3px;
+}
+
+.strategy-jobboard .strategy-mini-timeline-item p {
+    margin: 0;
+    color: #64748b;
+    font-size: .88rem;
+    line-height: 1.55;
+}
+
+.strategy-jobboard .strategy-mini-items {
+    margin: 0;
+    padding-left: 18px;
+    color: #475569;
+    font-size: .88rem;
+    line-height: 1.55;
+}
+
+.strategy-jobboard .strategy-mini-items li + li {
+    margin-top: 4px;
+}
+
+.strategy-jobboard .strategy-hero-card {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 34%),
+        linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+}
+
+.strategy-jobboard .strategy-card-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.strategy-jobboard .strategy-plan-state {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.strategy-jobboard .strategy-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.strategy-jobboard .strategy-metric-card {
+    padding: 14px;
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.strategy-jobboard .strategy-metric-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.strategy-jobboard .strategy-metric-value {
+    display: block;
+    font-size: 1.65rem;
+    line-height: 1;
+    color: #111827;
+    margin-bottom: 6px;
+}
+
+.strategy-jobboard .strategy-metric-note {
+    display: block;
+    color: #64748b;
+    font-size: .88rem;
+    line-height: 1.5;
+}
+
+.strategy-jobboard .strategy-section {
+    display: grid;
+    gap: 18px;
+}
+
+.strategy-jobboard .strategy-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 16px;
+}
+
+.strategy-jobboard .strategy-section-heading h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.strategy-jobboard .strategy-section-heading p {
+    margin: 6px 0 0;
+    color: #64748b;
+}
+
+.strategy-jobboard .strategy-roadmap {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.strategy-jobboard .strategy-step-card {
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.strategy-jobboard .strategy-step-head {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 16px;
+}
+
+.strategy-jobboard .strategy-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #eff6ff, #dbeafe);
+    color: #1d4ed8;
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+}
+
+.strategy-jobboard .strategy-step-head h4 {
+    margin: 0 0 5px;
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.strategy-jobboard .strategy-step-head p {
+    margin: 0;
+    color: #64748b;
+    font-size: .92rem;
+    line-height: 1.6;
+}
+
+.strategy-jobboard .strategy-step-list,
+.strategy-jobboard .strategy-plan-list {
+    margin: 0;
+    padding-left: 18px;
+    color: #475569;
+}
+
+.strategy-jobboard .strategy-step-list li + li,
+.strategy-jobboard .strategy-plan-list li + li {
+    margin-top: 8px;
+}
+
+.strategy-jobboard .strategy-job-list {
+    display: grid;
+    gap: 12px;
+}
+
+.strategy-jobboard .strategy-job-top {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
 .profile-jobboard .profile-quick-actions .btn {
     width: 100%;
     display: inline-flex;
@@ -1217,6 +1559,85 @@
 
 .profile-jobboard .profile-quick-actions .btn:last-child {
     margin-bottom: 0;
+}
+
+@media (max-width: 991px) {
+    .strategy-jobboard .strategy-roadmap,
+    .strategy-jobboard .strategy-metric-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .strategy-jobboard .strategy-section-heading,
+    .strategy-jobboard .strategy-job-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .strategy-jobboard .strategy-step-head {
+        grid-template-columns: 42px minmax(0, 1fr);
+    }
+
+    .my-bookings-jobboard .booking-next-step {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .my-bookings-jobboard .booking-next-step-actions {
+        justify-content: flex-start;
+    }
+
+    .my-bookings-jobboard .booking-timeline-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .strategy-jobboard .strategy-card {
+        padding: 18px;
+    }
+
+    .strategy-jobboard .strategy-sidebar {
+        padding: 18px;
+    }
+
+    .strategy-jobboard .strategy-mini-timeline-item {
+        grid-template-columns: 38px minmax(0, 1fr);
+    }
+
+    .strategy-jobboard .strategy-mini-timeline-value,
+    .strategy-jobboard .strategy-step-number {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+    }
+
+    .strategy-jobboard .strategy-title {
+        font-size: 1.65rem;
+    }
+
+    .my-bookings-jobboard .booking-timeline {
+        padding-left: 12px;
+    }
+
+    .my-bookings-jobboard .booking-timeline::before {
+        left: 12px;
+    }
+
+    .my-bookings-jobboard .booking-timeline-item {
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .my-bookings-jobboard .booking-timeline-marker {
+        width: 52px;
+    }
+
+    .my-bookings-jobboard .booking-next-step,
+    .my-bookings-jobboard .booking-timeline-head,
+    .my-bookings-jobboard .booking-timeline-body,
+    .my-bookings-jobboard .booking-timeline-actions {
+        padding: 16px;
+    }
 }
 
 @media (min-width: 992px) {
@@ -1702,6 +2123,232 @@
 .my-bookings-jobboard .booking-time-alert {
     border-radius: 10px;
     margin-top: 8px;
+}
+
+.my-bookings-jobboard .booking-next-step {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(255, 255, 255, 0.98));
+    box-shadow: 0 10px 22px rgba(35, 54, 106, .06);
+}
+
+.my-bookings-jobboard .booking-next-step-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #2f57bd;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.my-bookings-jobboard .booking-next-step-copy h3 {
+    margin: 0 0 6px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.my-bookings-jobboard .booking-next-step-copy p {
+    margin: 0;
+    color: #5b6476;
+    line-height: 1.6;
+}
+
+.my-bookings-jobboard .booking-next-step-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.my-bookings-jobboard .booking-timeline {
+    position: relative;
+    display: grid;
+    gap: 18px;
+    padding-left: 18px;
+}
+
+.my-bookings-jobboard .booking-timeline::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.35), rgba(107, 114, 128, 0.18));
+}
+
+.my-bookings-jobboard .booking-timeline-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.my-bookings-jobboard .booking-timeline-marker {
+    position: relative;
+    z-index: 1;
+    width: 72px;
+    padding-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.my-bookings-jobboard .booking-timeline-marker span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #eff4ff;
+    border: 1px solid #dbe7ff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.my-bookings-jobboard .booking-timeline-item.is-past .booking-timeline-marker span {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+.my-bookings-jobboard .booking-timeline-card {
+    background: #fff;
+    border: 1px solid #e8edf8;
+    border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(35, 54, 106, .08);
+    overflow: hidden;
+}
+
+.my-bookings-jobboard .booking-timeline-item.is-next .booking-timeline-card {
+    border-color: rgba(59, 130, 246, 0.28);
+    box-shadow: 0 18px 36px rgba(35, 54, 106, .12);
+}
+
+.my-bookings-jobboard .booking-timeline-head,
+.my-bookings-jobboard .booking-timeline-body,
+.my-bookings-jobboard .booking-timeline-actions {
+    padding: 18px 20px;
+}
+
+.my-bookings-jobboard .booking-timeline-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+    border-bottom: 1px solid #edf1fa;
+}
+
+.my-bookings-jobboard .booking-timeline-title-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.my-bookings-jobboard .booking-timeline-head h5 {
+    font-size: 1.04rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.my-bookings-jobboard .booking-timeline-meta {
+    color: #64748b;
+    font-size: .94rem;
+}
+
+.my-bookings-jobboard .booking-timeline-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #1f3f8b;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.my-bookings-jobboard .booking-timeline-body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.my-bookings-jobboard .booking-timeline-column {
+    min-width: 0;
+}
+
+.my-bookings-jobboard .booking-timeline-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #2f57bd;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.my-bookings-jobboard .booking-timeline-text {
+    color: #334155;
+    margin-bottom: 10px;
+    line-height: 1.65;
+}
+
+.my-bookings-jobboard .booking-timeline-checklist,
+.my-bookings-jobboard .booking-timeline-facts {
+    margin: 0;
+    padding-left: 18px;
+    color: #475569;
+}
+
+.my-bookings-jobboard .booking-timeline-checklist li + li,
+.my-bookings-jobboard .booking-timeline-facts li + li {
+    margin-top: 6px;
+}
+
+.my-bookings-jobboard .booking-review-panel {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid #e8edf8;
+}
+
+.my-bookings-jobboard .booking-timeline-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid #edf1fa;
+    flex-wrap: wrap;
+}
+
+.my-bookings-jobboard .booking-timeline-note {
+    color: #64748b;
+    font-size: .9rem;
+    font-weight: 600;
 }
 
 .book-slot-jobboard,
