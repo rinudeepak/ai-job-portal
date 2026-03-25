@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\InterviewSessionAnswerModel;
+use App\Models\InterviewSessionModel;
 use App\Models\JobModel;
 use App\Models\NotificationModel;
 use App\Models\RecruiterCandidateMessageModel;
@@ -199,6 +201,46 @@ class RecruiterApplications extends BaseController
     public function reject($applicationId)
     {
         return $this->updateApplicationStatus($applicationId, 'rejected');
+    }
+
+    public function aiInterviewReport($applicationId)
+    {
+        $applicationModel = model('ApplicationModel');
+        $currentUserId = (int) session()->get('user_id');
+
+        $application = $applicationModel
+            ->select('applications.*, jobs.title as job_title, jobs.company, jobs.recruiter_id, users.name as candidate_name, users.email as candidate_email')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->join('users', 'users.id = applications.candidate_id', 'left')
+            ->where('applications.id', (int) $applicationId)
+            ->first();
+
+        if (!$application || (int) ($application['recruiter_id'] ?? 0) !== $currentUserId) {
+            return redirect()->to(base_url('recruiter/jobs'))->with('error', 'AI interview report not found.');
+        }
+
+        $sessionModel = new InterviewSessionModel();
+        $answerModel = new InterviewSessionAnswerModel();
+
+        $session = $sessionModel->findLatestByApplication((int) $applicationId);
+        if (!$session) {
+            return redirect()->to(base_url('recruiter/jobs/' . (int) $application['job_id'] . '/applications'))
+                ->with('error', 'No AI interview session found for this application.');
+        }
+
+        $answers = $answerModel->findBySession((int) $session['id']);
+        $sectionScores = json_decode((string) ($session['section_scores'] ?? '[]'), true) ?: [];
+        $strengths = json_decode((string) ($session['strengths'] ?? '[]'), true) ?: [];
+        $concerns = json_decode((string) ($session['concerns'] ?? '[]'), true) ?: [];
+
+        return view('recruiter/applications/ai_report', [
+            'application' => $application,
+            'session' => $session,
+            'answers' => $answers,
+            'sectionScores' => $sectionScores,
+            'strengths' => $strengths,
+            'concerns' => $concerns,
+        ]);
     }
 
     public function bulkAction($jobId)

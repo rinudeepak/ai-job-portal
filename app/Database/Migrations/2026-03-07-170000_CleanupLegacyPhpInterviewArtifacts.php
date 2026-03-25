@@ -22,9 +22,8 @@ class CleanupLegacyPhpInterviewArtifacts extends Migration
             $this->forge->dropTable('ai_interviews', true);
         }
 
-        if ($this->db->tableExists('interview_sessions')) {
-            $this->forge->dropTable('interview_sessions', true);
-        }
+        // Keep interview_sessions because the browser-based AI interview flow
+        // now uses it as the canonical interview summary table.
     }
 
     public function down()
@@ -41,4 +40,3 @@ class CleanupLegacyPhpInterviewArtifacts extends Migration
         }
     }
 }
-

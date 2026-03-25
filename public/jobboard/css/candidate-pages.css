@@ -1136,6 +1136,545 @@
     gap: 10px;
 }
 
+.ai-interview-flow-jobboard {
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 38%, #f6f8fc 100%);
+}
+
+.ai-interview-flow-jobboard .page-board-actions .btn {
+    border-radius: 999px;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-context {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-context-item {
+    border: 1px solid #e6edf9;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+    padding: 0.8rem 0.9rem;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-context-item span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 800;
+    color: #6b7ca5;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-context-item strong {
+    color: #172554;
+    font-size: 0.95rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-shell {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail {
+    display: grid;
+    gap: 1rem;
+    position: sticky;
+    top: 110px;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail-card,
+.ai-interview-flow-jobboard .ai-interview-flow-stage-card,
+.ai-interview-flow-jobboard .ai-interview-flow-media-card,
+.ai-interview-flow-jobboard .ai-interview-flow-recording-card {
+    border: 1px solid #e6edf9;
+    border-radius: 1.15rem;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail-card {
+    padding: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail-title {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    color: #3b82f6;
+    margin-bottom: 0.85rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail-meta {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail-meta div {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail-meta strong {
+    color: #1f2f57;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-rail-meta span {
+    color: #4b5563;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-list {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-card {
+    width: 100%;
+    border: 1px solid #e5ecfb;
+    border-radius: 1rem;
+    background: #fbfdff;
+    padding: 0.85rem 0.9rem;
+    text-align: left;
+    display: grid;
+    gap: 0.2rem;
+    transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-card.is-active {
+    border-color: rgba(59, 130, 246, 0.45);
+    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.12);
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-card.is-complete {
+    border-color: rgba(255, 123, 42, 0.28);
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-step {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6b7ca5;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-card strong {
+    color: #172554;
+    font-size: 0.96rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-subtitle {
+    color: #64748b;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-section-count {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-skill-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-skill-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.8rem;
+    padding: 0.18rem 0.62rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    color: #2446a8;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-summary {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.55;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-main {
+    display: grid;
+    gap: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-stage-card .panel-header,
+.ai-interview-flow-jobboard .ai-interview-flow-stage-card .panel-body,
+.ai-interview-flow-jobboard .ai-interview-flow-media-card .panel-header,
+.ai-interview-flow-jobboard .ai-interview-flow-media-card .panel-body,
+.ai-interview-flow-jobboard .ai-interview-flow-recording-card .panel-header,
+.ai-interview-flow-jobboard .ai-interview-flow-recording-card .panel-body {
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-stage-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-stage-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #3b82f6;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-timer {
+    min-width: 110px;
+    border-radius: 1rem;
+    background: #f8fbff;
+    border: 1px solid #e5ecfb;
+    padding: 0.72rem 0.85rem;
+    text-align: right;
+    display: grid;
+    gap: 0.08rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-timer-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7ca5;
+    font-weight: 800;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-timer strong {
+    font-size: 1.45rem;
+    color: #172554;
+    line-height: 1;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-timer small {
+    color: #6b7ca5;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-status-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-recording-state.is-recording {
+    background: rgba(255, 123, 42, 0.12);
+    color: #c2410c;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-recording-state.is-complete {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-recording-state.is-warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: #92400e;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-question-card {
+    border: 1px solid #e6edf9;
+    border-radius: 1rem;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    padding: 1.05rem 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-instructions {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-instructions-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #172554;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-instructions-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: #475569;
+    display: grid;
+    gap: 0.55rem;
+    line-height: 1.55;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-question {
+    font-size: clamp(1.1rem, 1.75vw, 1.45rem);
+    font-weight: 800;
+    line-height: 1.35;
+    color: #172554;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-question-hint {
+    margin: 0.55rem 0 0;
+    color: #64748b;
+    line-height: 1.55;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-controls .btn {
+    border-radius: 999px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-video-wrap {
+    position: relative;
+    min-height: 300px;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+    border: 1px solid #e5ecfb;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-video-wrap video {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    object-fit: cover;
+    display: block;
+    background: #0f172a;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: #64748b;
+    text-align: center;
+    padding: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-video-placeholder i {
+    font-size: 2rem;
+    color: #3b82f6;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-note {
+    margin-top: 0.9rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    background: rgba(59, 130, 246, 0.05);
+    color: #334155;
+    line-height: 1.5;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-stat {
+    border: 1px solid #e5ecfb;
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    background: #fbfdff;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-stat span {
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-stat strong {
+    color: #172554;
+    font-size: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-empty-progress {
+    min-height: 180px;
+    border: 1px dashed #cfe0ff;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    color: #64748b;
+    background: #fbfdff;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-empty-progress i {
+    font-size: 1.4rem;
+    color: #3b82f6;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-item {
+    border: 1px solid #e5ecfb;
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #fbfdff;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-copy {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-copy strong {
+    color: #172554;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-copy span {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-meta {
+    width: 180px;
+    display: grid;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-bar {
+    width: 100%;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: #e8eefc;
+    overflow: hidden;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+    transition: width 180ms ease;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-progress-meta small {
+    color: #64748b;
+    text-align: right;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-banner {
+    margin: 1rem 0 0.4rem;
+    border-radius: 1rem;
+}
+
+.ai-interview-flow-jobboard .dashboard-panel {
+    border-radius: 1rem;
+}
+
+@media (max-width: 1199.98px) {
+    .ai-interview-flow-jobboard .ai-interview-flow-context {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-rail {
+        position: static;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ai-interview-flow-jobboard .ai-interview-flow-context {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-stage-header {
+        flex-direction: column;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-timer {
+        text-align: left;
+        width: 100%;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-progress-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-progress-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-progress-meta {
+        width: 100%;
+    }
+
+    .ai-interview-flow-jobboard .ai-interview-flow-progress-meta small {
+        text-align: left;
+    }
+}
+
 .strategy-jobboard .strategy-shell {
     display: grid;
     grid-template-columns: 320px minmax(0, 1fr);

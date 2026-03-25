@@ -87,6 +87,7 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'recr
     // Applications by Job (legacy index kept as redirect)
     $routes->get('applications', 'RecruiterApplications::index');
     $routes->get('applications/job/(:num)', 'RecruiterApplications::viewByJob/$1');
+    $routes->get('applications/(:num)/ai-report', 'RecruiterApplications::aiInterviewReport/$1');
     $routes->get('jobs/(:num)/applications', 'RecruiterApplications::viewByJob/$1');
     $routes->post('jobs/(:num)/applications/bulk', 'RecruiterApplications::bulkAction/$1');
     $routes->post('applications/shortlist/(:num)', 'RecruiterApplications::shortlist/$1');
@@ -152,14 +153,16 @@ $routes->get('recruiter/candidate/(:num)/download-resume', 'RecruiterCandidates:
 $routes->post('recruiter/candidate/(:num)/send-message', 'RecruiterCandidates::sendMessage/$1', ['filter' => 'recruiter']);
 $routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::saveNotes/$1', ['filter' => 'recruiter']);
 
-// AI Interview Routes (Python Integration)
+// AI Interview Routes (browser-based flow)
 $routes->group('interview', ['filter' => 'candidate'], function($routes) {
-    $routes->get('start/(:num)', 'AiInterviewPython::start/$1');
-    $routes->post('begin/(:num)', 'AiInterviewPython::startInterview/$1');
-    $routes->get('chat/(:num)', 'AiInterviewPython::legacyRedirect/$1');
-    $routes->post('submit/(:num)', 'AiInterviewPython::legacyRedirect/$1');
-    $routes->get('trigger-evaluation/(:num)', 'AiInterviewPython::legacyRedirect/$1');
-    $routes->get('results/(:num)', 'AiInterviewPython::legacyRedirect/$1');
+    $routes->get('start/(:num)', 'AiInterviewController::start/$1');
+    $routes->post('begin/(:num)', 'AiInterviewController::startInterview/$1');
+    $routes->post('answer/(:num)', 'AiInterviewController::saveAnswer/$1');
+    $routes->post('complete/(:num)', 'AiInterviewController::completeInterview/$1');
+    $routes->get('chat/(:num)', 'AiInterviewController::legacyRedirect/$1');
+    $routes->post('submit/(:num)', 'AiInterviewController::legacyRedirect/$1');
+    $routes->get('trigger-evaluation/(:num)', 'AiInterviewController::legacyRedirect/$1');
+    $routes->get('results/(:num)', 'AiInterviewController::legacyRedirect/$1');
 });
 
 // Notification Routes
