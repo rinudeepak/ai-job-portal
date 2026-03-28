@@ -27,6 +27,7 @@ class Filters extends BaseConfig
         'auth'          => \App\Filters\AuthFilter::class,
         'candidate'     => \App\Filters\CandidateAuth::class,
         'recruiter'     => \App\Filters\RecruiterAuth::class,
+        'admin'         => \App\Filters\AdminAuth::class,
     ];
 
     /**

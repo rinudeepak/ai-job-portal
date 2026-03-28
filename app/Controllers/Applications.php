@@ -21,6 +21,40 @@ class Applications extends BaseController
         }
 
         $candidateId = $session->get('user_id');
+        $jobModel = model('JobModel');
+        $job = $jobModel
+            ->where('id', (int) $jobId)
+            ->where('status', 'open')
+            ->first();
+
+        if (!$job) {
+            if ($isAjax) {
+                return $this->respondApplicationAction(false, 'Job not found or no longer open.', null, 404);
+            }
+            return redirect()->to(base_url('jobs'))->with('error', 'Job not found or no longer open.');
+        }
+
+        if (JobModel::isExternalJob($job)) {
+            $externalApplyUrl = trim((string) ($job['external_apply_url'] ?? ''));
+            if (!filter_var($externalApplyUrl, FILTER_VALIDATE_URL)) {
+                if ($isAjax) {
+                    return $this->respondApplicationAction(false, 'This external job does not have a valid apply link.', null, 422);
+                }
+                return redirect()->back()->with('error', 'This external job does not have a valid apply link.');
+            }
+
+            if ($isAjax) {
+                return $this->respondApplicationAction(
+                    false,
+                    'This listing uses an external application flow. Redirecting now.',
+                    ['external' => true],
+                    200,
+                    $externalApplyUrl
+                );
+            }
+
+            return redirect()->to($externalApplyUrl);
+        }
         
         // Check if resume is uploaded
         $userModel = model('UserModel');
@@ -60,11 +94,9 @@ class Applications extends BaseController
         }
 
         // Check skill mismatch - compare with resume AND github skills
-        $jobModel = model('JobModel');
         $skillsModel = model('CandidateSkillsModel');
         $githubModel = model('GithubAnalysisModel');
         
-        $job = $jobModel->find($jobId);
         $candidateSkills = $skillsModel->where('candidate_id', $candidateId)->first();
         $githubStats = $githubModel->where('candidate_id', $candidateId)->first();
         

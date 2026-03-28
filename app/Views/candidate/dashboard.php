@@ -156,6 +156,8 @@ $resolveAssetUrl = static function (string $path): string {
                         $companyLogo = trim((string) ($job['company_logo'] ?? ''));
                         $matchPct = max(10, min(100, $score));
                         $matchLabel = $score > 0 ? $matchPct . '% match' : 'Open role';
+                        $isExternalJob = (int) ($job['is_external'] ?? 0) === 1;
+                        $externalSource = trim((string) ($job['external_source'] ?? ''));
                         ?>
                         <div class="col-md-6 col-lg-4">
                             <div class="job-card dashboard-card">
@@ -175,6 +177,9 @@ $resolveAssetUrl = static function (string $path): string {
                                 </div>
                                 <div class="job-card-tags">
                                     <span class="badge badge-primary">Full-time</span>
+                                    <?php if ($isExternalJob): ?>
+                                        <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
+                                    <?php endif; ?>
                                     <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                 </div>
                                 <a href="<?= base_url('job/' . (int) $job['id']) ?>" class="view-details">View Details &rarr;</a>

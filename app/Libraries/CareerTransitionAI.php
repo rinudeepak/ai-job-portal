@@ -24,6 +24,9 @@ class CareerTransitionAI
 
         $response = $this->callOpenAI($prompt);
         $data = json_decode($response, true);
+        if (is_array($data)) {
+            (new UsageAnalyticsService())->logOpenAiUsage($data, '/v1/chat/completions', 'gpt-4o-mini');
+        }
         
         if (!$data || !isset($data['skill_gaps'])) {
             return $this->getFallbackData($currentRole, $targetRole);

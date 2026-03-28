@@ -1,4 +1,10 @@
 <?= view('Layouts/candidate_header', ['title' => 'My Profile']) ?>
+<?php
+$profilePhotoPath = trim((string) ($user['profile_photo'] ?? ''));
+$profilePhotoUrl = $profilePhotoPath !== ''
+    ? (preg_match('/^https?:\/\//i', $profilePhotoPath) ? $profilePhotoPath : base_url($profilePhotoPath))
+    : '';
+?>
 
 <div class="profile-jobboard">
     <div class="container">
@@ -50,8 +56,8 @@
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
                         <div class="profile-avatar mb-3">
-                            <?php if (!empty($user['profile_photo'])): ?>
-                                <img src="<?= base_url($user['profile_photo']) ?>" alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover; border: 4px solid #e9ecef;">
+                            <?php if ($profilePhotoUrl !== ''): ?>
+                                <img src="<?= esc($profilePhotoUrl) ?>" alt="Profile" class="rounded-circle" width="120" height="120" style="object-fit: cover; border: 4px solid #e9ecef;">
                             <?php else: ?>
                                 <div class="rounded-circle mx-auto" style="width: 120px; height: 120px; border: 4px solid #e9ecef; background: transparent;"></div>
                             <?php endif; ?>

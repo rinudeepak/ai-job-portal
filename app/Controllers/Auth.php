@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\CandidateOnboardingService;
+use App\Libraries\RememberMeService;
 use App\Models\CompanyModel;
 use App\Models\UserModel;
 
@@ -12,6 +13,8 @@ class Auth extends BaseController
 
     public function login()
     {
+        (new RememberMeService())->attemptAutoLogin();
+
         $session = session();
         $next = (string) $this->request->getGet('next');
 
@@ -57,15 +60,34 @@ class Auth extends BaseController
                 ->with('error', $this->getRecruiterVerificationMessage($user));
         }
 
+        $profilePhoto = '';
+        if (($user['role'] ?? '') === 'candidate') {
+            $candidateRecord = $model->findCandidateWithProfile((int) $user['id']);
+            $profilePhoto = (string) ($candidateRecord['profile_photo'] ?? '');
+        }
+
         // Regenerate session to prevent fixation
         $session->regenerate();
 
         $session->set([
             'user_id' => $user['id'],
             'user_name' => $user['name'],
+            'user_email' => $user['email'],
             'role' => $user['role'],
-            'logged_in' => true
+            'profile_photo' => $profilePhoto,
+            'logged_in' => true,
+            'login_perf_pending' => 1,
+            'login_started_at_ms' => (int) round(microtime(true) * 1000),
+            'login_at' => date('Y-m-d H:i:s'),
         ]);
+
+        $rememberRequested = (string) $this->request->getPost('remember_me') === '1';
+        $rememberService = new RememberMeService();
+        if ($rememberRequested) {
+            $rememberService->issueForUser($user);
+        } else {
+            $rememberService->clearCurrentToken();
+        }
 
         $defaultTarget = ($user['role'] === 'recruiter')
             ? base_url('recruiter/dashboard')
@@ -79,6 +101,7 @@ class Auth extends BaseController
 
     public function logout()
     {
+        (new RememberMeService())->clearCurrentToken();
         session()->destroy();
         return redirect()->to(base_url('login'));
     }
@@ -241,8 +264,12 @@ class Auth extends BaseController
         session()->set([
             'user_id' => $userId,
             'user_name' => (string) $this->request->getPost('name'),
+            'user_email' => (string) $this->request->getPost('email'),
             'role' => 'candidate',
             'logged_in' => true,
+            'login_perf_pending' => 1,
+            'login_started_at_ms' => (int) round(microtime(true) * 1000),
+            'login_at' => date('Y-m-d H:i:s'),
         ]);
 
         return redirect()->to(base_url('candidate/onboarding/personal'));
@@ -346,6 +373,7 @@ class Auth extends BaseController
         $googleId = trim((string) ($googleUser['sub'] ?? ''));
         $email = strtolower(trim((string) ($googleUser['email'] ?? '')));
         $name = trim((string) ($googleUser['name'] ?? ''));
+        $picture = trim((string) ($googleUser['picture'] ?? ''));
         $emailVerified = (bool) ($googleUser['email_verified'] ?? false);
 
         if ($googleId === '' || $email === '' || !$emailVerified) {
@@ -372,7 +400,7 @@ class Auth extends BaseController
             if (empty($user['google_id'])) {
                 $updates['google_id'] = $googleId;
             }
-            if (empty($user['name']) && $name !== '') {
+            if ($name !== '' && (empty($user['name']) || (string) ($user['google_id'] ?? '') === $googleId)) {
                 $updates['name'] = $name;
             }
             if (!empty($updates)) {
@@ -401,12 +429,25 @@ class Auth extends BaseController
             }
         }
 
+        $candidateRecord = $userModel->findCandidateWithProfile((int) $user['id']) ?? [];
+        $profilePhoto = (string) ($candidateRecord['profile_photo'] ?? '');
+
+        if ($picture !== '' && ($profilePhoto === '' || $this->isGoogleHostedImageUrl($profilePhoto))) {
+            $userModel->upsertCandidateProfile((int) $user['id'], ['profile_photo' => $picture]);
+            $profilePhoto = $picture;
+        }
+
         $session->regenerate();
         $session->set([
             'user_id' => $user['id'],
             'user_name' => $user['name'],
+            'user_email' => $user['email'],
             'role' => $user['role'],
+            'profile_photo' => $profilePhoto,
             'logged_in' => true,
+            'login_perf_pending' => 1,
+            'login_started_at_ms' => (int) round(microtime(true) * 1000),
+            'login_at' => date('Y-m-d H:i:s'),
         ]);
 
         return redirect()->to($this->resolveCandidateTarget($user));
@@ -947,6 +988,17 @@ class Auth extends BaseController
         }
 
         return base_url('candidate/dashboard');
+    }
+
+    private function isGoogleHostedImageUrl(string $url): bool
+    {
+        $url = strtolower(trim($url));
+        if ($url === '') {
+            return false;
+        }
+
+        return str_contains($url, 'googleusercontent.com')
+            || str_contains($url, 'googleapis.com');
     }
 }
 

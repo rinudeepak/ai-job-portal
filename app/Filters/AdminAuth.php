@@ -10,7 +10,7 @@ class AdminAuth implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         if (!session()->get('admin_logged_in')) {
-            return redirect()->to('/login');
+            return redirect()->to('/admin/login');
         }
     }
 

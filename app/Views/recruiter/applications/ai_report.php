@@ -4,6 +4,7 @@
 $application = $application ?? [];
 $session = $session ?? [];
 $answers = $answers ?? [];
+$round1Attempts = $round1Attempts ?? [];
 $sectionScores = $sectionScores ?? [];
 $strengths = $strengths ?? [];
 $concerns = $concerns ?? [];
@@ -34,6 +35,47 @@ $concerns = $concerns ?? [];
             <div class="col-lg-8">
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
+                        <h5 class="mb-3">Round Scores</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <small class="text-muted d-block text-uppercase">Round 1 (Written)</small>
+                                    <strong><?= esc((string) ($session['round1_score'] ?? 0)) ?>%</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <small class="text-muted d-block text-uppercase">Round 2 (Verbal)</small>
+                                    <strong><?= esc((string) ($session['round2_score'] ?? 0)) ?></strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <small class="text-muted d-block text-uppercase">Overall Rating</small>
+                                    <strong><?= esc((string) ($session['overall_rating'] ?? 0)) ?>/10</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Round 1 Answer Review</h5>
+                        <?php if (!empty($round1Attempts)): ?>
+                            <?php foreach ($round1Attempts as $attempt): ?>
+                                <div class="border rounded p-3 mb-3">
+                                    <div class="small text-muted text-uppercase mb-1">
+                                        <?= esc((string) ($attempt['section_key'] ?? 'section')) ?> · <?= esc((string) ($attempt['question_type'] ?? 'question')) ?>
+                                    </div>
+                                    <h6 class="mb-2"><?= esc((string) ($attempt['question_text'] ?? 'Question')) ?></h6>
+                                    <div class="mb-1"><strong>Candidate Answer:</strong> <?= esc((string) ($attempt['selected_answer'] ?? '-')) ?></div>
+                                    <div class="mb-1"><strong>Expected:</strong> <?= esc((string) ($attempt['correct_answer'] ?? '-')) ?></div>
+                                    <div class="small text-muted">Score: <?= esc((string) ($attempt['score'] ?? 0)) ?> / <?= esc((string) ($attempt['max_score'] ?? 10)) ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="text-muted">Round 1 written answers not available yet.</p>
+                        <?php endif; ?>
+
+                        <hr class="my-4">
+
                         <h5 class="mb-3">AI Summary</h5>
                         <p class="mb-0">
                             <?= esc($session['recommendation_summary'] ?? 'Evaluation summary will appear here once AI scoring is connected.') ?>
@@ -43,7 +85,7 @@ $concerns = $concerns ?? [];
 
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
-                        <h5 class="mb-3">Section Scores</h5>
+                        <h5 class="mb-3">Round 2 Section Scores</h5>
                         <?php if (!empty($sectionScores)): ?>
                             <div class="row">
                                 <?php foreach ($sectionScores as $label => $value): ?>

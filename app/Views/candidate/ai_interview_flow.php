@@ -2,20 +2,23 @@
 <?php
 $application = $application ?? [];
 $flow = $interviewFlow ?? [];
-$sections = $flow['sections'] ?? [];
+$round1Questions = $flow['round1_questions'] ?? [];
+$round2Sections = $flow['round2_sections'] ?? ($flow['sections'] ?? []);
+$sections = $round2Sections;
 $jobTitle = (string) ($flow['job_title'] ?? ($application['job_title'] ?? 'AI Interview'));
 $companyName = trim((string) ($flow['company_name'] ?? ($application['company'] ?? '')));
 $resumeTitle = trim((string) ($flow['resume_title'] ?? ($application['resume_version_title'] ?? '')));
 $resumeSummary = trim((string) ($flow['resume_summary'] ?? ($application['resume_version_summary'] ?? '')));
 $focusSkills = $flow['focus_skills'] ?? [];
 $timerSeconds = (int) ($flow['timer_seconds'] ?? 60);
+$totalTimerSeconds = (int) ($flow['total_timer_seconds'] ?? 1800);
 $applicationStatus = (string) ($application['status'] ?? '');
 $policy = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRED_HARD'));
 $flowJson = json_encode($flow, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $candidateName = (string) (session()->get('user_name') ?? 'Candidate');
 ?>
 
-<div class="ai-interview-flow-jobboard" data-ai-interview-flow="1" data-timer-seconds="<?= $timerSeconds ?>" data-application-id="<?= (int) ($application['id'] ?? 0) ?>">
+<div class="ai-interview-flow-jobboard" data-ai-interview-flow="1" data-timer-seconds="<?= $timerSeconds ?>" data-total-timer-seconds="<?= $totalTimerSeconds ?>" data-application-id="<?= (int) ($application['id'] ?? 0) ?>" data-interview-base-url="<?= esc(base_url('interview')) ?>">
     <div class="container">
         <div class="page-board-header page-board-header-tight">
             <div class="page-board-copy">
@@ -116,6 +119,7 @@ $candidateName = (string) (session()->get('user_name') ?? 'Candidate');
 
                     <div class="panel-body">
                         <div class="ai-interview-flow-status-strip">
+                            <span class="badge badge-light border" id="roundBadge">Round 1 · Written</span>
                             <span class="badge badge-primary" id="questionCountBadge">Waiting to start</span>
                             <span class="badge badge-light ai-interview-flow-recording-state" id="recordingState">Ready to begin</span>
                         </div>
@@ -135,6 +139,11 @@ $candidateName = (string) (session()->get('user_name') ?? 'Candidate');
                             <p class="ai-interview-flow-question-hint" id="questionHint" style="display:none;">
                                 Make sure your camera and microphone are ready. The first question will appear only after the session starts.
                             </p>
+                            <div id="round1AnswerPanel" style="display:none;" class="mt-3">
+                                <div id="round1OptionList" class="mb-2"></div>
+                                <input type="text" id="round1TextAnswer" class="form-control mb-2" placeholder="Type your answer">
+                                <button type="button" id="saveRound1AnswerBtn" class="btn btn-primary btn-sm">Save & Continue</button>
+                            </div>
                         </div>
 
                         <div class="ai-interview-flow-controls">
@@ -183,7 +192,7 @@ $candidateName = (string) (session()->get('user_name') ?? 'Candidate');
                             <div class="ai-interview-flow-progress-summary">
                                 <div class="ai-interview-flow-progress-stat">
                                     <span>Responses captured</span>
-                                    <strong id="capturedResponsesCount">0 / <?= array_sum(array_map(static fn($section) => count((array) ($section['questions'] ?? [])), $sections)) ?></strong>
+                                    <strong id="capturedResponsesCount">0 / <?= (int) (count($round1Questions) + array_sum(array_map(static fn($section) => count((array) ($section['questions'] ?? [])), $sections))) ?></strong>
                                 </div>
                                 <div class="ai-interview-flow-progress-stat">
                                     <span>Current step</span>

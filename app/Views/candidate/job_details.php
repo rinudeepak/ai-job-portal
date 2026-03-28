@@ -4,7 +4,11 @@ $companyRefId = (int) ($job['company_id'] ?? 0);
 if ($companyRefId <= 0) {
     $companyRefId = (int) ($job['recruiter_id'] ?? 0);
 }
-$companyProfileUrl = $companyRefId > 0 ? base_url('company/' . $companyRefId) : '#';
+$isExternalJob = (int) ($job['is_external'] ?? 0) === 1;
+$externalSource = trim((string) ($job['external_source'] ?? ''));
+$externalApplyUrl = trim((string) ($job['external_apply_url'] ?? ''));
+$hasExternalApplyUrl = $externalApplyUrl !== '' && filter_var($externalApplyUrl, FILTER_VALIDATE_URL) !== false;
+$companyProfileUrl = (!$isExternalJob && $companyRefId > 0) ? base_url('company/' . $companyRefId) : '#';
 $isSaved = (bool) ($isSaved ?? false);
 $company = is_array($company ?? null) ? $company : [];
 $brandingPhotos = [];
@@ -67,6 +71,12 @@ if ($jobDeadline !== '') {
 if ($jobOpenings !== '') {
     $summaryRows[] = ['Openings', $jobOpenings];
 }
+if ($isExternalJob) {
+    $summaryRows[] = ['Listing Type', 'External'];
+    if ($externalSource !== '') {
+        $summaryRows[] = ['Source', $externalSource];
+    }
+}
 
 $policyRaw = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
 $policyMap = [
@@ -104,20 +114,29 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
             <div class="page-board-copy">
                 <span class="page-board-kicker"><i class="fas fa-briefcase"></i> Job details</span>
                 <h1 class="page-board-title"><?= esc($job['title']) ?></h1>
-                <p class="page-board-subtitle">Review the role, AI screening policy, and company summary before applying.</p>
+                <p class="page-board-subtitle">
+                    <?= $isExternalJob
+                        ? 'This role was imported from an external source. Review details and apply on the original site.'
+                        : 'Review the role, AI screening policy, and company summary before applying.' ?>
+                </p>
                 <div class="job-details-header-meta">
                     <span class="meta-chip"><i class="fas fa-building"></i> <?= esc($jobCompany) ?></span>
                     <span class="meta-chip"><i class="fas fa-map-pin"></i> <?= esc($jobLocation) ?></span>
                     <span class="meta-chip"><i class="fas fa-clock"></i> <?= esc($jobTypeLabel) ?></span>
+                    <?php if ($isExternalJob): ?>
+                        <span class="meta-chip"><i class="fas fa-globe"></i> External Listing<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
+                    <?php endif; ?>
                     <?php if ($jobSalary !== ''): ?>
                         <span class="meta-chip"><i class="fas fa-rupee-sign"></i> <?= esc($jobSalary) ?></span>
                     <?php endif; ?>
                 </div>
             </div>
             <div class="job-details-header-actions">
-                <a href="<?= esc($companyProfileUrl) ?>" class="btn btn-outline-secondary">
-                    <i class="fas fa-store mr-1"></i> Company Profile
-                </a>
+                <?php if (!$isExternalJob): ?>
+                    <a href="<?= esc($companyProfileUrl) ?>" class="btn btn-outline-secondary">
+                        <i class="fas fa-store mr-1"></i> Company Profile
+                    </a>
+                <?php endif; ?>
                 <a href="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
                    class="btn btn-outline-secondary js-save-job-toggle"
                    data-save-url="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
@@ -128,7 +147,11 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                     <span class="js-save-icon <?= $isSaved ? 'fas' : 'far' ?> fa-bookmark mr-1"></span><span class="js-save-label"><?= $isSaved ? 'Saved' : 'Save Job' ?></span>
                 </a>
                 <div id="jobDetailsTopAction">
-                    <?php if ($alreadyApplied): ?>
+                    <?php if ($isExternalJob && $hasExternalApplyUrl): ?>
+                        <a href="<?= esc($externalApplyUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                            <i class="fas fa-up-right-from-square mr-1"></i> Apply On Source
+                        </a>
+                    <?php elseif ($alreadyApplied): ?>
                         <button class="btn job-details-applied-btn js-job-details-top-applied" disabled>
                             <i class="fas fa-check mr-1"></i> Already Applied
                         </button>
@@ -159,7 +182,7 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
 
             <div class="job-details-layout">
                 <div class="job-details-main">
-                    <?php if (!$alreadyApplied && !empty($resumeCoach)): ?>
+                    <?php if (!$alreadyApplied && !$isExternalJob && !empty($resumeCoach)): ?>
                         <div class="resume-coach-card">
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                                 <div>
@@ -317,7 +340,18 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                             <span class="detail-card-icon"><i class="fas fa-paper-plane"></i></span>
                             <span>Apply</span>
                         </div>
-                        <?php if ($alreadyApplied): ?>
+                        <?php if ($isExternalJob): ?>
+                            <?php if ($hasExternalApplyUrl): ?>
+                                <a href="<?= esc($externalApplyUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-block btn-primary btn-md">
+                                    <i class="fas fa-up-right-from-square mr-2"></i>Apply On <?= esc($externalSource !== '' ? $externalSource : 'Source Site') ?>
+                                </a>
+                                <small class="text-muted d-block mt-2">This listing is sourced externally. Applications are completed on the source website.</small>
+                            <?php else: ?>
+                                <button type="button" class="btn btn-block btn-outline-secondary btn-md" disabled>
+                                    External apply link unavailable
+                                </button>
+                            <?php endif; ?>
+                        <?php elseif ($alreadyApplied): ?>
                             <button class="btn btn-block btn-outline-primary btn-md job-details-applied-btn" disabled data-application-state="applied">
                                 <span class="icon-check mr-2"></span>Already Applied
                             </button>
@@ -365,7 +399,11 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                             <div class="job-details-logo mr-3"><?= esc($companyInitial) ?></div>
                             <div>
                                 <div class="font-weight-bold"><?= esc($jobCompany) ?></div>
-                                <a href="<?= esc($companyProfileUrl) ?>" class="small">View company profile</a>
+                                <?php if (!$isExternalJob): ?>
+                                    <a href="<?= esc($companyProfileUrl) ?>" class="small">View company profile</a>
+                                <?php elseif ($hasExternalApplyUrl): ?>
+                                    <a href="<?= esc($externalApplyUrl) ?>" target="_blank" rel="noopener noreferrer" class="small">View source listing</a>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <?php if (!empty($benefits)): ?>

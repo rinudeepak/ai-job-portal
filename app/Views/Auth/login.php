@@ -83,7 +83,7 @@
 
               <div class="auth-meta-row">
                 <label class="auth-remember">
-                  <input type="checkbox" class="form-check-input">
+                  <input type="checkbox" name="remember_me" value="1" class="form-check-input" <?= old('remember_me') ? 'checked' : '' ?>>
                   Remember me
                 </label>
                 <a href="<?= base_url('forgot-password') ?>" class="auth-footer-link">Forgot password?</a>

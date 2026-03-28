@@ -132,6 +132,8 @@ $renderRecommendedPane = static function (
                     $companyInitial = strtoupper(substr($company, 0, 1) ?: 'C');
                     $companyLogo = trim((string) ($job['company_logo'] ?? ''));
                     $matchLabel = $matchPct . '% match';
+                    $isExternalJob = (int) ($job['is_external'] ?? 0) === 1;
+                    $externalSource = trim((string) ($job['external_source'] ?? ''));
                 ?>
                 <article class="job-card recommended-job-card">
                     <button
@@ -166,6 +168,9 @@ $renderRecommendedPane = static function (
                         </div>
                         <div class="job-card-tags">
                             <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
+                            <?php if ($isExternalJob): ?>
+                                <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
+                            <?php endif; ?>
                             <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                         </div>
                         <?php if (!empty($job['match_reason'])): ?>
@@ -547,6 +552,8 @@ $activeFilterCount = count($activeFilterChips);
                             $companyLogo = trim((string) ($job['company_logo'] ?? ''));
                             $score = (int) round((float) ($job['match_score'] ?? 0));
                             $matchLabel = $score > 0 ? max(10, min(100, $score)) . '% match' : 'Open role';
+                            $isExternalJob = (int) ($job['is_external'] ?? 0) === 1;
+                            $externalSource = trim((string) ($job['external_source'] ?? ''));
                         ?>
                         <div class="col-12">
                             <div class="job-card">
@@ -582,6 +589,9 @@ $activeFilterCount = count($activeFilterChips);
                                     </div>
                                     <div class="job-card-tags">
                                         <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
+                                        <?php if ($isExternalJob): ?>
+                                            <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
+                                        <?php endif; ?>
                                         <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                     </div>
                                     <div class="progress-container">

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\AiInterviewRound1AttemptModel;
 use App\Models\InterviewSessionAnswerModel;
 use App\Models\InterviewSessionModel;
 use App\Models\JobModel;
@@ -221,6 +222,7 @@ class RecruiterApplications extends BaseController
 
         $sessionModel = new InterviewSessionModel();
         $answerModel = new InterviewSessionAnswerModel();
+        $round1Model = new AiInterviewRound1AttemptModel();
 
         $session = $sessionModel->findLatestByApplication((int) $applicationId);
         if (!$session) {
@@ -229,6 +231,9 @@ class RecruiterApplications extends BaseController
         }
 
         $answers = $answerModel->findBySession((int) $session['id']);
+        $round1Attempts = \Config\Database::connect()->tableExists('ai_interview_round1_attempts')
+            ? $round1Model->findBySession((int) $session['id'])
+            : [];
         $sectionScores = json_decode((string) ($session['section_scores'] ?? '[]'), true) ?: [];
         $strengths = json_decode((string) ($session['strengths'] ?? '[]'), true) ?: [];
         $concerns = json_decode((string) ($session['concerns'] ?? '[]'), true) ?: [];
@@ -237,6 +242,7 @@ class RecruiterApplications extends BaseController
             'application' => $application,
             'session' => $session,
             'answers' => $answers,
+            'round1Attempts' => $round1Attempts,
             'sectionScores' => $sectionScores,
             'strengths' => $strengths,
             'concerns' => $concerns,

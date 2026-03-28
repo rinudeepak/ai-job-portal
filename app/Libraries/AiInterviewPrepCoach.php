@@ -361,6 +361,9 @@ class AiInterviewPrepCoach
         }
 
         $payload = json_decode($response, true);
+        if (is_array($payload)) {
+            (new UsageAnalyticsService())->logOpenAiUsage($payload, '/v1/chat/completions', 'gpt-4o-mini');
+        }
         $content = (string) ($payload['choices'][0]['message']['content'] ?? '{}');
 
         return $this->extractJSON($content);

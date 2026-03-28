@@ -11,6 +11,10 @@ $routes->get('/', 'Home::index');
 $routes->get('login', 'Auth::login');
 $routes->post('login', 'Auth::authenticate');
 $routes->get('logout', 'Auth::logout');
+$routes->get('admin/login', 'AdminAnalytics::login');
+$routes->post('admin/login', 'AdminAnalytics::authenticate');
+$routes->get('admin/logout', 'AdminAnalytics::logout', ['filter' => 'admin']);
+$routes->get('admin/dashboard', 'AdminAnalytics::dashboard', ['filter' => 'admin']);
 $routes->get('forgot-password', 'Auth::forgotPassword');
 $routes->post('forgot-password', 'Auth::sendPasswordResetLink');
 $routes->get('reset-password/(:any)', 'Auth::resetPassword/$1');
@@ -157,6 +161,7 @@ $routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::sav
 $routes->group('interview', ['filter' => 'candidate'], function($routes) {
     $routes->get('start/(:num)', 'AiInterviewController::start/$1');
     $routes->post('begin/(:num)', 'AiInterviewController::startInterview/$1');
+    $routes->post('round1-answer/(:num)', 'AiInterviewController::saveRound1Answer/$1');
     $routes->post('answer/(:num)', 'AiInterviewController::saveAnswer/$1');
     $routes->post('complete/(:num)', 'AiInterviewController::completeInterview/$1');
     $routes->get('chat/(:num)', 'AiInterviewController::legacyRedirect/$1');

@@ -10,6 +10,8 @@ class JobModel extends Model
     public const AI_POLICY_OPTIONAL = 'OPTIONAL';
     public const AI_POLICY_REQUIRED_SOFT = 'REQUIRED_SOFT';
     public const AI_POLICY_REQUIRED_HARD = 'REQUIRED_HARD';
+    public const EXTERNAL_SYSTEM_RECRUITER_EMAIL = 'external.jobs@system.local';
+    public const EXTERNAL_SYSTEM_RECRUITER_NAME = 'External Jobs';
 
     protected $table = 'jobs';
     protected $primaryKey = 'id';
@@ -19,6 +21,9 @@ class JobModel extends Model
         'category',
         'recruiter_id',
         'company_id',
+        'is_external',
+        'external_source',
+        'external_apply_url',
         'company',
         'location',
         'description',
@@ -32,6 +37,11 @@ class JobModel extends Model
         'salary_range',
         'application_deadline',
     ];
+
+    public static function isExternalJob(array $job): bool
+    {
+        return (int) ($job['is_external'] ?? 0) === 1;
+    }
 
     public static function normalizeAiPolicy(?string $policy): string
     {

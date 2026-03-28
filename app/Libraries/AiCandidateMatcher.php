@@ -407,6 +407,9 @@ class AiCandidateMatcher
         }
 
         $decoded = json_decode((string) $response, true);
+        if (is_array($decoded)) {
+            (new UsageAnalyticsService())->logOpenAiUsage($decoded, '/v1/chat/completions', 'gpt-4o-mini');
+        }
         return $decoded['choices'][0]['message']['content'] ?? null;
     }
 

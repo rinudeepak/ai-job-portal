@@ -47,8 +47,14 @@
         <div class="candidate-profile-side">
             <div class="card shadow-sm candidate-summary-card candidate-profile-rail-card">
                 <div class="card-body text-center">
-                    <?php if (!empty($candidate['profile_photo'])): ?>
-                        <img src="<?= base_url($candidate['profile_photo']) ?>" alt="Profile" class="candidate-summary-avatar">
+                    <?php
+                    $candidatePhotoPath = trim((string) ($candidate['profile_photo'] ?? ''));
+                    $candidatePhotoUrl = $candidatePhotoPath !== ''
+                        ? (preg_match('/^https?:\/\//i', $candidatePhotoPath) ? $candidatePhotoPath : base_url($candidatePhotoPath))
+                        : '';
+                    ?>
+                    <?php if ($candidatePhotoUrl !== ''): ?>
+                        <img src="<?= esc($candidatePhotoUrl) ?>" alt="Profile" class="candidate-summary-avatar">
                     <?php else: ?>
                         <div class="candidate-summary-fallback"></div>
                     <?php endif; ?>

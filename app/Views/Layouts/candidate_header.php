@@ -78,6 +78,10 @@
         $candidateRecord = model('UserModel')->findCandidateWithProfile($candidateId);
         $candidatePhoto = (string) ($candidateRecord['profile_photo'] ?? '');
     }
+    $candidatePhotoUrl = '';
+    if ($candidatePhoto !== '') {
+        $candidatePhotoUrl = preg_match('/^https?:\/\//i', $candidatePhoto) ? $candidatePhoto : base_url($candidatePhoto);
+    }
     ?>
     <div class="site-mobile-menu site-navbar-target">
         <div class="site-mobile-menu-header">
@@ -410,7 +414,7 @@
                     <div class="d-none d-lg-inline-block candidate-avatar-menu" id="candidateAvatarMenu">
                         <button type="button" class="candidate-avatar-btn" id="candidateAvatarBtn" aria-haspopup="true" aria-expanded="false" title="<?= esc($candidateName) ?>">
                             <?php if ($candidatePhoto !== ''): ?>
-                                <img src="<?= base_url($candidatePhoto) ?>" alt="<?= esc($candidateName) ?>" class="candidate-avatar-photo">
+                                <img src="<?= esc($candidatePhotoUrl) ?>" alt="<?= esc($candidateName) ?>" class="candidate-avatar-photo">
                             <?php else: ?>
                                 <?= esc($candidateInitial) ?>
                             <?php endif; ?>

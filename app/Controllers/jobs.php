@@ -543,7 +543,7 @@ class Jobs extends BaseController
             $company = $companyModel->where('name', $job['company'])->first();
         }
 
-        $resumeCoach = $this->buildResumeCoach($candidateId, $job);
+        $resumeCoach = JobModel::isExternalJob($job) ? [] : $this->buildResumeCoach($candidateId, $job);
 
         return view('candidate/job_details', [
             'title' => 'Job Details',

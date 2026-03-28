@@ -208,6 +208,9 @@ Score from 0-100. Reason should be 1 short sentence.";
         }
 
         $data = json_decode($response, true);
+        if (is_array($data)) {
+            (new UsageAnalyticsService())->logOpenAiUsage($data, '/v1/chat/completions', 'gpt-4o-mini');
+        }
         return $data['choices'][0]['message']['content'] ?? null;
     }
 }

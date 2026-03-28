@@ -3,6 +3,8 @@
 namespace App\Filters;
 
 use App\Libraries\CandidateOnboardingService;
+use App\Libraries\RememberMeService;
+use App\Libraries\UsageAnalyticsService;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -11,6 +13,8 @@ class CandidateAuth implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
+        (new RememberMeService())->attemptAutoLogin();
+
         if (!session()->get('logged_in')) {
             return redirect()->to(base_url('login?next=' . rawurlencode(current_url())));
         }
@@ -20,6 +24,8 @@ class CandidateAuth implements FilterInterface
         }
 
         $path = '/' . trim($request->getUri()->getPath(), '/');
+        (new UsageAnalyticsService())->captureFirstPageAfterLogin($path);
+
         if (str_contains($path, '/candidate/onboarding')) {
             return null;
         }
