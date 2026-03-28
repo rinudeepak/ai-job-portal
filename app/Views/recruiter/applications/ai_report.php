@@ -173,7 +173,7 @@ $concerns = $concerns ?? [];
                     </div>
                 </div>
 
-                <div class="card shadow-sm">
+                <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h5 class="mb-3">Next Action</h5>
                         <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . (int) ($application['id'] ?? 0)) ?>" class="mb-2">
@@ -183,6 +183,78 @@ $concerns = $concerns ?? [];
                         <form method="post" action="<?= base_url('recruiter/applications/reject/' . (int) ($application['id'] ?? 0)) ?>">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-outline-danger btn-block">Reject</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Score Override & Flag -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-1">Recruiter Override</h5>
+                        <p class="text-muted small mb-3">Override the AI score or flag this interview for review.</p>
+
+                        <?php if (session()->getFlashdata('override_success')): ?>
+                            <div class="alert alert-success py-2"><?= session()->getFlashdata('override_success') ?></div>
+                        <?php endif; ?>
+
+                        <form method="post" action="<?= base_url('recruiter/applications/' . (int) ($application['id'] ?? 0) . '/ai-report/override') ?>">
+                            <?= csrf_field() ?>
+
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold">Override Overall Score <span class="text-muted">(0–10)</span></label>
+                                <input
+                                    type="number"
+                                    name="override_score"
+                                    class="form-control"
+                                    min="0" max="10" step="0.1"
+                                    placeholder="Leave blank to keep AI score"
+                                    value="<?= esc((string) ($session['recruiter_override_score'] ?? '')) ?>"
+                                >
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold d-block mb-2">Flag for Review</label>
+                                <?php
+                                $flagOptions = [
+                                    ''             => ['label' => 'No Flag',      'color' => '#6c757d'],
+                                    'strong_yes'   => ['label' => 'Strong Yes',   'color' => '#198754'],
+                                    'yes'          => ['label' => 'Yes',          'color' => '#20c997'],
+                                    'maybe'        => ['label' => 'Maybe',        'color' => '#ffc107'],
+                                    'no'           => ['label' => 'No',           'color' => '#dc3545'],
+                                    'needs_review' => ['label' => 'Needs Review', 'color' => '#6c757d'],
+                                ];
+                                $currentFlag = (string) ($session['recruiter_flag'] ?? '');
+                                ?>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                    <?php foreach ($flagOptions as $val => $opt): ?>
+                                        <label style="margin:0;cursor:pointer;">
+                                            <input type="radio" name="flag" value="<?= esc($val) ?>" <?= $currentFlag === $val ? 'checked' : '' ?> style="display:none;" class="flag-radio">
+                                            <span class="flag-pill" style="display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:600;border:2px solid <?= $opt['color'] ?>;color:<?= $currentFlag === $val ? '#fff' : $opt['color'] ?>;background:<?= $currentFlag === $val ? $opt['color'] : 'transparent' ?>;transition:all .15s;">
+                                                <?= esc($opt['label']) ?>
+                                            </span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                                <script>
+                                document.querySelectorAll('.flag-radio').forEach(function(radio) {
+                                    radio.addEventListener('change', function() {
+                                        document.querySelectorAll('.flag-radio').forEach(function(r) {
+                                            var pill = r.nextElementSibling;
+                                            var color = pill.style.borderColor;
+                                            pill.style.background = r.checked ? color : 'transparent';
+                                            pill.style.color = r.checked ? '#fff' : color;
+                                        });
+                                    });
+                                });
+                                </script>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold">Recruiter Note</label>
+                                <textarea name="recruiter_note" class="form-control" rows="3" placeholder="Optional note about this interview..."><?= esc((string) ($session['recruiter_note'] ?? '')) ?></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">Save Override</button>
                         </form>
                     </div>
                 </div>

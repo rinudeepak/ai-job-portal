@@ -42,9 +42,18 @@ class AiInterviewController extends BaseController
 
         $flow = $this->buildInterviewFlow($application);
 
+        $completedSession = (new InterviewSessionModel())
+            ->where('application_id', $applicationId)
+            ->where('user_id', $candidateId)
+            ->where('status', 'completed')
+            ->orderBy('id', 'DESC')
+            ->first();
+
         return $this->response->setBody(view('candidate/ai_interview_flow', [
-            'application' => $application,
-            'interviewFlow' => $flow,
+            'application'       => $application,
+            'interviewFlow'     => $flow,
+            'interviewCompleted' => !empty($completedSession),
+            'completedSession'  => $completedSession ?? [],
         ]));
     }
 
@@ -97,6 +106,20 @@ class AiInterviewController extends BaseController
         $round1Total = count((array) ($flow['round1_questions'] ?? []));
 
         $sessionModel = new InterviewSessionModel();
+
+        $maxAttempts    = 1;
+        $attemptCount   = $sessionModel
+            ->where('application_id', (int) $applicationId)
+            ->where('user_id', $candidateId)
+            ->countAllResults();
+
+        if ($attemptCount >= $maxAttempts) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'You have reached the maximum number of interview attempts (' . $maxAttempts . ') for this application.',
+            ]);
+        }
+
         $activeSession = $sessionModel
             ->where('application_id', (int) $applicationId)
             ->where('user_id', $candidateId)
@@ -202,11 +225,13 @@ class AiInterviewController extends BaseController
         }
 
         $isCorrect = null;
+        $score    = 0.0;
+        $maxScore = 10.0;
+
         if ($correctAnswer !== '') {
             $isCorrect = strtolower(trim($selectedAnswer)) === strtolower(trim($correctAnswer)) ? 1 : 0;
+            $score     = $this->scoreRound1Answer($questionType, $selectedAnswer, $correctAnswer);
         }
-        $score = $isCorrect === 1 ? 10.0 : 0.0;
-        $maxScore = 10.0;
 
         $attemptModel = new AiInterviewRound1AttemptModel();
         $now = date('Y-m-d H:i:s');
@@ -901,41 +926,183 @@ class AiInterviewController extends BaseController
         return $relativeBase . $folder . $filename;
     }
 
+    private function scoreRound1Answer(string $questionType, string $selected, string $correct): float
+    {
+        $selectedNorm = strtolower(trim($selected));
+        $correctNorm  = strtolower(trim($correct));
+
+        // Exact match — full credit
+        if ($selectedNorm === $correctNorm) {
+            return 10.0;
+        }
+
+        if ($questionType === 'mcq') {
+            // Partial credit: selected answer contains the correct answer or vice versa
+            if (str_contains($selectedNorm, $correctNorm) || str_contains($correctNorm, $selectedNorm)) {
+                return 5.0;
+            }
+            return 0.0;
+        }
+
+        // fill_blank: use similarity for partial credit
+        similar_text($selectedNorm, $correctNorm, $percent);
+
+        if ($percent >= 80) {
+            return 8.0; // Very close (e.g. "indexes" vs "index")
+        }
+        if ($percent >= 60) {
+            return 5.0; // Partially correct (e.g. "communicate" vs "communication")
+        }
+        if ($percent >= 40) {
+            return 3.0; // Related but not quite right
+        }
+
+        return 0.0;
+    }
+
     private function evaluateAnswer(
         string $sectionKey,
         string $questionText,
         ?string $transcript,
         ?int $durationSeconds
     ): array {
-        $transcriptLength = strlen(trim((string) $transcript));
+        $transcript = trim((string) $transcript);
+
+        // Skip AI evaluation if transcript is unavailable or too short to be meaningful
+        if (
+            $transcript !== '' &&
+            !$this->isTranscriptUnavailableMarker($transcript) &&
+            strlen($transcript) >= 30
+        ) {
+            $aiResult = $this->evaluateAnswerWithOpenAi($sectionKey, $questionText, $transcript);
+            if ($aiResult !== null) {
+                return $aiResult;
+            }
+        }
+
+        // Fallback: heuristic scoring when OpenAI is unavailable or transcript is missing
+        return $this->evaluateAnswerHeuristic($sectionKey, $questionText, $transcript, $durationSeconds);
+    }
+
+    private function evaluateAnswerWithOpenAi(
+        string $sectionKey,
+        string $questionText,
+        string $transcript
+    ): ?array {
+        $apiKey = trim((string) (getenv('OPENAI_API_KEY') ?: ''));
+        if ($apiKey === '') {
+            return null;
+        }
+
+        $sectionLabels = [
+            'reasoning'  => 'Reasoning — how the candidate thinks through unfamiliar problems',
+            'logical'    => 'Logical — how the candidate breaks down decisions and tradeoffs',
+            'technical'  => 'Technical — how the candidate connects skills and experience to the role',
+        ];
+        $sectionContext = $sectionLabels[$sectionKey] ?? 'General interview response';
+
+        $prompt = <<<PROMPT
+You are an expert technical interviewer evaluating a candidate's spoken answer.
+
+Section: {$sectionContext}
+Question: {$questionText}
+Candidate Answer (transcript): {$transcript}
+
+Evaluate the answer on these 4 criteria (each scored 0–25):
+1. Relevance — does the answer directly address the question?
+2. Clarity — is the answer structured and easy to follow?
+3. Depth — does the answer show real understanding, not just surface-level?
+4. Specificity — does the answer include concrete examples, results, or decisions?
+
+Return strict JSON only:
+{
+  "score": <integer 0–100, sum of 4 criteria>,
+  "feedback": "<2–3 sentence actionable feedback for the candidate>"
+}
+
+Rules:
+- Score must reflect actual answer quality, not just length.
+- Feedback must be specific to this answer, not generic.
+- If the answer is off-topic or empty, score below 40.
+- Do not return anything outside the JSON object.
+PROMPT;
+
+        $requestBody = [
+            'model'    => 'gpt-4o-mini',
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are an expert technical interviewer. Return valid JSON only.'],
+                ['role' => 'user',   'content' => $prompt],
+            ],
+            'temperature' => 0.2,
+            'max_tokens'  => 300,
+        ];
+
+        $ch = curl_init('https://api.openai.com/v1/chat/completions');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey,
+            ],
+            CURLOPT_POSTFIELDS => json_encode($requestBody),
+            CURLOPT_TIMEOUT    => 20,
+        ]);
+
+        $response  = curl_exec($ch);
+        $httpCode  = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($response === false || $curlError !== '' || $httpCode !== 200) {
+            log_message('warning', 'AI answer evaluation failed: ' . ($curlError ?: 'HTTP ' . $httpCode));
+            return null;
+        }
+
+        $decoded = json_decode((string) $response, true);
+        if (is_array($decoded)) {
+            (new UsageAnalyticsService())->logOpenAiUsage($decoded, '/v1/chat/completions', 'gpt-4o-mini');
+        }
+
+        $content   = (string) ($decoded['choices'][0]['message']['content'] ?? '');
+        $json      = $this->extractJsonObject($content);
+        $result    = json_decode($json, true);
+
+        if (!is_array($result)) {
+            return null;
+        }
+
+        $score    = (int) ($result['score'] ?? -1);
+        $feedback = trim((string) ($result['feedback'] ?? ''));
+
+        if ($score < 0 || $score > 100 || $feedback === '') {
+            return null;
+        }
+
+        return [
+            'score'    => (float) $score,
+            'feedback' => $feedback,
+        ];
+    }
+
+    private function evaluateAnswerHeuristic(
+        string $sectionKey,
+        string $questionText,
+        string $transcript,
+        ?int $durationSeconds
+    ): array {
+        $transcriptLength = strlen($transcript);
         $duration = max(0, (int) $durationSeconds);
 
-        $baseBySection = [
-            'reasoning' => 62,
-            'logical' => 64,
-            'technical' => 66,
-        ];
+        $baseBySection = ['reasoning' => 62, 'logical' => 64, 'technical' => 66];
         $score = $baseBySection[$sectionKey] ?? 60;
 
-        if ($duration >= 15) {
-            $score += 10;
-        }
-        if ($duration >= 30) {
-            $score += 8;
-        }
-        if ($duration >= 45) {
-            $score += 5;
-        }
-
-        if ($transcriptLength >= 80) {
-            $score += 6;
-        }
-        if ($transcriptLength >= 180) {
-            $score += 5;
-        }
-        if ($transcriptLength >= 320) {
-            $score += 3;
-        }
+        if ($duration >= 15) { $score += 10; }
+        if ($duration >= 30) { $score += 8; }
+        if ($duration >= 45) { $score += 5; }
+        if ($transcriptLength >= 80)  { $score += 6; }
+        if ($transcriptLength >= 180) { $score += 5; }
+        if ($transcriptLength >= 320) { $score += 3; }
 
         $score = min(98, max(35, $score));
 
@@ -951,10 +1118,7 @@ class AiInterviewController extends BaseController
             $feedback = 'Good start. Strengthen by describing challenge, solution steps, and measurable result.';
         }
 
-        return [
-            'score' => (float) $score,
-            'feedback' => $feedback,
-        ];
+        return ['score' => (float) $score, 'feedback' => $feedback];
     }
 
     private function cleanTranscript(string $transcript): string
@@ -1083,22 +1247,21 @@ class AiInterviewController extends BaseController
     private function selectBestTranscript(string $browserTranscriptRaw, ?string $serverTranscript): ?string
     {
         $browserTranscriptRaw = trim($browserTranscriptRaw);
-        $browserTranscript = $browserTranscriptRaw !== '' ? $this->cleanTranscript($browserTranscriptRaw) : '';
-
-        if ($this->isTranscriptUnavailableMarker($browserTranscriptRaw)) {
-            $browserTranscript = '';
-        }
+        $browserTranscript    = ($browserTranscriptRaw !== '' && !$this->isTranscriptUnavailableMarker($browserTranscriptRaw))
+            ? $this->cleanTranscript($browserTranscriptRaw)
+            : '';
 
         $serverTranscript = trim((string) ($serverTranscript ?? ''));
 
-        if ($serverTranscript !== '' && strlen($serverTranscript) >= strlen($browserTranscript)) {
+        // Server transcript (Whisper) is always more accurate than browser Web Speech API.
+        // Prefer it unconditionally when available and non-trivial.
+        if ($serverTranscript !== '' && strlen($serverTranscript) >= 10) {
             return $serverTranscript;
         }
+
+        // Fall back to browser transcript only if server produced nothing.
         if ($browserTranscript !== '') {
             return $browserTranscript;
-        }
-        if ($serverTranscript !== '') {
-            return $serverTranscript;
         }
 
         return '[Transcript unavailable: no reliable transcript generated.]';

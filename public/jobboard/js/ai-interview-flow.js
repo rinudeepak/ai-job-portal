@@ -624,6 +624,8 @@
         if (finishSessionBtn) {
             finishSessionBtn.addEventListener('click', () => {
                 if (!state.started) return;
+                const confirmText = 'Are you sure you want to finish the interview now? All unsaved progress for the current question will be lost.';
+                if (!window.confirm(confirmText)) return;
                 finishSession();
             });
         }

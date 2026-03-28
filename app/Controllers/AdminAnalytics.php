@@ -69,12 +69,21 @@ class AdminAnalytics extends BaseController
 
         $dailyApi = [];
         $apiTotals = ['total_calls' => 0, 'total_cost' => 0];
+        $providerBreakdown = [];
         if ($db->tableExists('admin_api_usage_logs')) {
             $dailyApi = $db->table('admin_api_usage_logs')
                 ->select('DATE(created_at) AS day, COUNT(*) AS calls_count, SUM(estimated_cost_usd) AS cost_usd')
                 ->where('created_at >=', $since)
                 ->groupBy('DATE(created_at)')
                 ->orderBy('day', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            $providerBreakdown = $db->table('admin_api_usage_logs')
+                ->select('provider, COUNT(*) AS calls_count, SUM(estimated_cost_usd) AS cost_usd')
+                ->where('created_at >=', $since)
+                ->groupBy('provider')
+                ->orderBy('calls_count', 'DESC')
                 ->get()
                 ->getResultArray();
 
@@ -105,6 +114,7 @@ class AdminAnalytics extends BaseController
             'days' => $days,
             'dailyUsers' => $dailyUsers,
             'dailyApi' => $dailyApi,
+            'providerBreakdown' => $providerBreakdown,
             'apiTotals' => $apiTotals,
             'firstPageDurations' => $firstPageDurations,
         ]);

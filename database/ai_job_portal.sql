@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 28, 2026 at 06:17 AM
+-- Generation Time: Mar 28, 2026 at 01:08 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -38,6 +38,10 @@ CREATE TABLE `admin_api_usage_logs` (
   `prompt_tokens` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `completion_tokens` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `total_tokens` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `usage_units` int(11) UNSIGNED DEFAULT 1,
+  `http_status_code` int(5) UNSIGNED DEFAULT NULL,
+  `latency_ms` int(11) UNSIGNED DEFAULT NULL,
+  `is_success` tinyint(1) DEFAULT 1,
   `estimated_cost_usd` decimal(12,6) NOT NULL DEFAULT 0.000000,
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -46,14 +50,36 @@ CREATE TABLE `admin_api_usage_logs` (
 -- Dumping data for table `admin_api_usage_logs`
 --
 
-INSERT INTO `admin_api_usage_logs` (`id`, `user_id`, `user_email`, `user_role`, `provider`, `endpoint`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `estimated_cost_usd`, `created_at`) VALUES
-(1, 2, '', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 880, 370, 1250, 0.000354, '2026-03-27 09:59:53'),
-(2, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 374, 744, 1118, 0.000503, '2026-03-27 10:05:35'),
-(3, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 177, 509, 0.000156, '2026-03-27 10:47:26'),
-(4, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 168, 497, 0.000150, '2026-03-27 10:47:30'),
-(5, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 184, 514, 0.000160, '2026-03-27 10:47:34'),
-(6, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 170, 505, 0.000152, '2026-03-27 10:47:38'),
-(7, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 391, 776, 1167, 0.000524, '2026-03-27 11:07:31');
+INSERT INTO `admin_api_usage_logs` (`id`, `user_id`, `user_email`, `user_role`, `provider`, `endpoint`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `usage_units`, `http_status_code`, `latency_ms`, `is_success`, `estimated_cost_usd`, `created_at`) VALUES
+(1, 2, '', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 880, 370, 1250, 1, NULL, NULL, 1, 0.000354, '2026-03-27 09:59:53'),
+(2, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 374, 744, 1118, 1, NULL, NULL, 1, 0.000503, '2026-03-27 10:05:35'),
+(3, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 177, 509, 1, NULL, NULL, 1, 0.000156, '2026-03-27 10:47:26'),
+(4, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 168, 497, 1, NULL, NULL, 1, 0.000150, '2026-03-27 10:47:30'),
+(5, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 184, 514, 1, NULL, NULL, 1, 0.000160, '2026-03-27 10:47:34'),
+(6, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 170, 505, 1, NULL, NULL, 1, 0.000152, '2026-03-27 10:47:38'),
+(7, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 391, 776, 1167, 1, NULL, NULL, 1, 0.000524, '2026-03-27 11:07:31'),
+(8, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 135, 469, 1, NULL, NULL, 1, 0.000131, '2026-03-28 06:10:55'),
+(9, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 135, 464, 1, NULL, NULL, 1, 0.000130, '2026-03-28 06:10:57'),
+(10, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 171, 501, 1, NULL, NULL, 1, 0.000152, '2026-03-28 06:11:02'),
+(11, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 168, 503, 1, NULL, NULL, 1, 0.000151, '2026-03-28 06:11:04'),
+(12, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 328, 148, 476, 1, NULL, NULL, 1, 0.000138, '2026-03-28 06:11:09'),
+(13, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 133, 462, 1, NULL, NULL, 1, 0.000129, '2026-03-28 06:11:13'),
+(14, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 231, 960, 1, NULL, NULL, 1, 0.000248, '2026-03-28 06:11:20'),
+(15, 2, 'manju@gmail.com', 'candidate', 'github', '/users/rinudeepak/repos', 'rest_get', 0, 0, 0, 1, 200, 911, 1, 0.000000, '2026-03-28 06:25:59'),
+(16, 2, 'manju@gmail.com', 'candidate', 'github', '/repos/rinudeepak/ai-job-portal/commits', 'repo_commit_count', 0, 0, 0, 1, 200, 645, 1, 0.000000, '2026-03-28 06:26:00'),
+(17, 2, 'manju@gmail.com', 'candidate', 'github', '/repos/rinudeepak/ai-job-portal/languages', 'rest_get', 0, 0, 0, 1, 200, 470, 1, 0.000000, '2026-03-28 06:26:00'),
+(18, 2, 'manju@gmail.com', 'candidate', 'github', '/repos/rinudeepak/job-portal/commits', 'repo_commit_count', 0, 0, 0, 1, 200, 798, 1, 0.000000, '2026-03-28 06:26:01'),
+(19, 2, 'manju@gmail.com', 'candidate', 'github', '/repos/rinudeepak/job-portal/languages', 'rest_get', 0, 0, 0, 1, 200, 636, 1, 0.000000, '2026-03-28 06:26:02'),
+(20, 2, 'manju@gmail.com', 'candidate', 'github', '/repos/rinudeepak/wordpress-customer-management-plugin/commits', 'repo_commit_count', 0, 0, 0, 1, 200, 510, 1, 0.000000, '2026-03-28 06:26:02'),
+(21, 2, 'manju@gmail.com', 'candidate', 'github', '/repos/rinudeepak/wordpress-customer-management-plugin/languages', 'rest_get', 0, 0, 0, 1, 200, 585, 1, 0.000000, '2026-03-28 06:26:03'),
+(22, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 380, 732, 1112, 1112, 200, NULL, 1, 0.000496, '2026-03-28 09:31:58'),
+(23, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 266, 76, 342, 342, 200, NULL, 1, 0.000086, '2026-03-28 09:34:03'),
+(24, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 246, 60, 306, 306, 200, NULL, 1, 0.000073, '2026-03-28 09:34:45'),
+(25, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 185, 516, 516, 200, NULL, 1, 0.000161, '2026-03-28 10:02:05'),
+(26, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 385, 713, 1098, 1098, 200, NULL, 1, 0.000486, '2026-03-28 10:17:33'),
+(27, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 398, 782, 1180, 1180, 200, NULL, 1, 0.000529, '2026-03-28 10:18:19'),
+(28, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 173, 505, 505, 200, NULL, 1, 0.000154, '2026-03-28 11:19:17'),
+(29, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 391, 816, 1207, 1207, 200, NULL, 1, 0.000548, '2026-03-28 11:19:41');
 
 -- --------------------------------------------------------
 
@@ -105,36 +131,7 @@ CREATE TABLE `ai_interview_round1_attempts` (
 --
 
 INSERT INTO `ai_interview_round1_attempts` (`id`, `interview_session_id`, `application_id`, `candidate_id`, `question_bank_id`, `section_key`, `question_type`, `question_text`, `selected_answer`, `correct_answer`, `is_correct`, `score`, `max_score`, `answered_at`, `created_at`, `updated_at`) VALUES
-(6, 14, 11, 2, NULL, 'reasoning', 'mcq', 'In a data pipeline issue, what should be your first step?', 'Identify impact, gather evidence, then act', 'Identify impact, gather evidence, then act', 1, 10.00, 10.00, '2026-03-26 10:42:10', '2026-03-26 10:42:10', '2026-03-26 10:42:10'),
-(7, 14, 11, 2, NULL, 'logical', 'mcq', 'For the Data Analyst role, which approach is most reliable under deadline pressure?', 'Deliver the smallest safe increment with validation', 'Deliver the smallest safe increment with validation', 1, 10.00, 10.00, '2026-03-26 10:42:57', '2026-03-26 10:42:57', '2026-03-26 10:42:57'),
-(8, 14, 11, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'structure', 'communication', 0, 0.00, 10.00, '2026-03-26 10:43:17', '2026-03-26 10:43:17', '2026-03-26 10:43:17'),
-(9, 14, 11, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Strong Python improves analysis quality.', 'true', 'technical', 0, 0.00, 10.00, '2026-03-26 10:43:40', '2026-03-26 10:43:40', '2026-03-26 10:43:40'),
-(10, 14, 11, 2, NULL, 'reasoning', 'mcq', 'Which is the best signal of a maintainable solution in SQL?', 'Clear modules, readable code, and test coverage', 'Clear modules, readable code, and test coverage', 1, 10.00, 10.00, '2026-03-26 10:44:04', '2026-03-26 10:44:04', '2026-03-26 10:44:04'),
-(11, 15, 11, 2, NULL, 'reasoning', 'mcq', 'In a data pipeline issue, what should be your first step?', 'Identify impact, gather evidence, then act', 'Identify impact, gather evidence, then act', 1, 10.00, 10.00, '2026-03-26 10:50:38', '2026-03-26 10:50:38', '2026-03-26 10:50:38'),
-(12, 16, 11, 2, NULL, 'reasoning', 'mcq', 'In a data pipeline issue, what should be your first step?', 'Identify impact, gather evidence, then act', 'Identify impact, gather evidence, then act', 1, 10.00, 10.00, '2026-03-26 10:54:51', '2026-03-26 10:54:51', '2026-03-26 10:54:51'),
-(13, 16, 11, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'structure', 'communication', 0, 0.00, 10.00, '2026-03-26 10:55:04', '2026-03-26 10:55:04', '2026-03-26 10:55:04'),
-(14, 16, 11, 2, NULL, 'reasoning', 'mcq', 'Which is the best signal of a maintainable solution in SQL?', 'Hardcoded values across all files', 'Clear modules, readable code, and test coverage', 0, 0.00, 10.00, '2026-03-26 10:55:26', '2026-03-26 10:55:26', '2026-03-26 10:55:26'),
-(15, 16, 11, 2, NULL, 'logical', 'mcq', 'For the Data Analyst role, which approach is most reliable under deadline pressure?', 'Deliver the smallest safe increment with validation', 'Deliver the smallest safe increment with validation', 1, 10.00, 10.00, '2026-03-26 10:55:47', '2026-03-26 10:55:47', '2026-03-26 10:55:47'),
-(16, 16, 11, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Strong ____ improves analysis quality.', 'Python', 'Python', 1, 10.00, 10.00, '2026-03-26 10:55:55', '2026-03-26 10:55:55', '2026-03-26 10:55:55'),
-(17, 17, 10, 2, NULL, 'reasoning', 'mcq', 'Which is the best signal of a maintainable solution in Kubernetes?', 'Clear modules, readable code, and test coverage', 'Clear modules, readable code, and test coverage', 1, 10.00, 10.00, '2026-03-26 10:57:41', '2026-03-26 10:57:41', '2026-03-26 10:57:41'),
-(18, 18, 10, 2, NULL, 'reasoning', 'mcq', 'Which is the best signal of a maintainable solution in Kubernetes?', 'One very large function for everything', 'Clear modules, readable code, and test coverage', 0, 0.00, 10.00, '2026-03-26 10:58:44', '2026-03-26 10:58:44', '2026-03-26 10:58:44'),
-(19, 18, 10, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Strong ____ improves system reliability quality.', 'Python', 'Docker', 0, 0.00, 10.00, '2026-03-26 10:58:52', '2026-03-26 10:58:52', '2026-03-26 10:58:52'),
-(20, 18, 10, 2, NULL, 'logical', 'mcq', 'For the DevOps Engineer role, which approach is most reliable under deadline pressure?', 'Delay until perfect architecture appears', 'Deliver the smallest safe increment with validation', 0, 0.00, 10.00, '2026-03-26 10:58:59', '2026-03-26 10:58:59', '2026-03-26 10:58:59'),
-(21, 18, 10, 2, NULL, 'reasoning', 'mcq', 'In a deployment pipeline issue, what should be your first step?', 'Wait for more complaints before acting', 'Identify impact, gather evidence, then act', 0, 0.00, 10.00, '2026-03-26 10:59:16', '2026-03-26 10:59:16', '2026-03-26 10:59:16'),
-(22, 18, 10, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'structure', 'communication', 0, 0.00, 10.00, '2026-03-26 10:59:24', '2026-03-26 10:59:24', '2026-03-26 10:59:24'),
-(23, 19, 9, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'structure', 'communication', 0, 0.00, 10.00, '2026-03-26 11:16:20', '2026-03-26 11:16:20', '2026-03-26 11:16:20'),
-(24, 20, 12, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Clear team ____ prevents delivery confusion.', 'members', 'communication', 0, 0.00, 10.00, '2026-03-27 10:50:18', '2026-03-27 10:50:18', '2026-03-27 10:50:18'),
-(25, 20, 12, 2, NULL, 'reasoning', 'mcq', 'Which is the best signal of a maintainable solution in Google Ads?', 'Clear modules, readable code, and test coverage', 'Clear modules, readable code, and test coverage', 1, 10.00, 10.00, '2026-03-27 10:50:41', '2026-03-27 10:50:41', '2026-03-27 10:50:41'),
-(26, 20, 12, 2, NULL, 'reasoning', 'mcq', 'In a product engineering issue, what should be your first step?', 'Identify impact, gather evidence, then act', 'Identify impact, gather evidence, then act', 1, 10.00, 10.00, '2026-03-27 10:50:54', '2026-03-27 10:50:54', '2026-03-27 10:50:54'),
-(27, 20, 12, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'reviews', 'communication', 0, 0.00, 10.00, '2026-03-27 10:51:07', '2026-03-27 10:51:07', '2026-03-27 10:51:07'),
-(28, 20, 12, 2, NULL, 'reasoning', 'mcq', 'When priorities conflict, what is the best next action?', 'Clarify impact and align on a ranked priority list', 'Clarify impact and align on a ranked priority list', 1, 10.00, 10.00, '2026-03-27 10:51:18', '2026-03-27 10:51:18', '2026-03-27 10:51:18'),
-(29, 20, 12, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Good ____ helps teams detect issues early.', 'vibe', 'monitoring', 0, 0.00, 10.00, '2026-03-27 10:51:32', '2026-03-27 10:51:32', '2026-03-27 10:51:32'),
-(30, 21, 12, 2, NULL, 'reasoning', 'mcq', 'What does SEO stand for?', 'Search Engine Optimization', 'Search Engine Optimization', 1, 10.00, 10.00, '2026-03-27 11:07:49', '2026-03-27 11:07:49', '2026-03-27 11:07:49'),
-(31, 21, 12, 2, NULL, 'reasoning', 'mcq', 'Which of the following is a key metric for measuring the success of a Google Ads campaign?', 'Page Load Time', 'Click-Through Rate', 0, 0.00, 10.00, '2026-03-27 11:07:59', '2026-03-27 11:07:59', '2026-03-27 11:07:59'),
-(32, 21, 12, 2, NULL, 'logical', 'mcq', 'Which platform is primarily used for B2B marketing?', 'Pinterest', 'LinkedIn', 0, 0.00, 10.00, '2026-03-27 11:08:13', '2026-03-27 11:08:13', '2026-03-27 11:08:13'),
-(33, 21, 12, 2, NULL, 'logical', 'mcq', 'What is the primary purpose of content marketing?', 'To engage and inform the audience', 'To engage and inform the audience', 1, 10.00, 10.00, '2026-03-27 11:08:25', '2026-03-27 11:08:25', '2026-03-27 11:08:25'),
-(34, 21, 12, 2, NULL, 'fill_blank', 'fill_blank', 'The process of optimizing a website to rank higher in search engine results is called ____.', 'SEO', 'SEO', 1, 10.00, 10.00, '2026-03-27 11:08:41', '2026-03-27 11:08:41', '2026-03-27 11:08:41'),
-(35, 21, 12, 2, NULL, 'fill_blank', 'fill_blank', 'In Google Ads, the cost per click is also known as ____.', 'NA', 'CPC', 0, 0.00, 10.00, '2026-03-27 11:09:01', '2026-03-27 11:09:01', '2026-03-27 11:09:01');
+(23, 19, 9, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'structure', 'communication', 0, 0.00, 10.00, '2026-03-26 11:16:20', '2026-03-26 11:16:20', '2026-03-26 11:16:20');
 
 -- --------------------------------------------------------
 
@@ -169,7 +166,7 @@ INSERT INTO `applications` (`id`, `candidate_id`, `resume_version_id`, `job_id`,
 (9, 2, NULL, 9, 'applied', NULL, NULL, '2026-03-26 08:39:10'),
 (10, 2, NULL, 5, 'applied', NULL, NULL, '2026-03-26 08:49:27'),
 (11, 2, NULL, 3, 'applied', NULL, NULL, '2026-03-26 08:56:56'),
-(12, 2, NULL, 8, 'ai_interview_completed', NULL, NULL, '2026-03-26 09:02:49');
+(12, 2, NULL, 8, 'applied', NULL, NULL, '2026-03-26 09:02:49');
 
 -- --------------------------------------------------------
 
@@ -195,7 +192,7 @@ CREATE TABLE `candidate_github_stats` (
 INSERT INTO `candidate_github_stats` (`id`, `candidate_id`, `github_username`, `repo_count`, `commit_count`, `languages_used`, `github_score`, `created_at`) VALUES
 (2, 5, 'rinudeepak', 3, 64, 'PHP,HTML,CSS,JavaScript,Hack', 3, '2026-03-13 08:56:01'),
 (4, 8, 'rinudeepak', 3, 67, 'PHP,CSS,JavaScript,HTML,Hack', 3, '2026-03-21 10:01:49'),
-(5, 2, 'rinudeepak', 3, 70, 'PHP,CSS,JavaScript,HTML,Hack', 4, '2026-03-27 09:56:20');
+(7, 2, 'rinudeepak', 3, 70, 'PHP,CSS,JavaScript,HTML,Hack', 4, '2026-03-28 06:26:03');
 
 -- --------------------------------------------------------
 
@@ -712,6 +709,9 @@ CREATE TABLE `interview_sessions` (
   `adaptability_score` decimal(5,2) DEFAULT NULL,
   `enthusiasm_score` decimal(5,2) DEFAULT NULL,
   `overall_rating` decimal(5,2) DEFAULT NULL,
+  `recruiter_override_score` decimal(4,1) DEFAULT NULL,
+  `recruiter_flag` varchar(20) DEFAULT NULL,
+  `recruiter_note` text DEFAULT NULL,
   `round1_score` decimal(5,2) DEFAULT NULL,
   `round2_score` decimal(5,2) DEFAULT NULL,
   `round1_answered` int(11) DEFAULT 0,
@@ -727,28 +727,30 @@ CREATE TABLE `interview_sessions` (
 -- Dumping data for table `interview_sessions`
 --
 
-INSERT INTO `interview_sessions` (`id`, `user_id`, `application_id`, `job_id`, `resume_version_id`, `session_id`, `position`, `conversation_history`, `turn`, `max_turns`, `status`, `evaluation_data`, `section_scores`, `strengths`, `concerns`, `recommendation_summary`, `evaluation_version`, `technical_score`, `communication_score`, `problem_solving_score`, `adaptability_score`, `enthusiasm_score`, `overall_rating`, `round1_score`, `round2_score`, `round1_answered`, `round1_total_questions`, `interview_total_seconds`, `ai_decision`, `created_at`, `updated_at`, `completed_at`) VALUES
-(1, 2, 1, 6, NULL, 'ai_1_3a46a196a96b', 'Backend Developer', '[]', 3, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 05:25:47', '2026-03-26 05:26:57', '2026-03-26 05:26:57'),
-(2, 2, 8, 11, NULL, 'ai_8_385562a0911e', 'Python Developer', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:27:32', '2026-03-26 08:28:50', '2026-03-26 08:28:50'),
-(3, 2, 9, 9, NULL, 'ai_9_e85cf7a26ecb', 'UI/UX Designer', '[]', 3, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:40:35', '2026-03-26 08:41:41', '2026-03-26 08:41:41'),
-(4, 2, 10, 5, NULL, 'ai_10_593c7218f212', 'DevOps Engineer', '[]', 2, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:50:18', '2026-03-26 08:51:32', '2026-03-26 08:51:31'),
-(5, 2, 11, 3, NULL, 'ai_11_99f0a84f01e1', 'Data Analyst', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:57:28', '2026-03-26 08:58:28', '2026-03-26 08:58:28'),
-(6, 2, 12, 8, NULL, 'ai_12_66a7cf5c447e', 'Digital Marketing Executive', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:24:41', '2026-03-26 09:25:17', '2026-03-26 09:25:17'),
-(7, 2, 12, 8, NULL, 'ai_12_1f76496a7b1c', 'Digital Marketing Executive', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:31:12', '2026-03-26 09:31:59', '2026-03-26 09:31:59'),
-(8, 2, 11, 3, NULL, 'ai_11_bfd5c48a9fab', 'Data Analyst', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:33:20', '2026-03-26 09:33:59', '2026-03-26 09:33:59'),
-(9, 2, 10, 5, NULL, 'ai_10_1e050fce3712', 'DevOps Engineer', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:37:29', '2026-03-26 09:38:11', '2026-03-26 09:38:11'),
-(10, 2, 9, 9, NULL, 'ai_9_92ef6955018d', 'UI/UX Designer', '[]', 4, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:46:30', '2026-03-26 09:49:47', '2026-03-26 09:49:47'),
-(11, 2, 9, 9, NULL, 'ai_9_22e4a7b11f0d', 'UI/UX Designer', '[]', 5, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5.44, 40.00, 64.00, 5, 5, 1800, 'pending', '2026-03-26 10:18:10', '2026-03-26 10:20:20', '2026-03-26 10:20:19'),
-(12, 2, 12, 8, NULL, 'ai_12_0eb5d1f2a6f7', 'Digital Marketing Executive', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0, 5, 1800, 'pending', '2026-03-26 10:31:00', '2026-03-26 10:31:08', '2026-03-26 10:31:08'),
-(13, 2, 11, 3, NULL, 'ai_11_d2182e8a8565', 'Data Analyst', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0, 5, 1800, 'pending', '2026-03-26 10:31:27', '2026-03-26 10:31:34', '2026-03-26 10:31:34'),
-(14, 2, 11, 3, NULL, 'ai_11_e01a15ab2cb0', 'Data Analyst', '[]', 3, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 6.30, 60.00, 65.00, 5, 5, 1800, 'pending', '2026-03-26 10:41:42', '2026-03-26 10:44:20', '2026-03-26 10:44:20'),
-(15, 2, 11, 3, NULL, 'ai_11_9a3537174ebe', 'Data Analyst', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.00, 100.00, 0.00, 1, 5, 1800, 'pending', '2026-03-26 10:50:23', '2026-03-26 10:51:23', '2026-03-26 10:51:23'),
-(16, 2, 11, 3, NULL, 'ai_11_95daefb3646e', 'Data Analyst', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2.40, 60.00, 0.00, 5, 5, 1800, 'pending', '2026-03-26 10:54:46', '2026-03-26 10:56:03', '2026-03-26 10:56:03'),
-(17, 2, 10, 5, NULL, 'ai_10_03b3f08eab63', 'DevOps Engineer', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.00, 100.00, 0.00, 1, 5, 1800, 'pending', '2026-03-26 10:57:34', '2026-03-26 10:57:59', '2026-03-26 10:57:59'),
-(18, 2, 10, 5, NULL, 'ai_10_8052363edf24', 'DevOps Engineer', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 5, 5, 1800, 'pending', '2026-03-26 10:58:33', '2026-03-26 11:01:27', '2026-03-26 11:01:27'),
-(19, 2, 9, 9, NULL, 'ai_9_a21754e008d8', 'UI/UX Designer', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 1, 6, 1800, 'pending', '2026-03-26 11:15:50', '2026-03-26 11:19:13', '2026-03-26 11:19:13'),
-(20, 2, 12, 8, NULL, 'ai_12_abf46086b922', 'Digital Marketing Executive', '[]', 2, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5.72, 50.00, 62.00, 6, 6, 1800, 'pending', '2026-03-27 10:50:03', '2026-03-27 10:51:45', '2026-03-27 10:51:45'),
-(21, 2, 12, 8, NULL, 'ai_12_76b6cc75627f', 'Digital Marketing Executive', '[]', 2, 6, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 6.32, 50.00, 72.00, 6, 6, 1800, 'pending', '2026-03-27 11:07:39', '2026-03-27 11:09:25', '2026-03-27 11:09:24');
+INSERT INTO `interview_sessions` (`id`, `user_id`, `application_id`, `job_id`, `resume_version_id`, `session_id`, `position`, `conversation_history`, `turn`, `max_turns`, `status`, `evaluation_data`, `section_scores`, `strengths`, `concerns`, `recommendation_summary`, `evaluation_version`, `technical_score`, `communication_score`, `problem_solving_score`, `adaptability_score`, `enthusiasm_score`, `overall_rating`, `recruiter_override_score`, `recruiter_flag`, `recruiter_note`, `round1_score`, `round2_score`, `round1_answered`, `round1_total_questions`, `interview_total_seconds`, `ai_decision`, `created_at`, `updated_at`, `completed_at`) VALUES
+(1, 2, 1, 6, NULL, 'ai_1_3a46a196a96b', 'Backend Developer', '[]', 3, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 05:25:47', '2026-03-26 05:26:57', '2026-03-26 05:26:57'),
+(2, 2, 8, 11, NULL, 'ai_8_385562a0911e', 'Python Developer', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:27:32', '2026-03-26 08:28:50', '2026-03-26 08:28:50'),
+(3, 2, 9, 9, NULL, 'ai_9_e85cf7a26ecb', 'UI/UX Designer', '[]', 3, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:40:35', '2026-03-26 08:41:41', '2026-03-26 08:41:41'),
+(4, 2, 10, 5, NULL, 'ai_10_593c7218f212', 'DevOps Engineer', '[]', 2, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:50:18', '2026-03-26 08:51:32', '2026-03-26 08:51:31'),
+(5, 2, 11, 3, NULL, 'ai_11_99f0a84f01e1', 'Data Analyst', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 08:57:28', '2026-03-26 08:58:28', '2026-03-26 08:58:28'),
+(6, 2, 12, 8, NULL, 'ai_12_66a7cf5c447e', 'Digital Marketing Executive', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:24:41', '2026-03-26 09:25:17', '2026-03-26 09:25:17'),
+(7, 2, 12, 8, NULL, 'ai_12_1f76496a7b1c', 'Digital Marketing Executive', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:31:12', '2026-03-26 09:31:59', '2026-03-26 09:31:59'),
+(8, 2, 11, 3, NULL, 'ai_11_bfd5c48a9fab', 'Data Analyst', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:33:20', '2026-03-26 09:33:59', '2026-03-26 09:33:59'),
+(9, 2, 10, 5, NULL, 'ai_10_1e050fce3712', 'DevOps Engineer', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:37:29', '2026-03-26 09:38:11', '2026-03-26 09:38:11'),
+(10, 2, 9, 9, NULL, 'ai_9_92ef6955018d', 'UI/UX Designer', '[]', 4, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 1800, 'pending', '2026-03-26 09:46:30', '2026-03-26 09:49:47', '2026-03-26 09:49:47'),
+(11, 2, 9, 9, NULL, 'ai_9_22e4a7b11f0d', 'UI/UX Designer', '[]', 5, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5.44, NULL, NULL, NULL, 40.00, 64.00, 5, 5, 1800, 'pending', '2026-03-26 10:18:10', '2026-03-26 10:20:20', '2026-03-26 10:20:19'),
+(12, 2, 12, 8, NULL, 'ai_12_0eb5d1f2a6f7', 'Digital Marketing Executive', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, NULL, 0.00, 0.00, 0, 5, 1800, 'pending', '2026-03-26 10:31:00', '2026-03-26 10:31:08', '2026-03-26 10:31:08'),
+(13, 2, 11, 3, NULL, 'ai_11_d2182e8a8565', 'Data Analyst', '[]', 1, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, NULL, 0.00, 0.00, 0, 5, 1800, 'pending', '2026-03-26 10:31:27', '2026-03-26 10:31:34', '2026-03-26 10:31:34'),
+(14, 2, 11, 3, NULL, 'ai_11_e01a15ab2cb0', 'Data Analyst', '[]', 3, 7, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 6.30, NULL, NULL, NULL, 60.00, 65.00, 5, 5, 1800, 'pending', '2026-03-26 10:41:42', '2026-03-26 10:44:20', '2026-03-26 10:44:20'),
+(15, 2, 11, 3, NULL, 'ai_11_9a3537174ebe', 'Data Analyst', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.00, NULL, NULL, NULL, 100.00, 0.00, 1, 5, 1800, 'pending', '2026-03-26 10:50:23', '2026-03-26 10:51:23', '2026-03-26 10:51:23'),
+(16, 2, 11, 3, NULL, 'ai_11_95daefb3646e', 'Data Analyst', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2.40, NULL, NULL, NULL, 60.00, 0.00, 5, 5, 1800, 'pending', '2026-03-26 10:54:46', '2026-03-26 10:56:03', '2026-03-26 10:56:03'),
+(17, 2, 10, 5, NULL, 'ai_10_03b3f08eab63', 'DevOps Engineer', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.00, NULL, NULL, NULL, 100.00, 0.00, 1, 5, 1800, 'pending', '2026-03-26 10:57:34', '2026-03-26 10:57:59', '2026-03-26 10:57:59'),
+(18, 2, 10, 5, NULL, 'ai_10_8052363edf24', 'DevOps Engineer', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, NULL, 0.00, 0.00, 5, 5, 1800, 'pending', '2026-03-26 10:58:33', '2026-03-26 11:01:27', '2026-03-26 11:01:27'),
+(19, 2, 9, 9, NULL, 'ai_9_a21754e008d8', 'UI/UX Designer', '[]', 1, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, NULL, 0.00, 0.00, 1, 6, 1800, 'pending', '2026-03-26 11:15:50', '2026-03-26 11:19:13', '2026-03-26 11:19:13'),
+(20, 2, 12, 8, NULL, 'ai_12_abf46086b922', 'Digital Marketing Executive', '[]', 2, 8, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5.72, NULL, NULL, NULL, 50.00, 62.00, 6, 6, 1800, 'pending', '2026-03-27 10:50:03', '2026-03-27 10:51:45', '2026-03-27 10:51:45'),
+(21, 2, 12, 8, NULL, 'ai_12_76b6cc75627f', 'Digital Marketing Executive', '[]', 2, 6, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 6.32, NULL, NULL, NULL, 50.00, 72.00, 6, 6, 1800, 'pending', '2026-03-27 11:07:39', '2026-03-27 11:09:25', '2026-03-27 11:09:24'),
+(22, 2, 11, 3, NULL, 'ai_11_45665b2d99d3', 'Data Analyst', '[]', 6, 6, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.96, NULL, NULL, NULL, 50.00, 49.33, 6, 6, 1800, 'pending', '2026-03-28 09:32:28', '2026-03-28 09:34:45', '2026-03-28 09:34:45'),
+(23, 2, 11, 3, NULL, 'ai_11_005bf82ae11d', 'Data Analyst', '[]', 1, 6, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, NULL, 0.00, 0.00, 0, 6, 1800, 'pending', '2026-03-28 09:35:18', '2026-03-28 09:35:22', '2026-03-28 09:35:22');
 
 -- --------------------------------------------------------
 
@@ -784,16 +786,7 @@ CREATE TABLE `interview_session_answers` (
 INSERT INTO `interview_session_answers` (`id`, `interview_session_id`, `application_id`, `candidate_id`, `section_key`, `question_index`, `question_text`, `answer_type`, `video_path`, `audio_path`, `transcript`, `duration_seconds`, `ai_score`, `ai_feedback`, `started_at`, `submitted_at`, `created_at`, `updated_at`) VALUES
 (1, 1, 1, 2, 'reasoning', 0, 'How would you approach your first week in Backend Developer at PrecisionTech Industries?', 'mixed', NULL, NULL, NULL, 29, NULL, NULL, '2026-03-26 05:25:47', '2026-03-26 05:26:16', '2026-03-26 05:26:16', '2026-03-26 05:26:16'),
 (2, 1, 1, 2, 'reasoning', 1, 'When you have incomplete requirements, how do you decide what to do first?', 'mixed', NULL, NULL, NULL, 38, NULL, NULL, '2026-03-26 05:26:16', '2026-03-26 05:26:55', '2026-03-26 05:26:55', '2026-03-26 05:26:55'),
-(3, 1, 1, 2, 'logical', 0, 'A production issue appears after release. What steps do you take first?', 'mixed', NULL, NULL, NULL, 2, NULL, NULL, '2026-03-26 05:26:55', '2026-03-26 05:26:57', '2026-03-26 05:26:57', '2026-03-26 05:26:57'),
-(23, 14, 11, 2, 'reasoning', 0, 'How would you approach your first week in Data Analyst at TechNova Solutions?', 'mixed', 'uploads/interview-recordings/candidate_2/session_14/reasoning_q1_20260326104412.webm', NULL, 'We can\'t show our faces, because they can\'t see this committee. The government signed the book.', 8, 68.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-26 10:44:04', '2026-03-26 10:44:19', '2026-03-26 10:44:19', '2026-03-26 10:44:19'),
-(24, 14, 11, 2, 'reasoning', 1, 'When you have incomplete requirements, how do you decide what to do first?', 'mixed', 'uploads/interview-recordings/candidate_2/session_14/reasoning_q2_20260326104419.webm', NULL, '[Transcript unavailable: no reliable transcript generated.]', 2, 62.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-26 10:44:12', '2026-03-26 10:44:19', '2026-03-26 10:44:19', '2026-03-26 10:44:19'),
-(25, 14, 11, 2, 'logical', 0, 'A production issue appears after release. What steps do you take first?', 'mixed', 'uploads/interview-recordings/candidate_2/session_14/logical_q1_20260326104420.webm', NULL, '[Transcript unavailable: no reliable transcript generated.]', 3, 64.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-26 10:44:15', '2026-03-26 10:44:20', '2026-03-26 10:44:20', '2026-03-26 10:44:20'),
-(26, 16, 11, 2, 'reasoning', 0, 'How would you approach your first week in Data Analyst at TechNova Solutions?', 'mixed', 'uploads/interview-recordings/candidate_2/session_16/reasoning_q1_20260326105603.webm', NULL, '[Transcript unavailable: no reliable transcript generated.]', 7, 62.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-26 10:55:55', '2026-03-26 10:56:03', '2026-03-26 10:56:03', '2026-03-26 10:56:03'),
-(27, 18, 10, 2, 'reasoning', 0, 'How would you approach your first week in DevOps Engineer at TechNova Solutions?', 'mixed', 'uploads/interview-recordings/candidate_2/session_18/reasoning_q1_20260326110127.webm', NULL, 'Amazon.', 123, 85.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-26 10:59:24', '2026-03-26 11:01:27', '2026-03-26 11:01:27', '2026-03-26 11:01:27'),
-(28, 20, 12, 2, 'reasoning', 0, 'How would you approach your first week in Digital Marketing Executive at PrecisionTech Industries?', 'mixed', 'uploads/interview-recordings/candidate_2/session_20/reasoning_q1_20260327105139.webm', NULL, '[Transcript unavailable: no reliable transcript generated.]', 6, 62.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-27 10:51:32', '2026-03-27 10:51:44', '2026-03-27 10:51:44', '2026-03-27 10:51:44'),
-(29, 20, 12, 2, 'reasoning', 1, 'When you have incomplete requirements, how do you decide what to do first?', 'mixed', 'uploads/interview-recordings/candidate_2/session_20/reasoning_q2_20260327105145.webm', NULL, '[Transcript unavailable: no reliable transcript generated.]', 3, 62.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-27 10:51:39', '2026-03-27 10:51:45', '2026-03-27 10:51:45', '2026-03-27 10:51:45'),
-(30, 21, 12, 2, 'reasoning', 0, 'How would you prioritize SEO tasks when launching a new website?', 'mixed', 'uploads/interview-recordings/candidate_2/session_21/reasoning_q1_20260327110916.webm', NULL, 'I pray at times as your task is.', 15, 72.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-27 11:09:01', '2026-03-27 11:09:21', '2026-03-27 11:09:21', '2026-03-27 11:09:21'),
-(31, 21, 12, 2, 'reasoning', 1, 'What factors would you analyze to assess the performance of a social media campaign?', 'mixed', 'uploads/interview-recordings/candidate_2/session_21/reasoning_q2_20260327110925.webm', NULL, '[Transcript unavailable: no reliable transcript generated.]', 9, 62.00, 'Clear response captured. Good detail level. Next step: keep examples tied directly to the question outcome.', '2026-03-27 11:09:16', '2026-03-27 11:09:25', '2026-03-27 11:09:25', '2026-03-27 11:09:25');
+(3, 1, 1, 2, 'logical', 0, 'A production issue appears after release. What steps do you take first?', 'mixed', NULL, NULL, NULL, 2, NULL, NULL, '2026-03-26 05:26:55', '2026-03-26 05:26:57', '2026-03-26 05:26:57', '2026-03-26 05:26:57');
 
 -- --------------------------------------------------------
 
@@ -1128,7 +1121,9 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (47, '2026-03-26-151000', 'App\\Database\\Migrations\\CreateAiInterviewRound1AttemptsTable', 'default', 'App', 1774520084, 41),
 (48, '2026-03-26-152000', 'App\\Database\\Migrations\\AddRoundScoresToInterviewSessions', 'default', 'App', 1774520084, 41),
 (49, '2026-03-27-110000', 'App\\Database\\Migrations\\AddExternalSourceFieldsToJobs', 'default', 'App', 1774593493, 42),
-(50, '2026-03-27-170000', 'App\\Database\\Migrations\\CreateAdminAnalyticsTables', 'default', 'App', 1774604665, 43);
+(50, '2026-03-27-170000', 'App\\Database\\Migrations\\CreateAdminAnalyticsTables', 'default', 'App', 1774604665, 43),
+(51, '2026-03-28-090000', 'App\\Database\\Migrations\\AddOperationalFieldsToAdminApiUsageLogs', 'default', 'App', 1774679099, 44),
+(52, '2026-05-01-100000', 'App\\Database\\Migrations\\AddRecruiterOverrideFieldsToInterviewSessions', 'default', 'App', 1774691990, 45);
 
 -- --------------------------------------------------------
 
@@ -1314,7 +1309,7 @@ CREATE TABLE `remember_login_tokens` (
 --
 
 INSERT INTO `remember_login_tokens` (`id`, `user_id`, `selector`, `token_hash`, `expires_at`, `created_at`, `last_used_at`, `ip_address`, `user_agent`) VALUES
-(2, 2, 'bca5ead8e509d23c', 'ca8ef59d851ecb5ea33518818428031a2c5e366722da8ab9c3dca5527d11fa9a', '2026-04-25 08:22:46', '2026-03-26 08:22:46', '2026-03-26 08:22:46', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36');
+(3, 2, 'b286aa1fd3211751', '9899277860e4a0acbb17fbd65cc5d10d7fe453c1183503f7d1057435ac4885e6', '2026-04-27 06:10:49', '2026-03-28 06:10:49', '2026-03-28 06:10:49', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36');
 
 -- --------------------------------------------------------
 
@@ -1518,7 +1513,10 @@ CREATE TABLE `user_login_performance_logs` (
 
 INSERT INTO `user_login_performance_logs` (`id`, `user_id`, `user_email`, `user_role`, `login_at`, `first_page_path`, `first_page_loaded_at`, `duration_ms`) VALUES
 (1, 1, 'rohith@technova.com', 'recruiter', '2026-03-27 10:03:46', '/ai-job-portal/public/recruiter/dashboard', '2026-03-27 10:03:46', 164),
-(2, 2, 'manju@gmail.com', 'candidate', '2026-03-27 10:04:35', '/ai-job-portal/public/candidate/dashboard', '2026-03-27 10:04:35', 169);
+(2, 2, 'manju@gmail.com', 'candidate', '2026-03-27 10:04:35', '/ai-job-portal/public/candidate/dashboard', '2026-03-27 10:04:35', 169),
+(3, 2, 'manju@gmail.com', 'candidate', '2026-03-28 06:10:49', '/ai-job-portal/public/candidate/dashboard', '2026-03-28 06:10:49', 310),
+(4, 2, 'manju@gmail.com', 'candidate', '2026-03-28 09:26:03', '/ai-job-portal/public/candidate/dashboard', '2026-03-28 09:26:03', 204),
+(5, 1, 'rohith@technova.com', 'recruiter', '2026-03-28 10:01:00', '/ai-job-portal/public/recruiter/dashboard', '2026-03-28 10:01:00', 174);
 
 -- --------------------------------------------------------
 
@@ -1914,7 +1912,7 @@ ALTER TABLE `work_experiences`
 -- AUTO_INCREMENT for table `admin_api_usage_logs`
 --
 ALTER TABLE `admin_api_usage_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `ai_interview_question_bank`
@@ -1926,7 +1924,7 @@ ALTER TABLE `ai_interview_question_bank`
 -- AUTO_INCREMENT for table `ai_interview_round1_attempts`
 --
 ALTER TABLE `ai_interview_round1_attempts`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `applications`
@@ -1938,7 +1936,7 @@ ALTER TABLE `applications`
 -- AUTO_INCREMENT for table `candidate_github_stats`
 --
 ALTER TABLE `candidate_github_stats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `candidate_interests`
@@ -2034,13 +2032,13 @@ ALTER TABLE `interview_evaluation_logs`
 -- AUTO_INCREMENT for table `interview_sessions`
 --
 ALTER TABLE `interview_sessions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `interview_session_answers`
 --
 ALTER TABLE `interview_session_answers`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `interview_slots`
@@ -2076,7 +2074,7 @@ ALTER TABLE `job_suggestions`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -2112,7 +2110,7 @@ ALTER TABLE `recruiter_company_map`
 -- AUTO_INCREMENT for table `remember_login_tokens`
 --
 ALTER TABLE `remember_login_tokens`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `reschedule_history`
@@ -2148,7 +2146,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_login_performance_logs`
 --
 ALTER TABLE `user_login_performance_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `work_experiences`

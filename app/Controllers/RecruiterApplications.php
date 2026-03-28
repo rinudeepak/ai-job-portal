@@ -204,6 +204,49 @@ class RecruiterApplications extends BaseController
         return $this->updateApplicationStatus($applicationId, 'rejected');
     }
 
+    public function overrideAiReport(int $applicationId): ResponseInterface
+    {
+        $currentUserId = (int) session()->get('user_id');
+
+        $application = model('ApplicationModel')
+            ->select('applications.*, jobs.recruiter_id')
+            ->join('jobs', 'jobs.id = applications.job_id')
+            ->where('applications.id', $applicationId)
+            ->first();
+
+        if (!$application || (int) ($application['recruiter_id'] ?? 0) !== $currentUserId) {
+            return redirect()->to(base_url('recruiter/jobs'))->with('error', 'Application not found.');
+        }
+
+        $sessionModel = new InterviewSessionModel();
+        $session = $sessionModel->findLatestByApplication($applicationId);
+
+        if (!$session) {
+            return redirect()->back()->with('error', 'No interview session found.');
+        }
+
+        $overrideScore = $this->request->getPost('override_score');
+        $flag         = trim((string) $this->request->getPost('flag'));
+        $note         = trim((string) $this->request->getPost('recruiter_note'));
+
+        $update = ['updated_at' => date('Y-m-d H:i:s')];
+
+        if ($overrideScore !== null && $overrideScore !== '') {
+            $score = round(max(0, min(10, (float) $overrideScore)), 1);
+            $update['recruiter_override_score'] = $score;
+            $update['overall_rating']           = $score;
+        }
+
+        $validFlags = ['', 'strong_yes', 'yes', 'maybe', 'no', 'needs_review'];
+        $update['recruiter_flag'] = in_array($flag, $validFlags, true) ? $flag : '';
+        $update['recruiter_note'] = mb_substr($note, 0, 1000);
+
+        $sessionModel->update((int) $session['id'], $update);
+
+        return redirect()->to(base_url('recruiter/applications/' . $applicationId . '/ai-report'))
+            ->with('override_success', 'Override saved successfully.');
+    }
+
     public function aiInterviewReport($applicationId)
     {
         $applicationModel = model('ApplicationModel');

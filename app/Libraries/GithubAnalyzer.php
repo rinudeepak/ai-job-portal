@@ -25,17 +25,32 @@ class GithubAnalyzer
             $headers[] = "Authorization: token " . $this->token;
         }
 
-        $opts = [
-            "http" => [
-                "method" => "GET",
-                "header" => $headers
-            ]
-        ];
+        $ch = curl_init($url);
+        $start = microtime(true);
 
-        $context = stream_context_create($opts);
-        $response = @file_get_contents($url, false, $context);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_USERAGENT => 'JobPortal',
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => 25,
+        ]);
 
-        if (!$response) {
+        $response = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        (new UsageAnalyticsService())->logExternalApiUsage(
+            'github',
+            (string) parse_url((string) $url, PHP_URL_PATH),
+            'rest_get',
+            $status > 0 ? $status : null,
+            (int) round((microtime(true) - $start) * 1000),
+            1,
+            $response !== false && $curlError === '' && $status >= 200 && $status < 400
+        );
+
+        if ($response === false || $curlError !== '' || $status < 200 || $status >= 400) {
             return [];
         }
 
@@ -72,6 +87,7 @@ class GithubAnalyzer
 
         $ch = curl_init($url);
 
+        $start = microtime(true);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => true,
@@ -83,8 +99,20 @@ class GithubAnalyzer
         ]);
 
         $response = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
 
-        if ($response === false) {
+        (new UsageAnalyticsService())->logExternalApiUsage(
+            'github',
+            (string) parse_url($url, PHP_URL_PATH),
+            'repo_commit_count',
+            $status > 0 ? $status : null,
+            (int) round((microtime(true) - $start) * 1000),
+            1,
+            $response !== false && $curlError === '' && $status >= 200 && $status < 400
+        );
+
+        if ($response === false || $curlError !== '' || $status < 200 || $status >= 400) {
             curl_close($ch);
             return 0;
         }

@@ -106,6 +106,28 @@
             </div>
         </div>
 
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">API Usage by Provider (Selected Range)</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Provider</th><th>Calls</th><th>Cost (USD)</th></tr></thead>
+                    <tbody>
+                        <?php if (empty($providerBreakdown ?? [])): ?>
+                            <tr><td colspan="3" class="text-muted">No data yet</td></tr>
+                        <?php else: ?>
+                            <?php foreach (($providerBreakdown ?? []) as $row): ?>
+                                <tr>
+                                    <td><?= esc((string) ($row['provider'] ?? 'unknown')) ?></td>
+                                    <td><?= esc((string) ((int) ($row['calls_count'] ?? 0))) ?></td>
+                                    <td>$<?= esc(number_format((float) ($row['cost_usd'] ?? 0), 4)) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="card shadow-sm">
             <div class="card-header">First Page Login Duration by User (Latest 100)</div>
             <div class="table-responsive">

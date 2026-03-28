@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Libraries\CandidateOnboardingService;
 use App\Libraries\RememberMeService;
+use App\Libraries\UsageAnalyticsService;
 use App\Models\CompanyModel;
 use App\Models\UserModel;
 
@@ -338,7 +339,9 @@ class Auth extends BaseController
 
         try {
             $http = \Config\Services::curlrequest();
+            $usageAnalytics = new UsageAnalyticsService();
 
+            $tokenStart = microtime(true);
             $tokenResponse = $http->post('https://oauth2.googleapis.com/token', [
                 'form_params' => [
                     'code' => $code,
@@ -348,6 +351,16 @@ class Auth extends BaseController
                     'grant_type' => 'authorization_code',
                 ],
             ]);
+            $tokenLatencyMs = (int) round((microtime(true) - $tokenStart) * 1000);
+            $usageAnalytics->logExternalApiUsage(
+                'google',
+                '/oauth2/token',
+                'oauth_token_exchange',
+                (int) $tokenResponse->getStatusCode(),
+                $tokenLatencyMs,
+                1,
+                ((int) $tokenResponse->getStatusCode()) >= 200 && ((int) $tokenResponse->getStatusCode()) < 400
+            );
 
             $tokenData = json_decode((string) $tokenResponse->getBody(), true) ?: [];
             $accessToken = (string) ($tokenData['access_token'] ?? '');
@@ -357,14 +370,34 @@ class Auth extends BaseController
                     ->with('error', 'Google sign-up failed while getting access token.');
             }
 
+            $userInfoStart = microtime(true);
             $userResponse = $http->get('https://www.googleapis.com/oauth2/v3/userinfo', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                 ],
             ]);
+            $userInfoLatencyMs = (int) round((microtime(true) - $userInfoStart) * 1000);
+            $usageAnalytics->logExternalApiUsage(
+                'google',
+                '/oauth2/v3/userinfo',
+                'oauth_userinfo',
+                (int) $userResponse->getStatusCode(),
+                $userInfoLatencyMs,
+                1,
+                ((int) $userResponse->getStatusCode()) >= 200 && ((int) $userResponse->getStatusCode()) < 400
+            );
 
             $googleUser = json_decode((string) $userResponse->getBody(), true) ?: [];
         } catch (\Throwable $e) {
+            (new UsageAnalyticsService())->logExternalApiUsage(
+                'google',
+                '/oauth2/token|/oauth2/v3/userinfo',
+                'oauth_flow_exception',
+                null,
+                null,
+                1,
+                false
+            );
             log_message('error', 'Google OAuth callback failed: ' . $e->getMessage());
             return redirect()->to(base_url('register'))
                 ->with('error', 'Unable to connect to Google right now. Please try again.');
@@ -839,6 +872,7 @@ class Auth extends BaseController
 
         try {
             $client = \Config\Services::curlrequest();
+            $start = microtime(true);
             $response = $client->post(
                 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' . urlencode($apiKey),
                 [
@@ -849,6 +883,16 @@ class Auth extends BaseController
                         'idToken' => $idToken,
                     ], JSON_UNESCAPED_SLASHES),
                 ]
+            );
+            $latencyMs = (int) round((microtime(true) - $start) * 1000);
+            (new UsageAnalyticsService())->logExternalApiUsage(
+                'firebase',
+                '/v1/accounts:lookup',
+                'identity_lookup',
+                (int) $response->getStatusCode(),
+                $latencyMs,
+                1,
+                ((int) $response->getStatusCode()) >= 200 && ((int) $response->getStatusCode()) < 400
             );
 
             $payload = json_decode((string) $response->getBody(), true) ?: [];
@@ -861,6 +905,15 @@ class Auth extends BaseController
             $firebaseUser = $user;
             return true;
         } catch (\Throwable $e) {
+            (new UsageAnalyticsService())->logExternalApiUsage(
+                'firebase',
+                '/v1/accounts:lookup',
+                'identity_lookup_exception',
+                null,
+                null,
+                1,
+                false
+            );
             $error = 'Firebase phone verification failed.';
             log_message('error', 'Firebase phone token verification error: ' . $e->getMessage());
             return false;

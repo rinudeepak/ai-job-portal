@@ -340,18 +340,64 @@ class ExternalJobScraperService
             ],
         ]);
 
-        $response = $client->get($url);
-        $status = (int) $response->getStatusCode();
-        if ($status < 200 || $status >= 300) {
-            throw new \RuntimeException('HTTP ' . $status . ' while fetching: ' . $url);
+        $provider = $this->resolveProviderFromUrl($url);
+        $operation = 'fetch_jobs_feed';
+        $usage = new UsageAnalyticsService();
+        $start = microtime(true);
+
+        try {
+            $response = $client->get($url);
+            $status = (int) $response->getStatusCode();
+            $latencyMs = (int) round((microtime(true) - $start) * 1000);
+            $usage->logExternalApiUsage(
+                $provider,
+                (string) parse_url($url, PHP_URL_PATH),
+                $operation,
+                $status,
+                $latencyMs,
+                1,
+                $status >= 200 && $status < 400
+            );
+
+            if ($status < 200 || $status >= 300) {
+                throw new \RuntimeException('HTTP ' . $status . ' while fetching: ' . $url);
+            }
+
+            $decoded = json_decode((string) $response->getBody(), true);
+            if (!is_array($decoded)) {
+                throw new \RuntimeException('Invalid JSON from: ' . $url);
+            }
+
+            return $decoded;
+        } catch (\Throwable $e) {
+            $latencyMs = (int) round((microtime(true) - $start) * 1000);
+            $usage->logExternalApiUsage(
+                $provider,
+                (string) parse_url($url, PHP_URL_PATH),
+                $operation . '_exception',
+                null,
+                $latencyMs,
+                1,
+                false
+            );
+            throw $e;
+        }
+    }
+
+    private function resolveProviderFromUrl(string $url): string
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        if (str_contains($host, 'remotive.com')) {
+            return 'remotive';
+        }
+        if (str_contains($host, 'remoteok.com')) {
+            return 'remoteok';
+        }
+        if (str_contains($host, 'arbeitnow.com')) {
+            return 'arbeitnow';
         }
 
-        $decoded = json_decode((string) $response->getBody(), true);
-        if (!is_array($decoded)) {
-            throw new \RuntimeException('Invalid JSON from: ' . $url);
-        }
-
-        return $decoded;
+        return 'external';
     }
 
     private function cleanText(string $value, int $maxLength = 255): string

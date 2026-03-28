@@ -1,21 +1,23 @@
 <?= view('Layouts/candidate_header', ['title' => 'AI Interview Flow']) ?>
 <?php
-$application = $application ?? [];
-$flow = $interviewFlow ?? [];
-$round1Questions = $flow['round1_questions'] ?? [];
-$round2Sections = $flow['round2_sections'] ?? ($flow['sections'] ?? []);
-$sections = $round2Sections;
-$jobTitle = (string) ($flow['job_title'] ?? ($application['job_title'] ?? 'AI Interview'));
-$companyName = trim((string) ($flow['company_name'] ?? ($application['company'] ?? '')));
-$resumeTitle = trim((string) ($flow['resume_title'] ?? ($application['resume_version_title'] ?? '')));
-$resumeSummary = trim((string) ($flow['resume_summary'] ?? ($application['resume_version_summary'] ?? '')));
-$focusSkills = $flow['focus_skills'] ?? [];
-$timerSeconds = (int) ($flow['timer_seconds'] ?? 60);
-$totalTimerSeconds = (int) ($flow['total_timer_seconds'] ?? 1800);
-$applicationStatus = (string) ($application['status'] ?? '');
-$policy = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRED_HARD'));
-$flowJson = json_encode($flow, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-$candidateName = (string) (session()->get('user_name') ?? 'Candidate');
+$application        = $application ?? [];
+$flow               = $interviewFlow ?? [];
+$interviewCompleted = $interviewCompleted ?? false;
+$completedSession   = $completedSession ?? [];
+$round1Questions    = $flow['round1_questions'] ?? [];
+$round2Sections     = $flow['round2_sections'] ?? ($flow['sections'] ?? []);
+$sections           = $round2Sections;
+$jobTitle           = (string) ($flow['job_title'] ?? ($application['job_title'] ?? 'AI Interview'));
+$companyName        = trim((string) ($flow['company_name'] ?? ($application['company'] ?? '')));
+$resumeTitle        = trim((string) ($flow['resume_title'] ?? ($application['resume_version_title'] ?? '')));
+$resumeSummary      = trim((string) ($flow['resume_summary'] ?? ($application['resume_version_summary'] ?? '')));
+$focusSkills        = $flow['focus_skills'] ?? [];
+$timerSeconds       = (int) ($flow['timer_seconds'] ?? 60);
+$totalTimerSeconds  = (int) ($flow['total_timer_seconds'] ?? 1800);
+$applicationStatus  = (string) ($application['status'] ?? '');
+$policy             = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRED_HARD'));
+$flowJson           = json_encode($flow, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+$candidateName      = (string) (session()->get('user_name') ?? 'Candidate');
 ?>
 
 <div class="ai-interview-flow-jobboard" data-ai-interview-flow="1" data-timer-seconds="<?= $timerSeconds ?>" data-total-timer-seconds="<?= $totalTimerSeconds ?>" data-application-id="<?= (int) ($application['id'] ?? 0) ?>" data-interview-base-url="<?= esc(base_url('interview')) ?>">
@@ -56,6 +58,57 @@ $candidateName = (string) (session()->get('user_name') ?? 'Candidate');
             <?php endif; ?>
         </div>
 
+        <?php if ($interviewCompleted): ?>
+        <!-- Completed State: no interactive UI, no start button -->
+        <div class="dashboard-panel" style="margin-top: 2rem;">
+            <div class="panel-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 2.5rem;">✅</span>
+                    <div>
+                        <h2 class="section-title mb-1">Interview Submitted</h2>
+                        <p class="section-subtitle mb-0">Your AI interview for <strong><?= esc($jobTitle) ?></strong> has been completed and submitted for review.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <?php if (!empty($completedSession['completed_at'])): ?>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-muted small">Completed On</div>
+                        <strong><?= date('M d, Y H:i', strtotime($completedSession['completed_at'])) ?></strong>
+                    </div>
+                    <?php endif; ?>
+                    <?php if (!empty($completedSession['round1_score'])): ?>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-muted small">Round 1 Score</div>
+                        <strong><?= number_format((float) $completedSession['round1_score'], 1) ?>%</strong>
+                    </div>
+                    <?php endif; ?>
+                    <?php if (!empty($completedSession['round2_score'])): ?>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-muted small">Round 2 Score</div>
+                        <strong><?= number_format((float) $completedSession['round2_score'], 1) ?>%</strong>
+                    </div>
+                    <?php endif; ?>
+                    <?php if (!empty($completedSession['overall_rating'])): ?>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-muted small">Overall Rating</div>
+                        <strong><?= number_format((float) $completedSession['overall_rating'], 2) ?> / 10</strong>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <div class="alert alert-info mt-3" role="alert">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    This interview has already been submitted. No further attempts are allowed. The recruiter will review your results shortly.
+                </div>
+                <a href="<?= base_url('candidate/applications') ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Applications
+                </a>
+            </div>
+        </div>
+
+        <?php else: ?>
+        <!-- Active Interview UI -->
         <div class="ai-interview-flow-shell">
             <aside class="ai-interview-flow-rail">
                 <div class="ai-interview-flow-rail-card">
@@ -226,6 +279,7 @@ $candidateName = (string) (session()->get('user_name') ?? 'Candidate');
                 </div>
             </main>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 

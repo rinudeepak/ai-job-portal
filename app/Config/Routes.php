@@ -92,6 +92,7 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'recr
     $routes->get('applications', 'RecruiterApplications::index');
     $routes->get('applications/job/(:num)', 'RecruiterApplications::viewByJob/$1');
     $routes->get('applications/(:num)/ai-report', 'RecruiterApplications::aiInterviewReport/$1');
+    $routes->post('applications/(:num)/ai-report/override', 'RecruiterApplications::overrideAiReport/$1');
     $routes->get('jobs/(:num)/applications', 'RecruiterApplications::viewByJob/$1');
     $routes->post('jobs/(:num)/applications/bulk', 'RecruiterApplications::bulkAction/$1');
     $routes->post('applications/shortlist/(:num)', 'RecruiterApplications::shortlist/$1');
