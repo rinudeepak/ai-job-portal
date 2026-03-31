@@ -48,7 +48,6 @@ class RememberMeService
             'expire' => self::TOKEN_DAYS * DAY,
             'httponly' => true,
             'secure' => (bool) service('request')->isSecure(),
-            'samesite' => 'Lax',
             'path' => '/',
         ]);
     }

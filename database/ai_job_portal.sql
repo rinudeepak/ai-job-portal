@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 28, 2026 at 01:08 PM
+-- Generation Time: Mar 30, 2026 at 11:06 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -79,7 +79,15 @@ INSERT INTO `admin_api_usage_logs` (`id`, `user_id`, `user_email`, `user_role`, 
 (26, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 385, 713, 1098, 1098, 200, NULL, 1, 0.000486, '2026-03-28 10:17:33'),
 (27, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 398, 782, 1180, 1180, 200, NULL, 1, 0.000529, '2026-03-28 10:18:19'),
 (28, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 173, 505, 505, 200, NULL, 1, 0.000154, '2026-03-28 11:19:17'),
-(29, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 391, 816, 1207, 1207, 200, NULL, 1, 0.000548, '2026-03-28 11:19:41');
+(29, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 391, 816, 1207, 1207, 200, NULL, 1, 0.000548, '2026-03-28 11:19:41'),
+(30, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 177, 509, 509, 200, NULL, 1, 0.000156, '2026-03-30 08:37:17'),
+(31, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 136, 465, 465, 200, NULL, 1, 0.000131, '2026-03-30 08:37:21'),
+(32, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 174, 504, 504, 200, NULL, 1, 0.000154, '2026-03-30 08:37:27'),
+(33, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 183, 518, 518, 200, NULL, 1, 0.000160, '2026-03-30 08:37:36'),
+(34, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 328, 137, 465, 465, 200, NULL, 1, 0.000131, '2026-03-30 08:37:42'),
+(35, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 176, 505, 505, 200, NULL, 1, 0.000155, '2026-03-30 08:37:48'),
+(36, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 727, 230, 957, 957, 200, NULL, 1, 0.000247, '2026-03-30 08:37:53'),
+(37, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 246, 975, 975, 200, NULL, 1, 0.000257, '2026-03-30 08:49:47');
 
 -- --------------------------------------------------------
 
@@ -1516,7 +1524,8 @@ INSERT INTO `user_login_performance_logs` (`id`, `user_id`, `user_email`, `user_
 (2, 2, 'manju@gmail.com', 'candidate', '2026-03-27 10:04:35', '/ai-job-portal/public/candidate/dashboard', '2026-03-27 10:04:35', 169),
 (3, 2, 'manju@gmail.com', 'candidate', '2026-03-28 06:10:49', '/ai-job-portal/public/candidate/dashboard', '2026-03-28 06:10:49', 310),
 (4, 2, 'manju@gmail.com', 'candidate', '2026-03-28 09:26:03', '/ai-job-portal/public/candidate/dashboard', '2026-03-28 09:26:03', 204),
-(5, 1, 'rohith@technova.com', 'recruiter', '2026-03-28 10:01:00', '/ai-job-portal/public/recruiter/dashboard', '2026-03-28 10:01:00', 174);
+(5, 1, 'rohith@technova.com', 'recruiter', '2026-03-28 10:01:00', '/ai-job-portal/public/recruiter/dashboard', '2026-03-28 10:01:00', 174),
+(6, 2, 'manju@gmail.com', 'candidate', '2026-03-30 08:37:10', '/ai-job-portal/public/candidate/dashboard', '2026-03-30 08:37:10', 125);
 
 -- --------------------------------------------------------
 
@@ -1912,7 +1921,7 @@ ALTER TABLE `work_experiences`
 -- AUTO_INCREMENT for table `admin_api_usage_logs`
 --
 ALTER TABLE `admin_api_usage_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `ai_interview_question_bank`
@@ -2146,7 +2155,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_login_performance_logs`
 --
 ALTER TABLE `user_login_performance_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `work_experiences`
