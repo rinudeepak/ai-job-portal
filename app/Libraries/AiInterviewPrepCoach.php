@@ -325,6 +325,11 @@ class AiInterviewPrepCoach
 
     private function callOpenAI(string $prompt): string
     {
+        if (trim($this->apiKey) === '') {
+            log_message('error', 'AI interview prep generation failed: missing OpenAI API key.');
+            return '{}';
+        }
+
         $data = [
             'model' => 'gpt-4o-mini',
             'messages' => [[
@@ -356,7 +361,31 @@ class AiInterviewPrepCoach
         curl_close($ch);
 
         if ($response === false || $curlError || $httpCode !== 200) {
-            log_message('error', 'AI interview prep generation failed: ' . $curlError . ' HTTP ' . $httpCode);
+            $errorDetails = [];
+            if ($curlError !== '') {
+                $errorDetails[] = 'cURL: ' . $curlError;
+            }
+
+            $decodedError = is_string($response) ? json_decode($response, true) : null;
+            if (is_array($decodedError) && isset($decodedError['error']) && is_array($decodedError['error'])) {
+                $openAiError = $decodedError['error'];
+                $messageParts = array_filter([
+                    trim((string) ($openAiError['message'] ?? '')),
+                    trim((string) ($openAiError['type'] ?? '')),
+                    trim((string) ($openAiError['code'] ?? '')),
+                ]);
+                if (!empty($messageParts)) {
+                    $errorDetails[] = 'OpenAI: ' . implode(' | ', $messageParts);
+                }
+            } elseif (is_string($response) && trim($response) !== '') {
+                $errorDetails[] = 'OpenAI response: ' . trim($response);
+            }
+
+            log_message(
+                'error',
+                'AI interview prep generation failed: HTTP ' . $httpCode
+                . (empty($errorDetails) ? '' : ' | ' . implode(' ; ', $errorDetails))
+            );
             return '{}';
         }
 

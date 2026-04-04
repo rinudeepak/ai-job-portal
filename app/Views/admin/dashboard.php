@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Analytics</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            height: auto !important;
+        }
+        body.modal-open {
+            overflow: auto !important;
+            padding-right: 0 !important;
+        }
+        #overlayer,
+        .loader,
+        .modal-backdrop {
+            display: none !important;
+        }
+    </style>
 </head>
 <body class="bg-light">
     <div class="container py-4">
@@ -56,6 +72,10 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="alert alert-info py-2 mb-4" role="alert">
+            <strong>Cost = estimated API spend (base currency: USD)</strong>
         </div>
 
         <div class="row g-3 mb-4">
@@ -160,5 +180,15 @@
             </div>
         </div>
     </div>
+    <script>
+        (function () {
+            document.documentElement.style.overflowY = 'auto';
+            document.body.style.overflowY = 'auto';
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('#overlayer, .loader, .modal-backdrop').forEach(function (node) {
+                node.remove();
+            });
+        })();
+    </script>
 </body>
 </html>

@@ -50,6 +50,16 @@ class CreateInterviewSessionAnswersTable extends Migration
                 'constraint' => ['video', 'audio', 'text', 'mixed'],
                 'default'    => 'mixed',
             ],
+            'answer_variant' => [
+                'type'       => 'ENUM',
+                'constraint' => ['base', 'followup'],
+                'default'    => 'base',
+            ],
+            'parent_question_index' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'null'       => true,
+            ],
             'video_path' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 255,
@@ -67,6 +77,25 @@ class CreateInterviewSessionAnswersTable extends Migration
             'duration_seconds' => [
                 'type'       => 'INT',
                 'constraint' => 11,
+                'null'       => true,
+            ],
+            'adaptive_level' => [
+                'type'       => 'ENUM',
+                'constraint' => ['low', 'medium', 'high'],
+                'null'       => true,
+            ],
+            'followup_type' => [
+                'type'       => 'VARCHAR',
+                'constraint' => 50,
+                'null'       => true,
+            ],
+            'followup_prompt' => [
+                'type' => 'TEXT',
+                'null' => true,
+            ],
+            'followup_trigger_score' => [
+                'type'       => 'DECIMAL',
+                'constraint' => '5,2',
                 'null'       => true,
             ],
             'ai_score' => [
@@ -101,6 +130,7 @@ class CreateInterviewSessionAnswersTable extends Migration
         $this->forge->addKey('application_id');
         $this->forge->addKey('candidate_id');
         $this->forge->addKey(['interview_session_id', 'section_key']);
+        $this->forge->addKey(['interview_session_id', 'section_key', 'question_index', 'answer_variant']);
 
         $this->forge->createTable('interview_session_answers', true);
     }

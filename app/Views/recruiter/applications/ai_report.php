@@ -8,6 +8,11 @@ $round1Attempts = $round1Attempts ?? [];
 $sectionScores = $sectionScores ?? [];
 $strengths = $strengths ?? [];
 $concerns = $concerns ?? [];
+$integrityEvents = $integrityEvents ?? [];
+$integrityFlags = $integrityFlags ?? [];
+$integritySummary = $integritySummary ?? [];
+$sessionStatus = (string) ($session['status'] ?? '');
+$hasIntegrityFlags = !empty($integrityFlags) || ((int) ($integritySummary['warning_count'] ?? 0) > 0) || ((int) ($integritySummary['tab_switch_count'] ?? 0) > 0) || ((int) ($integritySummary['hidden_duration_seconds'] ?? 0) > 0);
 ?>
 
 <div class="recruiter-ai-report-jobboard">
@@ -31,6 +36,82 @@ $concerns = $concerns ?? [];
             <div class="alert alert-danger recruiter-alert"><?= session()->getFlashdata('error') ?></div>
         <?php endif; ?>
 
+        <div class="alert alert-info recruiter-alert">
+            <strong>AI review status:</strong>
+            <?php if ($sessionStatus === 'submitted'): ?>
+                Submitted and waiting for recruiter review.
+            <?php elseif ($sessionStatus === 'under_review'): ?>
+                Under review by the recruiter.
+            <?php elseif ($sessionStatus === 'finalized'): ?>
+                Finalized internally and ready for candidate notification.
+            <?php elseif ($sessionStatus === 'candidate_notified'): ?>
+                Candidate has been notified of the final update.
+            <?php else: ?>
+                <?= esc(ucwords(str_replace('_', ' ', $sessionStatus ?: 'active'))) ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="card shadow-sm mb-4 <?= $hasIntegrityFlags ? 'border-warning' : 'border-light' ?>">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+                    <div>
+                        <h5 class="mb-1">Session Integrity</h5>
+                        <p class="text-muted mb-0">Quick check for tab switching, reconnects, and recording risk indicators.</p>
+                    </div>
+                    <span class="badge badge-<?= $hasIntegrityFlags ? 'warning' : 'success' ?> px-3 py-2">
+                        <?= $hasIntegrityFlags ? 'Review recommended' : 'No integrity flags' ?>
+                    </span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 h-100 bg-light">
+                            <small class="text-muted d-block text-uppercase">Warnings</small>
+                            <strong><?= (int) ($integritySummary['warning_count'] ?? 0) ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 h-100 bg-light">
+                            <small class="text-muted d-block text-uppercase">Tab Switches</small>
+                            <strong><?= (int) ($integritySummary['tab_switch_count'] ?? 0) ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 h-100 bg-light">
+                            <small class="text-muted d-block text-uppercase">Hidden Time</small>
+                            <strong><?= (int) ($integritySummary['hidden_duration_seconds'] ?? 0) ?>s</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 h-100 bg-light">
+                            <small class="text-muted d-block text-uppercase">Reconnects</small>
+                            <strong><?= (int) ($integritySummary['reconnect_count'] ?? 0) ?></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if (!empty($integrityFlags)): ?>
+                    <div class="mt-2">
+                        <small class="text-muted d-block text-uppercase mb-2">Flags</small>
+                        <div class="d-flex flex-wrap" style="gap:6px;">
+                            <?php foreach ($integrityFlags as $flag): ?>
+                                <span class="badge badge-warning border"><?= esc(ucwords(str_replace(['_', '-'], ' ', (string) $flag))) ?></span>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($integritySummary['last_event_type'])): ?>
+                    <div class="mt-3 small text-muted">
+                        Last event: <strong><?= esc(ucwords(str_replace(['_', '-'], ' ', (string) $integritySummary['last_event_type']))) ?></strong>
+                        <?php if (!empty($integritySummary['last_event_at'])): ?>
+                            on <?= esc((string) $integritySummary['last_event_at']) ?>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <div class="row g-4">
             <div class="col-lg-8">
                 <div class="card shadow-sm mb-4">
@@ -46,13 +127,21 @@ $concerns = $concerns ?? [];
                             <div class="col-md-4 mb-3">
                                 <div class="border rounded p-3 h-100 bg-light">
                                     <small class="text-muted d-block text-uppercase">Round 2 (Verbal)</small>
-                                    <strong><?= esc((string) ($session['round2_score'] ?? 0)) ?></strong>
+                                    <?php if (($session['round2_score'] ?? null) !== null): ?>
+                                        <strong><?= esc((string) $session['round2_score']) ?></strong>
+                                    <?php else: ?>
+                                        <strong class="text-muted">AI score unavailable</strong>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <div class="border rounded p-3 h-100 bg-light">
                                     <small class="text-muted d-block text-uppercase">Overall Rating</small>
-                                    <strong><?= esc((string) ($session['overall_rating'] ?? 0)) ?>/10</strong>
+                                    <?php if (($session['overall_rating'] ?? null) !== null): ?>
+                                        <strong><?= esc((string) $session['overall_rating']) ?>/10</strong>
+                                    <?php else: ?>
+                                        <strong class="text-muted">AI score unavailable</strong>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -67,6 +156,36 @@ $concerns = $concerns ?? [];
                                     <h6 class="mb-2"><?= esc((string) ($attempt['question_text'] ?? 'Question')) ?></h6>
                                     <div class="mb-1"><strong>Candidate Answer:</strong> <?= esc((string) ($attempt['selected_answer'] ?? '-')) ?></div>
                                     <div class="mb-1"><strong>Expected:</strong> <?= esc((string) ($attempt['correct_answer'] ?? '-')) ?></div>
+                                    <?php
+                                        $round1Flags = [];
+                                        if (!empty($attempt['integrity_flags'])) {
+                                            $decodedFlags = json_decode((string) $attempt['integrity_flags'], true);
+                                            if (is_array($decodedFlags)) {
+                                                $round1Flags = array_values(array_unique(array_filter(array_map('strval', $decodedFlags))));
+                                            }
+                                        }
+                                        $pasteDetected = !empty($attempt['copy_paste_detected']) || in_array('text_paste_detected', $round1Flags, true);
+                                        $largeInsertDetected = !empty($attempt['large_insert_detected']) || in_array('suspicious_text_insert', $round1Flags, true);
+                                    ?>
+                                    <div class="mb-1">
+                                        <strong>Integrity:</strong>
+                                        <?php if ($pasteDetected): ?>
+                                            <span class="badge badge-warning ml-1">Paste detected</span>
+                                        <?php else: ?>
+                                            <span class="badge badge-success ml-1">No paste detected</span>
+                                        <?php endif; ?>
+                                        <?php if ($largeInsertDetected): ?>
+                                            <span class="badge badge-warning ml-1">Large insert suspected</span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($attempt['paste_event_count']) || !empty($attempt['pasted_character_count'])): ?>
+                                            <span class="badge badge-light border ml-1"><?= esc((string) ($attempt['paste_event_count'] ?? 0)) ?> pastes</span>
+                                            <span class="badge badge-light border ml-1"><?= esc((string) ($attempt['pasted_character_count'] ?? 0)) ?> chars</span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($attempt['large_insert_count']) || !empty($attempt['large_insert_character_count'])): ?>
+                                            <span class="badge badge-light border ml-1"><?= esc((string) ($attempt['large_insert_count'] ?? 0)) ?> inserts</span>
+                                            <span class="badge badge-light border ml-1"><?= esc((string) ($attempt['large_insert_character_count'] ?? 0)) ?> chars</span>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="small text-muted">Score: <?= esc((string) ($attempt['score'] ?? 0)) ?> / <?= esc((string) ($attempt['max_score'] ?? 10)) ?></div>
                                 </div>
                             <?php endforeach; ?>
@@ -116,7 +235,13 @@ $concerns = $concerns ?? [];
                                             </div>
                                             <h6 class="mb-2"><?= esc($answer['question_text'] ?? 'Question') ?></h6>
                                         </div>
-                                        <span class="badge badge-light border">AI Score: <?= esc((string) ($answer['ai_score'] ?? '0')) ?></span>
+                                        <span class="badge badge-light border">
+                                            <?php if (($answer['ai_score'] ?? null) !== null): ?>
+                                                AI Score: <?= esc((string) $answer['ai_score']) ?>
+                                            <?php else: ?>
+                                                AI score unavailable
+                                            <?php endif; ?>
+                                        </span>
                                     </div>
 
                                     <p class="mb-2"><?= esc($answer['transcript'] ?? 'Transcript not available yet.') ?></p>
@@ -124,6 +249,26 @@ $concerns = $concerns ?? [];
                                     <div class="small text-muted">
                                         Duration: <?= esc((string) ($answer['duration_seconds'] ?? 0)) ?>s
                                     </div>
+
+                                    <?php
+                                    $answerFlags = json_decode((string) ($answer['integrity_flags'] ?? '[]'), true) ?: [];
+                                    $answerHealth = trim((string) ($answer['recording_health'] ?? ''));
+                                    ?>
+                                    <?php if ($answerHealth !== '' || !empty($answerFlags) || !empty($answer['client_context'])): ?>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block text-uppercase mb-1">Recording Integrity</small>
+                                            <div class="d-flex flex-wrap align-items-center" style="gap:6px;">
+                                                <?php if ($answerHealth !== ''): ?>
+                                                    <span class="badge badge-<?= $answerHealth === 'ok' ? 'success' : 'warning' ?>">
+                                                        <?= esc(ucwords(str_replace('_', ' ', $answerHealth))) ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php foreach ($answerFlags as $flag): ?>
+                                                    <span class="badge badge-warning border"><?= esc(ucwords(str_replace(['_', '-'], ' ', (string) $flag))) ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <?php if (!empty($answer['ai_feedback'])): ?>
                                         <div class="mt-2 text-muted"><?= esc($answer['ai_feedback']) ?></div>
@@ -142,12 +287,17 @@ $concerns = $concerns ?? [];
                     <div class="card-body">
                         <h5 class="mb-3">Overall Evaluation</h5>
                         <ul class="list-unstyled mb-0">
-                            <li class="mb-2">Overall Rating: <strong><?= esc((string) ($session['overall_rating'] ?? 0)) ?></strong></li>
-                            <li class="mb-2">Technical: <strong><?= esc((string) ($session['technical_score'] ?? 0)) ?></strong></li>
-                            <li class="mb-2">Communication: <strong><?= esc((string) ($session['communication_score'] ?? 0)) ?></strong></li>
-                            <li class="mb-2">Problem Solving: <strong><?= esc((string) ($session['problem_solving_score'] ?? 0)) ?></strong></li>
+                            <li class="mb-2">Overall Rating: <strong><?= ($session['overall_rating'] ?? null) !== null ? esc((string) $session['overall_rating']) : 'AI score unavailable' ?></strong></li>
+                            <li class="mb-2">Technical: <strong><?= ($session['technical_score'] ?? null) !== null ? esc((string) $session['technical_score']) : 'AI score unavailable' ?></strong></li>
+                            <li class="mb-2">Communication: <strong><?= ($session['communication_score'] ?? null) !== null ? esc((string) $session['communication_score']) : 'AI score unavailable' ?></strong></li>
+                            <li class="mb-2">Problem Solving: <strong><?= ($session['problem_solving_score'] ?? null) !== null ? esc((string) $session['problem_solving_score']) : 'AI score unavailable' ?></strong></li>
                             <li class="mb-0">AI Decision: <strong><?= esc(ucwords(str_replace('_', ' ', (string) ($session['ai_decision'] ?? 'pending')))) ?></strong></li>
                         </ul>
+                        <?php if ($hasIntegrityFlags): ?>
+                            <div class="alert alert-warning mt-3 mb-0 py-2">
+                                This session has integrity signals. Review the flags above before finalizing.
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -190,13 +340,18 @@ $concerns = $concerns ?? [];
                 <!-- Score Override & Flag -->
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="mb-1">Recruiter Override</h5>
-                        <p class="text-muted small mb-3">Override the AI score or flag this interview for review.</p>
+                        <h5 class="mb-1">Finalize Review</h5>
+                        <p class="text-muted small mb-3">Save the recruiter override, finalize the review, and notify the candidate.</p>
 
                         <?php if (session()->getFlashdata('override_success')): ?>
                             <div class="alert alert-success py-2"><?= session()->getFlashdata('override_success') ?></div>
                         <?php endif; ?>
 
+                        <?php if ($sessionStatus === 'candidate_notified'): ?>
+                            <div class="alert alert-success mb-0">
+                                The candidate has already been notified. This review is locked.
+                            </div>
+                        <?php else: ?>
                         <form method="post" action="<?= base_url('recruiter/applications/' . (int) ($application['id'] ?? 0) . '/ai-report/override') ?>">
                             <?= csrf_field() ?>
 
@@ -254,8 +409,9 @@ $concerns = $concerns ?? [];
                                 <textarea name="recruiter_note" class="form-control" rows="3" placeholder="Optional note about this interview..."><?= esc((string) ($session['recruiter_note'] ?? '')) ?></textarea>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-block">Save Override</button>
+                            <button type="submit" class="btn btn-primary btn-block">Finalize and Notify Candidate</button>
                         </form>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

@@ -225,6 +225,15 @@ class RecruiterApplications extends BaseController
             return redirect()->back()->with('error', 'No interview session found.');
         }
 
+        if (($session['status'] ?? '') === 'submitted') {
+            $sessionModel->update((int) $session['id'], [
+                'status' => 'under_review',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            model('StageHistoryModel')->moveToStage($applicationId, 'AI Interview Under Review');
+            $session['status'] = 'under_review';
+        }
+
         $overrideScore = $this->request->getPost('override_score');
         $flag         = trim((string) $this->request->getPost('flag'));
         $note         = trim((string) $this->request->getPost('recruiter_note'));
@@ -240,11 +249,30 @@ class RecruiterApplications extends BaseController
         $validFlags = ['', 'strong_yes', 'yes', 'maybe', 'no', 'needs_review'];
         $update['recruiter_flag'] = in_array($flag, $validFlags, true) ? $flag : '';
         $update['recruiter_note'] = mb_substr($note, 0, 1000);
+        $update['status'] = 'finalized';
 
         $sessionModel->update((int) $session['id'], $update);
+        model('StageHistoryModel')->moveToStage($applicationId, 'AI Interview Finalized');
+
+        $notificationModel = new NotificationModel();
+        $candidateId = (int) ($application['candidate_id'] ?? 0);
+        if ($candidateId > 0) {
+            $notificationModel->createNotification(
+                $candidateId,
+                (int) $applicationId,
+                'result_published',
+                'Your AI interview review has been finalized. Please check your application for the latest update.',
+                base_url('candidate/applications')
+            );
+            $sessionModel->update((int) $session['id'], [
+                'status' => 'candidate_notified',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            model('StageHistoryModel')->moveToStage($applicationId, 'AI Interview Candidate Notified');
+        }
 
         return redirect()->to(base_url('recruiter/applications/' . $applicationId . '/ai-report'))
-            ->with('override_success', 'Override saved successfully.');
+            ->with('override_success', 'AI interview finalized and candidate notified.');
     }
 
     public function aiInterviewReport($applicationId)
@@ -273,13 +301,55 @@ class RecruiterApplications extends BaseController
                 ->with('error', 'No AI interview session found for this application.');
         }
 
+        if (($session['status'] ?? '') === 'submitted') {
+            $sessionModel->update((int) $session['id'], [
+                'status' => 'under_review',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            model('StageHistoryModel')->moveToStage((int) $applicationId, 'AI Interview Under Review');
+            $session['status'] = 'under_review';
+        }
+
         $answers = $answerModel->findBySession((int) $session['id']);
         $round1Attempts = \Config\Database::connect()->tableExists('ai_interview_round1_attempts')
             ? $round1Model->findBySession((int) $session['id'])
             : [];
         $sectionScores = json_decode((string) ($session['section_scores'] ?? '[]'), true) ?: [];
+        if (empty($sectionScores) && !empty($answers)) {
+            $hasMissingAiScore = false;
+            $bucketed = [];
+            foreach ($answers as $answer) {
+                $sectionKey = strtolower(trim((string) ($answer['section_key'] ?? '')));
+                $score = $answer['ai_score'] ?? null;
+                if ($score === null) {
+                    $hasMissingAiScore = true;
+                    continue;
+                }
+                if ($sectionKey === '') {
+                    continue;
+                }
+                if (!isset($bucketed[$sectionKey])) {
+                    $bucketed[$sectionKey] = [];
+                }
+                $bucketed[$sectionKey][] = (float) $score;
+            }
+
+            if (!$hasMissingAiScore) {
+                foreach ($bucketed as $sectionKey => $scores) {
+                    if (!empty($scores)) {
+                        $sectionScores[$sectionKey] = round(array_sum($scores) / count($scores), 2);
+                    }
+                }
+                if (!empty($sectionScores)) {
+                    ksort($sectionScores);
+                }
+            }
+        }
         $strengths = json_decode((string) ($session['strengths'] ?? '[]'), true) ?: [];
         $concerns = json_decode((string) ($session['concerns'] ?? '[]'), true) ?: [];
+        $integrityEvents = json_decode((string) ($session['integrity_events'] ?? '[]'), true) ?: [];
+        $integrityFlags = json_decode((string) ($session['integrity_flags'] ?? '[]'), true) ?: [];
+        $integritySummary = $this->extractInterviewIntegritySummary($session);
 
         return view('recruiter/applications/ai_report', [
             'application' => $application,
@@ -289,6 +359,9 @@ class RecruiterApplications extends BaseController
             'sectionScores' => $sectionScores,
             'strengths' => $strengths,
             'concerns' => $concerns,
+            'integrityEvents' => $integrityEvents,
+            'integrityFlags' => $integrityFlags,
+            'integritySummary' => $integritySummary,
         ]);
     }
 
@@ -642,5 +715,33 @@ class RecruiterApplications extends BaseController
         }
 
         return null;
+    }
+
+    private function extractInterviewIntegritySummary(array $session): array
+    {
+        $summary = [
+            'warning_count' => (int) ($session['integrity_warning_count'] ?? 0),
+            'tab_switch_count' => (int) ($session['tab_switch_count'] ?? 0),
+            'hidden_duration_seconds' => (int) ($session['hidden_duration_seconds'] ?? 0),
+            'reconnect_count' => (int) ($session['reconnect_count'] ?? 0),
+            'flags' => [],
+            'last_event_type' => null,
+            'last_event_at' => null,
+        ];
+
+        $history = json_decode((string) ($session['conversation_history'] ?? '[]'), true);
+        if (is_array($history)) {
+            $historySummary = (array) ($history['integrity_summary'] ?? []);
+            $summary['warning_count'] = (int) ($historySummary['warning_count'] ?? $summary['warning_count']);
+            $summary['tab_switch_count'] = (int) ($historySummary['tab_switch_count'] ?? $summary['tab_switch_count']);
+            $summary['hidden_duration_seconds'] = (int) ($historySummary['hidden_duration_seconds'] ?? $summary['hidden_duration_seconds']);
+            $summary['reconnect_count'] = (int) ($historySummary['reconnect_count'] ?? $summary['reconnect_count']);
+            $summary['last_event_type'] = $historySummary['last_event_type'] ?? null;
+            $summary['last_event_at'] = $historySummary['last_event_at'] ?? null;
+        }
+
+        $summary['flags'] = array_values(array_unique(array_filter(array_map('strval', json_decode((string) ($session['integrity_flags'] ?? '[]'), true) ?: []))));
+
+        return $summary;
     }
 }

@@ -161,9 +161,11 @@ $routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::sav
 // AI Interview Routes (browser-based flow)
 $routes->group('interview', ['filter' => 'candidate'], function($routes) {
     $routes->get('start/(:num)', 'AiInterviewController::start/$1');
+    $routes->get('begin/(:num)', 'AiInterviewController::startInterview/$1');
     $routes->post('begin/(:num)', 'AiInterviewController::startInterview/$1');
     $routes->post('round1-answer/(:num)', 'AiInterviewController::saveRound1Answer/$1');
     $routes->post('answer/(:num)', 'AiInterviewController::saveAnswer/$1');
+    $routes->post('integrity/(:num)', 'AiInterviewController::logIntegrityEvent/$1');
     $routes->post('complete/(:num)', 'AiInterviewController::completeInterview/$1');
     $routes->get('chat/(:num)', 'AiInterviewController::legacyRedirect/$1');
     $routes->post('submit/(:num)', 'AiInterviewController::legacyRedirect/$1');

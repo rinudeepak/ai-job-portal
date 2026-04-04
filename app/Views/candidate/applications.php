@@ -93,6 +93,17 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                         $isFinalPositive = in_array($application['status'], ['selected', 'hired'], true);
                         $progress = ($currentIndex !== false) ? (($currentIndex + 1) / count($stages)) * 100 : 20;
                         $recruiterActivity = $application['recruiter_activity'] ?? [];
+                        $reviewStatus = (string) ($application['interview_review_status'] ?? '');
+                        $reviewStatusLabel = (string) ($application['interview_review_label'] ?? '');
+                        $reviewStatusTone = in_array($reviewStatus, ['submitted', 'under_review'], true) ? 'text-info' : (in_array($reviewStatus, ['finalized', 'candidate_notified'], true) ? 'text-success' : 'text-muted');
+                        $reviewStatusAccent = in_array($reviewStatus, ['submitted', 'under_review'], true) ? '#0d6efd' : (in_array($reviewStatus, ['finalized', 'candidate_notified'], true) ? '#198754' : '#6c757d');
+                        $reviewStatusIcon = match ($reviewStatus) {
+                            'submitted' => 'fas fa-paper-plane',
+                            'under_review' => 'fas fa-spinner',
+                            'finalized' => 'fas fa-check-circle',
+                            'candidate_notified' => 'fas fa-bell',
+                            default => 'fas fa-clipboard-check',
+                        };
                         $profileViewed = (int) (($recruiterActivity['profile_unique_recruiters'] ?? 0) ?: ($recruiterActivity['profile_viewed_count'] ?? 0));
                         $contactViewed = (int) (($recruiterActivity['contact_unique_recruiters'] ?? 0) ?: ($recruiterActivity['contact_viewed_count'] ?? 0));
                         $resumeDownloaded = (int) (($recruiterActivity['resume_unique_recruiters'] ?? 0) ?: ($recruiterActivity['resume_downloaded_count'] ?? 0));
@@ -126,9 +137,28 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                     <?= ucwords(str_replace('_', ' ', $application['status'])) ?>
                                 </span>
                             </div>
+                            <?php if ($reviewStatusLabel !== ''): ?>
+                                <div class="mb-3">
+                                    <div class="d-inline-flex align-items-center px-3 py-2 rounded-pill border bg-white" style="border-left: 4px solid <?= esc($reviewStatusAccent) ?> !important; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle mr-2 <?= $reviewStatusTone ?>" style="width: 28px; height: 28px; background: <?= esc($reviewStatusAccent) ?>15;">
+                                            <i class="<?= esc($reviewStatusIcon) ?>"></i>
+                                        </span>
+                                        <div class="d-flex flex-column">
+                                            <span class="small text-uppercase text-muted">AI Review</span>
+                                            <strong class="<?= $reviewStatusTone ?>"><?= esc($reviewStatusLabel) ?></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="mb-4">
                                 <div class="application-section-title">Progress</div>
+                                <?php if ($reviewStatusLabel !== ''): ?>
+                                    <div class="alert alert-light border py-2 px-3 mb-3">
+                                        <div class="small text-uppercase text-muted mb-1">AI Review</div>
+                                        <strong class="<?= esc($reviewStatusTone) ?>"><?= esc($reviewStatusLabel) ?></strong>
+                                    </div>
+                                <?php endif; ?>
                                 <?php if ($isRejected): ?>
                                     <div class="alert alert-danger mb-0"><i class="fas fa-times-circle"></i> Application Rejected</div>
                                 <?php elseif ($isWithdrawn): ?>
@@ -143,17 +173,6 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                     </div>
                                 <?php endif; ?>
                             </div>
-
-                            <?php if (!empty($application['overall_rating'])): ?>
-                                <div class="mb-4">
-                                    <div class="application-section-title">AI Interview Score</div>
-                                    <div class="detail-score-grid">
-                                        <div class="detail-score-item"><small class="text-muted d-block">Technical</small><strong><?= number_format($application['technical_score'] ?? 0, 1) ?>%</strong></div>
-                                        <div class="detail-score-item"><small class="text-muted d-block">Communication</small><strong><?= number_format($application['communication_score'] ?? 0, 1) ?>%</strong></div>
-                                        <div class="detail-score-item"><small class="text-muted d-block">Overall</small><strong><?= number_format($application['overall_rating'] ?? 0, 1) ?>%</strong></div>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
 
                             <div class="mb-3">
                                 <div class="application-section-title">Recruiter Activity</div>

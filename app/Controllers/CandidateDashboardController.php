@@ -84,6 +84,8 @@ class CandidateDashboardController extends BaseController
                 jobs.experience_level,
                 ' . $resumeSelect . '
                 ' . $policySelect . ',
+                (SELECT status FROM interview_sessions WHERE interview_sessions.application_id = applications.id ORDER BY interview_sessions.id DESC LIMIT 1) as interview_review_status,
+                (SELECT completed_at FROM interview_sessions WHERE interview_sessions.application_id = applications.id ORDER BY interview_sessions.id DESC LIMIT 1) as interview_review_completed_at,
                 0 as technical_score,
                 0 as communication_score,
                 0 as overall_rating,
@@ -104,6 +106,7 @@ class CandidateDashboardController extends BaseController
         foreach ($applications as &$application) {
             $application['next_action'] = $this->getNextAction($application);
             $application['interview_prep'] = $this->buildInterviewPrepCoach($application);
+            $application['interview_review_label'] = $this->formatInterviewReviewStatus((string) ($application['interview_review_status'] ?? ''));
         }
 
         $applicationIds = array_values(array_filter(array_map(static function ($application) {
@@ -128,6 +131,20 @@ class CandidateDashboardController extends BaseController
         unset($application);
         
         return $applications;
+    }
+
+    private function formatInterviewReviewStatus(string $status): string
+    {
+        return match ($status) {
+            'submitted' => 'Submitted',
+            'under_review' => 'Under review',
+            'finalized' => 'Finalized',
+            'candidate_notified' => 'Candidate notified',
+            'pending_evaluation' => 'Pending evaluation',
+            'completed' => 'Completed',
+            'evaluated' => 'Evaluated',
+            default => '',
+        };
     }
 
     private function buildInterviewPrepCoach(array $application): array
@@ -859,3 +876,4 @@ class CandidateDashboardController extends BaseController
         return array_values(array_slice($watchouts, 0, 4));
     }
 }
+

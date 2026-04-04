@@ -22,6 +22,14 @@ class AiInterviewRound1AttemptModel extends Model
         'is_correct',
         'score',
         'max_score',
+        'client_context',
+        'integrity_flags',
+        'paste_event_count',
+        'pasted_character_count',
+        'copy_paste_detected',
+        'large_insert_count',
+        'large_insert_character_count',
+        'large_insert_detected',
         'answered_at',
         'created_at',
         'updated_at',
@@ -34,4 +42,3 @@ class AiInterviewRound1AttemptModel extends Model
             ->findAll();
     }
 }
-
