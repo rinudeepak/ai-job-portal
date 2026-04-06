@@ -41,6 +41,8 @@ class CandidateDashboardController extends BaseController
         // Top suggested jobs for dashboard (best matches only)
         $topSuggestedJobs = $this->getTopSuggestedJobs($candidateId, 3);
         $jobSearchStrategy = $this->buildJobSearchStrategyCoach((int) $candidateId, $applications, $topSuggestedJobs);
+        $dailyReminder = $this->buildDailyReminder($candidateId, $applications, $topSuggestedJobs);
+        $engagementBanners = $this->buildDashboardEngagementBanners($candidateId, $applications, $topSuggestedJobs, (string) ($dailyReminder['key'] ?? ''));
         
         return view('candidate/dashboard', [
             'applications' => $applications,
@@ -48,6 +50,8 @@ class CandidateDashboardController extends BaseController
             'profileStrength' => $profileStrength,
             'pendingActions' => $pendingActions,
             'notifications' => $notifications,
+            'dailyReminder' => $dailyReminder,
+            'engagementBanners' => $engagementBanners,
             'topSuggestedJobs' => $topSuggestedJobs,
             'jobSearchStrategy' => $jobSearchStrategy,
         ]);
@@ -216,6 +220,467 @@ class CandidateDashboardController extends BaseController
         ];
 
         return (new AiInterviewPrepCoach())->generate($application, $fallback);
+    }
+
+    private function buildDailyReminder(int $candidateId, array $applications, array $topSuggestedJobs): array
+    {
+        $userModel = model('UserModel');
+        $notificationModel = model('NotificationModel');
+        $skillsModel = new CandidateSkillsModel();
+
+        $user = $userModel->findCandidateWithProfile($candidateId) ?? $userModel->find($candidateId) ?? [];
+        $skillsRow = $skillsModel->where('candidate_id', $candidateId)->first() ?? [];
+        $profileStrength = $this->calculateProfileStrength($candidateId);
+        $unreadNotifications = $notificationModel
+            ->where('user_id', $candidateId)
+            ->where('is_read', 0)
+            ->countAllResults();
+        $activeApplications = array_values(array_filter($applications, static function (array $application): bool {
+            return !in_array((string) ($application['status'] ?? ''), ['rejected', 'withdrawn', 'selected', 'hired'], true);
+        }));
+        $practiceApplication = $this->findBestPracticeApplication($applications);
+        $suggestedJob = $topSuggestedJobs[0] ?? [];
+
+        $tasks = [
+            [
+                'key' => 'resume_tip',
+                'notification_type' => 'daily_resume_tip',
+                'title' => 'Strengthen one resume point today',
+                'message' => 'Rewrite one bullet so it shows what you changed and what improved.',
+                'detail' => 'A clear action-and-result bullet gives recruiters proof, not just claims.',
+                'motivation' => 'Small edits like this make your profile feel stronger and more credible.',
+                'action_text' => 'Improve resume',
+                'action_link' => base_url('candidate/profile'),
+                'score' => 0,
+            ],
+            [
+                'key' => 'interview_practice',
+                'notification_type' => 'daily_interview_practice',
+                'title' => 'Turn your experience into a strong answer',
+                'message' => 'Practice one 60-second answer using a real example from your work.',
+                'detail' => 'When your interview story matches your resume, your profile feels more convincing.',
+                'motivation' => 'This is how effort starts turning into confidence during interviews.',
+                'action_text' => 'Practice answer',
+                'action_link' => base_url('candidate/applications'),
+                'score' => 0,
+            ],
+            [
+                'key' => 'job_search_task',
+                'notification_type' => 'daily_job_search_task',
+                'title' => 'Apply where your profile has the best chance',
+                'message' => 'Pick one relevant role that matches the strengths already visible in your profile.',
+                'detail' => 'Focused applications usually perform better than sending many weak ones.',
+                'motivation' => 'The right application is proof that your preparation is moving you forward.',
+                'action_text' => 'View best match',
+                'action_link' => base_url('jobs?tab=suggested'),
+                'score' => 0,
+            ],
+            [
+                'key' => 'skill_prompt',
+                'notification_type' => 'daily_skill_prompt',
+                'title' => 'Close one skill gap step by step',
+                'message' => 'Review one skill your target role needs and decide how you will strengthen it.',
+                'detail' => 'Even a small learning step makes your direction clearer and your profile more focused.',
+                'motivation' => 'Progress becomes motivating when you can see exactly what to improve next.',
+                'action_text' => 'Review skill plan',
+                'action_link' => base_url('candidate/job-search-strategy'),
+                'score' => 0,
+            ],
+            [
+                'key' => 'followup_reminder',
+                'notification_type' => 'daily_followup_reminder',
+                'title' => 'Stay close to recruiter momentum',
+                'message' => 'Check whether any recruiter has viewed, replied, or moved your application forward.',
+                'detail' => 'Following up helps you spot progress and respond while interest is still warm.',
+                'motivation' => 'Seeing movement is motivating because it shows your effort is being noticed.',
+                'action_text' => 'Check updates',
+                'action_link' => base_url('notifications'),
+                'score' => 0,
+            ],
+        ];
+
+        $hasResume = !empty($user['resume_path']);
+        $hasBio = !empty($user['bio']);
+        $hasPreferredTitles = !empty($user['preferred_job_titles']);
+        $hasSkills = !empty($skillsRow['skill_name']);
+
+        foreach ($tasks as &$task) {
+            switch ($task['key']) {
+                case 'resume_tip':
+                    if (!$hasResume) {
+                        $task['score'] += 40;
+                        $task['message'] = 'Upload your resume so recruiters can start evaluating your experience.';
+                        $task['detail'] = 'A complete profile gets considered more seriously than an incomplete one.';
+                        $task['motivation'] = 'Finishing this step gives your applications a real base to grow from.';
+                        $task['action_text'] = 'Upload resume';
+                    }
+                    if (!$hasBio) {
+                        $task['score'] += 15;
+                    }
+                    if ($profileStrength < 70) {
+                        $task['score'] += 10;
+                    }
+                    if (!empty($activeApplications)) {
+                        $task['score'] += 5;
+                    }
+                    break;
+
+                case 'interview_practice':
+                    if (!empty($activeApplications)) {
+                        $task['score'] += 30;
+                    }
+                    foreach ($activeApplications as $application) {
+                        if (in_array((string) ($application['status'] ?? ''), ['applied', 'shortlisted', 'interview_slot_booked'], true)) {
+                            $task['score'] += 15;
+                            break;
+                        }
+                    }
+                    foreach ($activeApplications as $application) {
+                        if (strtoupper((string) ($application['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD)) !== JobModel::AI_POLICY_OFF) {
+                            $task['score'] += 10;
+                            $jobTitle = trim((string) ($application['job_title'] ?? 'your target role'));
+                            $task['message'] = 'Practice one short answer for ' . $jobTitle . ' using a real result from your work.';
+                            break;
+                        }
+                    }
+                    if ($practiceApplication) {
+                        $task['action_link'] = base_url('candidate/applications/' . (int) $practiceApplication['id'] . '/mock-interview');
+                    }
+                    break;
+
+                case 'job_search_task':
+                    if (!empty($topSuggestedJobs)) {
+                        $task['score'] += 30;
+                        $jobTitle = trim((string) ($suggestedJob['title'] ?? 'a strong-fit role'));
+                        $task['message'] = 'Apply to ' . $jobTitle . ' if it matches the experience you already present well.';
+                    }
+                    if (count($applications) < 3) {
+                        $task['score'] += 10;
+                    }
+                    if (empty($activeApplications)) {
+                        $task['score'] += 10;
+                    }
+                    break;
+
+                case 'skill_prompt':
+                    if (!$hasPreferredTitles) {
+                        $task['score'] += 25;
+                        $task['message'] = 'Define your target role so your profile and job search point in the same direction.';
+                        $task['detail'] = 'Clear targets help the portal suggest better roles and better next steps.';
+                        $task['action_text'] = 'Set target role';
+                    }
+                    if (!$hasSkills) {
+                        $task['score'] += 15;
+                        $task['message'] = 'Add your core skills so recruiters can match your profile more accurately.';
+                        $task['detail'] = 'Skills make your strengths easier to notice in search and screening.';
+                        $task['action_text'] = 'Add strengths';
+                        $task['action_link'] = base_url('candidate/profile');
+                    }
+                    if ($profileStrength < 80) {
+                        $task['score'] += 10;
+                    }
+                    break;
+
+                case 'followup_reminder':
+                    if ($unreadNotifications > 0) {
+                        $task['score'] += 35;
+                    }
+                    foreach ($applications as $application) {
+                        $activity = (array) ($application['recruiter_activity'] ?? []);
+                        $activityCount = (int) ($activity['profile_viewed_count'] ?? 0)
+                            + (int) ($activity['contact_viewed_count'] ?? 0)
+                            + (int) ($activity['resume_downloaded_count'] ?? 0);
+                        if ($activityCount > 0) {
+                            $task['score'] += 15;
+                            $task['message'] = 'A recruiter has already shown interest. Check the latest updates and respond quickly if needed.';
+                            break;
+                        }
+                    }
+                    if (!empty($activeApplications)) {
+                        $task['score'] += 5;
+                    }
+                    break;
+            }
+
+            $task['tie_breaker'] = abs(crc32(date('Y-m-d') . '|' . $candidateId . '|' . $task['key']));
+        }
+        unset($task);
+
+        usort($tasks, static function (array $left, array $right): int {
+            $scoreCompare = ($right['score'] ?? 0) <=> ($left['score'] ?? 0);
+            if ($scoreCompare !== 0) {
+                return $scoreCompare;
+            }
+
+            return ($left['tie_breaker'] ?? 0) <=> ($right['tie_breaker'] ?? 0);
+        });
+
+        $task = $tasks[0];
+        if ($task['key'] === 'followup_reminder' && $unreadNotifications <= 0) {
+            $task['action_text'] = 'Open updates';
+        }
+
+        $task['banner_label'] = 'Next best action';
+        $task['tips'] = $this->buildDashboardActionTips($task['key']);
+
+        return $task;
+    }
+
+    private function buildDashboardActionTips(string $taskKey): array
+    {
+        return match ($taskKey) {
+            'resume_tip' => [
+                'Strong resume bullets help recruiters see outcomes, not just responsibilities.',
+                'One better project point can make the whole profile feel more credible.',
+                'Clear results build confidence because they show what you can really deliver.',
+            ],
+            'interview_practice' => [
+                'When your answer matches your resume, your story feels more trustworthy.',
+                'Short, real examples usually make a stronger impression than long explanations.',
+                'Practice turns past effort into confident communication.',
+            ],
+            'job_search_task' => [
+                'Focused applications usually perform better than applying everywhere.',
+                'The best-fit roles are where your current strengths can stand out fastest.',
+                'Applying with direction feels better than applying with pressure.',
+            ],
+            'skill_prompt' => [
+                'A visible learning direction makes your profile look more intentional.',
+                'Closing one skill gap is often more useful than trying to improve everything at once.',
+                'Candidates stay motivated when the next improvement step is clear.',
+            ],
+            'followup_reminder' => [
+                'Quick follow-up keeps momentum alive when recruiter interest is already there.',
+                'Progress feels real when you can see who viewed or moved your application.',
+                'Responding at the right time can turn interest into the next step.',
+            ],
+            default => [
+                'Small, focused improvements help your profile get stronger over time.',
+                'A clear next step keeps your job search active without feeling overwhelming.',
+                'Consistent effort matters more than trying to do everything at once.',
+            ],
+        };
+    }
+
+    private function buildDashboardEngagementBanners(int $candidateId, array $applications, array $topSuggestedJobs, string $activeKey = ''): array
+    {
+        $user = (new UserModel())->findCandidateWithProfile($candidateId) ?? [];
+        $skillsRow = (new CandidateSkillsModel())->where('candidate_id', $candidateId)->first() ?? [];
+        $candidateSkills = $this->tokenizeCsv((string) ($skillsRow['skill_name'] ?? ''));
+        $practiceApplication = $this->findBestPracticeApplication($applications);
+        $suggestedJob = $topSuggestedJobs[0] ?? [];
+        $suggestedJobId = (int) ($suggestedJob['id'] ?? 0);
+        $suggestedJobTitle = trim((string) ($suggestedJob['title'] ?? 'relevant jobs'));
+        $suggestedJobCompany = trim((string) ($suggestedJob['company'] ?? ''));
+        $resumePrompt = $this->buildResumeImprovementPrompt($candidateId, $applications, $topSuggestedJobs, $candidateSkills);
+        $interviewPrompt = $this->buildInterviewPracticePrompt($candidateId, $practiceApplication);
+        $skillPrompt = $this->buildSkillGapPrompt($candidateId, $user, $candidateSkills, $topSuggestedJobs);
+        $followupPrompt = $this->buildFollowupPrompt($applications);
+
+        $banners = [
+            [
+                'key' => 'resume_tip',
+                'label' => 'Daily resume tip',
+                'title' => $resumePrompt['title'],
+                'message' => $resumePrompt['message'],
+                'action_text' => 'Open Resume',
+                'action_link' => base_url('candidate/profile'),
+            ],
+            [
+                'key' => 'interview_practice',
+                'label' => 'Daily interview practice',
+                'title' => $interviewPrompt['title'],
+                'message' => $interviewPrompt['message'],
+                'action_text' => 'Start Practice',
+                'action_link' => $practiceApplication
+                    ? base_url('candidate/applications/' . (int) $practiceApplication['id'] . '/mock-interview')
+                    : base_url('candidate/applications'),
+            ],
+            [
+                'key' => 'job_search_task',
+                'label' => 'Daily job search task',
+                'title' => $suggestedJobId > 0
+                    ? 'Apply to ' . $suggestedJobTitle . ($suggestedJobCompany !== '' ? ' at ' . $suggestedJobCompany : '')
+                    : 'Apply to 1 relevant job',
+                'message' => $suggestedJobId > 0
+                    ? 'Start with ' . $suggestedJobTitle . ' if it matches the strengths already visible in your profile.'
+                    : 'Choose one strong-fit role so your search stays focused and easier to manage.',
+                'action_text' => $suggestedJobId > 0 ? 'View Matching Job' : 'Browse Jobs',
+                'action_link' => $suggestedJobId > 0
+                    ? base_url('job/' . $suggestedJobId)
+                    : base_url('jobs?tab=suggested'),
+            ],
+            [
+                'key' => 'skill_prompt',
+                'label' => 'Daily skill prompt',
+                'title' => $skillPrompt['title'],
+                'message' => $skillPrompt['message'],
+                'action_text' => 'Review Skill Plan',
+                'action_link' => $skillPrompt['action_link'],
+            ],
+            [
+                'key' => 'followup_reminder',
+                'label' => 'Daily follow-up reminder',
+                'title' => $followupPrompt['title'],
+                'message' => $followupPrompt['message'],
+                'action_text' => $followupPrompt['action_text'],
+                'action_link' => $followupPrompt['action_link'],
+            ],
+        ];
+
+        $activeIndex = 0;
+        foreach ($banners as $index => $banner) {
+            if ($activeKey !== '' && $banner['key'] === $activeKey) {
+                $activeIndex = $index;
+                break;
+            }
+        }
+
+        return [
+            'active_index' => $activeIndex,
+            'items' => $banners,
+        ];
+    }
+
+    private function buildResumeImprovementPrompt(int $candidateId, array $applications, array $topSuggestedJobs, array $candidateSkills): array
+    {
+        $role = trim((string) ($topSuggestedJobs[0]['title'] ?? $applications[0]['job_title'] ?? 'your target role'));
+        $seedKey = 'resume';
+        $focusTerms = array_values(array_filter([
+            trim((string) ($applications[0]['resume_version_target_role'] ?? '')),
+            trim((string) ($applications[0]['job_title'] ?? '')),
+            trim((string) ($topSuggestedJobs[0]['title'] ?? '')),
+            !empty($candidateSkills) ? ucwords((string) $candidateSkills[0]) : '',
+        ]));
+        $focus = $this->pickDailyString($focusTerms, $candidateId, $seedKey) ?: $role;
+
+        return [
+            'title' => 'Improve one bullet for ' . $focus . ' today',
+            'message' => 'Rewrite it like this: "Improved [feature or process] by [what you did], leading to [result or impact]."',
+        ];
+    }
+
+    private function buildInterviewPracticePrompt(int $candidateId, ?array $practiceApplication): array
+    {
+        $questions = [];
+        if ($practiceApplication) {
+            $summaryPrep = $practiceApplication['interview_prep'] ?? $this->buildInterviewPrepCoach($practiceApplication);
+            $questions = array_values(array_filter(array_map('trim', (array) ($summaryPrep['likely_questions'] ?? []))));
+        }
+
+        if (empty($questions)) {
+            $questions = [
+                'Tell me about a time you handled conflicting priorities.',
+                'Describe a project where you had to solve a tough problem under pressure.',
+                'Tell me about a time you improved a process or feature.',
+                'Describe a situation where you had to communicate a difficult tradeoff.',
+            ];
+        }
+
+        $question = $this->pickDailyString($questions, $candidateId, 'interview');
+
+        return [
+            'title' => $question !== '' ? $question : 'Answer one behavioral question in 60 seconds',
+            'message' => 'Keep it to one real example with clear context, action, and result.',
+        ];
+    }
+
+    private function buildSkillGapPrompt(int $candidateId, array $user, array $candidateSkills, array $topSuggestedJobs): array
+    {
+        $preferredRoles = array_values(array_filter(array_map('trim', preg_split('/[,|\\/]+/', (string) ($user['preferred_job_titles'] ?? '')) ?: [])));
+        $targetRole = $this->pickDailyString(array_merge($preferredRoles, array_values(array_filter(array_map(static function (array $job): string {
+            return trim((string) ($job['title'] ?? ''));
+        }, $topSuggestedJobs)))), $candidateId, 'target-role');
+
+        $requiredSkills = [];
+        foreach ($topSuggestedJobs as $job) {
+            $requiredSkills = array_merge($requiredSkills, $this->tokenizeCsv((string) ($job['required_skills'] ?? '')));
+        }
+        $requiredSkills = array_values(array_unique($requiredSkills));
+        $candidateSkillMap = array_map('strtolower', $candidateSkills);
+        $skillGaps = array_values(array_filter($requiredSkills, static function (string $skill) use ($candidateSkillMap): bool {
+            return $skill !== '' && !in_array(strtolower($skill), $candidateSkillMap, true);
+        }));
+        $gap = $this->pickDailyString($skillGaps, $candidateId, 'skill-gap');
+
+        if ($gap !== '') {
+            return [
+                'title' => 'Review your gap in ' . ucwords($gap),
+                'message' => 'Check how ' . ucwords($gap) . ' appears in your target roles and decide what proof or practice to add next.',
+                'action_link' => base_url('candidate/job-search-strategy'),
+            ];
+        }
+
+        return [
+            'title' => 'Review one skill gap for your target role',
+            'message' => $targetRole !== ''
+                ? 'Use ' . $targetRole . ' as your target and decide which skill deserves the next improvement step.'
+                : 'Choose one skill that deserves the next improvement step in your profile.',
+            'action_link' => base_url('candidate/job-search-strategy'),
+        ];
+    }
+
+    private function buildFollowupPrompt(array $applications): array
+    {
+        $bestActivity = null;
+        $bestScore = -1;
+        foreach ($applications as $application) {
+            $activity = (array) ($application['recruiter_activity'] ?? []);
+            $score = (int) ($activity['profile_viewed_count'] ?? 0)
+                + (int) ($activity['contact_viewed_count'] ?? 0)
+                + (int) ($activity['resume_downloaded_count'] ?? 0);
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestActivity = [
+                    'job_title' => trim((string) ($application['job_title'] ?? 'your application')),
+                    'score' => $score,
+                ];
+            }
+        }
+
+        if ($bestActivity && $bestActivity['score'] > 0) {
+            return [
+                'title' => 'Check updates for ' . $bestActivity['job_title'],
+                'message' => 'Recruiter activity is happening here, so this is the best place to respond quickly and stay visible.',
+                'action_text' => 'Check Updates',
+                'action_link' => base_url('notifications'),
+            ];
+        }
+
+        return [
+            'title' => 'Check if you got a response from recruiters',
+            'message' => 'Open your updates and stay ready for replies, profile views, or the next application step.',
+            'action_text' => 'Open Updates',
+            'action_link' => base_url('notifications'),
+        ];
+    }
+
+    private function pickDailyString(array $values, int $candidateId, string $seedKey): string
+    {
+        $values = array_values(array_filter(array_map(static function ($value): string {
+            return trim((string) $value);
+        }, $values)));
+
+        if (empty($values)) {
+            return '';
+        }
+
+        $seed = date('Y-m-d') . '|' . $candidateId . '|' . $seedKey;
+        $index = abs(crc32($seed)) % count($values);
+
+        return (string) $values[$index];
+    }
+
+    private function findBestPracticeApplication(array $applications): ?array
+    {
+        foreach ($applications as $application) {
+            $status = (string) ($application['status'] ?? '');
+            if (!in_array($status, ['rejected', 'withdrawn', 'selected', 'hired'], true)) {
+                return $application;
+            }
+        }
+
+        return !empty($applications) ? $applications[0] : null;
     }
 
     private function tokenizeCsv(string $value): array

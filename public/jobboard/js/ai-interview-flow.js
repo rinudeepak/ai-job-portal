@@ -688,7 +688,16 @@
 
     function updateSyncingIndicator() {
         if (!syncingIndicator) return;
-        syncingIndicator.style.display = state.pendingSaveCount > 0 ? 'block' : 'none';
+        syncingIndicator.style.display = state.pendingSaveCount > 0 && !state.finished ? 'block' : 'none';
+    }
+
+    function stopLiveMedia() {
+        if (state.stream) {
+            state.stream.getTracks().forEach((track) => track.stop());
+            state.stream = null;
+        }
+        if (cameraPreview) cameraPreview.srcObject = null;
+        if (previewPlaceholder) previewPlaceholder.style.display = 'flex';
     }
 
     function updateTimer() {
@@ -1565,7 +1574,7 @@
         clearQuestionTransition();
         const recorderStopResult = await stopRecorder();
         if (recorderStopResult && typeof recorderStopResult.then === 'function') {
-            await recorderStopResult;
+            await recorderStopResult.catch(() => {});
         }
         if (state.pendingSaveCount > 0) {
             updateStatusBanner('Saving the last response. Please wait a moment...', 'warning');
@@ -1580,12 +1589,7 @@
         stopTimer();
         state.sectionIndex = round2Sections.length;
         state.questionIndex = 0;
-        if (state.stream) {
-            state.stream.getTracks().forEach((track) => track.stop());
-            state.stream = null;
-        }
-        if (cameraPreview) cameraPreview.srcObject = null;
-        if (previewPlaceholder) previewPlaceholder.style.display = 'flex';
+        stopLiveMedia();
         setRecordingState('Finalizing session', 'warning');
         updateStatusBanner('Submitting your final response...', 'warning');
 
@@ -1608,6 +1612,9 @@
 
         state.finished = true;
         state.needsResume = false;
+        state.pendingSaveCount = 0;
+        updateSyncingIndicator();
+        stopLiveMedia();
         setRecordingState('Session complete', 'complete');
         updateStatusBanner('Interview session complete. Your responses have been captured successfully.', 'success');
         clearPersistedProgress();
@@ -1784,7 +1791,7 @@
             stopTimer();
             stopRecorder();
             clearQuestionTransition();
-            if (state.stream) state.stream.getTracks().forEach((track) => track.stop());
+            stopLiveMedia();
         });
         document.addEventListener('visibilitychange', () => {
             void handleVisibilityChange();

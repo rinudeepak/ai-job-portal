@@ -16,6 +16,7 @@ $timerSeconds       = (int) ($flow['timer_seconds'] ?? 60);
 $totalTimerSeconds  = (int) ($flow['total_timer_seconds'] ?? 1800);
 $applicationStatus  = (string) ($application['status'] ?? '');
 $sessionStatus      = (string) ($completedSession['status'] ?? '');
+$interviewExpired   = $interviewExpired ?? false;
 $policy             = strtoupper((string) ($application['ai_interview_policy'] ?? 'REQUIRED_HARD'));
 $flowJson           = json_encode($flow, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $candidateName      = (string) (session()->get('user_name') ?? 'Candidate');
@@ -62,7 +63,32 @@ $introText          = str_replace('{candidate_name}', $candidateName, (string) (
             <?php endif; ?>
         </div>
 
-        <?php if ($interviewCompleted): ?>
+        <?php if ($interviewExpired): ?>
+        <div class="dashboard-panel" style="margin-top: 2rem; overflow: hidden; border-left: 6px solid #f0ad4e;">
+            <div class="panel-header" style="background: linear-gradient(135deg, rgba(240,173,78,0.12), rgba(240,173,78,0.04));">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 56px; height: 56px; border-radius: 16px; display:flex; align-items:center; justify-content:center; background: rgba(240,173,78,0.18); color:#c27b12; font-size: 2rem;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <h2 class="section-title mb-1">Interview Session Expired</h2>
+                        <p class="section-subtitle mb-0">This interview session is no longer available because the 24-hour resume window has passed.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="border rounded p-3 bg-light">
+                    <div class="font-weight-bold mb-2">Why this happened</div>
+                    <p class="mb-0">For a professional interview flow, sessions are only resumable for 24 hours. After that, the session closes automatically and cannot continue from the same point.</p>
+                </div>
+                <div class="mt-4">
+                    <a href="<?= base_url('candidate/applications') ?>" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i> Back to Applications
+                    </a>
+                </div>
+            </div>
+        </div>
+        <?php elseif ($interviewCompleted): ?>
         <!-- Completed State: no interactive UI, no start button -->
         <div class="dashboard-panel" style="margin-top: 2rem; overflow: hidden; border-left: 6px solid #28a745;">
             <div class="panel-header" style="background: linear-gradient(135deg, rgba(40,167,69,0.10), rgba(40,167,69,0.03));">

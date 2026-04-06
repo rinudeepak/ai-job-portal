@@ -141,6 +141,48 @@ class NotificationModel extends Model
             'color' => 'success',
             'priority' => 13,
             'action_text' => 'View'
+        ],
+        'daily_resume_tip' => [
+            'title' => 'Daily Resume Tip',
+            'icon' => 'fas fa-file-lines',
+            'color' => 'primary',
+            'priority' => 14,
+            'action_text' => 'Open resume'
+        ],
+        'daily_interview_practice' => [
+            'title' => 'Daily Interview Practice',
+            'icon' => 'fas fa-video',
+            'color' => 'success',
+            'priority' => 14,
+            'action_text' => 'Practice now'
+        ],
+        'daily_job_search_task' => [
+            'title' => 'Daily Job Search Task',
+            'icon' => 'fas fa-briefcase',
+            'color' => 'warning',
+            'priority' => 14,
+            'action_text' => 'Browse jobs'
+        ],
+        'daily_skill_prompt' => [
+            'title' => 'Daily Skill Prompt',
+            'icon' => 'fas fa-lightbulb',
+            'color' => 'info',
+            'priority' => 14,
+            'action_text' => 'Review strategy'
+        ],
+        'daily_followup_reminder' => [
+            'title' => 'Daily Follow-up Reminder',
+            'icon' => 'fas fa-reply',
+            'color' => 'primary',
+            'priority' => 14,
+            'action_text' => 'Check replies'
+        ],
+        'daily_career_reminder' => [
+            'title' => 'Daily Career Reminder',
+            'icon' => 'fas fa-sun',
+            'color' => 'primary',
+            'priority' => 14,
+            'action_text' => 'Open'
         ]
     ];
     

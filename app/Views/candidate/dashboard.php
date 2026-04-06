@@ -18,6 +18,10 @@ $dashboardStrategySource = (string) ($dashboardStrategy['source'] ?? 'fallback')
 $dashboardStrategyHeading = $dashboardStrategySource === 'ai' ? 'AI-generated strategy' : 'Job Search Strategy Coach';
 $dashboardStrategyBadge = $dashboardStrategySource === 'ai' ? 'AI-generated' : 'Strategy preview';
 $dashboardStrategyRoles = array_values(array_filter(array_map('trim', (array) ($dashboardStrategy['target_roles'] ?? []))));
+$dailyReminder = is_array($dailyReminder ?? null) ? $dailyReminder : [];
+$engagementBanners = is_array($engagementBanners ?? null) ? $engagementBanners : [];
+$bannerItems = array_values(array_filter((array) ($engagementBanners['items'] ?? []), 'is_array'));
+$bannerActiveIndex = (int) ($engagementBanners['active_index'] ?? 0);
 if (empty($dashboardStrategyRoles)) {
     $dashboardStrategyRoles = array_slice(array_values(array_filter(array_map(static function (array $job): string {
         return trim((string) ($job['title'] ?? ''));
@@ -83,21 +87,42 @@ $resolveAssetUrl = static function (string $path): string {
                 Track your applications, interviews, and AI progress. Discover live opportunities that match your career goals.
             </p>
 
-            <div class="dashboard-primary-action">
-                <div class="dashboard-primary-action-copy">
-                    <span class="dashboard-primary-action-kicker">Recommended next step</span>
-                    <h2 class="dashboard-primary-action-title">Review your best job matches and apply first</h2>
-                    <p class="dashboard-primary-action-text">Start with the strongest-fit roles, then use your strategy plan to refine the rest of your search.</p>
+            <?php if (!empty($bannerItems)): ?>
+                <div class="dashboard-primary-action-slider" data-dashboard-banner-slider data-active-index="<?= $bannerActiveIndex ?>">
+                    <div class="dashboard-primary-action-track">
+                        <?php foreach ($bannerItems as $index => $banner): ?>
+                            <article class="dashboard-primary-action-slide<?= $index === $bannerActiveIndex ? ' is-active' : '' ?>" data-banner-slide>
+                                <div class="dashboard-primary-action">
+                                    <div class="dashboard-primary-action-copy">
+                                        <span class="dashboard-primary-action-kicker"><?= esc((string) ($banner['label'] ?? 'Next best action')) ?></span>
+                                        <h2 class="dashboard-primary-action-title"><?= esc((string) ($banner['title'] ?? 'Keep your profile moving forward')) ?></h2>
+                                        <p class="dashboard-primary-action-text"><?= esc((string) ($banner['message'] ?? 'Take one small step today to keep your momentum going.')) ?></p>
+                                    </div>
+                                    <div class="dashboard-primary-action-buttons">
+                                        <a href="<?= esc((string) ($banner['action_link'] ?? base_url('candidate/dashboard'))) ?>" class="btn btn-primary btn-lg dashboard-primary-btn">
+                                            <?= esc((string) ($banner['action_text'] ?? 'Open')) ?>
+                                        </a>
+                                    </div>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if (count($bannerItems) > 1): ?>
+                        <div class="dashboard-primary-action-nav">
+                            <div class="dashboard-primary-action-dots">
+                                <?php foreach ($bannerItems as $index => $banner): ?>
+                                    <button
+                                        type="button"
+                                        class="dashboard-primary-action-dot<?= $index === $bannerActiveIndex ? ' is-active' : '' ?>"
+                                        data-banner-dot="<?= $index ?>"
+                                        aria-label="<?= esc((string) ($banner['label'] ?? 'Open banner')) ?>"
+                                    ></button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <div class="dashboard-primary-action-buttons">
-                    <a href="<?= base_url('jobs?tab=suggested') ?>" class="btn btn-primary btn-lg dashboard-primary-btn">
-                        Browse Suggested Jobs
-                    </a>
-                    <a href="<?= base_url('candidate/job-search-strategy') ?>" class="btn btn-outline-light btn-lg dashboard-secondary-btn">
-                        Open Strategy Plan
-                    </a>
-                </div>
-            </div>
+            <?php endif; ?>
 
         </div>
     </section>
@@ -328,5 +353,59 @@ $resolveAssetUrl = static function (string $path): string {
     </section>
 
 </div>
+
+<?php if (count($bannerItems) > 1): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-dashboard-banner-slider]').forEach(function (slider) {
+        var slides = Array.prototype.slice.call(slider.querySelectorAll('[data-banner-slide]'));
+        var dots = Array.prototype.slice.call(slider.querySelectorAll('[data-banner-dot]'));
+        if (slides.length < 2) {
+            return;
+        }
+
+        var activeIndex = parseInt(slider.getAttribute('data-active-index') || '0', 10);
+        if (Number.isNaN(activeIndex) || activeIndex < 0 || activeIndex >= slides.length) {
+            activeIndex = 0;
+        }
+
+        var timerId = null;
+
+        var render = function () {
+            slides.forEach(function (slide, index) {
+                slide.classList.toggle('is-active', index === activeIndex);
+            });
+            dots.forEach(function (dot, index) {
+                dot.classList.toggle('is-active', index === activeIndex);
+            });
+        };
+
+        var startAutoPlay = function () {
+            window.clearInterval(timerId);
+            timerId = window.setInterval(function () {
+                activeIndex = (activeIndex + 1) % slides.length;
+                render();
+            }, 4800);
+        };
+
+        dots.forEach(function (dot) {
+            dot.addEventListener('click', function () {
+                var nextIndex = parseInt(dot.getAttribute('data-banner-dot') || '0', 10);
+                if (Number.isNaN(nextIndex)) {
+                    return;
+                }
+
+                activeIndex = nextIndex;
+                render();
+                startAutoPlay();
+            });
+        });
+
+        render();
+        startAutoPlay();
+    });
+});
+</script>
+<?php endif; ?>
 
 <?= view('Layouts/candidate_footer') ?>

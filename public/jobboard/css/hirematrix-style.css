@@ -1362,12 +1362,28 @@ a:hover {
   padding: 4rem 0 2rem;
 }
 
+.dashboard-primary-action-slider {
+  margin-top: 1.5rem;
+}
+
+.dashboard-primary-action-track {
+  position: relative;
+  min-height: 240px;
+}
+
+.dashboard-primary-action-slide {
+  display: none;
+}
+
+.dashboard-primary-action-slide.is-active {
+  display: block;
+}
+
 .dashboard-primary-action {
   display: flex;
   justify-content: space-between;
   gap: 1.25rem;
   align-items: center;
-  margin-top: 1.5rem;
   padding: 1.25rem 1.35rem;
   border-radius: 1.25rem;
   border: 1px solid rgba(59, 130, 246, 0.18);
@@ -1409,6 +1425,45 @@ a:hover {
   gap: 0.75rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.dashboard-primary-action-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.dashboard-primary-action-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dashboard-primary-action-dot {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.45);
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: width 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.dashboard-primary-action-dot:hover,
+.dashboard-primary-action-dot:focus,
+.dashboard-primary-action-dot:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.dashboard-primary-action-dot.is-active {
+  width: 28px;
+  background: #2563eb;
 }
 
 .dashboard-primary-btn,
@@ -5457,9 +5512,17 @@ main > .container {
     align-items: flex-start;
   }
 
+  .dashboard-primary-action-track {
+    min-height: auto;
+  }
+
   .dashboard-primary-action-buttons {
     justify-content: flex-start;
     width: 100%;
+  }
+
+  .dashboard-primary-action-nav {
+    justify-content: center;
   }
 
   .dashboard-primary-btn,

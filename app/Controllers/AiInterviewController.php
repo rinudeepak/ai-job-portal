@@ -14,6 +14,8 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class AiInterviewController extends BaseController
 {
+    private const INTERVIEW_SESSION_EXPIRY_SECONDS = 86400;
+
     public function start(int $applicationId): ResponseInterface
     {
         if (session()->get('role') !== 'candidate') {
@@ -40,19 +42,32 @@ class AiInterviewController extends BaseController
         }
 
         $flow = $this->buildInterviewFlow($application);
+        $sessionModel = new InterviewSessionModel();
 
-        $completedSession = (new InterviewSessionModel())
+        $activeSession = $sessionModel
             ->where('application_id', $applicationId)
             ->where('user_id', $candidateId)
-            ->whereIn('status', ['submitted', 'under_review', 'finalized', 'candidate_notified', 'completed', 'pending_evaluation', 'evaluated'])
+            ->where('status', 'active')
+            ->orderBy('id', 'DESC')
+            ->first();
+        if ($activeSession && $this->isInterviewSessionExpired($activeSession)) {
+            $activeSession = $this->expireInterviewSession($sessionModel, $activeSession);
+        }
+
+        $terminalSession = $sessionModel
+            ->where('application_id', $applicationId)
+            ->where('user_id', $candidateId)
+            ->whereIn('status', ['submitted', 'under_review', 'finalized', 'candidate_notified', 'completed', 'pending_evaluation', 'evaluated', 'expired'])
             ->orderBy('id', 'DESC')
             ->first();
 
         return $this->response->setBody(view('candidate/ai_interview_flow', [
             'application'       => $application,
             'interviewFlow'     => $flow,
-            'interviewCompleted' => !empty($completedSession),
-            'completedSession'  => $completedSession ?? [],
+            'interviewCompleted' => !empty($terminalSession) && (string) ($terminalSession['status'] ?? '') !== 'expired',
+            'interviewExpired'   => !empty($terminalSession) && (string) ($terminalSession['status'] ?? '') === 'expired',
+            'completedSession'  => $terminalSession ?? [],
+            'expiredSession'    => $terminalSession ?? [],
         ]));
     }
 
@@ -111,6 +126,15 @@ class AiInterviewController extends BaseController
             ->where('status', 'active')
             ->orderBy('id', 'DESC')
             ->first();
+
+        if ($activeSession && $this->isInterviewSessionExpired($activeSession)) {
+            $activeSession = $this->expireInterviewSession($sessionModel, $activeSession);
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'expired_session' => true,
+                'message' => 'This interview session has expired and can no longer be resumed. Please start a new application flow if available.',
+            ]);
+        }
 
         if (strtoupper($this->request->getMethod()) === 'GET') {
             return $this->response->setJSON([
@@ -2145,7 +2169,7 @@ PROMPT;
         $round1Answered = count($round1Attempts);
         $round2Answered = count(array_filter($answers, static fn ($row) => strtolower((string) ($row['answer_variant'] ?? 'base')) === 'base'));
         $status = (string) ($session['status'] ?? 'active');
-        $finished = in_array($status, ['submitted', 'under_review', 'finalized', 'candidate_notified', 'completed', 'pending_evaluation', 'evaluated'], true);
+        $finished = in_array($status, ['submitted', 'under_review', 'finalized', 'candidate_notified', 'completed', 'pending_evaluation', 'evaluated', 'expired'], true);
         $phase = $round1Answered < $round1Total ? 'round1' : 'round2';
         if ($pendingFollowup) {
             $phase = 'round2';
@@ -2196,6 +2220,43 @@ PROMPT;
             'followup_section_key' => $pendingFollowup['section_key'] ?? null,
             'followup_question_index' => $pendingFollowup['question_index'] ?? null,
         ];
+    }
+
+    private function isInterviewSessionExpired(array $session): bool
+    {
+        $status = strtolower((string) ($session['status'] ?? ''));
+        if ($status !== 'active') {
+            return false;
+        }
+
+        $createdAt = !empty($session['created_at']) ? strtotime((string) $session['created_at']) : false;
+        if (!$createdAt) {
+            return false;
+        }
+
+        return (time() - $createdAt) >= self::INTERVIEW_SESSION_EXPIRY_SECONDS;
+    }
+
+    private function expireInterviewSession(InterviewSessionModel $sessionModel, array $session): array
+    {
+        $sessionId = (int) ($session['id'] ?? 0);
+        if ($sessionId <= 0) {
+            return $session;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $sessionModel->update($sessionId, [
+            'status' => 'expired',
+            'completed_at' => $session['completed_at'] ?? $now,
+            'updated_at' => $now,
+        ]);
+        log_message('info', 'Interview session expired after ' . self::INTERVIEW_SESSION_EXPIRY_SECONDS . ' seconds: session_id=' . $sessionId . ', application_id=' . (int) ($session['application_id'] ?? 0) . ', user_id=' . (int) ($session['user_id'] ?? 0));
+
+        $session['status'] = 'expired';
+        $session['completed_at'] = $session['completed_at'] ?? $now;
+        $session['updated_at'] = $now;
+
+        return $session;
     }
 
     private function resolveRound2ResumePosition(array $round2Sections, array $answers): array
