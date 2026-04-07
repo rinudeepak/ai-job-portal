@@ -212,3 +212,35 @@ $routes->group('recruiter', ['filter' => 'recruiter'], function($routes) {
     // Bulk Actions
     $routes->post('slots/bulk-shortlist', 'SlotManagementController::bulkShortlist');
 });
+
+// Career Chatbot Routes
+$routes->group('career-chatbot', ['filter' => 'candidate'], function($routes) {
+    $routes->get('/', 'CareerChatbotController::index');
+    $routes->post('chat', 'CareerChatbotController::chat');
+    $routes->post('book-mentor', 'CareerChatbotController::bookMentor');
+});
+
+// Mentoring System Routes
+$routes->group('mentoring', ['filter' => 'candidate'], function($routes) {
+    $routes->get('book/(:num)', 'MentoringController::bookSession/$1');
+    $routes->post('book/(:num)', 'MentoringController::processBooking/$1');
+    $routes->get('sessions', 'MentoringController::mySessions');
+    $routes->post('sessions/(:num)/feedback', 'MentoringController::submitFeedback/$1');
+});
+
+// Mentor Dashboard Routes
+$routes->group('mentor', ['filter' => 'mentor'], function($routes) {
+    $routes->get('dashboard', 'MentorController::dashboard');
+    $routes->get('sessions', 'MentorController::sessions');
+    $routes->post('sessions/(:num)/complete', 'MentorController::completeSession/$1');
+    $routes->get('earnings', 'MentorController::earnings');
+});
+
+// Premium Career Mentor Routes
+$routes->group('premium-mentor', ['filter' => 'candidate'], function($routes) {
+    $routes->get('/', 'PremiumCareerMentorController::index');
+    $routes->get('plans', 'PremiumCareerMentorController::plans');
+    $routes->post('chat', 'PremiumCareerMentorController::chat');
+    $routes->post('subscribe', 'PremiumCareerMentorController::subscribe');
+    $routes->post('create-career-plan', 'PremiumCareerMentorController::createCareerPlan');
+});

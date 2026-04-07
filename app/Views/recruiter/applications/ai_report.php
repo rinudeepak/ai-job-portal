@@ -253,6 +253,21 @@ $hasIntegrityFlags = !empty($integrityFlags) || ((int) ($integritySummary['warni
                                     <?php
                                     $answerFlags = json_decode((string) ($answer['integrity_flags'] ?? '[]'), true) ?: [];
                                     $answerHealth = trim((string) ($answer['recording_health'] ?? ''));
+                                    $recordingMetrics = json_decode((string) ($answer['recording_metrics'] ?? '[]'), true);
+                                    $recordingMetrics = is_array($recordingMetrics) ? $recordingMetrics : [];
+                                    $noiseMetrics = isset($recordingMetrics['noise_monitoring']) && is_array($recordingMetrics['noise_monitoring'])
+                                        ? $recordingMetrics['noise_monitoring']
+                                        : [];
+                                    $faceMetrics = isset($recordingMetrics['face_monitoring']) && is_array($recordingMetrics['face_monitoring'])
+                                        ? $recordingMetrics['face_monitoring']
+                                        : [];
+                                    $noiseDetected = in_array('background_noise_detected', $answerFlags, true)
+                                        || (($noiseMetrics['total_loud_seconds'] ?? 0) > 0)
+                                        || (($noiseMetrics['longest_loud_streak_seconds'] ?? 0) > 0);
+                                    $faceIssueDetected = in_array('face_not_detected', $answerFlags, true)
+                                        || in_array('multiple_faces_detected', $answerFlags, true)
+                                        || (($faceMetrics['total_no_face_seconds'] ?? 0) > 0)
+                                        || (($faceMetrics['multi_face_samples'] ?? 0) > 0);
                                     ?>
                                     <?php if ($answerHealth !== '' || !empty($answerFlags) || !empty($answer['client_context'])): ?>
                                         <div class="mt-2">
@@ -266,6 +281,109 @@ $hasIntegrityFlags = !empty($integrityFlags) || ((int) ($integritySummary['warni
                                                 <?php foreach ($answerFlags as $flag): ?>
                                                     <span class="badge badge-warning border"><?= esc(ucwords(str_replace(['_', '-'], ' ', (string) $flag))) ?></span>
                                                 <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if ($noiseDetected): ?>
+                                        <div class="mt-3">
+                                            <small class="text-muted d-block text-uppercase mb-2">Noise Monitoring</small>
+                                            <div class="d-flex flex-wrap align-items-center mb-2" style="gap:6px;">
+                                                <span class="badge badge-warning border">Background noise detected</span>
+                                                <?php if (array_key_exists('threshold_db', $noiseMetrics) && $noiseMetrics['threshold_db'] !== null): ?>
+                                                    <span class="badge badge-light border">Threshold <?= esc((string) $noiseMetrics['threshold_db']) ?> dB</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Avg dB</small>
+                                                        <strong><?= esc((string) ($noiseMetrics['average_db'] ?? 'N/A')) ?></strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Peak dB</small>
+                                                        <strong><?= esc((string) ($noiseMetrics['peak_db'] ?? 'N/A')) ?></strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Loud Time</small>
+                                                        <strong><?= esc((string) ($noiseMetrics['total_loud_seconds'] ?? 0)) ?>s</strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Longest Streak</small>
+                                                        <strong><?= esc((string) ($noiseMetrics['longest_loud_streak_seconds'] ?? 0)) ?>s</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if ($faceIssueDetected || !empty($faceMetrics)): ?>
+                                        <div class="mt-3">
+                                            <small class="text-muted d-block text-uppercase mb-2">Face Presence</small>
+                                            <div class="d-flex flex-wrap align-items-center mb-2" style="gap:6px;">
+                                                <?php if (($faceMetrics['supported'] ?? false)): ?>
+                                                    <span class="badge badge-light border">Browser face detection supported</span>
+                                                <?php else: ?>
+                                                    <span class="badge badge-secondary border">Face detection not supported</span>
+                                                <?php endif; ?>
+                                                <?php if (in_array('face_not_detected', $answerFlags, true)): ?>
+                                                    <span class="badge badge-warning border">Face not detected</span>
+                                                <?php endif; ?>
+                                                <?php if (in_array('multiple_faces_detected', $answerFlags, true)): ?>
+                                                    <span class="badge badge-warning border">Multiple faces detected</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">No Face</small>
+                                                        <strong><?= esc((string) ($faceMetrics['total_no_face_seconds'] ?? 0)) ?>s</strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Longest Gap</small>
+                                                        <strong><?= esc((string) ($faceMetrics['longest_no_face_streak_seconds'] ?? 0)) ?>s</strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Max Faces</small>
+                                                        <strong><?= esc((string) ($faceMetrics['max_faces_detected'] ?? 0)) ?></strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Samples</small>
+                                                        <strong><?= esc((string) ($faceMetrics['sample_count'] ?? 0)) ?></strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-4 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Face Present</small>
+                                                        <strong><?= esc((string) ($faceMetrics['face_present_samples'] ?? 0)) ?></strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">No-Face Samples</small>
+                                                        <strong><?= esc((string) ($faceMetrics['no_face_samples'] ?? 0)) ?></strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 col-6 mb-2">
+                                                    <div class="border rounded p-2 h-100 bg-light">
+                                                        <small class="text-muted d-block text-uppercase">Multi-Face Samples</small>
+                                                        <strong><?= esc((string) ($faceMetrics['multi_face_samples'] ?? 0)) ?></strong>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     <?php endif; ?>

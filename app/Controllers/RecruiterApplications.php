@@ -135,6 +135,18 @@ class RecruiterApplications extends BaseController
             ->orderBy('applications.applied_at', 'DESC')
             ->findAll();
 
+        $applicationIds = array_values(array_filter(array_map(static fn (array $application): int => (int) ($application['id'] ?? 0), $applications)));
+        $sessionApplicationIds = [];
+        if (!empty($applicationIds)) {
+            $sessionRows = (new InterviewSessionModel())
+                ->select('application_id')
+                ->whereIn('application_id', $applicationIds)
+                ->groupBy('application_id')
+                ->findAll();
+            $sessionApplicationIds = array_values(array_unique(array_map(static fn (array $row): int => (int) ($row['application_id'] ?? 0), $sessionRows)));
+        }
+        $sessionAvailability = array_fill_keys($sessionApplicationIds, true);
+
         foreach ($applications as &$application) {
             $months = (int) ($application['total_experience_months'] ?? 0);
             if ($months <= 0) {
@@ -153,6 +165,7 @@ class RecruiterApplications extends BaseController
             }
             $application['ats_score'] = $this->calculateAtsScore($application, $job);
             $application['can_manual_decision'] = $this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''));
+            $application['has_ai_interview_session'] = !empty($sessionAvailability[(int) ($application['id'] ?? 0)]);
         }
         unset($application);
 

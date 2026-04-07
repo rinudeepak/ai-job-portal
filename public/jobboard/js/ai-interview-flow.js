@@ -111,6 +111,15 @@
         recordingIntegrity: null,
         lastIntegrityEventAt: null,
         recordingIntegrityStart: null,
+        audioContext: null,
+        audioSourceNode: null,
+        audioAnalyser: null,
+        audioAnalyserBuffer: null,
+        noiseMonitorHandle: null,
+        noiseMonitorStats: null,
+        faceDetector: null,
+        faceMonitorHandle: null,
+        faceMonitorStats: null,
         sessionBannerVisible: false,
         sessionBannerMessage: '',
         sessionBannerTone: 'info',
@@ -208,6 +217,38 @@
         } catch (e) {
             // ignore storage failures
         }
+    }
+
+    function resetProgressSnapshot() {
+        state.started = false;
+        state.finished = false;
+        state.needsResume = false;
+        state.phase = 'round1';
+        state.round1Index = 0;
+        state.round1SavedCount = 0;
+        state.sectionIndex = 0;
+        state.questionIndex = 0;
+        state.remainingSeconds = totalTimerSeconds;
+        state.sessionEndsAt = null;
+        state.interviewSessionId = null;
+        state.round1DraftAnswer = '';
+        state.round1SelectedOption = '';
+        state.round1PasteEventCount = 0;
+        state.round1PastedCharacterCount = 0;
+        state.round1CopyPasteDetected = false;
+        state.round1PasteMeta = null;
+        state.round1LastTextValue = '';
+        state.round1LastInputAt = null;
+        state.round1LargeInsertCount = 0;
+        state.round1LargeInsertCharacterCount = 0;
+        state.round1LargeInsertDetected = false;
+        state.round1LargeInsertMeta = null;
+        state.followupPending = false;
+        state.followupQuestion = null;
+        state.followupType = '';
+        state.followupBaseQuestionIndex = null;
+        state.transcriptBuffer = '';
+        state.transcriptFinalParts = [];
     }
 
     function clearQuestionTransition() {
@@ -691,7 +732,259 @@
         syncingIndicator.style.display = state.pendingSaveCount > 0 && !state.finished ? 'block' : 'none';
     }
 
+    function createNoiseMonitorStats() {
+        return {
+            threshold_db: -18,
+            sample_count: 0,
+            loud_sample_count: 0,
+            total_loud_ms: 0,
+            longest_loud_streak_ms: 0,
+            current_loud_streak_ms: 0,
+            peak_db: -100,
+            average_db: null,
+            last_db: null,
+            warning_sent: false,
+        };
+    }
+
+    function createFaceMonitorStats() {
+        return {
+            supported: !!window.FaceDetector,
+            sample_count: 0,
+            face_present_samples: 0,
+            no_face_samples: 0,
+            multi_face_samples: 0,
+            total_no_face_ms: 0,
+            longest_no_face_streak_ms: 0,
+            current_no_face_streak_ms: 0,
+            max_faces_detected: 0,
+            last_face_count: 0,
+            no_face_warning_sent: false,
+            multi_face_warning_sent: false,
+        };
+    }
+
+    async function setupNoiseMonitor(stream) {
+        if (!stream || !window.AudioContext) return;
+        if (state.audioAnalyser && state.audioContext) return;
+        try {
+            const audioContext = new window.AudioContext();
+            const sourceNode = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+            analyser.smoothingTimeConstant = 0.85;
+            sourceNode.connect(analyser);
+            state.audioContext = audioContext;
+            state.audioSourceNode = sourceNode;
+            state.audioAnalyser = analyser;
+            state.audioAnalyserBuffer = new Uint8Array(analyser.fftSize);
+        } catch (error) {
+            state.audioContext = null;
+            state.audioSourceNode = null;
+            state.audioAnalyser = null;
+            state.audioAnalyserBuffer = null;
+        }
+    }
+
+    function stopNoiseMonitor() {
+        if (state.noiseMonitorHandle) {
+            window.clearInterval(state.noiseMonitorHandle);
+            state.noiseMonitorHandle = null;
+        }
+    }
+
+    function stopFaceMonitor() {
+        if (state.faceMonitorHandle) {
+            window.clearInterval(state.faceMonitorHandle);
+            state.faceMonitorHandle = null;
+        }
+    }
+
+    function teardownNoiseMonitor() {
+        stopNoiseMonitor();
+        if (state.audioSourceNode) {
+            try { state.audioSourceNode.disconnect(); } catch (e) { /* noop */ }
+        }
+        if (state.audioAnalyser) {
+            try { state.audioAnalyser.disconnect(); } catch (e) { /* noop */ }
+        }
+        if (state.audioContext) {
+            try { state.audioContext.close(); } catch (e) { /* noop */ }
+        }
+        state.audioContext = null;
+        state.audioSourceNode = null;
+        state.audioAnalyser = null;
+        state.audioAnalyserBuffer = null;
+        state.noiseMonitorStats = null;
+    }
+
+    function teardownFaceMonitor() {
+        stopFaceMonitor();
+        state.faceDetector = null;
+        state.faceMonitorStats = null;
+    }
+
+    function setupFaceMonitor() {
+        if (!window.FaceDetector) {
+            state.faceDetector = null;
+            return;
+        }
+        if (state.faceDetector) return;
+        try {
+            state.faceDetector = new window.FaceDetector({
+                fastMode: true,
+                maxDetectedFaces: 2,
+            });
+        } catch (error) {
+            state.faceDetector = null;
+        }
+    }
+
+    function startNoiseMonitor() {
+        stopNoiseMonitor();
+        if (!state.audioAnalyser || !state.audioAnalyserBuffer) {
+            state.noiseMonitorStats = null;
+            return;
+        }
+
+        const loudDbThreshold = -18;
+        const sampleIntervalMs = 250;
+        const warningStreakMs = 3000;
+
+        state.noiseMonitorStats = createNoiseMonitorStats();
+        state.noiseMonitorStats.threshold_db = loudDbThreshold;
+        if (state.audioContext && state.audioContext.state === 'suspended') {
+            state.audioContext.resume().catch(() => {});
+        }
+        state.noiseMonitorHandle = window.setInterval(() => {
+            if (!state.audioAnalyser || !state.audioAnalyserBuffer || !state.started || state.finished || state.phase !== 'round2') {
+                return;
+            }
+
+            state.audioAnalyser.getByteTimeDomainData(state.audioAnalyserBuffer);
+            let sumSquares = 0;
+            for (let i = 0; i < state.audioAnalyserBuffer.length; i += 1) {
+                const centered = (state.audioAnalyserBuffer[i] - 128) / 128;
+                sumSquares += centered * centered;
+            }
+
+            const rms = Math.sqrt(sumSquares / state.audioAnalyserBuffer.length);
+            const db = rms > 0 ? (20 * Math.log10(rms)) : -100;
+            const stats = state.noiseMonitorStats || createNoiseMonitorStats();
+
+            stats.sample_count += 1;
+            stats.last_db = Number(db.toFixed(2));
+            stats.peak_db = Math.max(Number(stats.peak_db || -100), stats.last_db);
+            stats.average_db = stats.average_db === null
+                ? stats.last_db
+                : Number((((stats.average_db * (stats.sample_count - 1)) + stats.last_db) / stats.sample_count).toFixed(2));
+
+            if (db >= loudDbThreshold) {
+                stats.loud_sample_count += 1;
+                stats.total_loud_ms += sampleIntervalMs;
+                stats.current_loud_streak_ms += sampleIntervalMs;
+                stats.longest_loud_streak_ms = Math.max(stats.longest_loud_streak_ms, stats.current_loud_streak_ms);
+            } else {
+                stats.current_loud_streak_ms = 0;
+            }
+
+            if (!stats.warning_sent && stats.current_loud_streak_ms >= warningStreakMs) {
+                stats.warning_sent = true;
+                updateStatusBanner('High background audio was detected. Please continue in a quieter environment if possible.', 'warning');
+                void sendIntegrityEvent('noise_warning', {
+                    phase: state.phase,
+                    section_key: currentSection()?.key || '',
+                    question_index: state.questionIndex,
+                    noise_peak_db: stats.peak_db,
+                    noise_average_db: stats.average_db,
+                    loud_duration_seconds: Number((stats.total_loud_ms / 1000).toFixed(2)),
+                    longest_loud_streak_seconds: Number((stats.longest_loud_streak_ms / 1000).toFixed(2)),
+                    flags: ['background_noise_detected'],
+                }, 'warning');
+            }
+
+            state.noiseMonitorStats = stats;
+        }, sampleIntervalMs);
+    }
+
+    function startFaceMonitor() {
+        stopFaceMonitor();
+        setupFaceMonitor();
+        state.faceMonitorStats = createFaceMonitorStats();
+
+        if (!state.faceDetector || !cameraPreview) {
+            return;
+        }
+
+        const sampleIntervalMs = 1500;
+        const noFaceWarningStreakMs = 5000;
+
+        state.faceMonitorHandle = window.setInterval(async () => {
+            if (!state.faceDetector || !cameraPreview || !state.started || state.finished || state.phase !== 'round2') {
+                return;
+            }
+            if (cameraPreview.readyState < 2 || cameraPreview.videoWidth <= 0 || cameraPreview.videoHeight <= 0) {
+                return;
+            }
+
+            try {
+                const faces = await state.faceDetector.detect(cameraPreview);
+                const faceCount = Array.isArray(faces) ? faces.length : 0;
+                const stats = state.faceMonitorStats || createFaceMonitorStats();
+
+                stats.sample_count += 1;
+                stats.last_face_count = faceCount;
+                stats.max_faces_detected = Math.max(Number(stats.max_faces_detected || 0), faceCount);
+
+                if (faceCount <= 0) {
+                    stats.no_face_samples += 1;
+                    stats.total_no_face_ms += sampleIntervalMs;
+                    stats.current_no_face_streak_ms += sampleIntervalMs;
+                    stats.longest_no_face_streak_ms = Math.max(stats.longest_no_face_streak_ms, stats.current_no_face_streak_ms);
+                } else {
+                    stats.face_present_samples += 1;
+                    stats.current_no_face_streak_ms = 0;
+                }
+
+                if (faceCount > 1) {
+                    stats.multi_face_samples += 1;
+                }
+
+                if (!stats.no_face_warning_sent && stats.current_no_face_streak_ms >= noFaceWarningStreakMs) {
+                    stats.no_face_warning_sent = true;
+                    updateStatusBanner('No face was detected in the camera for several seconds. Please stay visible while answering.', 'warning');
+                    void sendIntegrityEvent('face_missing_warning', {
+                        phase: state.phase,
+                        section_key: currentSection()?.key || '',
+                        question_index: state.questionIndex,
+                        no_face_duration_seconds: Number((stats.total_no_face_ms / 1000).toFixed(2)),
+                        longest_no_face_streak_seconds: Number((stats.longest_no_face_streak_ms / 1000).toFixed(2)),
+                        flags: ['face_not_detected'],
+                    }, 'warning');
+                }
+
+                if (!stats.multi_face_warning_sent && faceCount > 1) {
+                    stats.multi_face_warning_sent = true;
+                    updateStatusBanner('More than one face was detected in the camera. Please ensure only the candidate is visible.', 'warning');
+                    void sendIntegrityEvent('multiple_faces_warning', {
+                        phase: state.phase,
+                        section_key: currentSection()?.key || '',
+                        question_index: state.questionIndex,
+                        face_count: faceCount,
+                        flags: ['multiple_faces_detected'],
+                    }, 'warning');
+                }
+
+                state.faceMonitorStats = stats;
+            } catch (error) {
+                stopFaceMonitor();
+            }
+        }, sampleIntervalMs);
+    }
+
     function stopLiveMedia() {
+        teardownNoiseMonitor();
+        teardownFaceMonitor();
         if (state.stream) {
             state.stream.getTracks().forEach((track) => track.stop());
             state.stream = null;
@@ -764,7 +1057,10 @@
             }
             if (questionCountBadge) questionCountBadge.textContent = 'Waiting to start';
             if (roundBadge) roundBadge.textContent = 'Round 1 · Written';
-            if (startSessionBtn) startSessionBtn.innerHTML = '<i class="fas fa-video mr-1"></i> Start Interview';
+            if (startSessionBtn) {
+                startSessionBtn.disabled = false;
+                startSessionBtn.innerHTML = '<i class="fas fa-video mr-1"></i> Start Interview';
+            }
             if (previousQuestionBtn) previousQuestionBtn.disabled = true;
             if (nextQuestionBtn) nextQuestionBtn.disabled = true;
             if (finishSessionBtn) finishSessionBtn.disabled = true;
@@ -779,6 +1075,7 @@
         if (questionHint) questionHint.style.display = 'block';
 
         if (startSessionBtn && state.started && !state.finished) {
+            startSessionBtn.disabled = !state.needsResume;
             startSessionBtn.innerHTML = state.needsResume
                 ? '<i class="fas fa-play mr-1"></i> Resume Session'
                 : '<i class="fas fa-redo mr-1"></i> Session Running';
@@ -1040,6 +1337,7 @@
         }
         const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true });
         state.stream = stream;
+        await setupNoiseMonitor(stream);
         if (cameraPreview) cameraPreview.srcObject = stream;
         if (previewPlaceholder) previewPlaceholder.style.display = 'none';
         return stream;
@@ -1159,6 +1457,8 @@
         state.transcriptFinalParts = [];
         state.speechError = '';
         state.speechStopRequested = false;
+        startNoiseMonitor();
+        startFaceMonitor();
         state.recordingIntegrityStart = {
             tabSwitchCount: state.tabSwitchCount,
             hiddenDurationSeconds: state.hiddenDurationSeconds,
@@ -1170,6 +1470,8 @@
         };
         state.recorder.onstop = () => {
             let savePromise = Promise.resolve();
+            stopNoiseMonitor();
+            stopFaceMonitor();
             if (!state.chunks.length) {
                 state.recordingIntegrityStart = null;
                 state.lastRecorderStopPromiseResolve?.(savePromise);
@@ -1183,11 +1485,23 @@
             const visibilityDuringClip = document.visibilityState || 'visible';
             const clipTabSwitches = Math.max(0, Number(state.tabSwitchCount || 0) - Number(integrityStart.tabSwitchCount || 0));
             const clipHiddenSeconds = Math.max(0, Number(state.hiddenDurationSeconds || 0) - Number(integrityStart.hiddenDurationSeconds || 0));
+            const noiseStats = state.noiseMonitorStats && typeof state.noiseMonitorStats === 'object'
+                ? state.noiseMonitorStats
+                : createNoiseMonitorStats();
+            const faceStats = state.faceMonitorStats && typeof state.faceMonitorStats === 'object'
+                ? state.faceMonitorStats
+                : createFaceMonitorStats();
+            const noisyClip = noiseStats.total_loud_ms >= 6000 || noiseStats.longest_loud_streak_ms >= 3000;
+            const noFaceClip = !!faceStats.supported && (faceStats.total_no_face_ms >= 6000 || faceStats.longest_no_face_streak_ms >= 5000);
+            const multiFaceClip = !!faceStats.supported && Number(faceStats.multi_face_samples || 0) > 0;
             const recordingIntegrity = {
-                status: clipTabSwitches > 0 || clipHiddenSeconds > 0 || visibilityDuringClip === 'hidden' ? 'review' : 'ok',
+                status: clipTabSwitches > 0 || clipHiddenSeconds > 0 || visibilityDuringClip === 'hidden' || noisyClip || noFaceClip || multiFaceClip ? 'review' : 'ok',
                 flags: mergeIntegrityFlags([
                     clipTabSwitches > 0 ? 'tab_switch_during_answer' : null,
                     clipHiddenSeconds > 0 ? 'window_hidden_during_answer' : null,
+                    noisyClip ? 'background_noise_detected' : null,
+                    noFaceClip ? 'face_not_detected' : null,
+                    multiFaceClip ? 'multiple_faces_detected' : null,
                     state.speechError ? 'speech_recognition_issue' : null,
                     !state.stream ? 'stream_missing' : null,
                     durationSeconds < 3 ? 'very_short_clip' : null,
@@ -1197,8 +1511,30 @@
                 visibility_state: visibilityDuringClip,
                 recorder_state: state.recorder?.state || 'inactive',
                 mime_type: state.mimeType || 'video/webm',
+                noise_monitoring: {
+                    supported: !!window.AudioContext,
+                    average_db: noiseStats.average_db,
+                    peak_db: noiseStats.peak_db,
+                    loud_sample_count: noiseStats.loud_sample_count,
+                    total_loud_seconds: Number((noiseStats.total_loud_ms / 1000).toFixed(2)),
+                    longest_loud_streak_seconds: Number((noiseStats.longest_loud_streak_ms / 1000).toFixed(2)),
+                    threshold_db: Number(noiseStats.threshold_db ?? -18),
+                },
+                face_monitoring: {
+                    supported: !!faceStats.supported,
+                    sample_count: Number(faceStats.sample_count || 0),
+                    face_present_samples: Number(faceStats.face_present_samples || 0),
+                    no_face_samples: Number(faceStats.no_face_samples || 0),
+                    multi_face_samples: Number(faceStats.multi_face_samples || 0),
+                    total_no_face_seconds: Number((Number(faceStats.total_no_face_ms || 0) / 1000).toFixed(2)),
+                    longest_no_face_streak_seconds: Number((Number(faceStats.longest_no_face_streak_ms || 0) / 1000).toFixed(2)),
+                    max_faces_detected: Number(faceStats.max_faces_detected || 0),
+                    last_face_count: Number(faceStats.last_face_count || 0),
+                },
             };
             state.recordingIntegrity = recordingIntegrity;
+            state.noiseMonitorStats = null;
+            state.faceMonitorStats = null;
             state.clips.push({
                 url,
                 fileName: `ai-interview-${recordingSection?.key || 'section'}-${recordingQuestionNumber}${recordingVariant === 'followup' ? '-followup' : ''}.webm`,
@@ -1228,6 +1564,8 @@
                     tab_switch_count: clipTabSwitches,
                     hidden_duration_seconds: clipHiddenSeconds,
                     integrity_status: recordingIntegrity.status,
+                    noise_monitoring: recordingIntegrity.noise_monitoring,
+                    face_monitoring: recordingIntegrity.face_monitoring,
                     speech_error: state.speechError || '',
                     recorder_state: recordingIntegrity.recorder_state,
                 }));
@@ -1822,8 +2160,12 @@
                 headers: { 'Accept': 'application/json' },
                 credentials: 'same-origin',
             });
-                const serverData = await serverResponse.json().catch(() => ({}));
-                if (serverData && serverData.success && serverData.snapshot) {
+            const serverData = await serverResponse.json().catch(() => ({}));
+            if (serverData && serverData.success) {
+                if (!serverData.snapshot) {
+                    resetProgressSnapshot();
+                    clearPersistedProgress();
+                } else {
                     const localSessionId = Number(localSnapshot?.interviewSessionId || 0) || Number(localSnapshot?.interview_session_id || 0) || 0;
                     const serverSessionId = Number(serverData.snapshot.interview_session_id || 0) || 0;
                     if (!localSessionId || localSessionId !== serverSessionId) {
@@ -1833,11 +2175,11 @@
                         const preferLocalTimer = Number.isFinite(localAgeMs) && localAgeMs < 15000;
                         state.started = false;
                         state.finished = !!serverData.snapshot.finished;
-                        state.phase = serverData.snapshot.phase || state.phase;
-                        state.round1Index = Number(localSnapshot.round1Index ?? serverData.snapshot.round1_index ?? state.round1Index ?? 0) || 0;
-                        state.round1SavedCount = Number(localSnapshot.round1SavedCount ?? serverData.snapshot.round1_saved_count ?? state.round1SavedCount ?? 0) || 0;
-                        state.sectionIndex = Number(localSnapshot.sectionIndex ?? serverData.snapshot.section_index ?? state.sectionIndex ?? 0) || 0;
-                        state.questionIndex = Number(localSnapshot.questionIndex ?? serverData.snapshot.question_index ?? state.questionIndex ?? 0) || 0;
+                        state.phase = serverData.snapshot.phase || 'round1';
+                        state.round1Index = Number(serverData.snapshot.round1_index ?? 0) || 0;
+                        state.round1SavedCount = Number(serverData.snapshot.round1_saved_count ?? 0) || 0;
+                        state.sectionIndex = Number(serverData.snapshot.section_index ?? 0) || 0;
+                        state.questionIndex = Number(serverData.snapshot.question_index ?? 0) || 0;
                         const mergedRemaining = preferLocalTimer && localSnapshot.remainingSeconds !== undefined && localSnapshot.remainingSeconds !== null
                             ? Number(localSnapshot.remainingSeconds)
                             : (serverData.snapshot.remaining_seconds !== undefined && serverData.snapshot.remaining_seconds !== null
@@ -1846,16 +2188,17 @@
                         state.remainingSeconds = Number.isFinite(mergedRemaining) ? mergedRemaining : totalTimerSeconds;
                         state.sessionEndsAt = serverData.snapshot.session_ends_at
                             ? Number(serverData.snapshot.session_ends_at) * 1000
-                            : (Number(localSnapshot.sessionEndsAt ?? 0) || state.sessionEndsAt);
+                            : null;
                         state.interviewSessionId = Number(serverData.snapshot.interview_session_id || localSessionId || 0) || null;
-                        state.needsResume = !!(serverData.snapshot.finished ? false : (state.sectionIndex > 0 || state.questionIndex > 0 || state.round1SavedCount > 0));
+                        state.needsResume = !state.finished && state.phase === 'round2';
                         state.round1DraftAnswer = String(localSnapshot.round1DraftAnswer || state.round1DraftAnswer || '');
                         state.round1SelectedOption = String(localSnapshot.round1SelectedOption || state.round1SelectedOption || '');
                         state.transcriptBuffer = String(localSnapshot.transcriptBuffer || state.transcriptBuffer || '');
-                    state.transcriptFinalParts = Array.isArray(localSnapshot.transcriptFinalParts) ? localSnapshot.transcriptFinalParts : state.transcriptFinalParts;
+                        state.transcriptFinalParts = Array.isArray(localSnapshot.transcriptFinalParts) ? localSnapshot.transcriptFinalParts : state.transcriptFinalParts;
                         state.lastActivityAt = Number(localSnapshot.lastActivityAt ?? localSnapshot.last_activity_at ?? state.lastActivityAt ?? 0) || state.lastActivityAt;
                         state.lastActivityEventAt = Number(localSnapshot.lastActivityEventAt ?? localSnapshot.last_activity_event_at ?? state.lastActivityEventAt ?? 0) || state.lastActivityEventAt;
                         state.inactivityWarnings = localSnapshot.inactivityWarnings && typeof localSnapshot.inactivityWarnings === 'object' ? localSnapshot.inactivityWarnings : state.inactivityWarnings;
+                    }
                 }
             }
         } catch (error) {

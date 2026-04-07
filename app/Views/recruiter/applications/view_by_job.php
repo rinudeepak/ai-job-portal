@@ -293,9 +293,15 @@
                                             <a href="<?= base_url('recruiter/candidate/' . $app['candidate_id'] . '?application_id=' . $app['id'] . '&job_id=' . $job['id']) ?>" class="btn btn-sm btn-primary" target="_blank">
                                                 <i class="fas fa-user"></i> View Profile
                                             </a>
-                                            <a href="<?= base_url('recruiter/applications/' . $app['id'] . '/ai-report') ?>" class="btn btn-sm btn-outline-secondary">
-                                                <i class="fas fa-robot"></i> AI Report
-                                            </a>
+                                            <?php if (!empty($app['has_ai_interview_session'])): ?>
+                                                <a href="<?= base_url('recruiter/applications/' . $app['id'] . '/ai-report') ?>" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-robot"></i> AI Report
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="btn btn-sm btn-outline-secondary disabled" aria-disabled="true" title="No AI interview session available yet">
+                                                    <i class="fas fa-robot"></i> AI Report
+                                                </span>
+                                            <?php endif; ?>
                                             <?php if (!empty($app['can_manual_decision'])): ?>
                                                 <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="application-action-form" data-application-id="<?= (int) $app['id'] ?>">
                                                     <?= csrf_field() ?>
