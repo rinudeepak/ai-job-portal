@@ -1,4 +1,134 @@
 </main>
+<?php
+$candidateId = (int) (session()->get('user_id') ?? 0);
+$premiumMentorSubscription = null;
+if ($candidateId > 0) {
+    try {
+        $premiumMentorSubscription = (new \App\Models\SubscriptionModel())->getUserActiveSubscription($candidateId);
+    } catch (\Throwable $e) {
+        $premiumMentorSubscription = null;
+    }
+}
+$premiumMentorUrl = $premiumMentorSubscription ? base_url('premium-mentor') : base_url('premium-mentor/plans');
+$premiumMentorLabel = $premiumMentorSubscription ? 'AI Career Mentor' : 'Unlock AI Mentor';
+$premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View plans';
+?>
+<style>
+    .floating-mentor-launcher {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 1400;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+    }
+    .floating-mentor-launcher:hover {
+        text-decoration: none;
+    }
+    .floating-mentor-launcher__label {
+        background: #ffffff;
+        color: #0f172a;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 16px;
+        padding: 10px 14px;
+        box-shadow: 0 16px 38px rgba(15, 23, 42, 0.14);
+        line-height: 1.15;
+        min-width: 156px;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .floating-mentor-launcher__title {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .floating-mentor-launcher__subtitle {
+        display: block;
+        margin-top: 3px;
+        font-size: 11px;
+        color: #64748b;
+    }
+    .floating-mentor-launcher__button {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0b66ff 0%, #14b8a6 100%);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 18px 36px rgba(11, 102, 255, 0.28);
+        position: relative;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .floating-mentor-launcher__button i {
+        font-size: 24px;
+    }
+    .floating-mentor-launcher__badge {
+        position: absolute;
+        top: 4px;
+        right: 2px;
+        min-width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: #fff;
+        color: #0b66ff;
+        font-size: 10px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    }
+    .floating-mentor-launcher:hover .floating-mentor-launcher__button,
+    .floating-mentor-launcher:hover .floating-mentor-launcher__label {
+        transform: translateY(-2px);
+    }
+    .floating-mentor-launcher:hover .floating-mentor-launcher__button {
+        box-shadow: 0 22px 42px rgba(11, 102, 255, 0.32);
+    }
+    .floating-mentor-launcher.is-locked .floating-mentor-launcher__button {
+        background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+        box-shadow: 0 18px 36px rgba(100, 116, 139, 0.22);
+    }
+    .floating-mentor-launcher.is-locked .floating-mentor-launcher__badge {
+        color: #475569;
+    }
+    @media (max-width: 767.98px) {
+        .floating-mentor-launcher {
+            right: 16px;
+            bottom: 16px;
+        }
+        .floating-mentor-launcher__label {
+            display: none;
+        }
+        .floating-mentor-launcher__button {
+            width: 58px;
+            height: 58px;
+        }
+        .floating-mentor-launcher__button i {
+            font-size: 22px;
+        }
+    }
+</style>
+<a
+    href="<?= esc($premiumMentorUrl) ?>"
+    class="floating-mentor-launcher <?= $premiumMentorSubscription ? '' : 'is-locked' ?>"
+    title="<?= esc($premiumMentorLabel) ?>"
+    aria-label="<?= esc($premiumMentorLabel) ?>"
+>
+    <span class="floating-mentor-launcher__label">
+        <span class="floating-mentor-launcher__title"><?= esc($premiumMentorLabel) ?></span>
+        <span class="floating-mentor-launcher__subtitle"><?= esc($premiumMentorSubLabel) ?></span>
+    </span>
+    <span class="floating-mentor-launcher__button">
+        <i class="fas fa-robot"></i>
+        <span class="floating-mentor-launcher__badge"><?= $premiumMentorSubscription ? 'AI' : 'Go' ?></span>
+    </span>
+</a>
 <footer class="site-footer">
     <a href="#top" class="smoothscroll scroll-top">
         <span class="icon-keyboard_arrow_up"></span>

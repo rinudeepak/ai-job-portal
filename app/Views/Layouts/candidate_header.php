@@ -49,7 +49,6 @@
     $unreadNotificationCount = $candidateId > 0
         ? (int) model('NotificationModel')->getUnreadCount($candidateId)
         : 0;
-
     $isHomeActive = $pathEndsWith('/candidate') || $pathEndsWith('/candidate/dashboard');
     $isJobDetailsActive = str_contains($currentPath, '/job/');
     $isJobsListActive = $pathEndsWith('/jobs');
@@ -62,7 +61,8 @@
     $isJobsActive = $isJobsRoot || $isApplicationStatusActive || $isJobAlertsActive;
     $isCareerTransitionActive = str_contains($currentPath, '/career-transition');
     $isResumeStudioActive = $pathEndsWith('/candidate/resume-studio');
-    $isServicesActive = $isCareerTransitionActive || $isResumeStudioActive;
+    $isPremiumMentorActive = str_contains($currentPath, '/premium-mentor');
+    $isServicesActive = $isCareerTransitionActive || $isResumeStudioActive || $isPremiumMentorActive;
 
     $homeNavClass = $isHomeActive ? 'nav-link active' : 'nav-link';
     $jobsNavClass = $isJobsActive ? 'nav-link active' : 'nav-link';
@@ -117,6 +117,7 @@
                             <ul class="dropdown">
                                 <li><a href="<?= base_url('career-transition') ?>" class="<?= $careerTransitionClass ?>">Career Transition AI</a></li>
                                 <li><a href="<?= base_url('candidate/resume-studio') ?>" class="<?= $resumeStudioClass ?>">Resume Studio</a></li>
+                                <li><a href="<?= base_url('premium-mentor/plans') ?>" class="">AI Career Mentor</a></li>
                             </ul>
                         </li>
                     </ul>

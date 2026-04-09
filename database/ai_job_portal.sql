@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `ai_job_portal`
+-- Database: `ai_job_portal1`
 --
 
 -- --------------------------------------------------------
