@@ -20,6 +20,7 @@ class CompanyProfile extends BaseController
         $query = trim((string) $this->request->getGet('q'));
         $industry = trim((string) $this->request->getGet('industry'));
         $location = trim((string) $this->request->getGet('location'));
+        $limit = max(1, min(100, (int) ($this->request->getGet('limit') ?: 10)));
 
         $builder = $companyModel
             ->select('companies.*, COUNT(DISTINCT jobs.id) as open_jobs_count')
@@ -49,6 +50,7 @@ class CompanyProfile extends BaseController
 
         $companies = $builder->paginate(12);
         $pager = $companyModel->pager;
+        $companies = $this->dedupeCompanies($companies);
 
         $industries = $companyModel
             ->select('industry')
@@ -65,6 +67,7 @@ class CompanyProfile extends BaseController
                 'q' => $query,
                 'industry' => $industry,
                 'location' => $location,
+                'limit' => $limit,
             ],
             'industries' => array_values(array_filter(array_map(static fn (array $row): string => trim((string) ($row['industry'] ?? '')), $industries))),
             'totalCompanies' => $companyModel->countAllResults(),
@@ -81,21 +84,124 @@ class CompanyProfile extends BaseController
         $companyName = trim((string) $this->request->getPost('company_name'));
         $limit = (int) ($this->request->getPost('limit') ?: 10);
         $limit = max(1, min(100, $limit));
+        $infoOnly = in_array(strtolower(trim((string) $this->request->getPost('info_only'))), ['1', 'true'], true);
 
         if ($companyName === '') {
-            return $this->response->setJSON(['error' => 'Company name is required.', 'jobs' => []]);
+            return $this->response->setJSON(['error' => 'Company name is required.', 'jobs' => [], 'company_info' => []]);
         }
 
-        $service = new TargetCompanyJobService();
-        $jobs = $service->fetchJobs($companyName, '', '', $limit);
-        $status = 'official';
+        try {
+            $service = new TargetCompanyJobService();
+            $companyInfo = $service->fetchCompanyDetails($companyName);
 
-        return $this->response->setJSON([
-            'company' => $companyName,
-            'count' => count($jobs),
-            'jobs' => $jobs,
+            // Auto-save new company to DB
+            $companyModel = model(CompanyModel::class);
+            $savedCompanyId = $companyModel->upsertByName($companyName, [
+                'name' => $companyInfo['name'] ?: $companyName,
+                'logo' => $companyInfo['logo_url'] ?? '',
+                'website' => $companyInfo['website'] ?? '',
+                'short_description' => $companyInfo['description'] ?? '',
+                'career_page' => $companyInfo['career_page'] ?? '',
+                'linkedin' => $companyInfo['linkedin'] ?? '',
+                'twitter' => $companyInfo['twitter'] ?? '',
+                'facebook' => $companyInfo['facebook'] ?? '',
+                'instagram' => $companyInfo['instagram'] ?? '',
+                'youtube' => $companyInfo['youtube'] ?? '',
+                'industry' => $companyInfo['industry'] ?? '',
+                'size' => $companyInfo['size'] ?? '',
+                'hq' => $companyInfo['hq'] ?? $companyInfo['location'] ?? '',
+                'source' => !empty($companyInfo['career_page']) ? 'official_career_page' : 'auto_discovered',
+                'last_enriched_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            if ($infoOnly) {
+                return $this->response->setJSON([
+                    'company' => $companyInfo['name'] ?: $companyName,
+                    'company_info' => $companyInfo,
+                    'saved_company_id' => $savedCompanyId,
+                    'count' => 0,
+                    'jobs' => [],
+                    'status' => 'info_only'
+                ]);
+            }
+
+            $jobs = $service->fetchJobs($companyName, '', '', $limit);
+            $jobModel = model(JobModel::class);
+            foreach ($jobs as $job) {
+                $jobModel->upsertExternalJob(
+                    (int) $savedCompanyId,
+                    (string) ($companyInfo['name'] ?: $companyName),
+                    $job,
+                    (string) ($companyInfo['career_page'] ?: ($companyInfo['website'] ?? ''))
+                );
+            }
+            $status = 'official';
+
+            return $this->response->setJSON([
+                'company' => $companyInfo['name'] ?: $companyName,
+                'company_info' => $companyInfo,
+                'saved_company_id' => $savedCompanyId,
+                'count' => count($jobs),
+                'jobs' => $jobs,
             'status' => $status
         ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'searchJobs error: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'error' => 'An error occurred while fetching company details. Please try again.'
+            ]);
+        }
+    }
+
+    /**
+     * Collapse near-duplicate company names into a single card for search results.
+     */
+    private function dedupeCompanies(array $companies): array
+    {
+        $companyModel = new CompanyModel();
+        $seen = [];
+        $deduped = [];
+
+        usort($companies, static function (array $a, array $b): int {
+            $sourceScore = static function (array $row): int {
+                $source = strtolower(trim((string) ($row['source'] ?? '')));
+                return match ($source) {
+                    'official_career_page' => 3,
+                    'auto_discovered' => 1,
+                    default => 2,
+                };
+            };
+
+            $aScore = $sourceScore($a);
+            $bScore = $sourceScore($b);
+            if ($aScore !== $bScore) {
+                return $bScore <=> $aScore;
+            }
+
+            $aJobs = (int) ($a['open_jobs_count'] ?? 0);
+            $bJobs = (int) ($b['open_jobs_count'] ?? 0);
+            if ($aJobs !== $bJobs) {
+                return $bJobs <=> $aJobs;
+            }
+
+            return strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
+        });
+
+        foreach ($companies as $company) {
+            $brandKey = $companyModel->normalizeBrandKey((string) ($company['name'] ?? ''));
+            if ($brandKey === '') {
+                $brandKey = strtolower(trim((string) ($company['name'] ?? '')));
+            }
+
+            if (isset($seen[$brandKey])) {
+                continue;
+            }
+
+            $seen[$brandKey] = true;
+            $deduped[] = $company;
+        }
+
+        return $deduped;
     }
 
     public function show(int $id)
@@ -129,6 +235,28 @@ class CompanyProfile extends BaseController
 
         $openJobs = $jobModel->where('company_id', $companyId)->where('status', 'open')->orderBy('created_at', 'DESC')->findAll(5);
         $openJobsCount = $jobModel->where('company_id', $companyId)->where('status', 'open')->countAllResults();
+
+        if (empty($openJobs) && (
+            trim((string) ($company['website'] ?? '')) !== '' ||
+            trim((string) ($company['career_page'] ?? '')) !== ''
+        )) {
+            try {
+                $service = new TargetCompanyJobService();
+                $importedJobs = $service->fetchJobs((string) $company['name'], '', '', 10);
+                foreach ($importedJobs as $job) {
+                    $jobModel->upsertExternalJob(
+                        $companyId,
+                        (string) ($company['name'] ?? 'Company'),
+                        $job,
+                        (string) ($company['career_page'] ?? $company['website'] ?? '')
+                    );
+                }
+                $openJobs = $jobModel->where('company_id', $companyId)->where('status', 'open')->orderBy('created_at', 'DESC')->findAll(5);
+                $openJobsCount = $jobModel->where('company_id', $companyId)->where('status', 'open')->countAllResults();
+            } catch (\Throwable $e) {
+                log_message('warning', 'Company profile fallback job enrichment failed: ' . $e->getMessage());
+            }
+        }
         $reviews = $companyReviewModel
             ->select('company_reviews.*, users.name as candidate_name')
             ->join('users', 'users.id = company_reviews.candidate_id', 'left')
@@ -370,6 +498,11 @@ class CompanyProfile extends BaseController
             'branches' => trim((string) $this->request->getPost('company_branches')),
             'short_description' => trim((string) $this->request->getPost('company_short_description')),
             'what_we_do' => trim((string) $this->request->getPost('company_what_we_do')),
+            'linkedin' => trim((string) $this->request->getPost('company_linkedin')),
+            'twitter' => trim((string) $this->request->getPost('company_twitter')),
+            'facebook' => trim((string) $this->request->getPost('company_facebook')),
+            'instagram' => trim((string) $this->request->getPost('company_instagram')),
+            'youtube' => trim((string) $this->request->getPost('company_youtube')),
             'mission_values' => trim((string) $this->request->getPost('company_mission_values')),
             'culture_summary' => trim((string) $this->request->getPost('company_culture_summary')),
             'employee_benefits' => trim((string) $this->request->getPost('company_employee_benefits')),
@@ -387,6 +520,12 @@ class CompanyProfile extends BaseController
 
         if ($data['website'] !== '' && !filter_var($data['website'], FILTER_VALIDATE_URL)) {
             return redirect()->back()->withInput()->with('error', 'Company website must be a valid URL.');
+        }
+
+        foreach (['linkedin', 'twitter', 'facebook', 'instagram', 'youtube'] as $socialField) {
+            if ($data[$socialField] !== '' && !filter_var($data[$socialField], FILTER_VALIDATE_URL)) {
+                return redirect()->back()->withInput()->with('error', ucfirst($socialField) . ' must be a valid URL.');
+            }
         }
 
         if ($data['office_tour_url'] !== '' && !filter_var($data['office_tour_url'], FILTER_VALIDATE_URL)) {

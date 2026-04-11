@@ -191,6 +191,51 @@ class JobModel extends Model
         return array_slice($ranked, 0, $limit);
     }
 
+    public function upsertExternalJob(int $companyId, string $companyName, array $job, string $sourceUrl): int
+    {
+        $title = trim((string) ($job['title'] ?? ''));
+        $applyUrl = trim((string) ($job['apply_url'] ?? ''));
+        $location = trim((string) ($job['location'] ?? ''));
+        $department = trim((string) ($job['department'] ?? ''));
+        $description = trim((string) ($job['description'] ?? ($job['summary'] ?? '')));
+
+        if ($title === '' || $applyUrl === '' || !filter_var($applyUrl, FILTER_VALIDATE_URL)) {
+            return 0;
+        }
+
+        $payload = [
+            'company_id' => $companyId > 0 ? $companyId : null,
+            'company' => $companyName,
+            'title' => $title,
+            'category' => $department !== '' ? $department : null,
+            'location' => $location,
+            'description' => $description,
+            'employment_type' => trim((string) ($job['employment_type'] ?? '')),
+            'openings' => 1,
+            'status' => 'open',
+            'is_external' => 1,
+            'external_source' => $sourceUrl,
+            'external_apply_url' => $applyUrl,
+            'ai_interview_policy' => self::AI_POLICY_OFF,
+        ];
+
+        $existing = $this->where('external_apply_url', $applyUrl)->first();
+        if (!$existing && $companyId > 0) {
+            $existing = $this->where('company_id', $companyId)
+                ->where('title', $title)
+                ->where('location', $location)
+                ->where('external_source', $sourceUrl)
+                ->first();
+        }
+
+        if ($existing) {
+            $this->update((int) $existing['id'], $payload);
+            return (int) $existing['id'];
+        }
+
+        return (int) $this->insert($payload, true);
+    }
+
     /** @return array<int, string> */
     private function tokenizeCsv(string $value): array
     {

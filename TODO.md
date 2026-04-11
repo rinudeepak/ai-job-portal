@@ -1,23 +1,11 @@
-# Naukri-like Company Job Search Implementation
-## Status: In Progress
+# Premium Plans Redirect Implementation
+Status: [IN PROGRESS] ✅
 
-### 1. ✅ Create this TODO.md
+## Approved Plan Steps
+- [x] Create TODO.md ✓
+- [✅] 1. Edit PremiumHelper.php: Change redirect target to 'premium-mentor/plans' ✓\n- [✅] 2. Edit CareerTransition.php: Add `$this->helper('premium');` in index() & create() ✓\n- [✅] 3. Edit Candidate.php: Add `$this->helper('premium');` in affected methods ✓
+- [ ] 4. Test redirects for unsubscribed users
+- [ ] 5. Verify subscribed access
+- [ ] 6. attempt_completion
 
-### 2. 🔄 Update app/Controllers/CompanyProfile.php
-- Simplify `searchJobs()`: Remove internal JobModel + TargetCompanyModel logic
-- Always call `$service->fetchJobs($companyName, '', '', $limit)`
-- Return `{company, count, jobs, status: 'official'}`
-
-### 3. 🔄 Update app/Views/company/index.php  
-- `renderJobs()`: Remove target_id, is_new_target, auto-add logic
-- Always show "Found X jobs from official career page (AI)"
-- Optional: Add "Save to targets?" button
-
-### 4. 🔄 Optional: Enhance autocomplete (add CompanyModel names to suggest)
-
-### 5. 🧪 Test
-- Login candidate → /companies → search company (known/unknown) → verify ALWAYS external jobs table
-- No internal check, no auto-target
-
-### 6. ✅ Complete task
-
+✅ All code changes complete. Test redirects.

@@ -82,6 +82,18 @@
     if ($candidatePhoto !== '') {
         $candidatePhotoUrl = preg_match('/^https?:\/\//i', $candidatePhoto) ? $candidatePhoto : base_url($candidatePhoto);
     }
+    $premiumSubscription = null;
+    if ($candidateId > 0) {
+        try {
+            $premiumSubscription = model('SubscriptionModel')->getUserActiveSubscription($candidateId);
+        } catch (\Throwable $e) {
+            $premiumSubscription = null;
+        }
+    }
+    $premiumLocked = !$premiumSubscription;
+    $careerTransitionUrl = $premiumLocked ? base_url('premium/plans?service=career-transition') : base_url('career-transition');
+    $resumeStudioUrl = $premiumLocked ? base_url('premium/plans?service=resume-studio') : base_url('candidate/resume-studio');
+    $mentorUrl = $premiumLocked ? base_url('premium/plans?service=mentor') : base_url('premium-mentor');
     ?>
     <div class="site-mobile-menu site-navbar-target">
         <div class="site-mobile-menu-header">
@@ -115,9 +127,9 @@
                         <li class="has-children">
                             <a href="#" class="<?= $servicesNavClass ?>">Services</a>
                             <ul class="dropdown">
-                                <li><a href="<?= base_url('career-transition') ?>" class="<?= $careerTransitionClass ?>">Career Transition AI</a></li>
-                                <li><a href="<?= base_url('candidate/resume-studio') ?>" class="<?= $resumeStudioClass ?>">Resume Studio</a></li>
-                                <li><a href="<?= base_url('premium-mentor/plans') ?>" class="">AI Career Mentor</a></li>
+                                <li><a href="<?= esc($careerTransitionUrl) ?>" class="<?= $careerTransitionClass ?>">Career Transition AI</a></li>
+                                <li><a href="<?= esc($resumeStudioUrl) ?>" class="<?= $resumeStudioClass ?>">Resume Studio</a></li>
+                                <li><a href="<?= esc($mentorUrl) ?>" class="">AI Career Mentor</a></li>
                             </ul>
                         </li>
                     </ul>

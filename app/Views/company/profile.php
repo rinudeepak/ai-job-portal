@@ -46,14 +46,93 @@ $companyName = (string) ($company['name'] ?? 'Company Profile');
 $companyShortDescription = trim((string) ($company['short_description'] ?? ''));
 $companyInitial = strtoupper(substr($companyName, 0, 1) ?: 'C');
 $companyMeta = [
-    ['Industry', (string) ($company['industry'] ?? 'Not specified')],
-    ['Size', (string) ($company['size'] ?? 'Not specified')],
-    ['HQ', (string) ($company['hq'] ?? 'Not specified')],
-    ['Branches', (string) ($company['branches'] ?? 'Not specified')],
+    !empty($company['industry']) ? ['Industry', (string) ($company['industry'] ?? '')] : null,
+    !empty($company['size']) ? ['Size', (string) ($company['size'] ?? '')] : null,
+    !empty($company['hq']) ? ['HQ', (string) ($company['hq'] ?? '')] : null,
+    !empty($company['branches']) ? ['Branches', (string) ($company['branches'] ?? '')] : null,
 ];
+$companyMeta = array_values(array_filter($companyMeta));
+$companySource = strtolower(trim((string) ($company['source'] ?? '')));
+$companySourceLabel = $companySource === 'official_career_page'
+    ? 'Verified from careers page'
+    : ($companySource === 'auto_discovered' ? 'Auto-discovered' : '');
+$companyCoreLinks = array_filter([
+    !empty($company['website']) ? ['label' => 'Website', 'url' => $company['website'], 'icon' => 'fas fa-globe'] : null,
+    !empty($company['career_page']) ? ['label' => 'Careers', 'url' => $company['career_page'], 'icon' => 'fas fa-briefcase'] : null,
+]);
+$companySocialLinks = array_filter([
+    !empty($company['linkedin']) ? ['label' => 'LinkedIn', 'url' => $company['linkedin'], 'icon' => 'fab fa-linkedin-in'] : null,
+    !empty($company['twitter']) ? ['label' => 'X / Twitter', 'url' => $company['twitter'], 'icon' => 'fab fa-x-twitter'] : null,
+    !empty($company['facebook']) ? ['label' => 'Facebook', 'url' => $company['facebook'], 'icon' => 'fab fa-facebook-f'] : null,
+    !empty($company['instagram']) ? ['label' => 'Instagram', 'url' => $company['instagram'], 'icon' => 'fab fa-instagram'] : null,
+    !empty($company['youtube']) ? ['label' => 'YouTube', 'url' => $company['youtube'], 'icon' => 'fab fa-youtube'] : null,
+]);
 ?>
 
 <div class="company-profile-jobboard">
+    <style>
+        .company-social-card {
+            border: 1px solid #e8edf8;
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at top right, rgba(79, 109, 202, 0.07), transparent 38%),
+                linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.045);
+        }
+        .company-social-card .detail-card-title {
+            margin-bottom: 1rem;
+        }
+        .company-social-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .company-social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            border: 1px solid #dce5fb;
+            background: #fff;
+            color: #2446c0;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            box-shadow: 0 6px 18px rgba(36, 70, 192, 0.06);
+        }
+        .company-social-link i {
+            font-size: 1rem;
+        }
+        .company-social-link:hover {
+            transform: translateY(-1px);
+            border-color: #b8c9f8;
+            box-shadow: 0 10px 24px rgba(36, 70, 192, 0.12);
+            text-decoration: none;
+            color: #1f3ea8;
+        }
+        .company-social-link--linkedin { color: #0a66c2; border-color: rgba(10, 102, 194, 0.18); }
+        .company-social-link--twitter { color: #111827; border-color: rgba(17, 24, 39, 0.12); }
+        .company-social-link--facebook { color: #1877f2; border-color: rgba(24, 119, 242, 0.18); }
+        .company-social-link--instagram { color: #c13584; border-color: rgba(193, 53, 132, 0.18); }
+        .company-social-link--youtube { color: #ff0000; border-color: rgba(255, 0, 0, 0.18); }
+        .company-social-link--linkedin:hover,
+        .company-social-link--twitter:hover,
+        .company-social-link--facebook:hover,
+        .company-social-link--instagram:hover,
+        .company-social-link--youtube:hover {
+            color: inherit;
+        }
+        @media (max-width: 575px) {
+            .company-social-grid {
+                gap: 0.6rem;
+            }
+            .company-social-link {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
     <div class="container">
         <div class="company-profile-header">
             <div class="page-board-copy">
@@ -110,24 +189,61 @@ $companyMeta = [
                                 <?php if ($companyShortDescription !== ''): ?>
                                     <p><?= esc($companyShortDescription) ?></p>
                                 <?php endif; ?>
-                                <div class="job-details-chip-list">
-                                    <?php if (!empty($company['website'])): ?>
-                                        <a href="<?= esc($company['website']) ?>" target="_blank" rel="noopener" class="summary-chip">Website</a>
-                                    <?php endif; ?>
-                                    <?php if (!empty($company['contact_public']) && (int) $company['contact_public'] === 1): ?>
+                                <?php if ($companySourceLabel !== ''): ?>
+                                    <div class="job-details-chip-list">
+                                        <span class="summary-chip"><?= esc($companySourceLabel) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($company['contact_public']) && (int) $company['contact_public'] === 1): ?>
+                                    <div class="job-details-chip-list">
                                         <span class="summary-chip">Contact public</span>
-                                    <?php endif; ?>
-                                </div>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($companyCoreLinks)): ?>
+                                    <div class="job-details-chip-list mt-2">
+                                        <?php foreach ($companyCoreLinks as $link): ?>
+                                            <a href="<?= esc($link['url']) ?>" target="_blank" rel="noopener" class="summary-chip">
+                                                <i class="<?= esc($link['icon']) ?> mr-1"></i><?= esc($link['label']) ?>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
                         <div class="company-overview-grid">
-                            <div><strong>Industry</strong><span><?= esc($company['industry'] ?? 'Not specified') ?></span></div>
-                            <div><strong>Company Size</strong><span><?= esc($company['size'] ?? 'Not specified') ?></span></div>
-                            <div><strong>HQ</strong><span><?= esc($company['hq'] ?? 'Not specified') ?></span></div>
-                            <div><strong>Branches</strong><span><?= esc($company['branches'] ?? 'Not specified') ?></span></div>
+                            <?php foreach ($companyMeta as $meta): ?>
+                                <div><strong><?= esc($meta[0]) ?></strong><span><?= esc($meta[1]) ?></span></div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
+
+                    <?php if (!empty($companySocialLinks)): ?>
+                        <div class="detail-card company-social-card">
+                            <div class="detail-card-title">
+                                <span class="detail-card-icon"><i class="fas fa-share-nodes"></i></span>
+                                <span>Social Profiles</span>
+                            </div>
+                            <div class="company-social-grid">
+                                <?php foreach ($companySocialLinks as $link): ?>
+                                    <?php
+                                        $socialClass = match ($link['label']) {
+                                            'LinkedIn' => 'company-social-link--linkedin',
+                                            'X / Twitter' => 'company-social-link--twitter',
+                                            'Facebook' => 'company-social-link--facebook',
+                                            'Instagram' => 'company-social-link--instagram',
+                                            'YouTube' => 'company-social-link--youtube',
+                                            default => '',
+                                        };
+                                    ?>
+                                    <a href="<?= esc($link['url']) ?>" target="_blank" rel="noopener" class="company-social-link <?= esc($socialClass) ?>">
+                                        <i class="<?= esc($link['icon']) ?>"></i>
+                                        <span><?= esc($link['label']) ?></span>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <?php if ($aboutCompanyText !== ''): ?>
                         <div class="detail-card">
@@ -152,7 +268,7 @@ $companyMeta = [
                     <?php if ($hasBrandingSection): ?>
                         <div class="detail-card">
                             <div class="detail-card-title">
-                                <span class="detail-card-icon"><i class="fas fa-people-group"></i></span>
+                                <span class="detail-card-icon"><i class="fas fa-users"></i></span>
                                 <span>Life at <?= esc($companyName) ?></span>
                             </div>
                             <p class="job-details-section-text">Explore the team environment, employee perks, and the workplace setup.</p>
@@ -305,7 +421,7 @@ $companyMeta = [
                     <?php if ((string) session()->get('role') === 'candidate'): ?>
                         <div class="summary-card" id="write-review">
                             <div class="detail-card-title mb-3">
-                                <span class="detail-card-icon"><i class="fas fa-pen"></i></span>
+                                <span class="detail-card-icon"><i class="fas fa-comment-dots"></i></span>
                                 <span><?= !empty($currentUserReview) ? 'Update Your Review' : 'Write a Review' ?></span>
                             </div>
                             <p class="text-muted small mb-3">Interview reviews are default. Employee reviews require selected/hired status.</p>

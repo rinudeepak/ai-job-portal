@@ -9,7 +9,7 @@ if ($candidateId > 0) {
         $premiumMentorSubscription = null;
     }
 }
-$premiumMentorUrl = $premiumMentorSubscription ? base_url('premium-mentor') : base_url('premium-mentor/plans');
+$premiumMentorUrl = $premiumMentorSubscription ? base_url('premium-mentor') : base_url('premium/plans?service=mentor');
 $premiumMentorLabel = $premiumMentorSubscription ? 'AI Career Mentor' : 'Unlock AI Mentor';
 $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View plans';
 ?>

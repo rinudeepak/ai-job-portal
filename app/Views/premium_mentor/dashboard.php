@@ -10,7 +10,7 @@
                     <p class="page-board-subtitle">Your personal AI career coach — active until <?= date('M d, Y', strtotime($subscription['end_date'])) ?></p>
                 </div>
                 <div class="page-board-actions">
-                    <a href="<?= base_url('premium-mentor/plans') ?>" class="btn btn-outline-primary">
+                    <a href="<?= base_url('premium/plans?service=mentor') ?>" class="btn btn-outline-primary">
                         <i class="fas fa-arrow-up mr-1"></i> Upgrade Plan
                     </a>
                 </div>

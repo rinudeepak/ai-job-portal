@@ -22,6 +22,35 @@ $dailyReminder = is_array($dailyReminder ?? null) ? $dailyReminder : [];
 $engagementBanners = is_array($engagementBanners ?? null) ? $engagementBanners : [];
 $bannerItems = array_values(array_filter((array) ($engagementBanners['items'] ?? []), 'is_array'));
 $bannerActiveIndex = (int) ($engagementBanners['active_index'] ?? 0);
+
+$candidateId = (int) (session()->get('user_id') ?? 0);
+$candidateName = (string) (session()->get('user_name') ?? 'Candidate');
+$candidateInitial = strtoupper(substr(trim($candidateName), 0, 1) ?: 'C');
+$candidateProfile = model('CandidateProfileModel')->find($candidateId) ?? [];
+$profileHeadline = trim((string) ($candidateProfile['headline'] ?? 'Candidate'));
+$profileLocation = trim((string) ($candidateProfile['location'] ?? ''));
+$candidatePhotoUrl = '';
+$candidatePhoto = trim((string) ($candidateProfile['profile_photo'] ?? session()->get('profile_photo') ?? ''));
+if ($candidatePhoto !== '') {
+    $candidatePhotoUrl = preg_match('/^https?:\/\//i', $candidatePhoto) ? $candidatePhoto : base_url($candidatePhoto);
+}
+
+$request = service('request');
+$currentPath = '/' . trim((string) parse_url(current_url(), PHP_URL_PATH), '/');
+$activeTab = (string) ($request->getGet('tab') ?? '');
+$sidebarActive = [
+    'dashboard' => $currentPath === '/candidate' || $currentPath === '/candidate/dashboard',
+    'applications' => $currentPath === '/candidate/applications',
+    'suggested' => $currentPath === '/jobs' && $activeTab === 'suggested',
+    'saved' => $currentPath === '/candidate/saved-jobs',
+    'companies' => $currentPath === '/companies' || str_contains($currentPath, '/company/'),
+    'profile' => $currentPath === '/candidate/profile',
+    'career' => $currentPath === '/career-transition',
+    'resume' => $currentPath === '/candidate/resume-studio',
+];
+$sidebarClass = static function (string $key) use ($sidebarActive): string {
+    return 'dashboard-sidebar-link' . (isset($sidebarActive[$key]) && $sidebarActive[$key] ? ' active' : '');
+};
 if (empty($dashboardStrategyRoles)) {
     $dashboardStrategyRoles = array_slice(array_values(array_filter(array_map(static function (array $job): string {
         return trim((string) ($job['title'] ?? ''));
@@ -127,9 +156,51 @@ $resolveAssetUrl = static function (string $path): string {
         </div>
     </section>
 
-    <section class="dashboard-section">
-        <div class="container">
-            <div class="dashboard-metric-grid">
+    <div class="container dashboard-layout">
+        <aside class="sidebar dashboard-sidebar">
+            <div class="dashboard-sidebar-head">
+                <div class="dashboard-sidebar-profile">
+                    <div class="dashboard-sidebar-avatar">
+                        <?php if ($candidatePhotoUrl !== ''): ?>
+                            <img src="<?= esc($candidatePhotoUrl) ?>" alt="<?= esc($candidateName) ?>">
+                        <?php else: ?>
+                            <span><?= esc($candidateInitial) ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="dashboard-sidebar-profile-meta">
+                        <strong><?= esc($candidateName) ?></strong>
+                        <p class="dashboard-sidebar-role"><?= esc($profileHeadline) ?></p>
+                        <?php if ($profileLocation !== ''): ?>
+                            <p class="dashboard-sidebar-location"><?= esc($profileLocation) ?></p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <a href="<?= base_url('candidate/profile') ?>" class="btn btn-sm btn-outline-primary dashboard-sidebar-view-profile">View profile</a>
+            </div>
+            <div class="dashboard-sidebar-progress">
+                <div class="dashboard-sidebar-progress-header">
+                    <span>Profile completion</span>
+                    <span class="dashboard-sidebar-progress-value"><?= $profileStrength ?>%</span>
+                </div>
+                <div class="dashboard-sidebar-progress-bar">
+                    <div style="width: <?= $profileStrength ?>%;"></div>
+                </div>
+            </div>
+            <nav class="dashboard-sidebar-menu">
+                <a href="<?= base_url('candidate/dashboard') ?>" class="<?= $sidebarClass('dashboard') ?>"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="<?= base_url('candidate/applications') ?>" class="<?= $sidebarClass('applications') ?>"><i class="fas fa-briefcase"></i> Applications</a>
+                <a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $sidebarClass('suggested') ?>"><i class="fas fa-fire"></i> Recommended Jobs</a>
+                <a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $sidebarClass('saved') ?>"><i class="fas fa-bookmark"></i> Saved Jobs</a>
+                <a href="<?= base_url('companies') ?>" class="<?= $sidebarClass('companies') ?>"><i class="fas fa-building"></i> Companies</a>
+                <a href="<?= base_url('candidate/profile') ?>" class="<?= $sidebarClass('profile') ?>"><i class="fas fa-user"></i> My Profile</a>
+                <a href="<?= base_url('career-transition') ?>" class="<?= $sidebarClass('career') ?>"><i class="fas fa-compass"></i> Career Transition AI</a>
+                <a href="<?= base_url('candidate/resume-studio') ?>" class="<?= $sidebarClass('resume') ?>"><i class="fas fa-file-alt"></i> Resume Studio</a>
+            </nav>
+        </aside>
+        <div class="dashboard-main">
+            <section class="dashboard-section">
+                <div class="container">
+                    <div class="dashboard-metric-grid">
                 <a href="<?= base_url('candidate/profile') ?>" class="dashboard-metric-card dashboard-metric-link">
                     <div class="dashboard-metric-label">Profile strength</div>
                     <div class="dashboard-metric-value"><?= $profileStrength ?>%</div>
@@ -351,6 +422,9 @@ $resolveAssetUrl = static function (string $path): string {
             </div>
         </div>
     </section>
+
+        </div>
+    </div>
 
 </div>
 

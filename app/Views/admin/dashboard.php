@@ -27,6 +27,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="mb-0">Admin Analytics</h3>
             <div class="d-flex gap-2">
+                <a class="btn btn-outline-primary" href="<?= base_url('admin/company-ats-mappings') ?>">Company ATS Mappings</a>
                 <form method="get" action="<?= base_url('admin/dashboard') ?>" class="d-flex align-items-center gap-2">
                     <label for="daysRange" class="form-label mb-0 text-muted small">Show last</label>
                     <div class="input-group" style="width: 180px;">

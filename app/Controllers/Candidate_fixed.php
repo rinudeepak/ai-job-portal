@@ -115,7 +115,7 @@ class Candidate extends BaseController
             ],
             'completion' => [
                 'percentage' => $completionPercentage,
-                'fields'     => $completionFields
+                'fields'     => $completedFields
             ]
         ]);
     }
@@ -127,7 +127,7 @@ class Candidate extends BaseController
         }
         
         $userId = (int) session()->get('user_id');
-        helper('premium');
+        $this->helper('premium');
         requirePremiumForFeature($userId, 'resume studio');
         $userModel = new UserModel();
         $user = $userModel->findCandidateWithProfile($userId) ?? $userModel->find($userId) ?? [];
@@ -250,7 +250,7 @@ class Candidate extends BaseController
         if ($templateKey !== '' && isset($blockedTemplates[$templateKey])) {
             return redirect()->back()->with('error', $blockedTemplates[$templateKey]);
         }
-        helper('premium');
+        $this->helper('premium');
         requirePremiumForFeature($candidateId, 'AI resume generation');
         $currentRole = $this->detectCurrentRole($profile);
         $resume = (new AiResumeBuilder())->buildResume($profile, $targetRole, [
@@ -320,7 +320,7 @@ class Candidate extends BaseController
         $transitionSummary = 'Career transition in progress from ' . $currentRole . ' to ' . $targetRole . '.'
             . (!empty($skillGaps) ? ' Current focus areas: ' . implode(', ', array_slice((array) $skillGaps, 0, 6)) . '.' : '');
 
-        helper('premium');
+        $this->helper('premium');
         requirePremiumForFeature($candidateId, 'AI resume sync');
         $resume = (new AiResumeBuilder())->buildResume($profile, $targetRole, [
             'current_role' => $currentRole,
@@ -897,7 +897,7 @@ class Candidate extends BaseController
             'field_of_study' => $this->request->getPost('field_of_study'),
             'institution' => $this->request->getPost('institution'),
             'start_year' => $this->request->getPost('start_year'),
-            'end_year' => $this->request->getPost('end_year'),
+            'end_year' => $this->request->getPost('end_date'),
             'grade' => $this->request->getPost('grade')
         ];
         
@@ -1248,3 +1248,4 @@ class Candidate extends BaseController
         return $blocked;
     }
 }
+

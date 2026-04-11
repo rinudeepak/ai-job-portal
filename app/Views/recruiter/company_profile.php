@@ -108,6 +108,35 @@
                         </div>
 
                         <div class="form-group">
+                            <label>Social Profiles</label>
+                            <p class="form-text text-muted mb-3">Add the company’s public social links. These will show on the company profile page.</p>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>LinkedIn</label>
+                                    <input type="url" name="company_linkedin" class="form-control" placeholder="https://www.linkedin.com/company/..." value="<?= esc(old('company_linkedin', $company['linkedin'] ?? '')) ?>">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Twitter / X</label>
+                                    <input type="url" name="company_twitter" class="form-control" placeholder="https://x.com/..." value="<?= esc(old('company_twitter', $company['twitter'] ?? '')) ?>">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>Facebook</label>
+                                    <input type="url" name="company_facebook" class="form-control" placeholder="https://facebook.com/..." value="<?= esc(old('company_facebook', $company['facebook'] ?? '')) ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Instagram</label>
+                                    <input type="url" name="company_instagram" class="form-control" placeholder="https://instagram.com/..." value="<?= esc(old('company_instagram', $company['instagram'] ?? '')) ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>YouTube</label>
+                                    <input type="url" name="company_youtube" class="form-control" placeholder="https://youtube.com/..." value="<?= esc(old('company_youtube', $company['youtube'] ?? '')) ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label>Mission / Values (Optional)</label>
                             <textarea name="company_mission_values" class="form-control" rows="3"><?= esc(old('company_mission_values', $company['mission_values'] ?? '')) ?></textarea>
                         </div>

@@ -47,7 +47,7 @@ class PremiumCareerMentorController extends BaseController
         $subscription = $this->subscriptionModel->getUserActiveSubscription($userId);
         
         if (!$subscription) {
-            return redirect()->to('/premium-mentor/plans');
+            return redirect()->to(base_url('premium/plans?service=mentor'));
         }
 
         $data = [
@@ -62,17 +62,7 @@ class PremiumCareerMentorController extends BaseController
 
     public function plans()
     {
-        $plans = $this->subscriptionModel->getActivePlans();
-        $userId = session()->get('user_id');
-        $currentSubscription = $this->subscriptionModel->getUserActiveSubscription($userId);
-
-        $data = [
-            'title' => 'Premium Career Mentor Plans',
-            'plans' => $plans,
-            'current_subscription' => $currentSubscription
-        ];
-
-        return view('premium_mentor/plans', $data);
+        return redirect()->to(base_url('premium/plans?service=mentor'));
     }
 
     public function chat()

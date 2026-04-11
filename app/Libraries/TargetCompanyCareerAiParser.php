@@ -44,6 +44,95 @@ class TargetCompanyCareerAiParser
         return $validJobs;
     }
 
+    public function extractCompanyInfoFromPage(string $companyName, string $pageUrl, string $pageHtml): array
+    {
+        $cleanHtml = $this->cleanHtmlForAi($pageHtml);
+        $prompt = $this->buildCompanyInfoPrompt($companyName, $pageUrl, $cleanHtml);
+        $response = $this->callOpenAI($prompt);
+
+        $info = json_decode($response, true);
+        if (!is_array($info)) {
+            log_message('error', 'AI company info extraction failed to decode JSON from ' . $pageUrl);
+            return [];
+        }
+
+        $normalized = $this->normalizeCompanyInfo($info);
+        $normalized = array_merge($normalized, $this->extractCompanyLinksFromHtml($pageHtml));
+
+        return $normalized;
+    }
+
+    private function buildCompanyInfoPrompt(string $companyName, string $pageUrl, string $pageHtml): string
+    {
+        return "You are a company details extraction assistant. Extract the official company details from the page and return valid JSON only with the following fields: name, description, website, career_page, linkedin, twitter, facebook, instagram, youtube. \n" .
+            "If a field is not available, return an empty string for it. Do not add any extra text or markdown.\n\n" .
+            "Company: {$companyName}\n" .
+            "Page URL: {$pageUrl}\n" .
+            "HTML:\n{$pageHtml}\n";
+    }
+
+    private function normalizeCompanyInfo(array $info): array
+    {
+        return [
+            'name' => trim((string) ($info['name'] ?? '')),
+            'description' => trim((string) ($info['description'] ?? '')),
+            'website' => trim((string) ($info['website'] ?? '')),
+            'career_page' => trim((string) ($info['career_page'] ?? '')),
+            'linkedin' => trim((string) ($info['linkedin'] ?? '')),
+            'twitter' => trim((string) ($info['twitter'] ?? '')),
+            'facebook' => trim((string) ($info['facebook'] ?? '')),
+            'instagram' => trim((string) ($info['instagram'] ?? '')),
+            'youtube' => trim((string) ($info['youtube'] ?? '')),
+            'industry' => trim((string) ($info['industry'] ?? '')),
+            'size' => trim((string) ($info['size'] ?? '')),
+            'hq' => trim((string) ($info['hq'] ?? '')),
+            'location' => trim((string) ($info['location'] ?? '')),
+        ];
+    }
+
+    private function extractCompanyLinksFromHtml(string $html): array
+    {
+        $socials = [
+            'linkedin' => '',
+            'twitter' => '',
+            'facebook' => '',
+            'instagram' => '',
+            'youtube' => '',
+        ];
+
+        if (trim($html) === '') {
+            return $socials;
+        }
+
+        libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $dom->loadHTML($html);
+        libxml_clear_errors();
+
+        $xpath = new \DOMXPath($dom);
+        foreach ($xpath->query('//a[@href]') as $node) {
+            $href = trim((string) $node->getAttribute('href'));
+            if ($href === '') {
+                continue;
+            }
+
+            $hrefLower = strtolower($href);
+            if ($socials['linkedin'] === '' && str_contains($hrefLower, 'linkedin.com')) {
+                $socials['linkedin'] = $href;
+            } elseif ($socials['twitter'] === '' && (str_contains($hrefLower, 'twitter.com') || str_contains($hrefLower, 'x.com'))) {
+                $socials['twitter'] = $href;
+            } elseif ($socials['facebook'] === '' && str_contains($hrefLower, 'facebook.com')) {
+                $socials['facebook'] = $href;
+            } elseif ($socials['instagram'] === '' && str_contains($hrefLower, 'instagram.com')) {
+                $socials['instagram'] = $href;
+            } elseif ($socials['youtube'] === '' && (str_contains($hrefLower, 'youtube.com') || str_contains($hrefLower, 'youtu.be'))) {
+                $socials['youtube'] = $href;
+            }
+        }
+
+        return $socials;
+    }
+
     private function buildExtractionPrompt(string $companyName, string $pageUrl, string $pageHtml, int $limit): string
     {
         return "You are a jobs extraction assistant. " .

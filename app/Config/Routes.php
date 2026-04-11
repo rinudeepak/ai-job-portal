@@ -15,6 +15,11 @@ $routes->get('admin/login', 'AdminAnalytics::login');
 $routes->post('admin/login', 'AdminAnalytics::authenticate');
 $routes->get('admin/logout', 'AdminAnalytics::logout', ['filter' => 'admin']);
 $routes->get('admin/dashboard', 'AdminAnalytics::dashboard', ['filter' => 'admin']);
+$routes->get('admin/company-ats-mappings', 'AdminCompanyAtsMappings::index', ['filter' => 'admin']);
+$routes->post('admin/company-ats-mappings/save', 'AdminCompanyAtsMappings::save', ['filter' => 'admin']);
+$routes->post('admin/company-ats-mappings/import', 'AdminCompanyAtsMappings::import', ['filter' => 'admin']);
+$routes->get('admin/company-ats-mappings/template', 'AdminCompanyAtsMappings::template', ['filter' => 'admin']);
+$routes->get('admin/company-ats-mappings/delete/(:num)', 'AdminCompanyAtsMappings::delete/$1', ['filter' => 'admin']);
 $routes->get('forgot-password', 'Auth::forgotPassword');
 $routes->post('forgot-password', 'Auth::sendPasswordResetLink');
 $routes->get('reset-password/(:any)', 'Auth::resetPassword/$1');
@@ -243,6 +248,7 @@ $routes->group('mentor', ['filter' => 'mentor'], function($routes) {
 });
 
 // Premium Career Mentor Routes
+$routes->get('premium/plans', 'Premium::plans', ['filter' => 'candidate']);
 $routes->group('premium-mentor', ['filter' => 'candidate'], function($routes) {
     $routes->get('/', 'PremiumCareerMentorController::index');
     $routes->get('plans', 'PremiumCareerMentorController::plans');

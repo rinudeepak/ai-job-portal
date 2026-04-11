@@ -17,7 +17,7 @@ class CareerTransition extends BaseController
         }
         
         $candidateId = (int) session()->get('user_id');
-        helper('premium');
+        $this->helper('premium');
         requirePremiumForFeature($candidateId, 'career transition');
         $transitionModel = new CareerTransitionModel();
         $taskModel = new DailyTaskModel();
@@ -129,7 +129,7 @@ class CareerTransition extends BaseController
         // Close DB, call AI, reconnect
         $db->close();
 
-        helper('premium');
+        $this->helper('premium');
         requirePremiumForFeature($savedCandidateId, 'career transition AI');
         $ai         = new CareerTransitionAI();
         $analysis   = $ai->analyzeTransition($savedCurrentRole, $savedTargetRole);
@@ -288,3 +288,4 @@ class CareerTransition extends BaseController
             ->with('success', 'Career path reactivated! Progress has been reset for a fresh start.');
     }
 }
+

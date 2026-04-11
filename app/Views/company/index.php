@@ -19,85 +19,213 @@ $filters = $filters ?? [];
     <section class="site-section pt-0 content-wrap">
         <div class="container">
             <div class="detail-card companies-search-card mb-4">
-                <div class="panel-body">
-                    <div class="row gx-2 gy-2 align-items-center">
-                        <div class="col-12 col-md">
-                            <input id="companySearchInput" type="text" class="form-control" placeholder="Search company career page, e.g. HubSpot, Shopify, Dropbox..." autocomplete="off" />
+                <div class="panel-body company-search-panel">
+                    <form id="companySearchForm" method="get" action="<?= base_url('companies') ?>">
+                        <div class="row align-items-end company-search-grid">
+                            <div class="col-12 col-md-6">
+                                <label class="small text-muted text-uppercase font-weight-bold">Search Company</label>
+                                <input id="companySearchInput" name="q" type="text" class="form-control" value="<?= esc($filters['q'] ?? '') ?>" placeholder="Search company, e.g. HubSpot, Shopify, Dropbox..." autocomplete="off" />
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="small text-muted text-uppercase font-weight-bold">Industry</label>
+                                <select name="industry" class="form-control">
+                                    <option value="">All industries</option>
+                                    <?php foreach (($industries ?? []) as $industryOption): ?>
+                                        <option value="<?= esc($industryOption) ?>" <?= ($filters['industry'] ?? '') === $industryOption ? 'selected' : '' ?>>
+                                            <?= esc($industryOption) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="small text-muted text-uppercase font-weight-bold">Location</label>
+                                <input type="text" name="location" class="form-control" value="<?= esc($filters['location'] ?? '') ?>" placeholder="City or HQ">
+                            </div>
+                            <div class="col-12 col-md-2">
+                                <label class="small text-muted text-uppercase font-weight-bold">Jobs</label>
+                                <select name="limit" class="form-control">
+                                    <?php $jobLimit = (int) ($filters['limit'] ?? 10); ?>
+                                    <option value="1" <?= $jobLimit === 1 ? 'selected' : '' ?>>1</option>
+                                    <option value="10" <?= $jobLimit === 10 ? 'selected' : '' ?>>10</option>
+                                    <option value="100" <?= $jobLimit === 100 ? 'selected' : '' ?>>100</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-auto company-search-actions">
+                                <button type="submit" class="btn btn-primary company-search-btn">
+                                    <i class="fas fa-search mr-1"></i> Search
+                                </button>
+                                <a href="<?= base_url('companies') ?>" class="btn btn-outline-secondary company-search-btn">Clear</a>
+                            </div>
                         </div>
-                        <div class="col-auto" style="min-width:220px;">
-                            <select id="companySearchLimit" class="form-control" style="width:220px; min-width:220px; max-width:220px; padding-right:2.5rem; color:#212529; background-color:#fff;">
-                                <option value="10">10 jobs</option>
-                                <option value="25">25 jobs</option>
-                                <option value="50">50 jobs</option>
-                                <option value="100">100 jobs</option>
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <button type="button" id="companySearchBtn" class="btn btn-primary" style="min-width:120px; white-space:nowrap;">
-                                <i class="fas fa-search mr-1"></i> Search Jobs
-                            </button>
-                        </div>
-                    </div>
-                    <small class="text-muted mt-2 d-block">
+                    </form>
+                    <div class="search-help-line">
                         <i class="fas fa-info-circle mr-1"></i>
-                        Search ANY company to fetch live jobs from their official careers page using AI.
-                    </small>
-                    <div id="companySearchResults" class="mt-4">
-                        <p class="text-muted small mb-0">Search for a company to fetch live jobs from their official career page.</p>
+                        Search registered companies first. If there is no local record, we check the official careers site and show matching jobs.
                     </div>
                 </div>
             </div>
-
-            <?= view('company/_targets_section') ?>
-
-            <div class="detail-card companies-filter-card" id="companies-filter">
-                <form method="get" action="<?= base_url('companies') ?>">
-                    <div class="row g-3">
-                        <div class="col-lg-5 col-md-6 mb-3">
-                            <label class="small text-muted text-uppercase font-weight-bold">Search Company</label>
-                            <input type="text" name="q" class="form-control" value="<?= esc($filters['q'] ?? '') ?>" placeholder="Company name or keyword">
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <label class="small text-muted text-uppercase font-weight-bold">Industry</label>
-                            <select name="industry" class="form-control">
-                                <option value="">All industries</option>
-                                <?php foreach (($industries ?? []) as $industryOption): ?>
-                                    <option value="<?= esc($industryOption) ?>" <?= ($filters['industry'] ?? '') === $industryOption ? 'selected' : '' ?>>
-                                        <?= esc($industryOption) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-6 mb-3">
-                            <label class="small text-muted text-uppercase font-weight-bold">Location</label>
-                            <input type="text" name="location" class="form-control" value="<?= esc($filters['location'] ?? '') ?>" placeholder="City or HQ">
-                        </div>
-                        <div class="col-lg-2 col-md-6 mb-3 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary btn-block mr-2">Search</button>
-                            <a href="<?= base_url('companies') ?>" class="btn btn-outline-secondary btn-block mt-0">Clear</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
+            <style>
+                .companies-search-card {
+                    background: #fff;
+                    border: 1px solid #e9edf8;
+                    border-radius: 22px;
+                    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.05);
+                }
+                .company-search-panel {
+                    padding: 1.6rem 1.6rem 1.25rem;
+                }
+                .company-search-grid > [class*="col-"] {
+                    margin-bottom: 1rem;
+                }
+                .company-search-grid label {
+                    margin-bottom: 0.45rem;
+                    letter-spacing: .04em;
+                }
+                .company-search-actions {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: .75rem;
+                    align-items: center;
+                    margin-bottom: 1rem;
+                }
+                .company-search-btn {
+                    min-width: 120px;
+                    height: 48px;
+                    border-radius: 14px;
+                    white-space: nowrap;
+                }
+                .search-help-line {
+                    color: #748097;
+                    font-size: .9rem;
+                    display: flex;
+                    align-items: center;
+                    padding-top: .35rem;
+                }
+                .company-directory-card {
+                    border: 1px solid #e8edf8;
+                    border-radius: 18px;
+                    padding: 22px;
+                    background: #fff;
+                    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.045);
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100%;
+                }
+                .company-directory-description {
+                    color: #4f5d73;
+                    line-height: 1.7;
+                }
+                .company-directory-actions {
+                    margin-top: auto;
+                    display: flex;
+                    justify-content: flex-end;
+                }
+                .company-directory-tags {
+                    margin-top: 0.75rem;
+                }
+                .company-directory-tags .badge {
+                    background: #eef2ff;
+                    color: #2f4bbd;
+                    font-weight: 600;
+                }
+                .empty-state {
+                    text-align: center;
+                    padding: 3rem 2rem;
+                    border: 1px solid #e9edf8;
+                    border-radius: 18px;
+                    background: #fff;
+                    color: #5b6476;
+                }
+                .empty-state i {
+                    font-size: 3rem;
+                    margin-bottom: 1rem;
+                    color: #4f6dca;
+                }
+                .searching-state {
+                    border: 1px solid #e9edf8;
+                    border-radius: 18px;
+                    background: #fff;
+                    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.04);
+                    padding: 1.25rem 1.4rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                }
+                .searching-state__icon {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 14px;
+                    background: linear-gradient(135deg, #f0f6ff 0%, #e8f7f4 100%);
+                    color: #0b66ff;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex: 0 0 auto;
+                }
+                .searching-state__text h5 {
+                    margin-bottom: .2rem;
+                }
+                .searching-state__text p {
+                    margin-bottom: 0;
+                    color: #677487;
+                }
+                @media (max-width: 575px) {
+                    .company-directory-info {
+                        grid-template-columns: 1fr;
+                    }
+                    .company-search-panel {
+                        padding: 1.2rem 1rem 1rem;
+                    }
+                    .company-search-actions {
+                        width: 100%;
+                    }
+                    .company-search-btn {
+                        flex: 1 1 140px;
+                    }
+                }
+            </style>
 
             <?php if (empty($companies)): ?>
-                <div class="empty-state">
-                    <i class="fas fa-building"></i>
-                    <h5>No companies found</h5>
-                    <p>Try a different company name, location, or industry filter.</p>
-                </div>
+                <?php if (!empty(trim((string) ($filters['q'] ?? '')))): ?>
+                    <div id="companySearchResults" class="mt-4">
+                        <div class="searching-state mb-4">
+                            <div class="searching-state__icon">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="searching-state__text">
+                                <h5>Searching AI for <strong><?= esc($filters['q']) ?></strong></h5>
+                                <p>No registered company matched your search. We are checking the official careers site and pulling available jobs.</p>
+                            </div>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <i class="fas fa-building"></i>
+                        <h5>No companies found</h5>
+                        <p>Try a different company name, location, or industry filter.</p>
+                    </div>
+                <?php endif; ?>
             <?php else: ?>
                 <div class="companies-directory-grid company-directory-grid mb-4">
-                    <?php foreach ($companies as $company): ?>
+                        <?php foreach ($companies as $company): ?>
                         <?php
                             $companyName = (string) ($company['name'] ?? 'Company');
                             $companyInitial = strtoupper(substr($companyName, 0, 1) ?: 'C');
-                            $companyDescription = trim((string) ($company['short_description'] ?? ''));
-                            if ($companyDescription === '') {
-                                $companyDescription = trim((string) ($company['what_we_do'] ?? ''));
-                            }
+                            $companyIndustry = trim((string) ($company['industry'] ?? ''));
+                            $companyIndustryLabel = $companyIndustry !== '' ? $companyIndustry : 'Industry not specified';
+                            $companyHq = trim((string) ($company['hq'] ?? ''));
+                            $companyHqLabel = $companyHq !== '' ? $companyHq : 'HQ not specified';
+                            $companySize = trim((string) ($company['size'] ?? ''));
+                            $companySizeLabel = $companySize !== '' ? $companySize : 'Size not specified';
+                            $openJobsCount = (int) ($company['open_jobs_count'] ?? 0);
+                            $companyMeta = array_filter([
+                                ['label' => 'Industry', 'value' => $companyIndustryLabel, 'icon' => 'fas fa-industry'],
+                                ['label' => 'HQ', 'value' => $companyHqLabel, 'icon' => 'fas fa-map-pin'],
+                            ]);
                         ?>
-                        <article class="job-card company-directory-card">
+                        <article class="job-card company-directory-card" data-company-id="<?= (int) $company['id'] ?>" data-company-name="<?= esc($companyName) ?>">
                             <div class="job-card-icon company-directory-logo">
                                 <?php if (!empty($company['logo'])): ?>
                                     <img src="<?= base_url($company['logo']) ?>" alt="<?= esc($companyName) ?>">
@@ -108,21 +236,20 @@ $filters = $filters ?? [];
                             <h3 class="job-card-title">
                                 <a href="<?= base_url('company/' . (int) $company['id']) ?>"><?= esc($companyName) ?></a>
                             </h3>
-                            <p class="job-card-company"><?= esc($company['industry'] ?: 'Industry not specified') ?></p>
+                            <p class="job-card-company"><?= esc($companyIndustryLabel) ?></p>
                             <div class="job-card-meta company-directory-meta">
-                                <span><i class="fas fa-map-pin"></i> <?= esc($company['hq'] ?: 'HQ not specified') ?></span>
-                                <span><i class="fas fa-briefcase"></i> <?= (int) ($company['open_jobs_count'] ?? 0) ?> open jobs</span>
+                                <span><i class="fas fa-map-pin"></i> <?= esc($companyHqLabel) ?></span>
+                                <span class="company-job-count" data-default-label="open jobs" data-live-label="live jobs available">
+                                    <i class="fas fa-briefcase"></i>
+                                    <span class="company-job-count-number"><?= $openJobsCount ?></span>
+                                    <span class="company-job-count-label">open jobs</span>
+                                </span>
                             </div>
-                            <?php if ($companyDescription !== ''): ?>
-                                <p class="company-directory-description"><?= esc($companyDescription) ?></p>
-                            <?php endif; ?>
                             <div class="job-card-tags company-directory-tags">
-                                <span class="badge badge-primary"><?= esc($company['size'] ?: 'Size not specified') ?></span>
+                                <span class="badge badge-primary"><?= esc($companySizeLabel) ?></span>
                             </div>
                             <div class="company-directory-actions">
-                                <?php if ((int) ($company['open_jobs_count'] ?? 0) > 0): ?>
-                                    <a href="<?= base_url('jobs?company=' . urlencode($companyName)) ?>" class="company-directory-jobs-link">See jobs</a>
-                                <?php endif; ?>
+                                <a href="<?= base_url('jobs?company=' . urlencode($companyName)) ?>" class="company-directory-jobs-link <?= $openJobsCount > 0 ? '' : 'd-none' ?>">See jobs</a>
                             </div>
                         </article>
                     <?php endforeach; ?>
@@ -161,6 +288,10 @@ $filters = $filters ?? [];
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
+
+            <?php if (!empty(trim((string) ($filters['q'] ?? '')))): ?>
+                <div id="companyLiveJobsResults" class="mt-4"></div>
+            <?php endif; ?>
         </div>
     </section>
 </div>
@@ -174,25 +305,97 @@ $filters = $filters ?? [];
     var searchUrl = '<?= base_url('companies/search-jobs') ?>';
     var csrfName = '<?= csrf_token() ?>';
     var csrfHash = '<?= csrf_hash() ?>';
+    var fallbackCompanyQuery = <?= json_encode(trim((string) ($filters['q'] ?? ''))) ?>;
+    var fallbackJobLimit = <?= json_encode((int) ($filters['limit'] ?? 10)) ?>;
+    var useAiFallback = <?= json_encode(!empty(trim((string) ($filters['q'] ?? ''))) && empty($companies)) ?>;
 
     $(function () {
         function escHtml(value) {
             return $('<div>').text(value || '').html();
         }
 
-        var currentSearchCompany = '';
-
-        function renderJobs(result) {
-            currentSearchCompany = result.company;
-
-            if (!result.jobs || result.jobs.length === 0) {
-                let msg = '<p class="text-muted small">No open jobs found for <strong>' + escHtml(result.company) + '</strong>.</p>';
-                msg += '<p class="text-info small mt-2"><i class="fas fa-magic mr-1"></i>AI scan completed - no open roles on career page.</p>';
-                $('#companySearchResults').html(msg);
+        function updateCompanyCardLiveJobs(result) {
+            if (!result || !result.saved_company_id || !result.count || result.count <= 0) {
                 return;
             }
 
-            let html = '<div class="table-responsive"><table class="table table-sm mb-0">';
+            var $card = $('[data-company-id="' + result.saved_company_id + '"]');
+            if (!$card.length) {
+                return;
+            }
+
+            var $count = $card.find('.company-job-count');
+            if ($count.length) {
+                $count.addClass('text-success');
+                $count.find('.company-job-count-number').text(result.count);
+                $count.find('.company-job-count-label').text('live jobs available');
+            }
+
+            var $jobsLink = $card.find('.company-directory-jobs-link');
+            if ($jobsLink.length) {
+                $jobsLink.removeClass('d-none');
+                $jobsLink.text('See live jobs');
+            }
+        }
+
+        function getJobResultsTarget() {
+            if ($('#companyLiveJobsResults').length) {
+                return $('#companyLiveJobsResults');
+            }
+            if ($('#companyJobResults').length) {
+                return $('#companyJobResults');
+            }
+            return null;
+        }
+
+        function renderCompanyCard(info) {
+            if (!info || !info.name) {
+                return '';
+            }
+
+            let html = '<article class="job-card company-directory-card mb-4">';
+            html += '<div class="job-card-icon company-directory-logo">';
+            if (info.logo_url) {
+                html += '<img src="' + escHtml(info.logo_url) + '" alt="' + escHtml(info.name) + '">';
+            } else {
+                html += '<span>' + escHtml(info.name.charAt(0).toUpperCase() || 'C') + '</span>';
+            }
+            html += '</div>';
+            html += '<h3 class="job-card-title">';
+            html += '<a href="<?= base_url("companies") ?>">' + escHtml(info.name) + '</a>';
+            html += '</h3>';
+            html += '<p class="job-card-company">' + escHtml(info.industry || 'Industry not specified') + '</p>';
+            html += '<div class="job-card-meta company-directory-meta">';
+            html += '<span><i class="fas fa-map-pin"></i> ' + escHtml(info.hq || info.location || 'HQ not specified') + '</span>';
+            html += '<span class="company-job-count" data-default-label="open jobs" data-live-label="live jobs available">';
+            html += '<i class="fas fa-briefcase"></i> <span class="company-job-count-number">0</span> <span class="company-job-count-label">open jobs</span>';
+            html += '</span>';
+            html += '</div>';
+            html += '<div class="job-card-tags company-directory-tags">';
+            html += '<span class="badge badge-primary">' + escHtml(info.size || 'Size not specified') + '</span>';
+            html += '</div>';
+            html += '<div class="company-directory-actions">';
+            html += '<a href="<?= base_url("jobs?company=") ?>' + encodeURIComponent(info.name) + '" class="company-directory-jobs-link">See jobs</a>';
+            html += '</div>';
+            html += '</article>';
+            return html;
+        }
+
+        function renderJobResults(result) {
+            let html = '';
+            var $target = getJobResultsTarget();
+            if (!$target) {
+                return;
+            }
+            if (!result.jobs || result.jobs.length === 0) {
+                html += '<div class="alert alert-info mb-0">';
+                html += '<strong>' + escHtml(result.company) + '</strong> has no open roles detected on the career page right now.';
+                html += '</div>';
+                $target.html(html);
+                return;
+            }
+
+            html += '<div class="table-responsive"><table class="table table-sm mb-0">';
             html += '<thead><tr><th>Role</th><th>Location</th><th>Department</th><th></th></tr></thead><tbody>';
             $.each(result.jobs, function (index, job) {
                 html += '<tr>';
@@ -212,141 +415,98 @@ $filters = $filters ?? [];
             html += '<small class="text-muted">' + result.count + ' roles from ' + sourceLabel + '</small>';
             html += '</div>';
             
-            $('#companySearchResults').html(html);
+            $target.html(html);
         }
 
-
-
-        function loadTargets() {
-            $('#loadTargetsBtn').show();
-            $('#refreshTargetsBtn').prop('disabled', true);
-            
-            $.get(targetsUrl, { [csrfName]: csrfHash })
-                .done(function(response) {
-                    if (response.success && response.companies && response.companies.length > 0) {
-                        let html = '<div class="row">';
-                        $.each(response.companies, function(i, company) {
-                            let initial = company.company_name.charAt(0).toUpperCase();
-                            html += '<div class="col-md-6 col-lg-4 mb-3">';
-                            html += '<div class="card h-100 target-company-card">';
-                            html += '<div class="card-body">';
-                            html += '<div class="target-company-header d-flex">';
-                            html += '<div class="target-logo rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mr-3" style="width:45px;height:45px;font-size:16px;font-weight-bold;">' + initial + '</div>';
-                            html += '<div class="flex-grow-1">';
-                            html += '<h6 class="mb-1">' + escHtml(company.company_name) + '</h6>';
-                            html += '<small class="text-muted">' + company.jobs_count + ' jobs</small>';
-                            html += '</div>';
-                            html += '<div class="dropdown">';
-                            html += '<button class="btn btn-sm btn-link p-0 text-muted dropdown-toggle" data-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>';
-                            html += '<div class="dropdown-menu dropdown-menu-right">';
-                            html += '<a class="dropdown-item refresh-target-single" href="#" data-id="' + company.id + '"><i class="fas fa-sync-alt mr-1"></i>Refresh jobs</a>';
-                            html += '<a class="dropdown-item text-danger" href="<?= base_url("target-company/remove/") ?>' + company.id + '" onclick="return confirm(\'Remove from targets?\')">';
-                            html += '<i class="fas fa-trash mr-1"></i>Remove</a>';
-                            html += '</div></div></div>';
-                            
-                            if (company.recent_jobs && company.recent_jobs.length > 0) {
-                                html += '<div class="mt-2">';
-                                $.each(company.recent_jobs.slice(0,2), function(j, job) {
-                                    html += '<div class="small-job-item mb-1 pb-1 border-bottom">';
-                                    html += '<div class="font-weight-bold text-truncate" style="max-width:250px;" title="' + escHtml(job.title) + '">' + escHtml(job.title) + '</div>';
-                                    html += '<small class="text-muted">' + escHtml(job.location) + '</small>';
-                                    html += '</div>';
-                                });
-                                if (company.recent_jobs.length > 2) {
-                                    html += '<small class="text-muted">+' + (company.recent_jobs.length - 2) + ' more</small>';
-                                }
-                                html += '</div>';
-                            } else {
-                                html += '<small class="text-muted mt-2 d-block">No recent jobs (click refresh)</small>';
-                            }
-                            html += '</div></div></div>';
-                        });
-                        html += '</div>';
-                        $('#targetsContent').html(html);
-                    } else {
-                        $('#targetsContent').html('<p class="text-muted mb-0"><i class="fas fa-star mr-1"></i>No target companies yet. Search above to add your first!</p>');
-                    }
-                })
-                .fail(function() {
-                    $('#targetsContent').html('<p class="text-danger small">Failed to load targets. <button class="btn btn-sm btn-link p-0" onclick="loadTargets()">Retry</button></p>');
-                })
-                .always(function() {
-                    $('#loadTargetsBtn').hide();
-                    $('#refreshTargetsBtn').prop('disabled', false);
-                });
-        }
-
-        $('#companySearchBtn').on('click', function () {
-            var companyName = $('#companySearchInput').val().trim();
-            var limit = parseInt($('#companySearchLimit').val(), 10) || 10;
-
-            if (companyName === '') {
-                $('#companySearchResults').html('<p class="text-danger small">Please enter a company name to search.</p>');
+        function fetchCompanyInfo(companyName) {
+            if (!companyName) {
                 return;
             }
 
-            $('#companySearchBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Loading...');
-            $('#companySearchResults').html('<p class="text-muted small">Searching jobs for <strong>' + escHtml(companyName) + '</strong> from official career page (AI)...</p>');
+            $('#companySearchResults').html(
+                '<div class="searching-state mb-4">' +
+                    '<div class="searching-state__icon">' +
+                        '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>' +
+                    '</div>' +
+                    '<div class="searching-state__text">' +
+                        '<h5>Searching AI for <strong>' + escHtml(companyName) + '</strong></h5>' +
+                        '<p>Gathering company details from the official website and careers page.</p>' +
+                    '</div>' +
+                '</div>'
+            );
 
-            var data = { 
-                company_name: companyName, 
-                limit: limit,
-                [csrfName]: csrfHash 
+            var data = {
+                company_name: companyName,
+                info_only: 1,
+                [csrfName]: csrfHash
             };
 
             $.post(searchUrl, data)
-                .done(renderJobs)
+                .done(function (result) {
+                    let html = renderCompanyCard(result.company_info || { name: companyName });
+                    if (result.saved_company_id && result.saved_company_id > 0) {
+                        html = '<div class="alert alert-success mb-3"><i class="fas fa-check mr-2"></i>Company added to directory!</div>' + html;
+                    }
+                    $('#companySearchResults').html(html);
+                    fetchCompanyJobs(companyName, fallbackJobLimit);
+                })
                 .fail(function (xhr) {
                     let msg = '<div class="alert alert-danger">';
-                    msg += xhr.responseJSON?.error || 'Search failed. ';
-                    msg += 'Please try again or check connection.</div>';
+                    msg += xhr.responseJSON?.error || 'Company details fetch failed. ';
+                    msg += 'Please try again later.</div>';
                     $('#companySearchResults').html(msg);
-                })
-                .always(function () {
-                    $('#companySearchBtn').prop('disabled', false).html('<i class="fas fa-search mr-1"></i> Search Jobs');
                 });
-        });
+        }
 
-        $('#refreshTargetsBtn').on('click', loadTargets);
-        loadTargets();
-
-        $(document).on('click', '.refresh-target-single, .refresh-jobs-btn', function(e) {
-            e.preventDefault();
-            var targetId = $(this).data('target') || $(this).data('id');
-            var $btn = $(this);
-            
-            $btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
-            
-            $.post(refreshUrl + '/' + targetId, { [csrfName]: csrfHash })
-                .done(function(response) {
-                    if (response.success) {
-                        let msg = 'Refreshed! Found ' + response.count + ' new jobs.';
-                        if (response.count === 0) msg = 'No new jobs found.';
-                        alert(msg);
-                        loadTargets();
-                    } else {
-                        alert('Refresh failed: ' + (response.error || 'Unknown error'));
-                    }
-                })
-                .fail(function() {
-                    alert('Refresh failed. Try again.');
-                })
-                .always(function() {
-                    $btn.html('<i class="fas fa-sync-alt"></i>').prop('disabled', false);
-                });
-        });
-    });
-})();
-</script>
-<?= view('Layouts/candidate_footer') ?>
-
-
-        $('#companySearchInput').on('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                $('#companySearchBtn').trigger('click');
+        function fetchCompanyJobs(companyName, limit) {
+            if (!companyName) {
+                return;
             }
+
+            $('#companyJobResults').html(
+                '<div class="searching-state mb-3">' +
+                    '<div class="searching-state__icon">' +
+                        '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>' +
+                    '</div>' +
+                    '<div class="searching-state__text">' +
+                        '<h5>Loading jobs for <strong>' + escHtml(companyName) + '</strong></h5>' +
+                        '<p>Pulling the best matching roles from the company careers page.</p>' +
+                    '</div>' +
+                '</div>'
+            );
+
+            var data = {
+                company_name: companyName,
+                limit: limit || fallbackJobLimit,
+                [csrfName]: csrfHash
+            };
+
+            $.post(searchUrl, data)
+                .done(function (result) {
+                    renderJobResults(result);
+                    updateCompanyCardLiveJobs(result);
+                })
+                .fail(function (xhr) {
+                    let msg = '<div class="alert alert-danger">';
+                    msg += xhr.responseJSON?.error || 'Job search failed. ';
+                    msg += 'Please try again later.</div>';
+                    $('#companyJobResults').html(msg);
+                });
+        }
+
+        if (useAiFallback) {
+            fetchCompanyInfo(fallbackCompanyQuery);
+        }
+
+        if (fallbackCompanyQuery && !useAiFallback) {
+            fetchCompanyJobs(fallbackCompanyQuery, fallbackJobLimit);
+        }
+
+        $(document).on('click', '#aiSeeJobsBtn', function (e) {
+            e.preventDefault();
+            fetchCompanyJobs(fallbackCompanyQuery, fallbackJobLimit);
         });
+
     });
 })();
 </script>
