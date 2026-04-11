@@ -6,6 +6,7 @@ use App\Models\CompanyModel;
 use App\Models\CompanyReviewModel;
 use App\Models\JobModel;
 use App\Models\UserModel;
+use App\Libraries\TargetCompanyJobService;
 
 class CompanyProfile extends BaseController
 {
@@ -68,6 +69,32 @@ class CompanyProfile extends BaseController
             'industries' => array_values(array_filter(array_map(static fn (array $row): string => trim((string) ($row['industry'] ?? '')), $industries))),
             'totalCompanies' => $companyModel->countAllResults(),
             'totalOpenJobs' => $jobModel->where('status', 'open')->countAllResults(),
+        ]);
+    }
+
+    public function searchJobs()
+    {
+        if (!session()->get('logged_in') || session()->get('role') !== 'candidate') {
+            return $this->response->setJSON(['error' => 'Candidate access only']);
+        }
+
+        $companyName = trim((string) $this->request->getPost('company_name'));
+        $limit = (int) ($this->request->getPost('limit') ?: 10);
+        $limit = max(1, min(100, $limit));
+
+        if ($companyName === '') {
+            return $this->response->setJSON(['error' => 'Company name is required.', 'jobs' => []]);
+        }
+
+        $service = new TargetCompanyJobService();
+        $jobs = $service->fetchJobs($companyName, '', '', $limit);
+        $status = 'official';
+
+        return $this->response->setJSON([
+            'company' => $companyName,
+            'count' => count($jobs),
+            'jobs' => $jobs,
+            'status' => $status
         ]);
     }
 

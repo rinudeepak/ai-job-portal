@@ -44,6 +44,13 @@ class CandidateDashboardController extends BaseController
         $dailyReminder = $this->buildDailyReminder($candidateId, $applications, $topSuggestedJobs);
         $engagementBanners = $this->buildDashboardEngagementBanners($candidateId, $applications, $topSuggestedJobs, (string) ($dailyReminder['key'] ?? ''));
         
+        $targetCompanies = [];
+        try {
+            $targetCompanies = (new \App\Models\TargetCompanyModel())->getUserCompanies((int) $candidateId);
+        } catch (\Exception $e) {
+            log_message('warning', 'Target companies table unavailable: ' . $e->getMessage());
+        }
+
         return view('candidate/dashboard', [
             'applications' => $applications,
             'stats' => $stats,
@@ -54,6 +61,7 @@ class CandidateDashboardController extends BaseController
             'engagementBanners' => $engagementBanners,
             'topSuggestedJobs' => $topSuggestedJobs,
             'jobSearchStrategy' => $jobSearchStrategy,
+            'targetCompanies'   => $targetCompanies,
         ]);
     }
     

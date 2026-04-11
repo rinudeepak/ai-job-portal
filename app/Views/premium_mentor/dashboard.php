@@ -90,15 +90,33 @@
                         <div class="panel-body">
                             <?php if (!empty($active_sessions)): ?>
                                 <?php foreach ($active_sessions as $s): ?>
+                                    <?php
+                                    $nextMilestones = array_slice($s['next_milestones'] ?? [], 0, 3);
+                                    $nextMilestonesText = implode(' | ', $nextMilestones);
+                                    $lastNudge = trim((string) ($s['last_nudge'] ?? ''));
+                                    $hideNudge = $lastNudge !== '' && $nextMilestonesText !== '' && (
+                                        stripos($lastNudge, $nextMilestones[0] ?? '') !== false ||
+                                        stripos($nextMilestonesText, $lastNudge) !== false
+                                    );
+                                    ?>
                                     <div class="mb-3 p-3" style="background: #f8f9fa; border-radius: 8px;">
                                         <h6 class="text-primary mb-1"><?= esc($s['target_role']) ?></h6>
-                                        <small class="text-muted">Timeline: <?= esc($s['timeline']) ?></small>
-                                        <small class="text-muted float-right"><?= (int) ($s['progress_percentage'] ?? 0) ?>%</small>
+                                        <div class="small mb-1" style="line-height: 1.45; color: #1f2937; font-weight: 500;">
+                                            <?= esc($s['main_goal_text'] ?? 'Continue progressing on your active career plan') ?>
+                                        </div>
+                                        <small style="color: #475569;"><?= esc($s['timeline_label'] ?? ('Timeline: ' . ($s['timeline'] ?? ''))) ?></small>
+                                        <small class="float-right" style="color: #334155; font-weight: 600;"><?= (int) ($s['progress_percentage'] ?? 0) ?>%</small>
                                         <div class="progress mt-2" style="height: 6px;">
                                             <div class="progress-bar bg-success" style="width: <?= (int) ($s['progress_percentage'] ?? 0) ?>%"></div>
                                         </div>
-                                        <?php if (!empty($s['last_nudge'])): ?>
-                                            <div class="small text-muted mt-2"><?= esc($s['last_nudge']) ?></div>
+                                        <?php if (!empty($nextMilestones)): ?>
+                                            <div class="small mt-2" style="color: #475569; line-height: 1.45;">
+                                                <strong>Next milestones:</strong>
+                                                <?= esc($nextMilestonesText) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if ($lastNudge !== '' && !$hideNudge): ?>
+                                            <div class="small mt-2" style="color: #64748b; line-height: 1.45;"><?= esc($lastNudge) ?></div>
                                         <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>

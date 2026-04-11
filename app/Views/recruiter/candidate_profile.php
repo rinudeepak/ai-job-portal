@@ -11,6 +11,10 @@
         . '&job_id=' . $jobId;
     $resumeUrl = base_url('recruiter/candidate/' . $candidate['id'] . '/download-resume');
     $resumeUrl .= '?application_id=' . $applicationId . '&job_id=' . $jobId;
+    $introVideoPath = trim((string) ($candidate['intro_video_path'] ?? ''));
+    $introVideoUrl = $introVideoPath !== ''
+        ? (preg_match('/^https?:\/\//i', $introVideoPath) ? $introVideoPath : base_url($introVideoPath))
+        : '';
     $messages = $messages ?? [];
     $recruiterNote = $recruiterNote ?? null;
     $interests = $interests ?? [];
@@ -78,6 +82,26 @@
                 <div class="card-body">
                     <h6><i class="fas fa-info-circle"></i> About</h6>
                     <p><?= nl2br(esc($candidate['bio'])) ?></p>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($introVideoUrl !== '' || !empty($candidate['intro_video_pitch']) || !empty($candidate['intro_video_target_role'])): ?>
+            <div class="card shadow-sm mt-3 candidate-profile-rail-card">
+                <div class="card-body">
+                    <h6><i class="fas fa-video"></i> Video Introduction</h6>
+                    <?php if (!empty($candidate['intro_video_target_role'])): ?>
+                        <p class="small text-muted mb-2">Pitching for: <?= esc($candidate['intro_video_target_role']) ?></p>
+                    <?php endif; ?>
+                    <?php if ($introVideoUrl !== ''): ?>
+                        <video controls preload="metadata" style="width: 100%; border-radius: 10px; background: #111827; margin-bottom: 12px;">
+                            <source src="<?= esc($introVideoUrl) ?>">
+                            Your browser does not support the video tag.
+                        </video>
+                    <?php endif; ?>
+                    <?php if (!empty($candidate['intro_video_pitch'])): ?>
+                        <p class="mb-0 small" style="line-height: 1.55; color: #475569;"><?= nl2br(esc($candidate['intro_video_pitch'])) ?></p>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php endif; ?>

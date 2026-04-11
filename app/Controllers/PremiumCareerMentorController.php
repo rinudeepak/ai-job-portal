@@ -16,6 +16,9 @@ class PremiumCareerMentorController extends BaseController
     private const MAX_CONVERSATION_MESSAGES = 20;
     private const MAX_RECENT_MEMORY_MESSAGES = 12;
     private const MEMORY_COMPACTION_THRESHOLD = 10;
+    private const INITIAL_PLAN_PROGRESS = 5;
+    private const STARTED_MILESTONE_PROGRESS_STEP = 10;
+    private const COMPLETED_MILESTONE_PROGRESS_STEP = 25;
 
     protected $subscriptionModel;
     protected $usageModel;
@@ -51,7 +54,7 @@ class PremiumCareerMentorController extends BaseController
             'title' => 'AI Career Mentor - Premium',
             'subscription' => $subscription,
             'usage_today' => $this->usageModel->getTodayUsage($userId),
-            'active_sessions' => $this->hydrateSessionProgress($this->sessionModel->getUserActiveSessions($userId))
+            'active_sessions' => $this->hydrateSessionProgress($this->sessionModel->getUserActiveSessions($userId), $userId)
         ];
 
         return view('premium_mentor/dashboard', $data);
@@ -339,6 +342,13 @@ class PremiumCareerMentorController extends BaseController
                    Format as structured JSON with phases, tasks, and deadlines.";
 
         $aiAnalysis = $this->generateCareerResponse($prompt);
+        $initialProgress = [
+            'progress_percentage' => self::INITIAL_PLAN_PROGRESS,
+            'completed_milestones' => [],
+            'next_milestones' => [],
+            'last_nudge' => 'Start with the first milestone this week to build momentum.',
+            'updated_at' => date('c')
+        ];
         
         // Save premium career session
         $sessionData = [
@@ -348,6 +358,7 @@ class PremiumCareerMentorController extends BaseController
             'target_role' => $targetRole,
             'timeline' => $timeline,
             'ai_analysis' => $aiAnalysis,
+            'progress_tracking' => json_encode($initialProgress),
             'status' => 'active'
         ];
 
@@ -770,7 +781,7 @@ class PremiumCareerMentorController extends BaseController
         }
 
         $initialProgress = [
-            'progress_percentage' => (int) ($goal['progress_percentage'] ?? 0),
+            'progress_percentage' => max(self::INITIAL_PLAN_PROGRESS, (int) ($goal['progress_percentage'] ?? 0)),
             'completed_milestones' => [],
             'next_milestones' => $this->normalizeStringList(json_decode((string) ($goal['achievable_steps'] ?? '[]'), true)),
             'last_nudge' => 'Pick one small step this week and mark it done.',
@@ -803,7 +814,7 @@ class PremiumCareerMentorController extends BaseController
         $current = json_decode((string) ($sessionRecord['progress_tracking'] ?? ''), true);
         if (!is_array($current)) {
             $current = [
-                'progress_percentage' => (int) ($goal['progress_percentage'] ?? 0),
+                'progress_percentage' => max(self::INITIAL_PLAN_PROGRESS, (int) ($goal['progress_percentage'] ?? 0)),
                 'completed_milestones' => [],
                 'next_milestones' => [],
                 'last_nudge' => ''
@@ -849,41 +860,40 @@ class PremiumCareerMentorController extends BaseController
             return $this->fallbackProgressPayload($current, $latestUserMessage);
         }
 
-        return [
+        $payload = [
             'progress_percentage' => max(0, min(100, (int) ($decoded['progress_percentage'] ?? ($current['progress_percentage'] ?? 0)))),
             'completed_milestones' => $this->normalizeStringList($decoded['completed_milestones'] ?? ($current['completed_milestones'] ?? [])),
             'next_milestones' => $this->normalizeStringList($decoded['next_milestones'] ?? ($current['next_milestones'] ?? [])),
             'last_nudge' => trim((string) ($decoded['last_nudge'] ?? ($current['last_nudge'] ?? 'Keep going, one focused step at a time.'))),
             'updated_at' => date('c')
         ];
+
+        return $this->applyProgressSignalHeuristics($payload, $current, $latestUserMessage);
     }
 
     private function fallbackProgressPayload($current, $latestUserMessage)
     {
-        $progress = (int) ($current['progress_percentage'] ?? 0);
-        $text = strtolower((string) $latestUserMessage);
-        if (strpos($text, 'done') !== false || strpos($text, 'completed') !== false || strpos($text, 'finished') !== false) {
-            $progress += 10;
-        } elseif (strpos($text, 'started') !== false) {
-            $progress += 5;
-        } elseif (strpos($text, 'stuck') !== false || strpos($text, 'blocked') !== false) {
-            $progress = max(0, $progress - 2);
-        }
-
-        return [
-            'progress_percentage' => max(0, min(100, $progress)),
+        $payload = [
+            'progress_percentage' => max(self::INITIAL_PLAN_PROGRESS, (int) ($current['progress_percentage'] ?? 0)),
             'completed_milestones' => $this->normalizeStringList($current['completed_milestones'] ?? []),
             'next_milestones' => $this->normalizeStringList($current['next_milestones'] ?? []),
             'last_nudge' => 'Share one concrete task you can finish before our next check-in.',
             'updated_at' => date('c')
         ];
+
+        return $this->applyProgressSignalHeuristics($payload, $current, $latestUserMessage);
     }
 
-    private function hydrateSessionProgress($sessions)
+    private function hydrateSessionProgress($sessions, $userId)
     {
         if (!is_array($sessions)) {
             return [];
         }
+
+        $activeGoals = $this->canUseCareerGoals() ? $this->careerGoalModel->getUserGoals($userId) : [];
+        $recentMessages = $this->canUseMentorMemory()
+            ? $this->mentorMessageModel->getRecentByUserId($userId, 30)
+            : [];
 
         foreach ($sessions as &$session) {
             $tracking = json_decode((string) ($session['progress_tracking'] ?? ''), true);
@@ -891,11 +901,238 @@ class PremiumCareerMentorController extends BaseController
                 $tracking = [];
             }
 
+            $matchedGoal = $this->findMatchingGoalForSession($session, $activeGoals);
+            if ($this->shouldBackfillLegacyProgress($tracking, $matchedGoal, $recentMessages)) {
+                $tracking = $this->buildBackfilledProgressTracking($tracking, $matchedGoal, $recentMessages);
+                if (!empty($session['id'])) {
+                    $this->sessionModel->updateProgress($session['id'], $tracking);
+                }
+            }
+
             $session['progress_percentage'] = max(0, min(100, (int) ($tracking['progress_percentage'] ?? 0)));
             $session['last_nudge'] = trim((string) ($tracking['last_nudge'] ?? ''));
+            $session['next_milestones'] = $this->normalizeStringList($tracking['next_milestones'] ?? []);
+            $session['main_goal_text'] = $this->resolveSessionMainGoalText($session, $activeGoals);
+            $session['timeline_label'] = $this->formatTimelineLabel($session, $session['main_goal_text']);
         }
 
         return $sessions;
+    }
+
+    private function shouldBackfillLegacyProgress($tracking, $matchedGoal, $recentMessages)
+    {
+        $currentProgress = (int) ($tracking['progress_percentage'] ?? 0);
+        if ($currentProgress > 0) {
+            return false;
+        }
+
+        if (is_array($matchedGoal) && ((int) ($matchedGoal['progress_percentage'] ?? 0)) > 0) {
+            return true;
+        }
+
+        foreach ($recentMessages as $message) {
+            $content = trim((string) ($message['content'] ?? ''));
+            if ($content === '') {
+                continue;
+            }
+
+            if ($this->isCompletedMilestoneMessage($content) || $this->isStartedMilestoneMessage($content)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function buildBackfilledProgressTracking($tracking, $matchedGoal, $recentMessages)
+    {
+        if (!is_array($tracking)) {
+            $tracking = [];
+        }
+
+        $progress = max(self::INITIAL_PLAN_PROGRESS, (int) ($tracking['progress_percentage'] ?? 0));
+        $nextMilestones = $this->normalizeStringList($tracking['next_milestones'] ?? []);
+        $completedMilestones = $this->normalizeStringList($tracking['completed_milestones'] ?? []);
+        $lastNudge = trim((string) ($tracking['last_nudge'] ?? ''));
+
+        if (is_array($matchedGoal)) {
+            $progress = max($progress, (int) ($matchedGoal['progress_percentage'] ?? 0), self::INITIAL_PLAN_PROGRESS);
+            if (empty($nextMilestones)) {
+                $nextMilestones = $this->normalizeStringList(json_decode((string) ($matchedGoal['achievable_steps'] ?? '[]'), true));
+            }
+        }
+
+        $startedCount = 0;
+        $completedCount = 0;
+        foreach ($recentMessages as $message) {
+            $content = trim((string) ($message['content'] ?? ''));
+            if ($content === '') {
+                continue;
+            }
+
+            if ($this->isCompletedMilestoneMessage($content)) {
+                $completedCount++;
+            } elseif ($this->isStartedMilestoneMessage($content)) {
+                $startedCount++;
+            }
+        }
+
+        if ($completedCount > 0) {
+            $progress = max($progress, min(100, self::INITIAL_PLAN_PROGRESS + ($completedCount * self::COMPLETED_MILESTONE_PROGRESS_STEP)));
+        } elseif ($startedCount > 0) {
+            $progress = max($progress, min(100, self::INITIAL_PLAN_PROGRESS + ($startedCount * self::STARTED_MILESTONE_PROGRESS_STEP)));
+        }
+
+        if ($lastNudge === '') {
+            $lastNudge = $completedCount > 0
+                ? 'Good progress so far. Keep moving to the next milestone.'
+                : 'You already started momentum here. Continue with the next milestone this week.';
+        }
+
+        return [
+            'progress_percentage' => max(self::INITIAL_PLAN_PROGRESS, min(100, $progress)),
+            'completed_milestones' => $completedMilestones,
+            'next_milestones' => $nextMilestones,
+            'last_nudge' => $lastNudge,
+            'updated_at' => date('c')
+        ];
+    }
+
+    private function findMatchingGoalForSession($session, $activeGoals)
+    {
+        $targetRole = strtolower(trim((string) ($session['target_role'] ?? '')));
+
+        foreach ($activeGoals as $goal) {
+            $aspiration = strtolower(trim((string) ($goal['aspiration'] ?? '')));
+            $specificGoal = strtolower(trim((string) ($goal['specific_goal'] ?? '')));
+
+            if ($targetRole !== '' && $aspiration !== '' && strpos($aspiration, $targetRole) !== false) {
+                return $goal;
+            }
+
+            if ($targetRole !== '' && $specificGoal !== '' && strpos($specificGoal, $targetRole) !== false) {
+                return $goal;
+            }
+        }
+
+        return $activeGoals[0] ?? null;
+    }
+
+    private function resolveSessionMainGoalText($session, $activeGoals)
+    {
+        $targetRole = strtolower(trim((string) ($session['target_role'] ?? '')));
+        $currentRole = trim((string) ($session['current_role'] ?? ''));
+
+        foreach ($activeGoals as $goal) {
+            $aspiration = strtolower(trim((string) ($goal['aspiration'] ?? '')));
+            $specificGoal = trim((string) ($goal['specific_goal'] ?? ''));
+
+            if ($specificGoal === '') {
+                continue;
+            }
+
+            if ($targetRole !== '' && ($aspiration !== '' && strpos($aspiration, $targetRole) !== false)) {
+                return $specificGoal;
+            }
+
+            if ($targetRole !== '' && stripos($specificGoal, $targetRole) !== false) {
+                return $specificGoal;
+            }
+        }
+
+        if ($currentRole !== '' && $targetRole !== '') {
+            return 'Transition from ' . $currentRole . ' to ' . ($session['target_role'] ?? 'your target role');
+        }
+
+        if ($targetRole !== '') {
+            return 'Work toward becoming a ' . ($session['target_role'] ?? 'target professional');
+        }
+
+        return 'Continue progressing on your active career plan';
+    }
+
+    private function formatTimelineLabel($session, $mainGoalText)
+    {
+        $timeline = trim((string) ($session['timeline'] ?? ''));
+        if ($timeline === '') {
+            return 'Timeline to complete this plan will be refined with your mentor.';
+        }
+
+        $normalizedTimeline = $this->normalizeTimelinePhrase($timeline);
+        if ($this->isTimelineDurationOnly($normalizedTimeline)) {
+            return 'Timeline: ' . $normalizedTimeline;
+        }
+
+        return 'Timeline: ' . $normalizedTimeline;
+    }
+
+    private function normalizeTimelinePhrase($timeline)
+    {
+        $timeline = trim((string) $timeline);
+        if ($timeline === '') {
+            return '';
+        }
+
+        $timeline = preg_replace('/\s+/', ' ', $timeline);
+
+        if (preg_match('/(?:within|in)\s+(\d+\s+(?:day|days|week|weeks|month|months|year|years))/i', $timeline, $matches)) {
+            return trim($matches[1]);
+        }
+
+        if (preg_match('/(\d+\s+(?:day|days|week|weeks|month|months|year|years))/i', $timeline, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return $timeline;
+    }
+
+    private function isTimelineDurationOnly($timeline)
+    {
+        return (bool) preg_match('/^\d+\s+(day|days|week|weeks|month|months|year|years)$/i', trim((string) $timeline));
+    }
+
+    private function applyProgressSignalHeuristics($payload, $current, $latestUserMessage)
+    {
+        $currentProgress = max(self::INITIAL_PLAN_PROGRESS, (int) ($current['progress_percentage'] ?? 0));
+        $payload['progress_percentage'] = max(self::INITIAL_PLAN_PROGRESS, (int) ($payload['progress_percentage'] ?? $currentProgress));
+
+        if ($this->isCompletedMilestoneMessage($latestUserMessage)) {
+            $payload['progress_percentage'] = max(
+                $payload['progress_percentage'],
+                min(100, $currentProgress + self::COMPLETED_MILESTONE_PROGRESS_STEP)
+            );
+        } elseif ($this->isStartedMilestoneMessage($latestUserMessage)) {
+            $payload['progress_percentage'] = max(
+                $payload['progress_percentage'],
+                min(100, $currentProgress + self::STARTED_MILESTONE_PROGRESS_STEP)
+            );
+        }
+
+        return $payload;
+    }
+
+    private function isStartedMilestoneMessage($message)
+    {
+        $text = strtolower(trim((string) $message));
+        foreach (['started', 'starting', 'began', 'begin', 'working on', 'enrolled', 'trying'] as $keyword) {
+            if (strpos($text, $keyword) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isCompletedMilestoneMessage($message)
+    {
+        $text = strtolower(trim((string) $message));
+        foreach (['done', 'completed', 'finished', 'achieved', 'submitted', 'built', 'solved'] as $keyword) {
+            if (strpos($text, $keyword) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function truncateValue($value, $limit)

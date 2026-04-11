@@ -38,6 +38,9 @@ $routes->post('recruiter/resend-verification-email', 'Auth::resendRecruiterVerif
 $routes->get('company/(:num)', 'CompanyProfile::show/$1', ['filter' => 'auth']);
 $routes->post('company/(:num)/review', 'CompanyProfile::submitReview/$1', ['filter' => 'candidate']);
 $routes->get('companies', 'CompanyProfile::index', ['filter' => 'candidate']);
+$routes->post('companies/search-jobs', 'CompanyProfile::searchJobs', ['filter' => 'candidate']);
+$routes->get('companies/my-targets', 'TargetCompanyController::myTargets', ['filter' => 'CandidateAuth']);
+$routes->post('companies/refresh-target/(:num)', 'TargetCompanyController::refreshTarget/$1', ['filter' => 'CandidateAuth']);
 
 // $routes->get('dashboard', 'Auth::dashboard');
 // Candidate Dashboard Routes
@@ -137,10 +140,13 @@ $routes->get('candidate/serve-resume', 'Candidate::serveResume', ['filter' => 'c
 $routes->post('candidate/add-skill', 'Candidate::addSkill', ['filter' => 'candidate']);
 $routes->post('candidate/update_personal', 'Candidate::updatePersonal', ['filter' => 'candidate']);
 $routes->post('candidate/update-career-details', 'Candidate::updateCareerDetails', ['filter' => 'candidate']);
+$routes->post('candidate/update-intro-video', 'Candidate::updateIntroVideo', ['filter' => 'candidate']);
 $routes->post('candidate/update-preferences', 'Candidate::updatePreferences', ['filter' => 'candidate']);
 $routes->post('candidate/update-settings', 'Candidate::updateSettings', ['filter' => 'candidate']);
 $routes->post('candidate/upload-photo', 'Candidate::uploadPhoto', ['filter' => 'candidate']);
 $routes->post('candidate/remove-photo', 'Candidate::removePhoto', ['filter' => 'candidate']);
+$routes->post('candidate/upload-intro-video', 'Candidate::uploadIntroVideo', ['filter' => 'candidate']);
+$routes->post('candidate/remove-intro-video', 'Candidate::removeIntroVideo', ['filter' => 'candidate']);
 $routes->post('candidate/add-work-experience', 'Candidate::addWorkExperience', ['filter' => 'candidate']);
 $routes->get('candidate/delete-work-experience/(:num)', 'Candidate::deleteWorkExperience/$1', ['filter' => 'candidate']);
 $routes->post('candidate/add-education', 'Candidate::addEducation', ['filter' => 'candidate']);
@@ -243,4 +249,12 @@ $routes->group('premium-mentor', ['filter' => 'candidate'], function($routes) {
     $routes->post('chat', 'PremiumCareerMentorController::chat');
     $routes->post('subscribe', 'PremiumCareerMentorController::subscribe');
     $routes->post('create-career-plan', 'PremiumCareerMentorController::createCareerPlan');
+});
+
+// Target Companies Routes
+$routes->group('target-companies', ['filter' => 'candidate'], function($routes) {
+    $routes->post('add', 'TargetCompanyController::add');
+    $routes->get('remove/(:num)', 'TargetCompanyController::remove/$1');
+    $routes->post('fetch-jobs', 'TargetCompanyController::fetchJobs');
+    $routes->get('suggest', 'TargetCompanyController::suggest');
 });

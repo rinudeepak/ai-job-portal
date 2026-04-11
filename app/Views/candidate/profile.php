@@ -4,7 +4,26 @@ $profilePhotoPath = trim((string) ($user['profile_photo'] ?? ''));
 $profilePhotoUrl = $profilePhotoPath !== ''
     ? (preg_match('/^https?:\/\//i', $profilePhotoPath) ? $profilePhotoPath : base_url($profilePhotoPath))
     : '';
+$introVideoPath = trim((string) ($user['intro_video_path'] ?? ''));
+$introVideoUrl = $introVideoPath !== ''
+    ? (preg_match('/^https?:\/\//i', $introVideoPath) ? $introVideoPath : base_url($introVideoPath))
+    : '';
 ?>
+<style>
+    .intro-video-upload-input {
+        width: 100%;
+        display: block;
+        max-width: 100%;
+        padding: 8px 10px;
+        height: auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .intro-video-upload-actions .btn {
+        margin-top: 4px;
+    }
+</style>
 
 <div class="profile-jobboard">
     <div class="container">
@@ -121,6 +140,7 @@ $profilePhotoUrl = $profilePhotoPath !== ''
                         <div class="list-group list-group-flush">
                             <a href="#personal" class="list-group-item list-group-item-action px-0 py-2">Personal Information</a>
                             <a href="#career-details" class="list-group-item list-group-item-action px-0 py-2">Career Details</a>
+                            <a href="#intro-video" class="list-group-item list-group-item-action px-0 py-2">Video Introduction</a>
                             <a href="#preferences" class="list-group-item list-group-item-action px-0 py-2">Preferences</a>
                             <a href="#resume" class="list-group-item list-group-item-action px-0 py-2">Resume</a>
                             <a href="<?= base_url('candidate/resume-studio') ?>" class="list-group-item list-group-item-action px-0 py-2">AI Resume Studio</a>
@@ -323,6 +343,56 @@ $profilePhotoUrl = $profilePhotoPath !== ''
                                         <button type="button" class="btn btn-outline-secondary" data-edit-cancel>Cancel</button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section mb-4" id="intro-video">
+                        <div class="card shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-video"></i> Video Introduction</h5>
+                                <span class="badge badge-light border">Recruiter-facing pitch</span>
+                            </div>
+                            <div class="card-body">
+                                <?php if (session()->getFlashdata('video_success')): ?>
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle"></i> <?= esc(session()->getFlashdata('video_success')) ?>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+
+                                <p class="text-muted mb-3">Record a short introduction recruiters can watch before shortlisting. Use it to explain your fit for a role, communication style, and confidence beyond resume text.</p>
+
+                                <?php if ($introVideoUrl !== ''): ?>
+                                    <video controls preload="metadata" style="width: 100%; border-radius: 10px; background: #111827;">
+                                        <source src="<?= esc($introVideoUrl) ?>">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div class="small text-muted mt-2">Visible to recruiters viewing your profile.</div>
+                                <?php else: ?>
+                                    <div class="text-muted small mb-3" style="min-height: 180px; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; border-radius: 10px; background: #fff;">
+                                        No intro video uploaded yet.
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="mt-3">
+                                    <form method="post" action="<?= base_url('candidate/upload-intro-video') ?>" enctype="multipart/form-data" class="mb-2">
+                                        <?= csrf_field() ?>
+                                        <div class="form-group mb-2">
+                                            <label class="small text-muted">Upload MP4, WEBM, or MOV up to 30MB</label>
+                                            <input type="file" name="intro_video" class="form-control intro-video-upload-input" accept="video/mp4,video/webm,video/quicktime" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-upload mr-1"></i> Upload Intro Video</button>
+                                    </form>
+                                    <?php if ($introVideoUrl !== ''): ?>
+                                        <form method="post" action="<?= base_url('candidate/remove-intro-video') ?>" onsubmit="return confirm('Remove your introduction video?');">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash mr-1"></i> Remove Video</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </div>

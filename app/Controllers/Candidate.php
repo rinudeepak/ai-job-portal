@@ -88,6 +88,7 @@ class Candidate extends BaseController
             'phone' => !empty($user['phone']),
             'profile_photo' => !empty($user['profile_photo']),
             'resume' => !empty($user['resume_path']),
+            'intro_video' => !empty($user['intro_video_path']),
             'github' => !empty($github['github_username']),
             'skills' => !empty($skills['skill_name']),
             'location' => !empty($user['location']),
@@ -606,6 +607,21 @@ class Candidate extends BaseController
         return redirect()->back()->with('career_success', 'Career details updated successfully');
     }
 
+    public function updateIntroVideo()
+    {
+        $userId = (int) session()->get('user_id');
+        $userModel = model('UserModel');
+
+        $data = [
+            'intro_video_target_role' => trim((string) $this->request->getPost('intro_video_target_role')),
+            'intro_video_pitch' => trim((string) $this->request->getPost('intro_video_pitch')),
+        ];
+
+        $userModel->upsertCandidateProfile($userId, $data);
+
+        return redirect()->back()->with('video_success', 'Video introduction details updated successfully');
+    }
+
     public function updatePreferences()
     {
         $userId = session()->get('user_id');
@@ -716,6 +732,77 @@ class Candidate extends BaseController
         session()->remove('profile_photo');
 
         return redirect()->back()->with('success', 'Profile photo removed successfully');
+    }
+
+    public function uploadIntroVideo()
+    {
+        $userId = (int) session()->get('user_id');
+        $file = $this->request->getFile('intro_video');
+
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'No video uploaded or invalid video file');
+        }
+
+        $allowedTypes = ['mp4', 'webm', 'mov'];
+        if (!in_array(strtolower($file->getExtension()), $allowedTypes, true)) {
+            return redirect()->back()->with('error', 'Only MP4, WEBM, or MOV videos are allowed');
+        }
+
+        if ($file->getSizeByUnit('mb') > 30) {
+            return redirect()->back()->with('error', 'Video size should be 30MB or less');
+        }
+
+        $uploadPath = FCPATH . 'uploads/intro-videos/';
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $userModel = model('UserModel');
+        $user = $userModel->findCandidateWithProfile($userId) ?? $userModel->find($userId);
+        $currentVideoPath = trim((string) ($user['intro_video_path'] ?? ''));
+        if ($currentVideoPath !== '' && str_starts_with($currentVideoPath, 'uploads/intro-videos/')) {
+            $absolutePath = FCPATH . $currentVideoPath;
+            if (is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+        }
+
+        $newName = $userId . '_intro_' . time() . '.' . strtolower($file->getExtension());
+        if (!$file->move($uploadPath, $newName)) {
+            return redirect()->back()->with('error', 'Video upload failed');
+        }
+
+        $videoPath = 'uploads/intro-videos/' . $newName;
+        $userModel->upsertCandidateProfile($userId, ['intro_video_path' => $videoPath]);
+
+        return redirect()->back()->with('video_success', 'Profile introduction video uploaded successfully');
+    }
+
+    public function removeIntroVideo()
+    {
+        $userId = (int) session()->get('user_id');
+        $userModel = model('UserModel');
+        $user = $userModel->findCandidateWithProfile($userId) ?? $userModel->find($userId);
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'User not found');
+        }
+
+        $videoPath = trim((string) ($user['intro_video_path'] ?? ''));
+        if ($videoPath === '') {
+            return redirect()->back()->with('error', 'No introduction video to remove');
+        }
+
+        if (str_starts_with($videoPath, 'uploads/intro-videos/')) {
+            $absolutePath = FCPATH . $videoPath;
+            if (is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+        }
+
+        $userModel->upsertCandidateProfile($userId, ['intro_video_path' => '']);
+
+        return redirect()->back()->with('video_success', 'Profile introduction video removed successfully');
     }
 
     public function addSkill()
