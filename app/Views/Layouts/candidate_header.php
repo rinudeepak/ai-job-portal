@@ -435,6 +435,8 @@
                         <div class="candidate-avatar-dropdown" id="candidateAvatarDropdown">
                             <a href="<?= base_url('candidate/profile') ?>"><i class="fas fa-user"></i><span>My Profile</span></a>
                             <a href="<?= base_url('candidate/settings') ?>"><i class="fas fa-cog"></i><span>Settings</span></a>
+                            <a href="<?= base_url('premium/plans') ?>"><i class="fas fa-crown"></i><span>Premium Plans</span></a>
+                            <a href="<?= base_url('payment/history') ?>"><i class="fas fa-receipt"></i><span>Payment History</span></a>
                             <a href="<?= base_url('logout') ?>"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                         </div>
                     </div>

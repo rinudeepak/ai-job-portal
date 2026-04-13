@@ -97,21 +97,22 @@ class CompanyProfile extends BaseController
             // Auto-save new company to DB
             $companyModel = model(CompanyModel::class);
             $savedCompanyId = $companyModel->upsertByName($companyName, [
-                'name' => $companyInfo['name'] ?: $companyName,
-                'logo' => $companyInfo['logo_url'] ?? '',
-                'website' => $companyInfo['website'] ?? '',
-                'short_description' => $companyInfo['description'] ?? '',
-                'career_page' => $companyInfo['career_page'] ?? '',
-                'linkedin' => $companyInfo['linkedin'] ?? '',
-                'twitter' => $companyInfo['twitter'] ?? '',
-                'facebook' => $companyInfo['facebook'] ?? '',
-                'instagram' => $companyInfo['instagram'] ?? '',
-                'youtube' => $companyInfo['youtube'] ?? '',
-                'industry' => $companyInfo['industry'] ?? '',
-                'size' => $companyInfo['size'] ?? '',
-                'hq' => $companyInfo['hq'] ?? $companyInfo['location'] ?? '',
-                'source' => !empty($companyInfo['career_page']) ? 'official_career_page' : 'auto_discovered',
-                'last_enriched_at' => date('Y-m-d H:i:s'),
+                'name'              => $companyName,
+                'logo'              => $companyInfo['logo_url'] ?? '',
+                'website'           => $companyInfo['website'] ?? '',
+                'short_description' => $companyInfo['short_description'] ?? $companyInfo['description'] ?? '',
+                'what_we_do'        => $companyInfo['what_we_do'] ?? '',
+                'hq'                => $companyInfo['hq'] ?? $companyInfo['location'] ?? '',
+                'industry'          => $companyInfo['industry'] ?? '',
+                'size'              => $companyInfo['size'] ?? '',
+                'career_page'       => $companyInfo['career_page'] ?? '',
+                'linkedin'          => $companyInfo['linkedin'] ?? '',
+                'twitter'           => $companyInfo['twitter'] ?? '',
+                'facebook'          => $companyInfo['facebook'] ?? '',
+                'instagram'         => $companyInfo['instagram'] ?? '',
+                'youtube'           => $companyInfo['youtube'] ?? '',
+                'source'            => !empty($companyInfo['career_page']) ? 'official_career_page' : 'auto_discovered',
+                'last_enriched_at'  => date('Y-m-d H:i:s'),
             ]);
 
             if ($infoOnly) {
@@ -491,8 +492,9 @@ class CompanyProfile extends BaseController
 
         $data = [
             'name' => trim((string) $this->request->getPost('company_name')),
-            'website' => trim((string) $this->request->getPost('company_website')),
-            'industry' => trim((string) $this->request->getPost('company_industry')),
+            'website'     => trim((string) $this->request->getPost('company_website')),
+            'career_page' => trim((string) $this->request->getPost('company_career_page')),
+            'industry'    => trim((string) $this->request->getPost('company_industry')),
             'size' => trim((string) $this->request->getPost('company_size')),
             'hq' => trim((string) $this->request->getPost('company_hq')),
             'branches' => trim((string) $this->request->getPost('company_branches')),
@@ -520,6 +522,10 @@ class CompanyProfile extends BaseController
 
         if ($data['website'] !== '' && !filter_var($data['website'], FILTER_VALIDATE_URL)) {
             return redirect()->back()->withInput()->with('error', 'Company website must be a valid URL.');
+        }
+
+        if ($data['career_page'] !== '' && !filter_var($data['career_page'], FILTER_VALIDATE_URL)) {
+            return redirect()->back()->withInput()->with('error', 'Careers page must be a valid URL.');
         }
 
         foreach (['linkedin', 'twitter', 'facebook', 'instagram', 'youtube'] as $socialField) {

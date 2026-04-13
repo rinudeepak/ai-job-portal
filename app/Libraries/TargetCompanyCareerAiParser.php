@@ -64,8 +64,22 @@ class TargetCompanyCareerAiParser
 
     private function buildCompanyInfoPrompt(string $companyName, string $pageUrl, string $pageHtml): string
     {
-        return "You are a company details extraction assistant. Extract the official company details from the page and return valid JSON only with the following fields: name, description, website, career_page, linkedin, twitter, facebook, instagram, youtube. \n" .
-            "If a field is not available, return an empty string for it. Do not add any extra text or markdown.\n\n" .
+        return "You are a company details extraction assistant. Extract the official company details from the page and return valid JSON only with these exact fields:\n" .
+            "- name: official company name\n" .
+            "- short_description: one-line tagline or summary (max 160 chars)\n" .
+            "- what_we_do: 2-4 sentence paragraph describing what the company does\n" .
+            "- hq: headquarters city and country (e.g. Bangalore, India)\n" .
+            "- industry: primary industry (e.g. Information Technology, Finance, Healthcare)\n" .
+            "- size: employee count range (e.g. 1000+, 10000+, 50-200)\n" .
+            "- founded_year: 4-digit year the company was founded (e.g. 1994)\n" .
+            "- website: official website URL\n" .
+            "- career_page: careers/jobs page URL\n" .
+            "- linkedin: LinkedIn company page URL\n" .
+            "- twitter: Twitter/X page URL\n" .
+            "- facebook: Facebook page URL\n" .
+            "- instagram: Instagram page URL\n" .
+            "- youtube: YouTube channel URL\n" .
+            "If a field is not available on the page, return an empty string for it. Do not add any extra text or markdown.\n\n" .
             "Company: {$companyName}\n" .
             "Page URL: {$pageUrl}\n" .
             "HTML:\n{$pageHtml}\n";
@@ -74,30 +88,31 @@ class TargetCompanyCareerAiParser
     private function normalizeCompanyInfo(array $info): array
     {
         return [
-            'name' => trim((string) ($info['name'] ?? '')),
-            'description' => trim((string) ($info['description'] ?? '')),
-            'website' => trim((string) ($info['website'] ?? '')),
-            'career_page' => trim((string) ($info['career_page'] ?? '')),
-            'linkedin' => trim((string) ($info['linkedin'] ?? '')),
-            'twitter' => trim((string) ($info['twitter'] ?? '')),
-            'facebook' => trim((string) ($info['facebook'] ?? '')),
-            'instagram' => trim((string) ($info['instagram'] ?? '')),
-            'youtube' => trim((string) ($info['youtube'] ?? '')),
-            'industry' => trim((string) ($info['industry'] ?? '')),
-            'size' => trim((string) ($info['size'] ?? '')),
-            'hq' => trim((string) ($info['hq'] ?? '')),
-            'location' => trim((string) ($info['location'] ?? '')),
+            'name'              => trim((string) ($info['name'] ?? '')),
+            'short_description' => trim((string) ($info['short_description'] ?? $info['description'] ?? '')),
+            'what_we_do'        => trim((string) ($info['what_we_do'] ?? '')),
+            'hq'                => trim((string) ($info['hq'] ?? $info['location'] ?? '')),
+            'industry'          => trim((string) ($info['industry'] ?? '')),
+            'size'              => trim((string) ($info['size'] ?? '')),
+            'founded_year'      => trim((string) ($info['founded_year'] ?? '')),
+            'website'           => trim((string) ($info['website'] ?? '')),
+            'career_page'       => trim((string) ($info['career_page'] ?? '')),
+            'linkedin'          => trim((string) ($info['linkedin'] ?? '')),
+            'twitter'           => trim((string) ($info['twitter'] ?? '')),
+            'facebook'          => trim((string) ($info['facebook'] ?? '')),
+            'instagram'         => trim((string) ($info['instagram'] ?? '')),
+            'youtube'           => trim((string) ($info['youtube'] ?? '')),
         ];
     }
 
     private function extractCompanyLinksFromHtml(string $html): array
     {
         $socials = [
-            'linkedin' => '',
-            'twitter' => '',
-            'facebook' => '',
+            'linkedin'  => '',
+            'twitter'   => '',
+            'facebook'  => '',
             'instagram' => '',
-            'youtube' => '',
+            'youtube'   => '',
         ];
 
         if (trim($html) === '') {
@@ -182,34 +197,34 @@ class TargetCompanyCareerAiParser
             : 'You are a precise assistant. Return only the requested URL or single value, without extra explanation.';
 
         $data = [
-            'model' => 'gpt-4o-mini',
+            'model'    => 'gpt-4o-mini',
             'messages' => [[
-                'role' => 'system',
-                'content' => $systemContent
+                'role'    => 'system',
+                'content' => $systemContent,
             ], [
-                'role' => 'user',
+                'role'    => 'user',
                 'content' => $prompt,
             ]],
             'temperature' => 0.0,
-            'max_tokens' => 16000,
-            'stream' => false,
+            'max_tokens'  => 16000,
+            'stream'      => false,
         ];
 
         $ch = curl_init('https://api.openai.com/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => [
+            CURLOPT_POST           => true,
+            CURLOPT_HTTPHEADER     => [
                 'Content-Type: application/json',
                 'Authorization: Bearer ' . trim($apiKey),
             ],
             CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_TIMEOUT => 90,
+            CURLOPT_TIMEOUT    => 90,
         ]);
 
-        $response = curl_exec($ch);
+        $response  = curl_exec($ch);
         $curlError = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($response === false || !empty($curlError)) {
@@ -287,9 +302,9 @@ class TargetCompanyCareerAiParser
         $content = preg_replace('/```\s*$/', '', $content);
         $content = trim($content);
 
-        $firstBrace = strpos($content, '{');
+        $firstBrace   = strpos($content, '{');
         $firstBracket = strpos($content, '[');
-        $start = false;
+        $start        = false;
 
         if ($firstBracket !== false && ($firstBrace === false || $firstBracket < $firstBrace)) {
             $start = $firstBracket;
@@ -307,8 +322,8 @@ class TargetCompanyCareerAiParser
         }
 
         $lastBracket = strrpos($content, ']');
-        $lastBrace = strrpos($content, '}');
-        $end = max($lastBracket ?: 0, $lastBrace ?: 0);
+        $lastBrace   = strrpos($content, '}');
+        $end         = max($lastBracket ?: 0, $lastBrace ?: 0);
 
         if ($end === 0 || $end <= $start) {
             $json = $this->findJsonSubstring($content);
@@ -319,7 +334,7 @@ class TargetCompanyCareerAiParser
             return $json;
         }
 
-        $json = substr($content, $start, $end - $start + 1);
+        $json    = substr($content, $start, $end - $start + 1);
         $decoded = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -339,7 +354,7 @@ class TargetCompanyCareerAiParser
         $pattern = '/(\{(?:[^{}]|(?R))*\}|\[(?:[^\[\]]|(?R))*\])/s';
         if (preg_match($pattern, $content, $matches)) {
             $candidate = trim($matches[0]);
-            $decoded = json_decode($candidate, true);
+            $decoded   = json_decode($candidate, true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 return $candidate;
             }

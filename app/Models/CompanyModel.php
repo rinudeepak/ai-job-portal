@@ -21,6 +21,7 @@ class CompanyModel extends Model
         'youtube',
         'industry',
         'size',
+        'founded_year',
         'hq',
         'branches',
         'short_description',
@@ -42,17 +43,51 @@ class CompanyModel extends Model
     public function upsertByName(string $name, array $data): int
     {
         $data = $this->filterToExistingFields($data);
-        $builder = $this->builder();
-        $existing = $builder->select('id')
-            ->where('LOWER(name)', strtolower(trim($name)))
-            ->get()->getRowArray();
-        
-        if ($existing) {
-            $this->update($existing['id'], $data);
-            return (int)$existing['id'];
+        $name = trim($name);
+
+        // Always try to find existing first (case-insensitive)
+        $existing = $this->db->table($this->table)
+            ->select('id')
+            ->where('LOWER(name)', strtolower($name))
+            ->get()
+            ->getRowArray();
+
+        if (!empty($existing['id'])) {
+            $this->update((int) $existing['id'], $data);
+            return (int) $existing['id'];
         }
-        
-        return (int)$this->insert($data, true);
+
+        // Also try exact match to catch case-sensitive unique key collisions
+        $existing = $this->db->table($this->table)
+            ->select('id')
+            ->where('name', $name)
+            ->get()
+            ->getRowArray();
+
+        if (!empty($existing['id'])) {
+            $this->update((int) $existing['id'], $data);
+            return (int) $existing['id'];
+        }
+
+        try {
+            return (int) $this->insert($data, true);
+        } catch (\Throwable $e) {
+            // Race condition: another request inserted between our SELECT and INSERT
+            // Fetch again and update instead
+            $existing = $this->db->table($this->table)
+                ->select('id')
+                ->where('LOWER(name)', strtolower($name))
+                ->get()
+                ->getRowArray();
+
+            if (!empty($existing['id'])) {
+                $this->update((int) $existing['id'], $data);
+                return (int) $existing['id'];
+            }
+
+            log_message('error', 'CompanyModel::upsertByName failed for "' . $name . '": ' . $e->getMessage());
+            return 0;
+        }
     }
 
     public function normalizeBrandKey(string $name): string

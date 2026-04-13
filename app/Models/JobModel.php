@@ -193,7 +193,7 @@ class JobModel extends Model
 
     public function upsertExternalJob(int $companyId, string $companyName, array $job, string $sourceUrl): int
     {
-        $title = trim((string) ($job['title'] ?? ''));
+        $title    = trim((string) ($job['title'] ?? ''));
         $applyUrl = trim((string) ($job['apply_url'] ?? ''));
         $location = trim((string) ($job['location'] ?? ''));
         $department = trim((string) ($job['department'] ?? ''));
@@ -203,20 +203,28 @@ class JobModel extends Model
             return 0;
         }
 
+        // Reuse the same system recruiter as ExternalJobIngestionService
+        $recruiterId = $this->getOrCreateSystemRecruiterId();
+        if ($recruiterId <= 0) {
+            return 0;
+        }
+
         $payload = [
-            'company_id' => $companyId > 0 ? $companyId : null,
-            'company' => $companyName,
-            'title' => $title,
-            'category' => $department !== '' ? $department : null,
-            'location' => $location,
-            'description' => $description,
-            'employment_type' => trim((string) ($job['employment_type'] ?? '')),
-            'openings' => 1,
-            'status' => 'open',
-            'is_external' => 1,
-            'external_source' => $sourceUrl,
+            'recruiter_id'       => $recruiterId,
+            'company_id'         => $companyId > 0 ? $companyId : null,
+            'company'            => $companyName,
+            'title'              => $title,
+            'category'           => $department !== '' ? $department : 'External',
+            'location'           => $location !== '' ? $location : 'Not specified',
+            'description'        => $description !== '' ? $description : $title,
+            'employment_type'    => trim((string) ($job['employment_type'] ?? '')),
+            'openings'           => 1,
+            'status'             => 'open',
+            'is_external'        => 1,
+            'external_source'    => $sourceUrl,
             'external_apply_url' => $applyUrl,
-            'ai_interview_policy' => self::AI_POLICY_OFF,
+            'ai_interview_policy'=> self::AI_POLICY_OFF,
+            'min_ai_cutoff_score'=> 0,
         ];
 
         $existing = $this->where('external_apply_url', $applyUrl)->first();
@@ -233,7 +241,51 @@ class JobModel extends Model
             return (int) $existing['id'];
         }
 
-        return (int) $this->insert($payload, true);
+        try {
+            return (int) $this->insert($payload, true);
+        } catch (\Throwable $e) {
+            // Duplicate apply_url inserted by concurrent request
+            $existing = $this->where('external_apply_url', $applyUrl)->first();
+            if ($existing) {
+                return (int) $existing['id'];
+            }
+            log_message('error', 'upsertExternalJob failed: ' . $e->getMessage());
+            return 0;
+        }
+    }
+
+    private function getOrCreateSystemRecruiterId(): int
+    {
+        $db  = \Config\Database::connect();
+        $row = $db->table('users')
+            ->where('email', self::EXTERNAL_SYSTEM_RECRUITER_EMAIL)
+            ->where('role', 'recruiter')
+            ->get()
+            ->getRowArray();
+
+        if (!empty($row['id'])) {
+            return (int) $row['id'];
+        }
+
+        try {
+            $secret = bin2hex(random_bytes(16));
+        } catch (\Throwable $e) {
+            $secret = uniqid('ext_', true);
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $db->table('users')->insert([
+            'name'              => self::EXTERNAL_SYSTEM_RECRUITER_NAME,
+            'email'             => self::EXTERNAL_SYSTEM_RECRUITER_EMAIL,
+            'phone'             => '0000000000',
+            'password'          => password_hash($secret, PASSWORD_DEFAULT),
+            'role'              => 'recruiter',
+            'email_verified_at' => $now,
+            'phone_verified_at' => $now,
+            'created_at'        => $now,
+        ]);
+
+        return (int) $db->insertID();
     }
 
     /** @return array<int, string> */

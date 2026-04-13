@@ -63,13 +63,18 @@
 
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label>Website</label>
+                                <label>Main Website</label>
                                 <input type="url" name="company_website" class="form-control" placeholder="https://example.com" value="<?= esc(old('company_website', $company['website'] ?? '')) ?>">
                             </div>
                             <div class="form-group col-md-6">
-                                <label>Industry</label>
-                                <input type="text" name="company_industry" class="form-control" value="<?= esc(old('company_industry', $company['industry'] ?? '')) ?>">
+                                <label>Careers Page <small class="text-muted">(where candidates apply)</small></label>
+                                <input type="url" name="company_career_page" class="form-control" placeholder="https://example.com/careers" value="<?= esc(old('company_career_page', $company['career_page'] ?? '')) ?>">
                             </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Industry</label>
+                            <input type="text" name="company_industry" class="form-control" value="<?= esc(old('company_industry', $company['industry'] ?? '')) ?>">
                         </div>
 
                         <div class="form-row">

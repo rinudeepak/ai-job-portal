@@ -225,7 +225,8 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                     <?php if ($policy === 'OFF'): ?>
                                         <span class="badge badge-info p-2">AI interview disabled for this job</span>
                                     <?php else: ?>
-                                        <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-success btn-sm"><i class="fas fa-video"></i> <?= $policy === 'OPTIONAL' ? 'Start AI Interview (Optional)' : 'Start AI Interview' ?></a>
+                                        <!-- AI Interview disabled - not stable yet -->
+                                        <!-- <a href="<?= base_url('interview/start/' . $application['id']) ?>" class="btn btn-success btn-sm"><i class="fas fa-video"></i> <?= $policy === 'OPTIONAL' ? 'Start AI Interview (Optional)' : 'Start AI Interview' ?></a> -->
                                         <?php if ($policy === 'OPTIONAL'): ?>
                                             <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-outline-warning btn-sm"><i class="fas fa-calendar-plus"></i> Book Slot Without AI</a>
                                         <?php endif; ?>

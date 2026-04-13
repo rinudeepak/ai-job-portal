@@ -1176,7 +1176,7 @@ class TargetCompanyJobService
     private function isPlaceholderJobTitle(string $title): bool
     {
         $lower = strtolower($title);
-        return (bool) preg_match('/\b(please visit|job search page|career page|career site|click here|learn more|find jobs|search jobs)\b/i', $lower);
+        return (bool) preg_match('/\b(please visit|job search page|career page|career site|click here|learn more|find jobs|search jobs|apply now|apply here|recruitment fraud|fraud alert|beware of fraud|view all jobs|see all jobs|all openings|load more|show more|back to top|cookie|privacy policy|terms of use|growing your career|view global openings|global openings|explore opportunities|explore careers|explore jobs|join our team|life at|working at|why work|our culture|meet our team|employee stories|diversity|inclusion|benefits|perks|early careers|students|graduates|veterans|accessibility)\b/i', $lower);
     }
 
     private function normalizeApplyUrl(string $url, string $pageUrl): string

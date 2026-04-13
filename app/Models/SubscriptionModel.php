@@ -40,4 +40,16 @@ class SubscriptionModel extends Model
         $db = \Config\Database::connect();
         return $db->table('user_subscriptions')->insert($data);
     }
+
+    public function getUserPaymentHistory(int $userId): array
+    {
+        $db = \Config\Database::connect();
+        return $db->table('payment_orders po')
+            ->select('po.*, sp.name as plan_name')
+            ->join('subscription_plans sp', 'sp.id = po.plan_id', 'left')
+            ->where('po.user_id', $userId)
+            ->orderBy('po.created_at', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
 }

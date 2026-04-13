@@ -174,11 +174,14 @@ $serviceCards = [
                                 <?php if ((float) $plan['price'] <= 0): ?>
                                     <a href="<?= base_url('candidate/dashboard') ?>" class="btn btn-outline-primary btn-block">Get Started Free</a>
                                 <?php else: ?>
-                                    <form method="post" action="<?= base_url('premium-mentor/subscribe') ?>">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="plan_id" value="<?= (int) $plan['id'] ?>">
-                                        <button type="submit" class="btn btn-primary btn-block">Subscribe Now</button>
-                                    </form>
+                                    <button type="button"
+                                        class="btn btn-primary btn-block js-pay-btn"
+                                        data-plan-id="<?= (int) $plan['id'] ?>"
+                                        data-plan-name="<?= esc($plan['name']) ?>"
+                                        data-amount="<?= (int) round((float) $plan['price'] * 100) ?>"
+                                        data-price="<?= esc(number_format((float) $plan['price'])) ?>">
+                                        Subscribe &#8377;<?= number_format((float) $plan['price']) ?>
+                                    </button>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -242,3 +245,88 @@ $serviceCards = [
 </div>
 
 <?= view('Layouts/candidate_footer') ?>
+
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.querySelectorAll('.js-pay-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var planId   = this.dataset.planId;
+        var planName = this.dataset.planName;
+        var self     = this;
+
+        self.disabled = true;
+        self.textContent = 'Processing...';
+
+        // Step 1: create Razorpay order on server
+        fetch('<?= base_url('payment/create-order') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'plan_id=' + planId + '&<?= csrf_token() ?>=' + '<?= csrf_hash() ?>'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                alert(data.error);
+                self.disabled = false;
+                self.textContent = 'Subscribe \u20B9' + self.dataset.price;
+                return;
+            }
+
+            // Step 2: open Razorpay checkout modal
+            var options = {
+                key:         data.key_id,
+                amount:      data.amount,
+                currency:    data.currency,
+                name:        'HireMatrix',
+                description: planName,
+                order_id:    data.order_id,
+                theme:       { color: '#0d6efd' },
+                handler: function(response) {
+                    // Step 3: verify payment on server
+                    fetch('<?= base_url('payment/verify') ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: [
+                            'razorpay_order_id='   + encodeURIComponent(response.razorpay_order_id),
+                            'razorpay_payment_id=' + encodeURIComponent(response.razorpay_payment_id),
+                            'razorpay_signature='  + encodeURIComponent(response.razorpay_signature),
+                            '<?= csrf_token() ?>=' + '<?= csrf_hash() ?>'
+                        ].join('&')
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(result) {
+                        if (result.success) {
+                            window.location.href = result.redirect;
+                        } else {
+                            alert(result.error || 'Payment verification failed. Please contact support.');
+                            self.disabled = false;
+                            self.textContent = 'Subscribe \u20B9' + self.dataset.price;
+                        }
+                    });
+                },
+                modal: {
+                    ondismiss: function() {
+                        self.disabled = false;
+                        self.textContent = 'Subscribe \u20B9' + self.dataset.price;
+                    }
+                }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.open();
+        })
+        .catch(function() {
+            alert('Something went wrong. Please try again.');
+            self.disabled = false;
+            self.textContent = 'Subscribe \u20B9' + self.dataset.price;
+        });
+    });
+});
+</script>

@@ -519,6 +519,14 @@ class Jobs extends BaseController
                 ->with('error', 'Job not found');
         }
 
+        // External jobs: skip the blank detail page and go straight to the source
+        if ((int) ($job['is_external'] ?? 0) === 1) {
+            $applyUrl = trim((string) ($job['external_apply_url'] ?? ''));
+            if ($applyUrl !== '' && filter_var($applyUrl, FILTER_VALIDATE_URL)) {
+                return redirect()->to($applyUrl);
+            }
+        }
+
         $application = $applicationModel
             ->where('job_id', $id)
             ->where('candidate_id', $candidateId)

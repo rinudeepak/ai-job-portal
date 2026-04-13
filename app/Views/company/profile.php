@@ -46,10 +46,11 @@ $companyName = (string) ($company['name'] ?? 'Company Profile');
 $companyShortDescription = trim((string) ($company['short_description'] ?? ''));
 $companyInitial = strtoupper(substr($companyName, 0, 1) ?: 'C');
 $companyMeta = [
-    !empty($company['industry']) ? ['Industry', (string) ($company['industry'] ?? '')] : null,
-    !empty($company['size']) ? ['Size', (string) ($company['size'] ?? '')] : null,
-    !empty($company['hq']) ? ['HQ', (string) ($company['hq'] ?? '')] : null,
-    !empty($company['branches']) ? ['Branches', (string) ($company['branches'] ?? '')] : null,
+    !empty($company['industry'])     ? ['Industry',  (string) ($company['industry'] ?? '')]     : null,
+    !empty($company['size'])         ? ['Size',      (string) ($company['size'] ?? '')]         : null,
+    !empty($company['hq'])           ? ['HQ',        (string) ($company['hq'] ?? '')]           : null,
+    !empty($company['founded_year']) ? ['Founded',   (string) ($company['founded_year'] ?? '')] : null,
+    !empty($company['branches'])     ? ['Branches',  (string) ($company['branches'] ?? '')]     : null,
 ];
 $companyMeta = array_values(array_filter($companyMeta));
 $companySource = strtolower(trim((string) ($company['source'] ?? '')));
@@ -143,12 +144,14 @@ $companySocialLinks = array_filter([
                 </p>
             </div>
             <div class="company-profile-actions">
-                <a href="<?= base_url('jobs') ?>" class="btn btn-outline-secondary">
-                    <i class="fas fa-briefcase mr-1"></i> Browse Jobs
-                </a>
                 <?php if (!empty($company['website'])): ?>
                     <a href="<?= esc($company['website']) ?>" target="_blank" rel="noopener" class="btn btn-outline-secondary">
-                        <i class="fas fa-globe mr-1"></i> Visit Website
+                        <i class="fas fa-globe mr-1"></i> Company Website
+                    </a>
+                <?php endif; ?>
+                <?php if (!empty($company['career_page'])): ?>
+                    <a href="<?= esc($company['career_page']) ?>" target="_blank" rel="noopener" class="btn btn-outline-secondary">
+                        <i class="fas fa-briefcase mr-1"></i> Careers Page
                     </a>
                 <?php endif; ?>
                 <?php if (!empty($openJobs)): ?>
@@ -199,15 +202,7 @@ $companySocialLinks = array_filter([
                                         <span class="summary-chip">Contact public</span>
                                     </div>
                                 <?php endif; ?>
-                                <?php if (!empty($companyCoreLinks)): ?>
-                                    <div class="job-details-chip-list mt-2">
-                                        <?php foreach ($companyCoreLinks as $link): ?>
-                                            <a href="<?= esc($link['url']) ?>" target="_blank" rel="noopener" class="summary-chip">
-                                                <i class="<?= esc($link['icon']) ?> mr-1"></i><?= esc($link['label']) ?>
-                                            </a>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
+
                             </div>
                         </div>
 

@@ -180,7 +180,7 @@ $renderRecommendedPane = static function (
                             <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
                             <span class="progress-label"><?= $matchPct ?>% match</span>
                         </div>
-                        <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
+                        <a href="<?= $isExternalJob && !empty($job['external_apply_url']) ? esc($job['external_apply_url']) : base_url('job/' . $job['id']) ?>" class="view-details" <?= $isExternalJob ? 'target="_blank" rel="noopener"' : '' ?>>View Details &rarr;</a>
                     </div>
                 </article>
             <?php endforeach; ?>
@@ -598,7 +598,7 @@ $activeFilterCount = count($activeFilterChips);
                                         <div class="progress-bar-custom" style="width: 100%;"></div>
                                         <span class="progress-label">Open role</span>
                                     </div>
-                                    <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
+                                    <a href="<?= $isExternalJob && !empty($job['external_apply_url']) ? esc($job['external_apply_url']) : base_url('job/' . $job['id']) ?>" class="view-details" <?= $isExternalJob ? 'target="_blank" rel="noopener"' : '' ?>>View Details &rarr;</a>
                                 </div>
                             </div>
                         </div>

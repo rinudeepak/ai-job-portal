@@ -253,9 +253,17 @@ $routes->group('premium-mentor', ['filter' => 'candidate'], function($routes) {
     $routes->get('/', 'PremiumCareerMentorController::index');
     $routes->get('plans', 'PremiumCareerMentorController::plans');
     $routes->post('chat', 'PremiumCareerMentorController::chat');
-    $routes->post('subscribe', 'PremiumCareerMentorController::subscribe');
     $routes->post('create-career-plan', 'PremiumCareerMentorController::createCareerPlan');
 });
+
+// Payment Routes (Razorpay)
+$routes->group('payment', ['filter' => 'candidate'], function($routes) {
+    $routes->post('create-order', 'PaymentController::createOrder');
+    $routes->post('verify',       'PaymentController::verify');
+    $routes->get('history',       'PaymentController::history');
+});
+// Razorpay webhook — no auth filter, verified by signature
+$routes->post('payment/webhook', 'PaymentController::webhook');
 
 // Target Companies Routes
 $routes->group('target-companies', ['filter' => 'candidate'], function($routes) {

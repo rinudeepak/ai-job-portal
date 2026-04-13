@@ -159,14 +159,16 @@ $resolveAssetUrl = static function (string $path): string {
     <div class="container dashboard-layout">
         <aside class="sidebar dashboard-sidebar">
             <div class="dashboard-sidebar-head">
-                <div class="dashboard-sidebar-profile">
-                    <div class="dashboard-sidebar-avatar">
+                <div class="dashboard-sidebar-profile-pic-container">
+                    <div class="dashboard-sidebar-profile-pic">
                         <?php if ($candidatePhotoUrl !== ''): ?>
                             <img src="<?= esc($candidatePhotoUrl) ?>" alt="<?= esc($candidateName) ?>">
                         <?php else: ?>
                             <span><?= esc($candidateInitial) ?></span>
                         <?php endif; ?>
                     </div>
+                </div>
+                <div class="dashboard-sidebar-profile">
                     <div class="dashboard-sidebar-profile-meta">
                         <strong><?= esc($candidateName) ?></strong>
                         <p class="dashboard-sidebar-role"><?= esc($profileHeadline) ?></p>

@@ -224,10 +224,7 @@ $introVideoUrl = $introVideoPath !== ''
                                             <label class="form-label"><i class="fas fa-calendar-alt"></i> Date of Birth</label>
                                             <div class="profile-readonly-field<?= empty($user['date_of_birth']) ? ' is-empty' : '' ?>"><?= !empty($user['date_of_birth']) ? esc($user['date_of_birth']) : 'Not provided' ?></div>
                                         </div>
-                                        <div class="col-12 mb-3">
-                                            <label class="form-label"><i class="fas fa-info-circle"></i> Bio</label>
-                                            <div class="profile-readonly-field<?= empty($user['bio']) ? ' is-empty' : '' ?>"><?= !empty($user['bio']) ? nl2br(esc($user['bio'])) : 'Not provided' ?></div>
-                                        </div>
+
                                     </div>
                                 </div>
 
@@ -264,10 +261,7 @@ $introVideoUrl = $introVideoPath !== ''
                                             <label class="form-label"><i class="fas fa-calendar-alt"></i> Date of Birth</label>
                                             <input type="date" name="date_of_birth" class="form-control" value="<?= esc($user['date_of_birth'] ?? '') ?>">
                                         </div>
-                                        <div class="col-12 mb-3">
-                                            <label class="form-label"><i class="fas fa-info-circle"></i> Bio</label>
-                                            <textarea name="bio" class="form-control" rows="4" placeholder="Tell us about yourself..."><?= esc($user['bio'] ?? '') ?></textarea>
-                                        </div>
+
                                     </div>
                                     <div class="profile-edit-actions">
                                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
