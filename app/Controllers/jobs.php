@@ -120,31 +120,20 @@ class Jobs extends BaseController
         $pager = $jobModel->pager;
         $totalJobs = $pager->getTotal();
 
-        $locations = $jobModel->select('location')
-            ->where('status', 'open')
-            ->where('location IS NOT NULL')
-            ->where('location !=', '')
-            ->groupBy('location')
-            ->findAll();
+        $locationBuilder = $jobModel->select('location')->where('status', 'open')->where('location IS NOT NULL')->where('location !=', '');
+        $categoryBuilder = $jobModel->select('category')->where('status', 'open')->where('category IS NOT NULL')->where('category !=', '');
+        $employmentTypeBuilder = $jobModel->select('employment_type')->where('status', 'open')->where('employment_type IS NOT NULL')->where('employment_type !=', '');
 
-        $experienceLevels = $jobModel->select('experience_level')
-            ->where('status', 'open')
-            ->groupBy('experience_level')
-            ->findAll();
+        if (!empty($filters['company'])) {
+            $locationBuilder->like('company', $filters['company']);
+            $categoryBuilder->like('company', $filters['company']);
+            $employmentTypeBuilder->like('company', $filters['company']);
+        }
 
-        $employmentTypes = $jobModel->select('employment_type')
-            ->where('status', 'open')
-            ->where('employment_type IS NOT NULL')
-            ->where('employment_type !=', '')
-            ->groupBy('employment_type')
-            ->findAll();
-
-        $categories = $jobModel->select('category')
-            ->where('status', 'open')
-            ->where('category IS NOT NULL')
-            ->where('category !=', '')
-            ->groupBy('category')
-            ->findAll();
+        $locations = $locationBuilder->groupBy('location')->findAll();
+        $experienceLevels = $jobModel->select('experience_level')->where('status', 'open')->groupBy('experience_level')->findAll();
+        $employmentTypes = $employmentTypeBuilder->groupBy('employment_type')->findAll();
+        $categories = $categoryBuilder->groupBy('category')->findAll();
 
         $recommendationType = strtolower((string) $this->request->getGet('rec'));
         $allowedRecommendationTypes = ['applies', 'skills', 'preferences', 'ai'];

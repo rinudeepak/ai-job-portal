@@ -2694,3 +2694,119 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================================
+   HALF-SCREEN / INTERMEDIATE BREAKPOINT FIXES
+   ============================================================ */
+
+/* All recruiter two-column layouts: reduce side panel at mid-range */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+
+  /* Candidate profile layout */
+  .recruiter-candidate-profile-jobboard .candidate-profile-layout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.6fr);
+    gap: 1rem;
+  }
+
+  /* Applications view-by-job layout */
+  .recruiter-applications-jobboard .applications-layout,
+  .recruiter-applications-jobboard .application-detail-layout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.6fr);
+    gap: 1rem;
+  }
+
+  /* Slot management layout */
+  .recruiter-slot-bookings-jobboard .slot-layout,
+  .recruiter-slot-create-jobboard .slot-form-layout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.6fr);
+    gap: 1rem;
+  }
+
+  /* Job form layout */
+  .recruiter-job-form .job-form-layout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.6fr);
+    gap: 1rem;
+  }
+
+  /* AI report layout */
+  .recruiter-ai-report-jobboard .ai-report-layout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.6fr);
+    gap: 1rem;
+  }
+}
+
+/* Collapse all recruiter two-column layouts on mobile */
+@media (max-width: 767.98px) {
+
+  .recruiter-candidate-profile-jobboard .candidate-profile-layout,
+  .recruiter-applications-jobboard .applications-layout,
+  .recruiter-applications-jobboard .application-detail-layout,
+  .recruiter-slot-bookings-jobboard .slot-layout,
+  .recruiter-slot-create-jobboard .slot-form-layout,
+  .recruiter-job-form .job-form-layout,
+  .recruiter-ai-report-jobboard .ai-report-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* Recruiter dashboard stats */
+  .recruiter-dashboard-jobboard .recruiter-pipeline-stats .row > [class*="col-"] {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Recruiter table: horizontal scroll */
+  .recruiter-jobboard .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Recruiter page board header */
+  .recruiter-page-board-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .recruiter-page-board-header .page-board-actions {
+    width: 100%;
+  }
+
+  .recruiter-page-board-header .page-board-actions .btn {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 0.4rem;
+  }
+}
+
+/* Recruiter dashboard: 3-col stat grid at mid-range */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .recruiter-dashboard-jobboard .row.g-4 > .col-md-3 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Recruiter leaderboard table at mid-range */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .recruiter-leaderboard-jobboard .table-responsive {
+    overflow-x: auto;
+  }
+}
+
+/* Recruiter company edit at mid-range */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  .recruiter-company-edit-jobboard .company-edit-layout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(200px, 0.55fr);
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .recruiter-company-edit-jobboard .company-edit-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .recruiter-company-edit-jobboard .company-edit-side {
+    position: static;
+  }
+}

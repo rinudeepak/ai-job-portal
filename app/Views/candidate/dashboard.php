@@ -100,61 +100,19 @@ $resolveAssetUrl = static function (string $path): string {
 ?>
 
 <div class="dashboard-jobboard">
-    <section class="hero dashboard-hero">
-        <div class="container">
-            <div class="status-pill">
-                <i class="fas fa-arrow-trend-up" style="color: var(--primary);"></i>
-                <?= $applicationCount ?> Active Applications
-            </div>
-
-            <h1 class="hero-title">
-                Welcome Back to Your
-                <span class="gradient-text">Career Dashboard</span>
-            </h1>
-
-            <p class="hero-subtitle">
-                Track your applications, interviews, and AI progress. Discover live opportunities that match your career goals.
-            </p>
-
-            <?php if (!empty($bannerItems)): ?>
-                <div class="dashboard-primary-action-slider" data-dashboard-banner-slider data-active-index="<?= $bannerActiveIndex ?>">
-                    <div class="dashboard-primary-action-track">
-                        <?php foreach ($bannerItems as $index => $banner): ?>
-                            <article class="dashboard-primary-action-slide<?= $index === $bannerActiveIndex ? ' is-active' : '' ?>" data-banner-slide>
-                                <div class="dashboard-primary-action">
-                                    <div class="dashboard-primary-action-copy">
-                                        <span class="dashboard-primary-action-kicker"><?= esc((string) ($banner['label'] ?? 'Next best action')) ?></span>
-                                        <h2 class="dashboard-primary-action-title"><?= esc((string) ($banner['title'] ?? 'Keep your profile moving forward')) ?></h2>
-                                        <p class="dashboard-primary-action-text"><?= esc((string) ($banner['message'] ?? 'Take one small step today to keep your momentum going.')) ?></p>
-                                    </div>
-                                    <div class="dashboard-primary-action-buttons">
-                                        <a href="<?= esc((string) ($banner['action_link'] ?? base_url('candidate/dashboard'))) ?>" class="btn btn-primary btn-lg dashboard-primary-btn">
-                                            <?= esc((string) ($banner['action_text'] ?? 'Open')) ?>
-                                        </a>
-                                    </div>
-                                </div>
-                            </article>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php if (count($bannerItems) > 1): ?>
-                        <div class="dashboard-primary-action-nav">
-                            <div class="dashboard-primary-action-dots">
-                                <?php foreach ($bannerItems as $index => $banner): ?>
-                                    <button
-                                        type="button"
-                                        class="dashboard-primary-action-dot<?= $index === $bannerActiveIndex ? ' is-active' : '' ?>"
-                                        data-banner-dot="<?= $index ?>"
-                                        aria-label="<?= esc((string) ($banner['label'] ?? 'Open banner')) ?>"
-                                    ></button>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
-
-        </div>
-    </section>
+    <!-- Quick nav: shown only when sidebar is hidden (≤1100px) -->
+    <div class="container">
+        <nav class="dashboard-quick-nav" style="display:none;">
+            <a href="<?= base_url('candidate/dashboard') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['dashboard'] ? 'active' : '' ?>"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="<?= base_url('candidate/applications') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['applications'] ? 'active' : '' ?>"><i class="fas fa-briefcase"></i> Applications</a>
+            <a href="<?= base_url('jobs?tab=suggested') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['suggested'] ? 'active' : '' ?>"><i class="fas fa-fire"></i> Recommended</a>
+            <a href="<?= base_url('candidate/saved-jobs') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['saved'] ? 'active' : '' ?>"><i class="fas fa-bookmark"></i> Saved</a>
+            <a href="<?= base_url('companies') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['companies'] ? 'active' : '' ?>"><i class="fas fa-building"></i> Companies</a>
+            <a href="<?= base_url('candidate/profile') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['profile'] ? 'active' : '' ?>"><i class="fas fa-user"></i> Profile</a>
+            <a href="<?= base_url('career-transition') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['career'] ? 'active' : '' ?>"><i class="fas fa-compass"></i> Career AI</a>
+            <a href="<?= base_url('candidate/resume-studio') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['resume'] ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> Resume Studio</a>
+        </nav>
+    </div>
 
     <div class="container dashboard-layout">
         <aside class="sidebar dashboard-sidebar">
@@ -194,15 +152,36 @@ $resolveAssetUrl = static function (string $path): string {
                 <a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $sidebarClass('suggested') ?>"><i class="fas fa-fire"></i> Recommended Jobs</a>
                 <a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $sidebarClass('saved') ?>"><i class="fas fa-bookmark"></i> Saved Jobs</a>
                 <a href="<?= base_url('companies') ?>" class="<?= $sidebarClass('companies') ?>"><i class="fas fa-building"></i> Companies</a>
-                <a href="<?= base_url('candidate/profile') ?>" class="<?= $sidebarClass('profile') ?>"><i class="fas fa-user"></i> My Profile</a>
-                <a href="<?= base_url('career-transition') ?>" class="<?= $sidebarClass('career') ?>"><i class="fas fa-compass"></i> Career Transition AI</a>
-                <a href="<?= base_url('candidate/resume-studio') ?>" class="<?= $sidebarClass('resume') ?>"><i class="fas fa-file-alt"></i> Resume Studio</a>
+
             </nav>
         </aside>
         <div class="dashboard-main">
             <section class="dashboard-section">
                 <div class="container">
-                    <div class="dashboard-metric-grid">
+                    <?php if (!empty($bannerItems)): ?>
+            <div class="naukri-banner-strip naukri-banner-strip--inline mb-3">
+                <div class="naukri-banner-slider" data-dashboard-banner-slider data-active-index="<?= $bannerActiveIndex ?>">
+                    <?php foreach ($bannerItems as $index => $banner): ?>
+                        <div class="naukri-banner-item<?= $index === $bannerActiveIndex ? ' is-active' : '' ?>" data-banner-slide>
+                            <span class="naukri-banner-label"><?= esc((string) ($banner['label'] ?? '')) ?></span>
+                            <span class="naukri-banner-title"><?= esc((string) ($banner['title'] ?? '')) ?></span>
+                            <a href="<?= esc((string) ($banner['action_link'] ?? base_url('candidate/dashboard'))) ?>" class="naukri-banner-cta">
+                                <?= esc((string) ($banner['action_text'] ?? 'View')) ?> <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php if (count($bannerItems) > 1): ?>
+                        <div class="naukri-banner-dots">
+                            <?php foreach ($bannerItems as $index => $banner): ?>
+                                <button type="button" class="naukri-banner-dot<?= $index === $bannerActiveIndex ? ' is-active' : '' ?>" data-banner-dot="<?= $index ?>" aria-label="<?= esc((string) ($banner['label'] ?? '')) ?>"></button>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <div class="dashboard-metric-grid">
                 <a href="<?= base_url('candidate/profile') ?>" class="dashboard-metric-card dashboard-metric-link">
                     <div class="dashboard-metric-label">Profile strength</div>
                     <div class="dashboard-metric-value"><?= $profileStrength ?>%</div>
@@ -342,28 +321,105 @@ $resolveAssetUrl = static function (string $path): string {
 
     <section class="dashboard-section pt-0">
         <div class="container">
-            <div class="dashboard-cta-banner mb-4">
+            <?php if (empty($premiumSubscription ?? null)): ?>
+            <div class="dashboard-cta-banner">
                 <div class="dashboard-cta-banner-inner">
                     <div class="dashboard-cta-copy">
                         <div class="dashboard-cta-kicker">
-                            <i class="fas fa-sparkles"></i>
-                            Career Transition AI
+                            <i class="fas fa-crown"></i>
+                            HireMatrix Pro
                         </div>
-                        <h2 class="dashboard-cta-title">Career Transition AI</h2>
-                        <p class="dashboard-cta-text">
-                            We analyze your current skill set and generate a focused roadmap for your target role. Start your career transition journey today!
-                        </p>
-                        <a href="<?= base_url('career-transition') ?>" class="btn btn-light dashboard-cta-btn">
-                            Generate Roadmap <i class="fas fa-arrow-right ms-2"></i>
+                        <h2 class="dashboard-cta-title">One subscription unlocks all three AI services</h2>
+                        <div class="pro-ad-services">
+                            <div class="pro-ad-service">
+                                <div class="pro-ad-service-title"><i class="fas fa-route"></i> Career Transition AI</div>
+                                <ul class="pro-ad-features">
+                                    <li>Personalized roadmap</li>
+                                    <li>Daily actionable tasks</li>
+                                    <li>Skill gap analysis</li>
+                                    <li>Course modules and exercises</li>
+                                </ul>
+                            </div>
+                            <div class="pro-ad-service">
+                                <div class="pro-ad-service-title"><i class="fas fa-file-alt"></i> Resume Studio</div>
+                                <ul class="pro-ad-features">
+                                    <li>ATS-friendly resumes</li>
+                                    <li>Job-specific versions</li>
+                                    <li>Career transition resumes</li>
+                                    <li>Unlimited updates</li>
+                                </ul>
+                            </div>
+                            <div class="pro-ad-service">
+                                <div class="pro-ad-service-title"><i class="fas fa-robot"></i> AI Career Mentor</div>
+                                <ul class="pro-ad-features">
+                                    <li>Unlimited mentor chats</li>
+                                    <li>Interview preparation</li>
+                                    <li>Resume review guidance</li>
+                                    <li>Job search strategy</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <a href="<?= base_url('premium/plans') ?>" class="dashboard-cta-btn btn btn-light mt-3">
+                            View Plans <i class="fas fa-arrow-right ms-2"></i>
                         </a>
                     </div>
                     <div class="dashboard-cta-art d-none d-lg-flex" aria-hidden="true">
                         <div class="dashboard-cta-orb">
-                            <i class="fas fa-sparkles"></i>
+                            <i class="fas fa-crown"></i>
                         </div>
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <section class="dashboard-section pt-0">
+        <div class="container">
+            <?php
+            $topHiringCompanies = $topHiringCompanies ?? [];
+            $resolveLogoUrl = static function (string $path): string {
+                $path = trim($path);
+                if ($path === '') return '';
+                if (preg_match('#^https?://#i', $path)) return $path;
+                return base_url(ltrim($path, '/'));
+            };
+            ?>
+            <?php if (!empty($topHiringCompanies)): ?>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">Top Companies Hiring Now</h2>
+                <a href="<?= base_url('companies') ?>" class="btn btn-ghost text-primary">View all <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+            <div class="top-companies-grid">
+                <?php foreach ($topHiringCompanies as $co): ?>
+                    <?php
+                    $coName    = trim((string) ($co['name'] ?? 'Company'));
+                    $coLogo    = $resolveLogoUrl((string) ($co['logo'] ?? ''));
+                    $coIndustry = trim((string) ($co['industry'] ?? ''));
+                    $coJobs    = (int) ($co['job_count'] ?? 0);
+                    $coInitial = strtoupper(substr($coName, 0, 1) ?: 'C');
+                    $coId      = (int) ($co['company_id'] ?? 0);
+                    $coUrl     = $coId > 0 ? base_url('company/' . $coId) : base_url('jobs?company=' . urlencode($coName));
+                    ?>
+                    <a href="<?= esc($coUrl) ?>" class="top-company-card">
+                        <div class="top-company-logo">
+                            <?php if ($coLogo !== ''): ?>
+                                <img src="<?= esc($coLogo) ?>" alt="<?= esc($coName) ?>">
+                            <?php else: ?>
+                                <span><?= esc($coInitial) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="top-company-info">
+                            <div class="top-company-name"><?= esc($coName) ?></div>
+                            <?php if ($coIndustry !== ''): ?>
+                                <div class="top-company-industry"><?= esc($coIndustry) ?></div>
+                            <?php endif; ?>
+                            <div class="top-company-jobs"><?= $coJobs ?> <?= $coJobs === 1 ? 'opening' : 'openings' ?></div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -436,49 +492,25 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-dashboard-banner-slider]').forEach(function (slider) {
         var slides = Array.prototype.slice.call(slider.querySelectorAll('[data-banner-slide]'));
         var dots = Array.prototype.slice.call(slider.querySelectorAll('[data-banner-dot]'));
-        if (slides.length < 2) {
-            return;
-        }
-
+        if (slides.length < 2) return;
         var activeIndex = parseInt(slider.getAttribute('data-active-index') || '0', 10);
-        if (Number.isNaN(activeIndex) || activeIndex < 0 || activeIndex >= slides.length) {
-            activeIndex = 0;
-        }
-
+        if (isNaN(activeIndex) || activeIndex < 0 || activeIndex >= slides.length) activeIndex = 0;
         var timerId = null;
-
         var render = function () {
-            slides.forEach(function (slide, index) {
-                slide.classList.toggle('is-active', index === activeIndex);
-            });
-            dots.forEach(function (dot, index) {
-                dot.classList.toggle('is-active', index === activeIndex);
-            });
+            slides.forEach(function (s, i) { s.classList.toggle('is-active', i === activeIndex); });
+            dots.forEach(function (d, i) { d.classList.toggle('is-active', i === activeIndex); });
         };
-
         var startAutoPlay = function () {
-            window.clearInterval(timerId);
-            timerId = window.setInterval(function () {
-                activeIndex = (activeIndex + 1) % slides.length;
-                render();
-            }, 4800);
+            clearInterval(timerId);
+            timerId = setInterval(function () { activeIndex = (activeIndex + 1) % slides.length; render(); }, 4800);
         };
-
         dots.forEach(function (dot) {
             dot.addEventListener('click', function () {
-                var nextIndex = parseInt(dot.getAttribute('data-banner-dot') || '0', 10);
-                if (Number.isNaN(nextIndex)) {
-                    return;
-                }
-
-                activeIndex = nextIndex;
-                render();
-                startAutoPlay();
+                var n = parseInt(dot.getAttribute('data-banner-dot') || '0', 10);
+                if (!isNaN(n)) { activeIndex = n; render(); startAutoPlay(); }
             });
         });
-
-        render();
-        startAutoPlay();
+        render(); startAutoPlay();
     });
 });
 </script>

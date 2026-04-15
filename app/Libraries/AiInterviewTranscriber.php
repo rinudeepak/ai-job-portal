@@ -20,6 +20,14 @@ class AiInterviewTranscriber
             return null;
         }
 
+        // Validate path stays within WRITEPATH to prevent path traversal
+        $realPath = realpath($absolutePath);
+        $realBase = realpath(WRITEPATH);
+        if ($realPath === false || $realBase === false || strpos($realPath, $realBase) !== 0) {
+            log_message('error', 'Transcription path traversal attempt blocked: ' . $absolutePath);
+            return null;
+        }
+
         $mime = $this->detectMimeType($absolutePath);
         $file = new \CURLFile($absolutePath, $mime, basename($absolutePath));
         $post = [

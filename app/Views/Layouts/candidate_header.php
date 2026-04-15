@@ -440,9 +440,16 @@
                             <a href="<?= base_url('logout') ?>"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                         </div>
                     </div>
-                    <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3">
-                        <span class="icon-menu h3 m-0 p-0 mt-2"></span>
-                    </a>
+                    <div class="mobile-nav-actions d-flex d-xl-none align-items-center">
+                        <a href="<?= base_url('jobs') ?>" class="mobile-nav-icon" title="Search"><span class="icon-search"></span></a>
+                        <a href="<?= base_url('notifications') ?>" class="mobile-nav-icon <?= $unreadNotificationCount > 0 ? 'has-unread' : '' ?>" title="Notifications">
+                            <span class="icon-bell"></span>
+                            <?php if ($unreadNotificationCount > 0): ?><span class="mobile-nav-dot"></span><?php endif; ?>
+                        </a>
+                        <a href="#" class="mobile-nav-hamburger js-menu-toggle" aria-label="Menu">
+                            <span></span><span></span><span></span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

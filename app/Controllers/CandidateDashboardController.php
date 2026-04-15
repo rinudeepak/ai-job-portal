@@ -51,6 +51,9 @@ class CandidateDashboardController extends BaseController
             log_message('warning', 'Target companies table unavailable: ' . $e->getMessage());
         }
 
+        // Top hiring companies for dashboard
+        $topHiringCompanies = $this->getTopHiringCompanies(8);
+
         return view('candidate/dashboard', [
             'applications' => $applications,
             'stats' => $stats,
@@ -62,6 +65,7 @@ class CandidateDashboardController extends BaseController
             'topSuggestedJobs' => $topSuggestedJobs,
             'jobSearchStrategy' => $jobSearchStrategy,
             'targetCompanies'   => $targetCompanies,
+            'topHiringCompanies' => $topHiringCompanies,
         ]);
     }
     
@@ -1347,6 +1351,24 @@ class CandidateDashboardController extends BaseController
         }
 
         return array_values(array_slice($watchouts, 0, 4));
+    }
+
+    private function getTopHiringCompanies(int $limit = 8): array
+    {
+        $db = \Config\Database::connect();
+        $rows = $db->table('jobs')
+            ->select('jobs.company as name, jobs.company_id, COUNT(jobs.id) as job_count, companies.logo, companies.industry, companies.hq')
+            ->join('companies', 'companies.id = jobs.company_id', 'left')
+            ->where('jobs.status', 'open')
+            ->groupBy('jobs.company')
+            ->orderBy('job_count', 'DESC')
+            ->limit($limit)
+            ->get()
+            ->getResultArray();
+
+        return array_values(array_filter($rows, static function (array $row): bool {
+            return trim((string) ($row['name'] ?? '')) !== '';
+        }));
     }
 }
 

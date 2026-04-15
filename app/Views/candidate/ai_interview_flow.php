@@ -278,11 +278,15 @@ $introText          = str_replace('{candidate_name}', $candidateName, (string) (
 
                         <div class="ai-interview-flow-question-card">
                             <div class="ai-interview-flow-instructions" id="preStartInstructions">
-                                <div class="ai-interview-flow-instructions-title">Interview Instructions</div>
+                                <div class="ai-interview-flow-instructions-title">Before You Begin</div>
                                 <ul class="ai-interview-flow-instructions-list">
-                                    <li>Answer one question at a time in a clear and natural way.</li>
-                                    <li>Keep your camera and microphone on throughout the session.</li>
-                                    <li>You have <?= $timerSeconds ?> seconds for each response, so focus on the key point first.</li>
+                                    <li><i class="fas fa-check-circle text-success mr-1"></i> Find a quiet, well-lit space with no interruptions.</li>
+                                    <li><i class="fas fa-check-circle text-success mr-1"></i> Allow camera and microphone access when prompted.</li>
+                                    <li><i class="fas fa-check-circle text-success mr-1"></i> You have <?= $timerSeconds ?> seconds per question — answer the key point first, then expand.</li>
+                                    <li><i class="fas fa-check-circle text-success mr-1"></i> <strong>Round 1</strong>: <?= count($round1Questions) ?> written questions (MCQ + fill-in-the-blank).</li>
+                                    <li><i class="fas fa-check-circle text-success mr-1"></i> <strong>Round 2</strong>: <?= count($sections) ?> spoken sections — answer clearly and naturally.</li>
+                                    <li><i class="fas fa-exclamation-triangle text-warning mr-1"></i> Do not switch tabs or leave the page — this is tracked.</li>
+                                    <li><i class="fas fa-exclamation-triangle text-warning mr-1"></i> You have <strong>1 attempt</strong> — the session cannot be restarted once submitted.</li>
                                 </ul>
                             </div>
                             <div class="ai-interview-flow-question" id="questionText" style="display:none;">
@@ -299,7 +303,8 @@ $introText          = str_replace('{candidate_name}', $candidateName, (string) (
                         </div>
 
                         <div class="ai-interview-flow-controls">
-                            <button type="button" class="btn btn-primary" id="startSessionBtn">
+                            <button type="button" class="btn btn-primary" id="startSessionBtn"
+                                onclick="if(!confirm('Are you ready to begin? The timer will start immediately after you click OK. Make sure your camera and microphone are working.')) return false;">
                                 <i class="fas fa-video mr-1"></i> Start Interview
                             </button>
                             <button type="button" class="btn btn-outline-primary" id="nextQuestionBtn" disabled>

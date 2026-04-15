@@ -4734,3 +4734,571 @@ mark { background: #fef9c3; padding: 0 2px; border-radius: 3px; }
 
 
 
+
+/* --- Naukri engagement banner strip --- */
+.naukri-banner-strip--inline { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 10px; padding: 0 14px; }
+.naukri-banner-strip--inline .naukri-banner-slider { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 10px 0; }
+.naukri-banner-item { display: none; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.naukri-banner-item.is-active { display: flex; }
+.naukri-banner-label { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+.naukri-banner-title { font-size: 0.88rem; font-weight: 600; color: #1e293b; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.naukri-banner-cta { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 999px; background: #2563eb; color: #fff; font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: background 0.18s ease; }
+.naukri-banner-cta:hover { background: #1d4ed8; color: #fff; text-decoration: none; }
+.naukri-banner-dots { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.naukri-banner-dot { width: 7px; height: 7px; border-radius: 999px; border: 0; background: rgba(148,163,184,0.5); padding: 0; cursor: pointer; transition: width 160ms ease, background 160ms ease; }
+.naukri-banner-dot.is-active { width: 18px; background: #2563eb; }
+@media (max-width: 575.98px) { .naukri-banner-title { display: none; } }
+
+/* --- Dashboard fixed sidebar --- */
+.dashboard-jobboard .dashboard-hero { padding: 0 !important; background: none !important; }
+.naukri-dash-topbar { display: none !important; }
+.dashboard-jobboard .dashboard-layout { align-items: stretch; height: calc(100vh - 72px - 40px); overflow: hidden; padding-top: 20px; padding-bottom: 20px; gap: 20px; }
+.dashboard-jobboard .dashboard-sidebar { position: sticky; top: 0; height: 100%; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; scrollbar-width: none; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 1px 4px rgba(15,23,42,0.06); }
+.dashboard-jobboard .dashboard-sidebar::-webkit-scrollbar { display: none; }
+.dashboard-jobboard .dashboard-main { flex: 1; min-width: 0; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; border-radius: 14px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 1px 4px rgba(15,23,42,0.06); padding-bottom: 60px; }
+.dashboard-jobboard .dashboard-main::-webkit-scrollbar { display: none; }
+.dashboard-jobboard .dashboard-section:first-child { padding-top: 1.5rem; }
+@media (max-width: 1100px) {
+    .dashboard-jobboard .dashboard-layout { height: auto; overflow: visible; padding: 16px 0 48px; }
+    .dashboard-jobboard .dashboard-main { height: auto; overflow: visible; }
+}
+
+/* --- Pagination blue --- */
+.candidate-app .custom-pagination a.active,
+.candidate-app .custom-pagination a:hover { background: #2563eb; border-color: #2563eb; color: #fff; }
+
+/* --- Mobile nav icons --- */
+.mob-icon-btn { position: relative; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; color: #111827; text-decoration: none; font-size: 18px; margin-right: 4px; border-radius: 10px; transition: background 0.15s ease; }
+.mob-icon-btn:hover { background: rgba(59,130,246,0.06); color: #111827; text-decoration: none; }
+.mob-icon-badge { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #2563eb; box-shadow: 0 0 0 2px #fff; }
+
+/* --- iPad landscape navbar fix (768px–1199px) --- */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .candidate-app .site-navbar .site-logo {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+    .candidate-app .site-navbar .right-cta-menu {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        margin-left: auto;
+    }
+    .candidate-app .site-navbar .site-navigation {
+        display: none !important;
+    }
+}
+
+/* --- Mobile nav actions (phone only) --- */
+.mobile-nav-actions {
+    gap: 4px;
+    margin-left: auto;
+}
+
+.mobile-nav-icon {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #111827;
+    font-size: 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+.mobile-nav-icon:hover {
+    background: rgba(59,130,246,0.08);
+    color: #111827;
+    text-decoration: none;
+}
+.mobile-nav-icon.has-unread .icon-bell {
+    color: #2563eb;
+}
+.mobile-nav-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2563eb;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+.mobile-nav-hamburger {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+    margin-left: 2px;
+}
+.mobile-nav-hamburger:hover {
+    background: rgba(59,130,246,0.08);
+    text-decoration: none;
+}
+.mobile-nav-hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #111827;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+/* --- Mobile nav icons: professional refinement --- */
+.mobile-nav-actions {
+    gap: 2px !important;
+    margin-left: auto;
+}
+
+/* Base icon button */
+.mobile-nav-icon,
+.mobile-nav-hamburger {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    text-decoration: none !important;
+    color: #1e293b;
+    background: transparent;
+    border: 1.5px solid transparent;
+    transition: background 0.18s ease, border-color 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-icon:hover,
+.mobile-nav-icon:focus,
+.mobile-nav-hamburger:hover,
+.mobile-nav-hamburger:focus {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+}
+
+/* Search icon */
+.mobile-nav-icon .icon-search {
+    font-size: 17px;
+    line-height: 1;
+    color: #1e293b;
+}
+
+/* Bell icon */
+.mobile-nav-icon .icon-bell {
+    font-size: 17px;
+    line-height: 1;
+    color: #1e293b;
+}
+.mobile-nav-icon.has-unread .icon-bell {
+    color: #2563eb;
+}
+
+/* Unread dot */
+.mobile-nav-dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2563eb;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+/* Hamburger — 3 clean bars */
+.mobile-nav-hamburger {
+    flex-direction: column;
+    gap: 0;
+    justify-content: center;
+    padding: 0;
+}
+.mobile-nav-hamburger span {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: #1e293b;
+    border-radius: 2px;
+    margin: 2.5px 0;
+    transition: all 0.2s ease;
+}
+/* Active state — X shape */
+.site-mobile-menu-open .mobile-nav-hamburger span:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+}
+.site-mobile-menu-open .mobile-nav-hamburger span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+.site-mobile-menu-open .mobile-nav-hamburger span:nth-child(3) {
+    transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* --- Top Companies Hiring Now (Naukri style) --- */
+.top-companies-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.top-company-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.top-company-card:hover {
+    border-color: rgba(59,130,246,0.3);
+    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: inherit;
+}
+
+.top-company-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #f0f6ff;
+    border: 1px solid #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.top-company-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.top-company-logo span {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #2563eb;
+}
+
+.top-company-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.top-company-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.top-company-industry {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+}
+
+.top-company-jobs {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+@media (max-width: 1100px) {
+    .top-companies-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .top-companies-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .top-company-card {
+        padding: 10px 12px;
+    }
+}
+
+/* --- Pro upgrade ad banner (Naukri style) --- */
+.pro-ad-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 28px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.pro-ad-banner::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+}
+
+.pro-ad-left { flex: 1; min-width: 0; }
+
+.pro-ad-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.15);
+    color: #fbbf24;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.pro-ad-title {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+}
+
+.pro-ad-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 6px 16px;
+}
+
+.pro-ad-features li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: rgba(255,255,255,0.88);
+    font-size: 0.84rem;
+}
+
+.pro-ad-features li i {
+    color: #86efac;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.pro-ad-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pro-ad-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 22px;
+    border-radius: 999px;
+    background: #fbbf24;
+    color: #1e3a8a;
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.pro-ad-btn-primary:hover {
+    background: #f59e0b;
+    color: #1e3a8a;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.pro-ad-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 22px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.18s ease;
+}
+
+.pro-ad-btn-ghost:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    text-decoration: none;
+}
+
+.pro-ad-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.pro-ad-orb {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #fbbf24;
+}
+
+.pro-ad-stat {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 6px 14px;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.pro-ad-stat span {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fbbf24;
+    margin-right: 4px;
+}
+
+@media (max-width: 767.98px) {
+    .pro-ad-right { display: none; }
+    .pro-ad-features { grid-template-columns: 1fr; }
+    .pro-ad-banner { padding: 18px 20px; }
+}
+
+/* Pro ad — 3 service columns layout */
+.pro-ad-services {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.pro-ad-service-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #fbbf24;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.pro-ad-service-title i {
+    font-size: 0.85rem;
+}
+
+.pro-ad-service .pro-ad-features {
+    grid-template-columns: 1fr;
+    margin-bottom: 0;
+}
+
+@media (max-width: 991.98px) {
+    .pro-ad-services {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .pro-ad-service .pro-ad-features {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .pro-ad-service .pro-ad-features {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Pro ad services inside dashboard-cta-banner theme */
+.dashboard-cta-banner .pro-ad-services {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 16px;
+    margin: 16px 0 0;
+}
+
+.dashboard-cta-banner .pro-ad-service-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #fbbf24;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dashboard-cta-banner .pro-ad-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.dashboard-cta-banner .pro-ad-features li {
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.88);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dashboard-cta-banner .pro-ad-features li::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.7rem;
+    color: #86efac;
+    flex-shrink: 0;
+}
+
+@media (max-width: 991.98px) {
+    .dashboard-cta-banner .pro-ad-services {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}

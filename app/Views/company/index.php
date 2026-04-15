@@ -134,18 +134,8 @@ $filters        = $filters ?? [];
                                 <span class="badge badge-primary"><?= esc($companySize ?: 'Size not specified') ?></span>
                             </div>
                             <div class="company-directory-actions">
-                                <?php if (!empty($company['career_page'])): ?>
-                                    <a href="<?= esc($company['career_page']) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-briefcase mr-1"></i> Careers Page
-                                    </a>
-                                <?php endif; ?>
-                                <?php if (!empty($company['website'])): ?>
-                                    <a href="<?= esc($company['website']) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-globe mr-1"></i> Website
-                                    </a>
-                                <?php endif; ?>
                                 <a href="<?= base_url('jobs?company=' . urlencode($companyName)) ?>"
-                                   class="company-directory-jobs-link <?= $openJobsCount > 0 ? '' : 'd-none' ?>">
+                                   class="company-directory-jobs-link">
                                     <i class="fas fa-briefcase mr-1"></i> <span class="jobs-link-text">See live jobs</span>
                                 </a>
                             </div>
@@ -222,8 +212,6 @@ $filters        = $filters ?? [];
             $card.find('.company-job-count-label').text('live jobs');
             var companyName = $card.data('company-name') || '';
             $card.find('.company-directory-jobs-link')
-                .removeClass('d-none')
-                .attr('href', '<?= base_url('jobs?company=') ?>' + encodeURIComponent(companyName))
                 .attr('href', '<?= base_url("jobs?company=") ?>' + encodeURIComponent(companyName))
                 .find('span.jobs-link-text').text('See ' + result.count + ' live jobs').end()
                 .removeClass('d-none');
@@ -257,16 +245,8 @@ $filters        = $filters ?? [];
             html += '<span class="badge badge-primary">' + escHtml(info.size || 'Size not specified') + '</span>';
             html += '</div>';
             html += '<div class="company-directory-actions">';
-            if (info.career_page) {
-                html += '<a href="' + escHtml(info.career_page) + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">';
-                html += '<i class="fas fa-briefcase mr-1"></i>Careers Page</a>';
-            }
-            if (info.website) {
-                html += '<a href="' + escHtml(info.website) + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">';
-                html += '<i class="fas fa-globe mr-1"></i>Website</a>';
-            }
             // "See live jobs" — shown after job count is fetched
-            html += '<a href="' + jobsUrl + '" class="company-directory-jobs-link d-none">';
+            html += '<a href="' + jobsUrl + '" class="company-directory-jobs-link">';
             html += '<i class="fas fa-briefcase mr-1"></i> <span class="jobs-link-text">See live jobs</span></a>';
             html += '</div>';
             html += '</article>';

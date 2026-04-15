@@ -259,9 +259,9 @@ class AiInterviewController extends BaseController
 
         $sessionModel = new InterviewSessionModel();
         $session = $sessionModel
-            ->where('id', $sessionId)
-            ->where('application_id', $applicationId)
-            ->where('user_id', $candidateId)
+            ->where('id', (int) $sessionId)
+            ->where('application_id', (int) $applicationId)
+            ->where('user_id', (int) $candidateId)
             ->first();
 
         if (!$session) {
@@ -283,14 +283,14 @@ class AiInterviewController extends BaseController
         $attemptModel = new AiInterviewRound1AttemptModel();
         $now = date('Y-m-d H:i:s');
         $record = [
-            'interview_session_id' => $sessionId,
-            'application_id' => $applicationId,
-            'candidate_id' => $candidateId,
+            'interview_session_id' => (int) $sessionId,
+            'application_id' => (int) $applicationId,
+            'candidate_id' => (int) $candidateId,
             'section_key' => in_array($sectionKey, ['reasoning', 'logical', 'fill_blank'], true) ? $sectionKey : 'reasoning',
             'question_type' => in_array($questionType, ['mcq', 'fill_blank'], true) ? $questionType : 'mcq',
-            'question_text' => $questionText,
-            'selected_answer' => $selectedAnswer,
-            'correct_answer' => $correctAnswer !== '' ? $correctAnswer : null,
+            'question_text' => (string) $questionText,
+            'selected_answer' => (string) $selectedAnswer,
+            'correct_answer' => $correctAnswer !== '' ? (string) $correctAnswer : null,
             'is_correct' => $isCorrect,
             'score' => $score,
             'max_score' => $maxScore,
@@ -325,8 +325,8 @@ class AiInterviewController extends BaseController
         }
 
         $existing = $attemptModel
-            ->where('interview_session_id', $sessionId)
-            ->where('question_text', $questionText)
+            ->where('interview_session_id', (int) $sessionId)
+            ->where('question_text', (string) $questionText)
             ->first();
 
         if ($existing) {
@@ -804,6 +804,7 @@ class AiInterviewController extends BaseController
         model('StageHistoryModel')->moveToStage($applicationId, 'AI Interview Submitted');
 
         $this->syncApplicationStatus($applicationId, 'ai_interview_completed');
+        $this->sendInterviewCompletionEmails($applicationId, (int) ($session['id'] ?? 0));
 
         return $this->response->setJSON([
             'success' => true,
@@ -1248,7 +1249,7 @@ class AiInterviewController extends BaseController
             return [];
         }
 
-        $cacheKey = 'ai_interview_qset_' . sha1(json_encode([
+        $cacheKey = 'ai_interview_qset_' . hash('sha256', json_encode([
             'candidate_id' => (int) ($application['candidate_id'] ?? 0),
             'application_id' => (int) ($application['id'] ?? 0),
             'job_id' => (int) ($application['job_id'] ?? 0),
@@ -1509,6 +1510,58 @@ class AiInterviewController extends BaseController
         $applicationModel->update($applicationId, ['status' => $targetStatus]);
     }
 
+    private function sendInterviewCompletionEmails(int $applicationId, int $sessionId): void
+    {
+        try {
+            $db          = \Config\Database::connect();
+            $application = (new ApplicationModel())->find($applicationId);
+            if (empty($application)) {
+                return;
+            }
+
+            $candidate = (new \App\Models\UserModel())->find((int) ($application['candidate_id'] ?? 0));
+            $job       = (new JobModel())->find((int) ($application['job_id'] ?? 0));
+            $recruiter = (new \App\Models\UserModel())->find((int) ($job['recruiter_id'] ?? 0));
+
+            $jobTitle    = (string) ($job['title'] ?? 'the role');
+            $companyName = (string) ($job['company'] ?? '');
+            $email       = \Config\Services::email();
+
+            // Email to candidate
+            if (!empty($candidate['email'])) {
+                $email->clear();
+                $email->setTo($candidate['email']);
+                $email->setSubject('Your AI Interview Has Been Submitted — ' . $jobTitle);
+                $email->setMessage(
+                    '<p>Hi ' . esc($candidate['name'] ?? 'Candidate') . ',</p>' .
+                    '<p>Your AI interview for <strong>' . esc($jobTitle) . '</strong>' .
+                    ($companyName !== '' ? ' at <strong>' . esc($companyName) . '</strong>' : '') .
+                    ' has been successfully submitted for recruiter review.</p>' .
+                    '<p>You will be notified once the recruiter has reviewed your interview. ' .
+                    'You can track your application status on your <a href="' . base_url('candidate/applications') . '">Applications page</a>.</p>' .
+                    '<p>Best of luck!</p>'
+                );
+                $email->send();
+            }
+
+            // Email to recruiter
+            if (!empty($recruiter['email'])) {
+                $email->clear();
+                $email->setTo($recruiter['email']);
+                $email->setSubject('New AI Interview Submitted — ' . $jobTitle);
+                $email->setMessage(
+                    '<p>Hi ' . esc($recruiter['name'] ?? 'Recruiter') . ',</p>' .
+                    '<p><strong>' . esc($candidate['name'] ?? 'A candidate') . '</strong> has completed their AI interview for ' .
+                    '<strong>' . esc($jobTitle) . '</strong>.</p>' .
+                    '<p><a href="' . base_url('recruiter/applications/' . $applicationId . '/ai-report') . '">View the AI Interview Report</a></p>'
+                );
+                $email->send();
+            }
+        } catch (\Throwable $e) {
+            log_message('warning', 'Interview completion email failed: ' . $e->getMessage());
+        }
+    }
+
     private function getApplicationsStatusType(): string
     {
         try {
@@ -1528,23 +1581,32 @@ class AiInterviewController extends BaseController
         string $sectionKey,
         int $questionIndex
     ): string {
-        $basePath = WRITEPATH . 'uploads/interview-recordings/';
-        $relativeBase = 'uploads/interview-recordings/';
-        $folder = 'candidate_' . $candidateId . '/session_' . $sessionId . '/';
-        $targetDir = $basePath . $folder;
+        $basePath     = WRITEPATH . 'uploads/interview-recordings/';
+        $relativePath = 'uploads/interview-recordings/';
+        $folder       = 'candidate_' . $candidateId . '/session_' . $sessionId . '/';
+        $targetDir    = $basePath . $folder;
 
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0775, true);
         }
 
+        // Validate the resolved path stays within WRITEPATH
+        $realTarget = realpath($targetDir);
+        $realBase   = realpath($basePath);
+        if ($realTarget === false || $realBase === false || strpos($realTarget, $realBase) !== 0) {
+            log_message('error', 'Interview media path traversal attempt blocked.');
+            return '';
+        }
+
+        $allowedExtensions = ['webm', 'mp4', 'ogg', 'wav', 'mp3'];
         $safeExt = strtolower((string) $file->getExtension());
-        if ($safeExt === '') {
+        if ($safeExt === '' || !in_array($safeExt, $allowedExtensions, true)) {
             $safeExt = 'webm';
         }
 
         $filename = sprintf(
             '%s_q%s_%s.%s',
-            $sectionKey,
+            preg_replace('/[^a-z0-9_]/', '', $sectionKey),
             $questionIndex + 1,
             date('YmdHis'),
             $safeExt
@@ -1552,7 +1614,7 @@ class AiInterviewController extends BaseController
 
         $file->move($targetDir, $filename, true);
 
-        return $relativeBase . $folder . $filename;
+        return $relativePath . $folder . $filename;
     }
 
     private function scoreRound1Answer(string $questionType, string $selected, string $correct): float
@@ -2452,7 +2514,7 @@ PROMPT;
         $jobId = (int) ($application['job_id'] ?? 0);
         $jobTitle = (string) ($application['job_title'] ?? '');
 
-        return sha1($candidateId . '|' . $applicationId . '|' . $jobId . '|' . strtolower(trim($jobTitle)));
+        return hash('sha256', $candidateId . '|' . $applicationId . '|' . $jobId . '|' . strtolower(trim($jobTitle)));
     }
 
     private function seededShuffleAndSlice(array $items, string $seed, int $limit): array
@@ -2462,7 +2524,7 @@ PROMPT;
             $signature = is_array($item)
                 ? json_encode($item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
                 : (string) $item;
-            $sortKey = sha1($seed . '|' . $index . '|' . $signature);
+            $sortKey = hash('sha256', $seed . '|' . $index . '|' . $signature);
             $indexed[] = ['key' => $sortKey, 'item' => $item];
         }
 
