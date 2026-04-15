@@ -1,6 +1,7 @@
 <?= view('Layouts/candidate_header', ['title' => 'Find Jobs']) ?>
 <?php
-$activeTab                  = $activeTab ?? 'recommended';
+$allJobsAreExternal = $allJobsAreExternal ?? false;
+
 $recommendationType         = $recommendationType ?? 'skills';
 $filters                    = $filters ?? [];
 $suggestedJobs              = $suggestedJobs ?? [];
@@ -169,17 +170,19 @@ $renderRecommendedPane = static function (
                         <div class="job-card-tags">
                             <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
                             <?php if ($isExternalJob): ?>
-                                <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
+                                <span class="badge badge-warning">Remote</span>
                             <?php endif; ?>
                             <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                         </div>
                         <?php if (!empty($job['match_reason'])): ?>
                             <div class="small text-muted mb-2"><?= esc($job['match_reason']) ?></div>
                         <?php endif; ?>
+                        <?php if (!$isExternalJob): ?>
                         <div class="progress-container">
                             <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
                             <span class="progress-label"><?= $matchPct ?>% match</span>
                         </div>
+                        <?php endif; ?>
                         <a href="<?= $isExternalJob && !empty($job['external_apply_url']) ? esc($job['external_apply_url']) : base_url('job/' . $job['id']) ?>" class="view-details" <?= $isExternalJob ? 'target="_blank" rel="noopener"' : '' ?>>View Details &rarr;</a>
                     </div>
                 </article>
@@ -288,6 +291,9 @@ $activeFilterCount = count($activeFilterChips);
     <input type="hidden" name="search" id="hiddenSearch" value="<?= esc($filters['search'] ?? '') ?>">
     <input type="hidden" name="tab" id="activeTabInput" value="<?= esc($activeTab) ?>">
     <input type="hidden" name="rec" id="recommendationTypeInput" value="<?= esc($recommendationType) ?>">
+    <?php if (!empty($filters['company'])): ?>
+    <input type="hidden" name="company" value="<?= esc($filters['company']) ?>">
+    <?php endif; ?>
 
     <div class="jobs-layout <?= $showFilters ? '' : 'jobs-layout-no-sidebar' ?>">
 
@@ -295,48 +301,84 @@ $activeFilterCount = count($activeFilterChips);
             <div class="sidebar">
                 <div class="sidebar-head">
                     <h5><i class="fas fa-sliders-h"></i> Filters</h5>
-                    <a href="<?= base_url('jobs?tab=all') ?>" class="clear-link" data-jobs-filter-link="1">Clear all</a>
+                    <?php
+                    $clearUrl = !empty($filters['company'])
+                        ? base_url('jobs?company=' . urlencode($filters['company']))
+                        : base_url('jobs?tab=all');
+                    ?>
+                    <?php if ($activeFilterCount > 0): ?>
+                    <a href="<?= esc($clearUrl) ?>" class="clear-link" data-jobs-filter-link="1">Clear all</a>
+                    <?php endif; ?>
                 </div>
 
-            <?php if (!empty($categories)): ?>
+            <?php if (!$allJobsAreExternal): ?>
+            <?php
+            $meaningfulCategories = array_values(array_filter(
+                array_unique(array_column($categories, 'category')),
+                static fn($v) => strtolower(trim($v)) !== 'external' && trim($v) !== ''
+            ));
+            ?>
+            <?php if (count($meaningfulCategories) > 1): ?>
             <div class="filter-section">
                 <span class="filter-label">Category</span>
                 <select name="category" onchange="submitFilters()">
                     <option value="">All Categories</option>
-                    <?php foreach ($categories as $cat): ?>
-                        <option value="<?= esc($cat['category']) ?>" <?= ($filters['category'] ?? '') == $cat['category'] ? 'selected' : '' ?>>
-                            <?= esc($cat['category']) ?>
+                    <?php foreach ($meaningfulCategories as $cat): ?>
+                        <option value="<?= esc($cat) ?>" <?= ($filters['category'] ?? '') === $cat ? 'selected' : '' ?>>
+                            <?= esc($cat) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <?php endif; ?>
+            <?php endif; ?>
 
-            <?php if (!empty($locations)): ?>
+            <?php
+            $uniqueLocations = array_values(array_unique(array_column($locations, 'location')));
+            ?>
+            <?php if (count($uniqueLocations) > 1): ?>
             <div class="filter-section">
                 <span class="filter-label">Location</span>
                 <select name="location" onchange="submitFilters()">
                     <option value="">All Locations</option>
-                    <?php foreach ($locations as $loc): ?>
-                        <option value="<?= esc($loc['location']) ?>" <?= ($filters['location'] ?? '') == $loc['location'] ? 'selected' : '' ?>>
-                            <?= esc($loc['location']) ?>
+                    <?php foreach ($uniqueLocations as $loc): ?>
+                        <option value="<?= esc($loc) ?>" <?= ($filters['location'] ?? '') === $loc ? 'selected' : '' ?>>
+                            <?= esc($loc) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <?php endif; ?>
 
+            <?php if (!$allJobsAreExternal): ?>
+            <?php
+            $jobWorkModes = array_filter(array_unique(array_map(static function ($j) {
+                return strtolower(trim((string) ($j['work_mode'] ?? '')));
+            }, $jobs)));
+            $availableWorkModes = array_filter($workModes, static function ($label, $val) use ($jobWorkModes) {
+                return $val === '' || in_array(strtolower($val), $jobWorkModes, true);
+            }, ARRAY_FILTER_USE_BOTH);
+            ?>
+            <?php if (count($availableWorkModes) > 1): ?>
             <div class="filter-section">
                 <span class="filter-label">Work Mode</span>
                 <select name="work_mode" onchange="submitFilters()">
-                    <?php foreach ($workModes as $modeValue => $modeLabel): ?>
+                    <?php foreach ($availableWorkModes as $modeValue => $modeLabel): ?>
                         <option value="<?= esc($modeValue) ?>" <?= ($filters['work_mode'] ?? '') === $modeValue ? 'selected' : '' ?>>
                             <?= esc($modeLabel) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
+            <?php endif; ?>
 
+            <?php
+            $jobSalaries = array_filter(array_unique(array_map(static function ($j) {
+                return trim((string) ($j['salary_range'] ?? ''));
+            }, $jobs)));
+            $hasSalaryData = !empty($jobSalaries);
+            ?>
+            <?php if ($hasSalaryData): ?>
             <div class="filter-section">
                 <span class="filter-label">Salary Range</span>
                 <select name="salary_range" onchange="submitFilters()">
@@ -347,37 +389,54 @@ $activeFilterCount = count($activeFilterChips);
                     <?php endforeach; ?>
                 </select>
             </div>
+            <?php endif; ?>
 
-            <?php if (!empty($employmentTypes)): ?>
+            <?php
+            $uniqueEmploymentTypes = array_values(array_unique(array_column($employmentTypes, 'employment_type')));
+            ?>
+            <?php if (count($uniqueEmploymentTypes) > 1): ?>
             <div class="filter-section">
                 <span class="filter-label">Job Type</span>
-                <?php foreach ($employmentTypes as $type): ?>
+                <?php foreach ($uniqueEmploymentTypes as $type): ?>
                     <label class="check-item">
-                        <input type="checkbox" name="employment_type[]" value="<?= esc($type['employment_type']) ?>"
-                               <?= in_array($type['employment_type'], (array) ($filters['employment_type'] ?? []), true) ? 'checked' : '' ?>
+                        <input type="checkbox" name="employment_type[]" value="<?= esc($type) ?>"
+                               <?= in_array($type, (array) ($filters['employment_type'] ?? []), true) ? 'checked' : '' ?>
                                onchange="submitFilters()">
                         <span class="check-box"></span>
-                        <span class="check-text"><?= esc($type['employment_type']) ?></span>
+                        <span class="check-text"><?= esc($type) ?></span>
                     </label>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
 
-            <?php if (!empty($experienceLevels)): ?>
+            <?php
+            $uselessExp = ['not specified', 'not_specified', ''];
+            $meaningfulExp = array_values(array_filter(
+                array_unique(array_column($experienceLevels, 'experience_level')),
+                static fn($v) => !in_array(strtolower(trim($v)), $uselessExp, true)
+            ));
+            ?>
+            <?php if (!empty($meaningfulExp)): ?>
             <div class="filter-section">
                 <span class="filter-label">Experience</span>
-                <?php foreach ($experienceLevels as $exp): ?>
+                <?php foreach ($meaningfulExp as $exp): ?>
                     <label class="check-item">
-                        <input type="checkbox" name="experience_level[]" value="<?= esc($exp['experience_level']) ?>"
-                               <?= in_array($exp['experience_level'], (array) ($filters['experience_level'] ?? []), true) ? 'checked' : '' ?>
+                        <input type="checkbox" name="experience_level[]" value="<?= esc($exp) ?>"
+                               <?= in_array($exp, (array) ($filters['experience_level'] ?? []), true) ? 'checked' : '' ?>
                                onchange="submitFilters()">
                         <span class="check-box"></span>
-                        <span class="check-text"><?= esc($exp['experience_level']) ?></span>
+                        <span class="check-text"><?= esc($exp) ?></span>
                     </label>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
 
+            <?php
+            $hasDateData = !empty(array_filter(array_map(static function ($j) {
+                return trim((string) ($j['created_at'] ?? ''));
+            }, $jobs)));
+            ?>
+            <?php if ($hasDateData): ?>
             <div class="filter-section">
                 <span class="filter-label">Posted Within</span>
                 <?php foreach (['' => 'Any time', '1' => 'Today', '3' => 'Last 3 days', '7' => 'Last week', '14' => 'Last 2 weeks'] as $val => $label): ?>
@@ -390,6 +449,8 @@ $activeFilterCount = count($activeFilterChips);
                     </label>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
+            <?php endif; // !$allJobsAreExternal ?>
         </div>
         <?php endif; ?>
 
@@ -471,7 +532,7 @@ $activeFilterCount = count($activeFilterChips);
                     </div>
                     <div class="d-flex gap-2">
                         <button type="button" onclick="applyMobileFilters()" style="flex:1;background:var(--ink);color:white;border:none;border-radius:8px;padding:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">Apply</button>
-                        <a href="<?= base_url('jobs?tab=all') ?>" data-jobs-filter-link="1" style="flex:1;background:var(--smoke);color:var(--ink);border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:'Syne',sans-serif;font-weight:700;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">Clear</a>
+                        <a href="<?= !empty($filters['company']) ? esc(base_url('jobs?company=' . urlencode($filters['company']))) : base_url('jobs?tab=all') ?>" data-jobs-filter-link="1" style="flex:1;background:var(--smoke);color:var(--ink);border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:'Syne',sans-serif;font-weight:700;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">Clear</a>
                     </div>
                 </div>
             </div>
@@ -498,11 +559,12 @@ $activeFilterCount = count($activeFilterChips);
                 </div>
                 <?php endif; ?>
 
+                <?php if ($activeFilterCount > 0): ?>
                 <div class="jobs-search-feedback">
                     <div class="jobs-search-feedback-copy">
                         <div class="jobs-search-feedback-kicker">Search feedback</div>
                         <p class="jobs-search-feedback-title">
-                            <?= $activeFilterCount > 0 ? $activeFilterCount . ' active filter' . ($activeFilterCount === 1 ? '' : 's') . ' applied' : 'No active filters' ?>
+                            <?= $activeFilterCount . ' active filter' . ($activeFilterCount === 1 ? '' : 's') . ' applied' ?>
                         </p>
                         <p class="jobs-search-feedback-text">
                             <?php if (!empty($filters['search'])): ?>
@@ -513,19 +575,23 @@ $activeFilterCount = count($activeFilterChips);
                         </p>
                     </div>
                     <div class="jobs-search-feedback-actions">
-                        <a href="<?= base_url('jobs?tab=all') ?>" class="btn btn-outline-secondary btn-sm" data-jobs-filter-link="1">Clear all filters</a>
+                        <?php
+                        $clearAllUrl = !empty($filters['company'])
+                            ? base_url('jobs?company=' . urlencode($filters['company']))
+                            : base_url('jobs?tab=all');
+                        ?>
+                        <a href="<?= esc($clearAllUrl) ?>" class="btn btn-outline-secondary btn-sm" data-jobs-filter-link="1">Clear all filters</a>
                     </div>
                 </div>
 
-                <?php if (!empty($activeFilterChips)): ?>
-                    <div class="active-filter-chips">
-                        <?php foreach ($activeFilterChips as $chip): ?>
-                            <a href="<?= esc($chip['url']) ?>" class="active-filter-chip" data-jobs-filter-link="1">
-                                <span><?= esc($chip['label']) ?></span>
-                                <i class="fas fa-times"></i>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
+                <div class="active-filter-chips">
+                    <?php foreach ($activeFilterChips as $chip): ?>
+                        <a href="<?= esc($chip['url']) ?>" class="active-filter-chip" data-jobs-filter-link="1">
+                            <span><?= esc($chip['label']) ?></span>
+                            <i class="fas fa-times"></i>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
                 <?php endif; ?>
 
                 <div class="results-bar">
@@ -590,14 +656,16 @@ $activeFilterCount = count($activeFilterChips);
                                     <div class="job-card-tags">
                                         <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
                                         <?php if ($isExternalJob): ?>
-                                            <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
+                                            <span class="badge badge-warning">Remote</span>
                                         <?php endif; ?>
                                         <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                     </div>
+                                    <?php if (!$isExternalJob): ?>
                                     <div class="progress-container">
                                         <div class="progress-bar-custom" style="width: 100%;"></div>
                                         <span class="progress-label">Open role</span>
                                     </div>
+                                    <?php endif; ?>
                                     <a href="<?= $isExternalJob && !empty($job['external_apply_url']) ? esc($job['external_apply_url']) : base_url('job/' . $job['id']) ?>" class="view-details" <?= $isExternalJob ? 'target="_blank" rel="noopener"' : '' ?>>View Details &rarr;</a>
                                 </div>
                             </div>

@@ -53,6 +53,8 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
     .floating-mentor-launcher__button {
         width: 64px;
         height: 64px;
+        min-width: 64px;
+        min-height: 64px;
         border-radius: 50%;
         background: linear-gradient(135deg, #0b66ff 0%, #14b8a6 100%);
         color: #fff;
@@ -61,10 +63,14 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
         justify-content: center;
         box-shadow: 0 18px 36px rgba(11, 102, 255, 0.28);
         position: relative;
+        flex-shrink: 0;
+        overflow: visible;
         transition: transform .2s ease, box-shadow .2s ease;
     }
     .floating-mentor-launcher__button i {
         font-size: 24px;
+        line-height: 1;
+        display: block;
     }
     .floating-mentor-launcher__badge {
         position: absolute;
@@ -108,9 +114,13 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
         .floating-mentor-launcher__button {
             width: 58px;
             height: 58px;
+            min-width: 58px;
+            min-height: 58px;
         }
         .floating-mentor-launcher__button i {
             font-size: 22px;
+            line-height: 1;
+            display: block;
         }
     }
 </style>

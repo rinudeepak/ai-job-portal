@@ -72,10 +72,7 @@ if ($jobOpenings !== '') {
     $summaryRows[] = ['Openings', $jobOpenings];
 }
 if ($isExternalJob) {
-    $summaryRows[] = ['Listing Type', 'External'];
-    if ($externalSource !== '') {
-        $summaryRows[] = ['Source', $externalSource];
-    }
+    $summaryRows[] = ['Listing Type', 'Remote Listing'];
 }
 
 $policyRaw = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
@@ -124,7 +121,7 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                     <span class="meta-chip"><i class="fas fa-map-pin"></i> <?= esc($jobLocation) ?></span>
                     <span class="meta-chip"><i class="fas fa-clock"></i> <?= esc($jobTypeLabel) ?></span>
                     <?php if ($isExternalJob): ?>
-                        <span class="meta-chip"><i class="fas fa-globe"></i> External Listing<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
+                        <span class="meta-chip"><i class="fas fa-globe"></i> Remote · Verified Listing</span>
                     <?php endif; ?>
                     <?php if ($jobSalary !== ''): ?>
                         <span class="meta-chip"><i class="fas fa-rupee-sign"></i> <?= esc($jobSalary) ?></span>
@@ -343,7 +340,7 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                         <?php if ($isExternalJob): ?>
                             <?php if ($hasExternalApplyUrl): ?>
                                 <a href="<?= esc($externalApplyUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-block btn-primary btn-md">
-                                    <i class="fas fa-up-right-from-square mr-2"></i>Apply On <?= esc($externalSource !== '' ? $externalSource : 'Source Site') ?>
+                                    <i class="fas fa-up-right-from-square mr-2"></i>Apply on Company Site
                                 </a>
                                 <small class="text-muted d-block mt-2">This listing is sourced externally. Applications are completed on the source website.</small>
                             <?php else: ?>

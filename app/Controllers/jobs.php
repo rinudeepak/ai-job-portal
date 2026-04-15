@@ -120,20 +120,29 @@ class Jobs extends BaseController
         $pager = $jobModel->pager;
         $totalJobs = $pager->getTotal();
 
-        $locationBuilder = $jobModel->select('location')->where('status', 'open')->where('location IS NOT NULL')->where('location !=', '');
-        $categoryBuilder = $jobModel->select('category')->where('status', 'open')->where('category IS NOT NULL')->where('category !=', '');
+        $locationBuilder      = $jobModel->select('location')->where('status', 'open')->where('location IS NOT NULL')->where('location !=', '');
+        $categoryBuilder      = $jobModel->select('category')->where('status', 'open')->where('category IS NOT NULL')->where('category !=', '');
         $employmentTypeBuilder = $jobModel->select('employment_type')->where('status', 'open')->where('employment_type IS NOT NULL')->where('employment_type !=', '');
+        $experienceBuilder    = $jobModel->select('experience_level')->where('status', 'open')->where('experience_level IS NOT NULL')->where('experience_level !=', '');
 
-        if (!empty($filters['company'])) {
-            $locationBuilder->like('company', $filters['company']);
-            $categoryBuilder->like('company', $filters['company']);
-            $employmentTypeBuilder->like('company', $filters['company']);
+        foreach ([$locationBuilder, $categoryBuilder, $employmentTypeBuilder, $experienceBuilder] as $fb) {
+            if (!empty($filters['search'])) {
+                $fb->groupStart()->like('title', $filters['search'])->orLike('company', $filters['search'])->orLike('required_skills', $filters['search'])->groupEnd();
+            }
+            if (!empty($filters['company']))    { $fb->like('company', $filters['company']); }
+            if (!empty($filters['designation'])) { $fb->like('title', $filters['designation']); }
+            if (!empty($filters['posted_within'])) {
+                $days = (int) $filters['posted_within'];
+                $fb->where('created_at >=', date('Y-m-d H:i:s', strtotime("-{$days} days")));
+            }
         }
 
-        $locations = $locationBuilder->groupBy('location')->findAll();
-        $experienceLevels = $jobModel->select('experience_level')->where('status', 'open')->groupBy('experience_level')->findAll();
-        $employmentTypes = $employmentTypeBuilder->groupBy('employment_type')->findAll();
-        $categories = $categoryBuilder->groupBy('category')->findAll();
+        $locations        = $locationBuilder->groupBy('location')->findAll();
+        $categories       = $categoryBuilder->groupBy('category')->findAll();
+        $employmentTypes  = $employmentTypeBuilder->groupBy('employment_type')->findAll();
+        $experienceLevels = $experienceBuilder->groupBy('experience_level')->findAll();
+
+        $allJobsAreExternal = !empty($jobs) && count(array_filter($jobs, static fn($j) => (int)($j['is_external'] ?? 0) !== 1)) === 0;
 
         $recommendationType = strtolower((string) $this->request->getGet('rec'));
         $allowedRecommendationTypes = ['applies', 'skills', 'preferences', 'ai'];
@@ -315,6 +324,7 @@ class Jobs extends BaseController
             'behavior' => $behavior,
             'showFilters' => $showFilters,
             'savedJobIds' => $savedJobIds,
+            'allJobsAreExternal' => $allJobsAreExternal,
         ]);
     }
 
