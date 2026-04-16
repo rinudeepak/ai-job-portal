@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/recruiter-pages.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/responsive.css?v=' . @filemtime(FCPATH . 'jobboard/css/responsive.css')) ?>">
 </head>
 <body id="top" class="hirematrix-app recruiter-jobboard">
 <div id="overlayer"></div>

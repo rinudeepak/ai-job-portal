@@ -4,6 +4,13 @@ An intelligent job portal built with CodeIgniter 4 featuring AI-powered intervie
 
 ## 🚀 Features
 
+### Responsive Design
+- **Fully Responsive**: Works seamlessly on all device sizes (mobile, tablet, desktop)
+- **Naukri-Style Fallback**: Horizontal scrolling for screens < 360px
+- **Touch-Optimized**: 44px minimum touch targets for mobile devices
+- **Breakpoints**: xs (< 480px), sm (480-767px), md (768-991px), lg (992-1199px), xl (1200px+)
+- **Test Page**: Access `/responsive-test.html` to verify responsive behavior
+
 ### For Candidates
 - **Smart Profile Management**: Naukri-style detailed profiles with work experience, education, and certifications
 - **Resume Parsing**: Automatic skill extraction from uploaded resumes
@@ -245,6 +252,14 @@ Important:
 - Ensure forms include `<?= csrf_field() ?>`
 
 ## 📚 Key Features Documentation
+
+### Responsive Design
+The portal is fully responsive across all device sizes:
+- **Documentation**: See `RESPONSIVE_DESIGN.md` for complete details
+- **Quick Reference**: See `RESPONSIVE_QUICK_REFERENCE.md` for developer guide
+- **Test Page**: Visit `http://localhost/ai-job-portal/public/responsive-test.html`
+- **Breakpoints**: Optimized for mobile (< 768px), tablet (768-991px), and desktop (992px+)
+- **Fallback**: Horizontal scroll for screens < 360px (Naukri-style)
 
 ### Career Transition AI
 - Detects skill mismatches when applying to jobs

@@ -7,12 +7,39 @@ $topSuggestedJobs = $topSuggestedJobs ?? [];
 $avgScore = (int) round((float) ($stats['average_ai_score'] ?? 0));
 $profileStrength = (int) ($profileStrength ?? 0);
 $activeMatches = count($topSuggestedJobs);
+$candidateId = (int) (session()->get('user_id') ?? 0);
+$candidateName = (string) (session()->get('user_name') ?? 'Candidate');
+$candidateInitial = strtoupper(substr(trim($candidateName), 0, 1) ?: 'C');
 $activeSuggestions = session()->get('career_suggestions') ?? [];
 $activeSuggestions = array_filter($activeSuggestions, static function ($suggestion): bool {
     return isset($suggestion['expires_at']) && time() < (int) $suggestion['expires_at'];
 });
 $activeSuggestionsCount = count($activeSuggestions);
 $topRecommendedCount = count($topSuggestedJobs);
+$savedJobsCount = $candidateId > 0
+    ? (int) model('SavedJobModel')->where('candidate_id', $candidateId)->countAllResults()
+    : 0;
+$jobAlertsCount = $candidateId > 0
+    ? (int) model('JobAlertModel')->where('candidate_id', $candidateId)->where('is_active', 1)->countAllResults()
+    : 0;
+$unreadNotificationCount = $candidateId > 0
+    ? (int) model('NotificationModel')->getUnreadCount($candidateId)
+    : 0;
+$profilePrompt = $profileStrength >= 80
+    ? 'Recruiter-ready profile. Keep momentum with fresh applications.'
+    : ($profileStrength >= 50
+        ? 'Complete a few more profile details to get sharper matches.'
+        : 'Complete your profile to unlock stronger matches and recruiter visibility.');
+$profilePromptCta = $profileStrength >= 80 ? 'View profile' : 'Complete profile';
+$nextActionTitle = $topRecommendedCount > 0 ? 'Recommended jobs waiting' : 'Build your shortlist';
+$nextActionText = $topRecommendedCount > 0
+    ? 'Fresh matches are available based on your profile and recent activity.'
+    : 'Save a few relevant jobs first so your dashboard becomes more targeted.';
+$nextActionUrl = $topRecommendedCount > 0 ? base_url('jobs?tab=suggested') : base_url('jobs');
+$nextActionCta = $topRecommendedCount > 0 ? 'View matches' : 'Browse jobs';
+$formatCompactCount = static function (int $count): string {
+    return $count > 99 ? '99+' : (string) $count;
+};
 $dashboardStrategy = is_array($jobSearchStrategy ?? null) ? $jobSearchStrategy : [];
 $dashboardStrategySource = (string) ($dashboardStrategy['source'] ?? 'fallback');
 $dashboardStrategyHeading = $dashboardStrategySource === 'ai' ? 'AI-generated strategy' : 'Job Search Strategy Coach';
@@ -23,9 +50,6 @@ $engagementBanners = is_array($engagementBanners ?? null) ? $engagementBanners :
 $bannerItems = array_values(array_filter((array) ($engagementBanners['items'] ?? []), 'is_array'));
 $bannerActiveIndex = (int) ($engagementBanners['active_index'] ?? 0);
 
-$candidateId = (int) (session()->get('user_id') ?? 0);
-$candidateName = (string) (session()->get('user_name') ?? 'Candidate');
-$candidateInitial = strtoupper(substr(trim($candidateName), 0, 1) ?: 'C');
 $candidateProfile = model('CandidateProfileModel')->find($candidateId) ?? [];
 $profileHeadline = trim((string) ($candidateProfile['headline'] ?? 'Candidate'));
 $profileLocation = trim((string) ($candidateProfile['location'] ?? ''));
@@ -100,19 +124,6 @@ $resolveAssetUrl = static function (string $path): string {
 ?>
 
 <div class="dashboard-jobboard">
-    <!-- Quick nav: shown only when sidebar is hidden (≤1100px) -->
-    <div class="container">
-        <nav class="dashboard-quick-nav" style="display:none;">
-            <a href="<?= base_url('candidate/dashboard') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['dashboard'] ? 'active' : '' ?>"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="<?= base_url('candidate/applications') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['applications'] ? 'active' : '' ?>"><i class="fas fa-briefcase"></i> Applications</a>
-            <a href="<?= base_url('jobs?tab=suggested') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['suggested'] ? 'active' : '' ?>"><i class="fas fa-fire"></i> Recommended</a>
-            <a href="<?= base_url('candidate/saved-jobs') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['saved'] ? 'active' : '' ?>"><i class="fas fa-bookmark"></i> Saved</a>
-            <a href="<?= base_url('companies') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['companies'] ? 'active' : '' ?>"><i class="fas fa-building"></i> Companies</a>
-            <a href="<?= base_url('candidate/profile') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['profile'] ? 'active' : '' ?>"><i class="fas fa-user"></i> Profile</a>
-            <a href="<?= base_url('career-transition') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['career'] ? 'active' : '' ?>"><i class="fas fa-compass"></i> Career AI</a>
-            <a href="<?= base_url('candidate/resume-studio') ?>" class="dashboard-quick-nav-link <?= $sidebarActive['resume'] ? 'active' : '' ?>"><i class="fas fa-file-alt"></i> Resume Studio</a>
-        </nav>
-    </div>
 
     <div class="container dashboard-layout">
         <aside class="sidebar dashboard-sidebar">
@@ -145,15 +156,38 @@ $resolveAssetUrl = static function (string $path): string {
                 <div class="dashboard-sidebar-progress-bar">
                     <div style="width: <?= $profileStrength ?>%;"></div>
                 </div>
+                <p class="dashboard-sidebar-progress-note"><?= esc($profilePrompt) ?></p>
+                <div class="dashboard-sidebar-stats">
+                    <a href="<?= base_url('candidate/applications') ?>" class="dashboard-sidebar-stat">
+                        <strong><?= esc($formatCompactCount($applicationCount)) ?></strong>
+                        <span>Applied</span>
+                    </a>
+                    <a href="<?= base_url('candidate/saved-jobs') ?>" class="dashboard-sidebar-stat">
+                        <strong><?= esc($formatCompactCount($savedJobsCount)) ?></strong>
+                        <span>Saved</span>
+                    </a>
+                    <a href="<?= base_url('candidate/job-alerts') ?>" class="dashboard-sidebar-stat">
+                        <strong><?= esc($formatCompactCount($jobAlertsCount)) ?></strong>
+                        <span>Alerts</span>
+                    </a>
+                </div>
             </div>
             <nav class="dashboard-sidebar-menu">
                 <a href="<?= base_url('candidate/dashboard') ?>" class="<?= $sidebarClass('dashboard') ?>"><i class="fas fa-home"></i> Dashboard</a>
-                <a href="<?= base_url('candidate/applications') ?>" class="<?= $sidebarClass('applications') ?>"><i class="fas fa-briefcase"></i> Applications</a>
-                <a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $sidebarClass('suggested') ?>"><i class="fas fa-fire"></i> Recommended Jobs</a>
-                <a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $sidebarClass('saved') ?>"><i class="fas fa-bookmark"></i> Saved Jobs</a>
+                <a href="<?= base_url('candidate/applications') ?>" class="<?= $sidebarClass('applications') ?>"><i class="fas fa-briefcase"></i> Applications <span class="dashboard-sidebar-pill"><?= esc($formatCompactCount($applicationCount)) ?></span></a>
+                <a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $sidebarClass('suggested') ?>"><i class="fas fa-fire"></i> Recommended Jobs <span class="dashboard-sidebar-pill dashboard-sidebar-pill-accent">For You</span></a>
+                <a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $sidebarClass('saved') ?>"><i class="fas fa-bookmark"></i> Saved Jobs <span class="dashboard-sidebar-pill"><?= esc($formatCompactCount($savedJobsCount)) ?></span></a>
                 <a href="<?= base_url('companies') ?>" class="<?= $sidebarClass('companies') ?>"><i class="fas fa-building"></i> Companies</a>
-
             </nav>
+            <div class="dashboard-sidebar-cta">
+                <div class="dashboard-sidebar-cta-kicker">Next Step</div>
+                <h3><?= esc($nextActionTitle) ?></h3>
+                <p><?= esc($nextActionText) ?></p>
+                <div class="dashboard-sidebar-cta-actions">
+                    <a href="<?= esc($nextActionUrl) ?>" class="dashboard-sidebar-cta-primary"><?= esc($nextActionCta) ?></a>
+                    <a href="<?= base_url('candidate/profile') ?>" class="dashboard-sidebar-cta-secondary"><?= esc($profilePromptCta) ?></a>
+                </div>
+            </div>
         </aside>
         <div class="dashboard-main">
             <section class="dashboard-section">
@@ -181,16 +215,33 @@ $resolveAssetUrl = static function (string $path): string {
             </div>
             <?php endif; ?>
 
+            <div class="dashboard-summary-shell">
+                <div class="dashboard-summary-hero">
+                    <div class="dashboard-summary-kicker">My Dashboard</div>
+                    <h1 class="dashboard-summary-title">Focus on the jobs most likely to move forward.</h1>
+                    <p class="dashboard-summary-text">Track your profile strength, recent applications, saved opportunities, and recruiter-facing activity from one compact workspace.</p>
+                    <div class="dashboard-summary-inline-stats">
+                        <span><strong><?= esc($formatCompactCount($unreadNotificationCount)) ?></strong> unread updates</span>
+                        <span><strong><?= esc($formatCompactCount($jobAlertsCount)) ?></strong> active alerts</span>
+                        <span><strong><?= esc($formatCompactCount($savedJobsCount)) ?></strong> saved jobs</span>
+                    </div>
+                    <div class="dashboard-summary-actions">
+                        <a href="<?= esc($nextActionUrl) ?>" class="btn btn-primary dashboard-summary-primary"><?= esc($nextActionCta) ?> <i class="fas fa-arrow-right ms-2"></i></a>
+                        <a href="<?= base_url('candidate/applications') ?>" class="btn btn-light dashboard-summary-secondary">Track applications</a>
+                    </div>
+                </div>
+            </div>
+
             <div class="dashboard-metric-grid">
                 <a href="<?= base_url('candidate/profile') ?>" class="dashboard-metric-card dashboard-metric-link">
                     <div class="dashboard-metric-label">Profile strength</div>
                     <div class="dashboard-metric-value"><?= $profileStrength ?>%</div>
-                    <div class="dashboard-metric-note">How complete your profile looks to recruiters</div>
+                    <div class="dashboard-metric-note"><?= esc($profilePrompt) ?></div>
                 </a>
                 <a href="<?= base_url('jobs?tab=suggested') ?>" class="dashboard-metric-card dashboard-metric-link">
                     <div class="dashboard-metric-label">Active matches</div>
                     <div class="dashboard-metric-value"><?= $activeMatches ?></div>
-                    <div class="dashboard-metric-note">Recommended roles currently in view</div>
+                    <div class="dashboard-metric-note">Recommended roles currently aligned to your profile</div>
                 </a>
                 <a href="<?= base_url('candidate/my-bookings') ?>" class="dashboard-metric-card dashboard-metric-link">
                     <div class="dashboard-metric-label">Interviews booked</div>

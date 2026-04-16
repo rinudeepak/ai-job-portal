@@ -65,28 +65,48 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
         position: relative;
         flex-shrink: 0;
         overflow: visible;
+        isolation: isolate;
         transition: transform .2s ease, box-shadow .2s ease;
     }
-    .floating-mentor-launcher__button i {
+    .floating-mentor-launcher__icon {
+        position: relative;
+        z-index: 1;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        color: #fff !important;
+        opacity: 1;
+        text-shadow: 0 1px 2px rgba(15, 23, 42, 0.22);
+    }
+    .floating-mentor-launcher__icon::before {
+        content: "\f544";
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
         font-size: 24px;
         line-height: 1;
+        color: #fff;
         display: block;
+        speak: none;
     }
     .floating-mentor-launcher__badge {
         position: absolute;
-        top: 4px;
-        right: 2px;
-        min-width: 22px;
-        height: 22px;
+        top: -2px;
+        right: -2px;
+        z-index: 2;
+        min-width: 20px;
+        height: 20px;
         border-radius: 999px;
         background: #fff;
         color: #0b66ff;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 800;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0 6px;
+        padding: 0 5px;
         box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
     }
     .floating-mentor-launcher:hover .floating-mentor-launcher__button,
@@ -117,10 +137,12 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
             min-width: 58px;
             min-height: 58px;
         }
-        .floating-mentor-launcher__button i {
-            font-size: 22px;
-            line-height: 1;
-            display: block;
+        .floating-mentor-launcher__icon {
+            width: 21px;
+            height: 21px;
+        }
+        .floating-mentor-launcher__icon::before {
+            font-size: 21px;
         }
     }
 </style>
@@ -135,7 +157,7 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
         <span class="floating-mentor-launcher__subtitle"><?= esc($premiumMentorSubLabel) ?></span>
     </span>
     <span class="floating-mentor-launcher__button">
-        <i class="fas fa-robot"></i>
+        <span class="floating-mentor-launcher__icon" aria-hidden="true"></span>
         <span class="floating-mentor-launcher__badge"><?= $premiumMentorSubscription ? 'AI' : 'Go' ?></span>
     </span>
 </a>
