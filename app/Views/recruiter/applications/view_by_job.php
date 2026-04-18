@@ -9,14 +9,6 @@
         $status = strtolower((string) ($app['status'] ?? 'pending'));
         $statusCount[$status] = ($statusCount[$status] ?? 0) + 1;
     }
-    $policy = strtoupper($job['ai_interview_policy'] ?? 'REQUIRED_HARD');
-    $policyMap = [
-        'OFF' => ['label' => 'Not Required', 'hint' => 'Candidates can apply directly', 'class' => 'ai-policy-chip-off'],
-        'OPTIONAL' => ['label' => 'Optional', 'hint' => 'AI can improve candidate ranking', 'class' => 'ai-policy-chip-optional'],
-        'REQUIRED_SOFT' => ['label' => 'Required + Recruiter Review', 'hint' => 'Recruiter can still decide after AI', 'class' => 'ai-policy-chip-soft'],
-        'REQUIRED_HARD' => ['label' => 'Mandatory Screening', 'hint' => 'AI result is strict gate', 'class' => 'ai-policy-chip-hard'],
-    ];
-    $policyMeta = $policyMap[$policy] ?? $policyMap['REQUIRED_HARD'];
     $statusOptions = $statusOptions ?? [];
     ?>
 
@@ -57,14 +49,8 @@
                         <i class="fas fa-calendar"></i> Posted on <?= date('M d, Y', strtotime($job['created_at'])) ?>
                     </small>
                 </div>
-                <div>
-                    <div class="ai-policy-chip <?= esc($policyMeta['class']) ?>">
-                        <strong>AI Interview: <?= esc($policyMeta['label']) ?></strong>
-                        <small><?= esc($policyMeta['hint']) ?></small>
-                    </div>
-                    <?php if (!empty($isAiCompulsory)): ?>
-                        <small class="text-muted d-block mt-2">Recruiter decision follows application pipeline rules.</small>
-                    <?php endif; ?>
+                <div class="text-muted small">
+                    <?= $applicationsCount ?> candidate<?= $applicationsCount === 1 ? '' : 's' ?> in this pipeline
                 </div>
             </div>
         </div>
@@ -118,7 +104,6 @@
                             <option value="applied_desc" <?= ($filters['sort'] ?? '') === 'applied_desc' ? 'selected' : '' ?>>Newest Applied</option>
                             <option value="ats_desc" <?= ($filters['sort'] ?? '') === 'ats_desc' ? 'selected' : '' ?>>ATS High to Low</option>
                             <option value="ats_asc" <?= ($filters['sort'] ?? '') === 'ats_asc' ? 'selected' : '' ?>>ATS Low to High</option>
-                            <option value="ai_desc" <?= ($filters['sort'] ?? '') === 'ai_desc' ? 'selected' : '' ?>>AI Rating High to Low</option>
                         </select>
                     </div>
                     <div class="col-md-1">
@@ -194,7 +179,6 @@
                                 <th>Notes</th>
                                 <th>Status</th>
                                 <th>ATS Score</th>
-                                <th>AI Rating</th>
                                 <th>Applied Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -280,28 +264,12 @@
                                         ?>
                                         <span class="badge badge-<?= $atsBadge ?>"><?= $ats ?>%</span>
                                     </td>
-                                    <td>
-                                        <?php if ($app['overall_rating']): ?>
-                                            <span class="badge badge-info"><?= $app['overall_rating'] ?>/10</span>
-                                        <?php else: ?>
-                                            <span class="text-muted">-</span>
-                                        <?php endif; ?>
-                                    </td>
                                     <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
                                     <td>
                                         <div class="application-actions-wrap">
                                             <a href="<?= base_url('recruiter/candidate/' . $app['candidate_id'] . '?application_id=' . $app['id'] . '&job_id=' . $job['id']) ?>" class="btn btn-sm btn-primary" target="_blank">
                                                 <i class="fas fa-user"></i> View Profile
                                             </a>
-                                            <?php if (!empty($app['has_ai_interview_session'])): ?>
-                                                <a href="<?= base_url('recruiter/applications/' . $app['id'] . '/ai-report') ?>" class="btn btn-sm btn-outline-secondary">
-                                                    <i class="fas fa-robot"></i> AI Report
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="btn btn-sm btn-outline-secondary disabled" aria-disabled="true" title="No AI interview session available yet">
-                                                    <i class="fas fa-robot"></i> AI Report
-                                                </span>
-                                            <?php endif; ?>
                                             <?php if (!empty($app['can_manual_decision'])): ?>
                                                 <form method="post" action="<?= base_url('recruiter/applications/shortlist/' . $app['id']) ?>" class="application-action-form" data-application-id="<?= (int) $app['id'] ?>">
                                                     <?= csrf_field() ?>

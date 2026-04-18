@@ -226,7 +226,6 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
 <script src="<?= base_url('jobboard/js/candidate-pages.js?v=' . @filemtime(FCPATH . 'jobboard/js/candidate-pages.js')) ?>"></script>
 <script src="<?= base_url('jobboard/js/candidate-application-actions.js?v=' . @filemtime(FCPATH . 'jobboard/js/candidate-application-actions.js')) ?>"></script>
 <script src="<?= base_url('jobboard/js/notification-actions.js?v=' . @filemtime(FCPATH . 'jobboard/js/notification-actions.js')) ?>"></script>
-
 <!-- Service Worker Registration -->
 <script>
 if ('serviceWorker' in navigator) {

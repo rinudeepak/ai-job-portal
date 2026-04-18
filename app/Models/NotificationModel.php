@@ -37,14 +37,14 @@ class NotificationModel extends Model
             'priority' => 1
         ],
         'ai_not_started' => [
-            'title' => 'AI Interview Pending',
-            'icon' => 'fas fa-robot',
+            'title' => 'Application Submitted',
+            'icon' => 'fas fa-paper-plane',
             'color' => 'info',
             'priority' => 2
         ],
         'ai_incomplete' => [
-            'title' => 'Complete Your AI Interview',
-            'icon' => 'fas fa-exclamation-circle',
+            'title' => 'Application Update',
+            'icon' => 'fas fa-info-circle',
             'color' => 'warning',
             'priority' => 3
         ],
@@ -377,8 +377,8 @@ class NotificationModel extends Model
                     $userId,
                     $applicationId,
                     'ai_not_started',
-                    'Start your AI technical interview to move forward.',
-                    base_url('interview/start/'.$applicationId)
+                    'Your application has been submitted and is now under recruiter review.',
+                    base_url('candidate/applications')
                 );
                 break;
 

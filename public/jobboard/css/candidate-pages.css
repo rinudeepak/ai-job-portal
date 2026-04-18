@@ -1512,6 +1512,36 @@
     border: 1px solid #e5ecfb;
 }
 
+.ai-interview-flow-jobboard .ai-interview-flow-face-capture {
+    padding: 1rem;
+    border-top: 1px solid #e5ecfb;
+    background: #fafbff;
+}
+
+.ai-interview-flow-jobboard #manualFaceCaptureBtn {
+    width: 100%;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.ai-interview-flow-jobboard #manualFaceCaptureBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.ai-interview-flow-jobboard .face-capture-status small {
+    font-weight: 600;
+}
+
+.ai-interview-flow-jobboard .face-preview-container {
+    text-align: center;
+}
+
+.ai-interview-flow-jobboard #facePreviewCanvas {
+    max-width: 100%;
+    height: auto;
+}
+
 .ai-interview-flow-jobboard .ai-interview-flow-video-wrap video {
     width: 100%;
     height: 100%;
@@ -1669,6 +1699,170 @@
 
 .ai-interview-flow-jobboard .dashboard-panel {
     border-radius: 1rem;
+}
+
+/* Face Detection & Audio Monitoring Status */
+.ai-interview-flow-jobboard .ai-interview-flow-media-status {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-status-item {
+    border: 1px solid #e5ecfb;
+    border-radius: 0.9rem;
+    padding: 0.9rem;
+    background: #fbfdff;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-status-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #6b7ca5;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-status-content {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-face-indicator {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    background: #f0f4f8;
+    border: 2px solid #e5ecfb;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-face-indicator.detected {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-face-indicator.not-detected {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-face-text {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-face-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #172554;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-face-count {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Audio Level Indicator */
+.ai-interview-flow-jobboard .ai-interview-flow-audio-indicator {
+    flex: 1;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-level-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #172554;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-level-db {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #3b82f6;
+    min-width: 40px;
+    text-align: right;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.25rem;
+    height: 2rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-bar {
+    flex: 1;
+    height: 0.3rem;
+    background: #e5ecfb;
+    border-radius: 999px;
+    transition: all 60ms ease;
+    min-height: 0.3rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-bar.active {
+    background: linear-gradient(180deg, #3b82f6 0%, #0ea5e9 100%);
+    height: 100%;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-bar.warning {
+    background: linear-gradient(180deg, #f59e0b 0%, #f97316 100%);
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-audio-bar.critical {
+    background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Noise Warning Banner */
+.ai-interview-flow-jobboard .ai-interview-flow-noise-warning {
+    margin-bottom: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 0.9rem;
+    background: rgba(239, 68, 68, 0.05);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-noise-warning-icon {
+    font-size: 1.2rem;
+    color: #ef4444;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-noise-warning-content {
+    display: grid;
+    gap: 0.2rem;
+    flex: 1;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-noise-warning-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+.ai-interview-flow-jobboard .ai-interview-flow-noise-warning-message {
+    font-size: 0.85rem;
+    color: #991b1b;
+    line-height: 1.4;
 }
 
 @media (max-width: 1199.98px) {
@@ -5422,4 +5616,415 @@ mark { background: #fef9c3; padding: 0 2px; border-radius: 3px; }
         grid-template-columns: 1fr;
         gap: 10px;
     }
+}
+
+/* Professional Dedicated Interview Experience */
+.ai-interview-flow-jobboard.professional-mode {
+    background: linear-gradient(180deg, #0f172a 0%, #1a1f3a 50%, #0f172a 100%);
+    min-height: 100vh;
+    padding: 0;
+}
+
+.ai-interview-flow-jobboard.professional-mode .container {
+    max-width: 100%;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-interview-flow-professional-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(10px);
+}
+
+.ai-interview-flow-professional-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+}
+
+.ai-interview-flow-professional-info {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    color: #cbd5e1;
+}
+
+.ai-interview-flow-professional-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.ai-interview-flow-professional-info-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.ai-interview-flow-professional-info-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+
+.ai-interview-flow-professional-timer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    color: #fca5a5;
+    font-weight: 700;
+}
+
+.ai-interview-flow-professional-timer.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fcd34d;
+}
+
+.ai-interview-flow-professional-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 0;
+    overflow: hidden;
+}
+
+.ai-interview-flow-professional-main {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+    padding: 2rem;
+}
+
+.ai-interview-flow-professional-question-area {
+    display: grid;
+    gap: 2rem;
+    padding: 2rem;
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 1.25rem;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.ai-interview-flow-professional-question-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #60a5fa;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+.ai-interview-flow-professional-question-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 50%;
+    color: #60a5fa;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.ai-interview-flow-professional-question-text {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 800;
+    color: #f1f5f9;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.ai-interview-flow-professional-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(15, 23, 42, 0.8);
+    border-left: 1px solid rgba(59, 130, 246, 0.2);
+    overflow-y: auto;
+}
+
+.ai-interview-flow-professional-sidebar-section {
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    padding: 1.5rem;
+}
+
+.ai-interview-flow-professional-sidebar-section:last-child {
+    border-bottom: none;
+}
+
+.ai-interview-flow-professional-sidebar-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 1rem;
+}
+
+.ai-interview-flow-professional-media-status {
+    display: grid;
+    gap: 1rem;
+}
+
+.ai-interview-flow-professional-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 0.75rem;
+}
+
+.ai-interview-flow-professional-status-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background: #60a5fa;
+    animation: pulse 2s infinite;
+}
+
+.ai-interview-flow-professional-status-dot.ok {
+    background: #10b981;
+}
+
+.ai-interview-flow-professional-status-dot.warning {
+    background: #f59e0b;
+    animation: pulse-warning 1s infinite;
+}
+
+.ai-interview-flow-professional-status-dot.error {
+    background: #ef4444;
+    animation: pulse-error 0.6s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes pulse-error {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.ai-interview-flow-professional-status-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+}
+
+.ai-interview-flow-professional-status-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ai-interview-flow-professional-status-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.ai-interview-flow-professional-violation-log {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.ai-interview-flow-professional-violation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 0.6rem;
+}
+
+.ai-interview-flow-professional-violation-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+    color: #fca5a5;
+    margin-top: 0.2rem;
+}
+
+.ai-interview-flow-professional-violation-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+}
+
+.ai-interview-flow-professional-violation-type {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fca5a5;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ai-interview-flow-professional-violation-time {
+    font-size: 0.7rem;
+    color: #cbd5e1;
+}
+
+.ai-interview-flow-professional-empty-violations {
+    text-align: center;
+    padding: 1rem 0;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.ai-interview-flow-professional-progress {
+    background: rgba(30, 41, 59, 0.6);
+    border-top: 1px solid rgba(59, 130, 246, 0.15);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+    padding: 1.5rem;
+}
+
+.ai-interview-flow-professional-progress-bar {
+    width: 100%;
+    height: 0.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.ai-interview-flow-professional-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    transition: width 300ms ease;
+    border-radius: 999px;
+}
+
+.ai-interview-flow-professional-progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+}
+
+/* Violation Alert Banner */
+.ai-interview-flow-professional-violation-alert {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.ai-interview-flow-professional-violation-alert-icon {
+    font-size: 1.25rem;
+    color: #fca5a5;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.ai-interview-flow-professional-violation-alert-content {
+    display: grid;
+    gap: 0.3rem;
+    flex: 1;
+}
+
+.ai-interview-flow-professional-violation-alert-title {
+    font-weight: 700;
+    color: #fca5a5;
+    font-size: 0.95rem;
+}
+
+.ai-interview-flow-professional-violation-alert-message {
+    font-size: 0.85rem;
+    color: #fed7aa;
+    line-height: 1.4;
+}
+
+@media (max-width: 1199.98px) {
+    .ai-interview-flow-professional-content {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-interview-flow-professional-sidebar {
+        border-left: none;
+        border-top: 1px solid rgba(59, 130, 246, 0.2);
+        max-height: 200px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .ai-interview-flow-professional-sidebar-section {
+        border-bottom: none;
+        border-right: 1px solid rgba(59, 130, 246, 0.1);
+    }
+
+    .ai-interview-flow-professional-sidebar-section:last-child {
+        border-right: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ai-interview-flow-professional-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .ai-interview-flow-professional-info {
+        width: 100%;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .ai-interview-flow-professional-main {
+        padding: 1rem;
+    }
+
+    .ai-interview-flow-professional-question-area {
+        padding: 1.5rem;
+    }
+
+    .ai-interview-flow-professional-sidebar {
+        grid-template-columns: 1fr;
+        max-height: none;
+    }
+
+    .ai-interview-flow-professional-sidebar-section {
+        border-right: none;
+        border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    }
+}
+.disabled-link {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
 }

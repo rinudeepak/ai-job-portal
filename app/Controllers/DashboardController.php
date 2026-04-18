@@ -38,7 +38,6 @@ class DashboardController extends BaseController
                 ],
                 'pendingActions' => [
                     'pending_screening' => 0,
-                    'ai_interviews_to_review' => 0,
                     'hr_interviews_today' => 0,
                     'pending_offers' => 0
                 ],
@@ -81,8 +80,6 @@ class DashboardController extends BaseController
             'pending_screening' => $applicationModel->where('status', 'pending')
                 ->whereIn('job_id', $jobIds ?: [0])
                 ->countAllResults(),
-            'ai_interviews_to_review' => $this->countAiInterviewsToReview($jobIds, $currentUserId),
-
             'hr_interviews_today' => model('InterviewBookingModel')
                 ->where('slot_datetime >=', $todayStart)
                 ->where('slot_datetime <=', $todayEnd)
@@ -115,17 +112,6 @@ class DashboardController extends BaseController
                 'link' => base_url('recruiter/slots/bookings'),
                 'icon' => 'fas fa-calendar-check',
                 'tone' => 'primary',
-            ];
-        }
-
-        if ((int) ($pendingActions['ai_interviews_to_review'] ?? 0) > 0) {
-            $count = (int) $pendingActions['ai_interviews_to_review'];
-            $reminders[] = [
-                'label' => 'Review ' . $count . ' AI interview' . ($count === 1 ? '' : 's'),
-                'description' => 'Take recruiter decisions for candidates cleared by AI screening.',
-                'link' => base_url('recruiter/jobs'),
-                'icon' => 'fas fa-robot',
-                'tone' => 'info',
             ];
         }
 
@@ -206,30 +192,6 @@ class DashboardController extends BaseController
     }
 
     /**
-     * Count recruiter AI interviews that are completed and awaiting review.
-     */
-    private function countAiInterviewsToReview(array $jobIds, int $recruiterId): int
-    {
-        $db = \Config\Database::connect();
-        if (!$db->tableExists('interview_sessions') || !$db->fieldExists('application_id', 'interview_sessions')) {
-            return 0;
-        }
-
-        $builder = $db->table('interview_sessions')
-            ->select('COUNT(DISTINCT interview_sessions.application_id) AS total')
-            ->join('applications', 'applications.id = interview_sessions.application_id', 'left')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
-            ->where('jobs.recruiter_id', $recruiterId)
-            ->whereIn('applications.job_id', $jobIds ?: [0])
-            ->where('interview_sessions.status', 'completed')
-            ->where('interview_sessions.overall_rating IS NOT NULL');
-
-        $row = $builder->get()->getRowArray();
-
-        return (int) ($row['total'] ?? 0);
-    }
-
-    /**
      * Skill Leaderboard
      */
     public function leaderboard($jobIdFromRoute = null)
@@ -291,7 +253,7 @@ class DashboardController extends BaseController
             : '0 as overall_rating, 0 as technical_score, 0 as communication_score';
 
         $builder = $applicationModel
-            ->select('applications.*, users.name, users.email, candidate_profiles.resume_path as resume_path, jobs.title as job_title, jobs.required_skills, jobs.experience_level, jobs.ai_interview_policy,
+            ->select('applications.*, users.name, users.email, candidate_profiles.resume_path as resume_path, jobs.title as job_title, jobs.required_skills, jobs.experience_level,
                     COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months,
                     ' . $ratingSelect)
             ->join('users', 'users.id = applications.candidate_id', 'left')
@@ -504,10 +466,10 @@ class DashboardController extends BaseController
 
 
         // Reset and reapply filter for each query
-        $aiCompleted = $applicationModel->where('status', 'shortlisted');
+        $screened = $applicationModel->whereIn('status', ['shortlisted', 'rejected', 'hold']);
         if (!empty($jobIds))
-            $aiCompleted->whereIn('job_id', $jobIds);
-        $aiCompletedCount = $aiCompleted->countAllResults();
+            $screened->whereIn('job_id', $jobIds);
+        $screenedCount = $screened->countAllResults();
 
         $shortlisted = $applicationModel->where('status', 'shortlisted');
         if (!empty($jobIds))
@@ -538,8 +500,8 @@ class DashboardController extends BaseController
         };
 
         return [
-            'application_to_ai_interview' => $safeRate($aiCompletedCount, $total),
-            'ai_interview_to_shortlist' => $safeRate($shortlistedCount, $aiCompletedCount),
+            'application_to_screening' => $safeRate($screenedCount ?? 0, $total),
+            'screening_to_shortlist' => $safeRate($shortlistedCount, $screenedCount ?? 0),
             'shortlist_to_hr_interview' => $safeRate($hrScheduledCount, $shortlistedCount),
             'hr_interview_to_selection' => $safeRate($selectedCount, $hrCompletedCount),
             'overall_conversion' => $safeRate($selectedCount, $total) ?? 0.0
@@ -705,11 +667,8 @@ class DashboardController extends BaseController
     {
         $requiredSkills = $this->normalizeSkillTokens($candidate['required_skills'] ?? '');
         $requiredMonths = $this->extractRequiredExperienceMonths((string) ($candidate['experience_level'] ?? ''));
-        $aiPolicy = JobModel::normalizeAiPolicy($candidate['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
-
         $hasMeaningfulInputs = !empty($requiredSkills)
-            || ($requiredMonths !== null && $requiredMonths > 0)
-            || $aiPolicy !== JobModel::AI_POLICY_OFF;
+            || ($requiredMonths !== null && $requiredMonths > 0);
 
         if (!$hasMeaningfulInputs) {
             return null;
@@ -737,9 +696,7 @@ class DashboardController extends BaseController
         }
 
         $rating = array_key_exists('overall_rating', $candidate) ? (float) $candidate['overall_rating'] : null;
-        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
-            $aiScore = 15;
-        } elseif ($rating <= 0) {
+        if ($rating <= 0) {
             $aiScore = 0;
         } else {
             $aiScore = (int) round(min(10, max(0, $rating)) / 10 * 15);

@@ -3,10 +3,6 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\AiInterviewRound1AttemptModel;
-use App\Models\InterviewSessionAnswerModel;
-use App\Models\InterviewSessionModel;
-use App\Models\JobModel;
 use App\Models\NotificationModel;
 use App\Models\RecruiterCandidateMessageModel;
 
@@ -32,8 +28,6 @@ class RecruiterApplications extends BaseController
         if (!$job) {
             return redirect()->to('recruiter/jobs')->with('error', 'Job not found');
         }
-        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
-
         $filters = [
             'skills' => trim((string) $this->request->getGet('skills')),
             'experience' => trim((string) $this->request->getGet('experience')),
@@ -68,7 +62,7 @@ class RecruiterApplications extends BaseController
         if ($atsMin !== null && $atsMax !== null && $atsMin > $atsMax) {
             [$atsMin, $atsMax] = [$atsMax, $atsMin];
         }
-        $validSort = ['applied_desc', 'ats_desc', 'ats_asc', 'ai_desc'];
+        $validSort = ['applied_desc', 'ats_desc', 'ats_asc'];
         if (!in_array($filters['sort'], $validSort, true)) {
             $filters['sort'] = 'applied_desc';
         }
@@ -136,17 +130,6 @@ class RecruiterApplications extends BaseController
             ->findAll();
 
         $applicationIds = array_values(array_filter(array_map(static fn (array $application): int => (int) ($application['id'] ?? 0), $applications)));
-        $sessionApplicationIds = [];
-        if (!empty($applicationIds)) {
-            $sessionRows = (new InterviewSessionModel())
-                ->select('application_id')
-                ->whereIn('application_id', $applicationIds)
-                ->groupBy('application_id')
-                ->findAll();
-            $sessionApplicationIds = array_values(array_unique(array_map(static fn (array $row): int => (int) ($row['application_id'] ?? 0), $sessionRows)));
-        }
-        $sessionAvailability = array_fill_keys($sessionApplicationIds, true);
-
         foreach ($applications as &$application) {
             $months = (int) ($application['total_experience_months'] ?? 0);
             if ($months <= 0) {
@@ -164,8 +147,7 @@ class RecruiterApplications extends BaseController
                 }
             }
             $application['ats_score'] = $this->calculateAtsScore($application, $job);
-            $application['can_manual_decision'] = $this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''));
-            $application['has_ai_interview_session'] = !empty($sessionAvailability[(int) ($application['id'] ?? 0)]);
+            $application['can_manual_decision'] = $this->canTakeManualDecision((string) ($application['status'] ?? ''));
         }
         unset($application);
 
@@ -186,8 +168,6 @@ class RecruiterApplications extends BaseController
             usort($applications, static fn (array $a, array $b) => ((int) ($b['ats_score'] ?? 0)) <=> ((int) ($a['ats_score'] ?? 0)));
         } elseif ($filters['sort'] === 'ats_asc') {
             usort($applications, static fn (array $a, array $b) => ((int) ($a['ats_score'] ?? 0)) <=> ((int) ($b['ats_score'] ?? 0)));
-        } elseif ($filters['sort'] === 'ai_desc') {
-            usort($applications, static fn (array $a, array $b) => ((float) ($b['overall_rating'] ?? 0)) <=> ((float) ($a['overall_rating'] ?? 0)));
         } else {
             usort($applications, static fn (array $a, array $b) => strcmp((string) ($b['applied_at'] ?? ''), (string) ($a['applied_at'] ?? '')));
         }
@@ -202,8 +182,6 @@ class RecruiterApplications extends BaseController
             'applications' => $applications,
             'filters' => $filters,
             'statusOptions' => $validStatuses,
-            'aiPolicy' => $aiPolicy,
-            'isAiCompulsory' => $this->isAiCompulsory($aiPolicy),
         ]);
     }
 
@@ -215,167 +193,6 @@ class RecruiterApplications extends BaseController
     public function reject($applicationId)
     {
         return $this->updateApplicationStatus($applicationId, 'rejected');
-    }
-
-    public function overrideAiReport(int $applicationId): ResponseInterface
-    {
-        $currentUserId = (int) session()->get('user_id');
-
-        $application = model('ApplicationModel')
-            ->select('applications.*, jobs.recruiter_id')
-            ->join('jobs', 'jobs.id = applications.job_id')
-            ->where('applications.id', $applicationId)
-            ->first();
-
-        if (!$application || (int) ($application['recruiter_id'] ?? 0) !== $currentUserId) {
-            return redirect()->to(base_url('recruiter/jobs'))->with('error', 'Application not found.');
-        }
-
-        $sessionModel = new InterviewSessionModel();
-        $session = $sessionModel->findLatestByApplication($applicationId);
-
-        if (!$session) {
-            return redirect()->back()->with('error', 'No interview session found.');
-        }
-
-        if (($session['status'] ?? '') === 'submitted') {
-            $sessionModel->update((int) $session['id'], [
-                'status' => 'under_review',
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
-            model('StageHistoryModel')->moveToStage($applicationId, 'AI Interview Under Review');
-            $session['status'] = 'under_review';
-        }
-
-        $overrideScore = $this->request->getPost('override_score');
-        $flag         = trim((string) $this->request->getPost('flag'));
-        $note         = trim((string) $this->request->getPost('recruiter_note'));
-
-        $update = ['updated_at' => date('Y-m-d H:i:s')];
-
-        if ($overrideScore !== null && $overrideScore !== '') {
-            $score = round(max(0, min(10, (float) $overrideScore)), 1);
-            $update['recruiter_override_score'] = $score;
-            $update['overall_rating']           = $score;
-        }
-
-        $validFlags = ['', 'strong_yes', 'yes', 'maybe', 'no', 'needs_review'];
-        $update['recruiter_flag'] = in_array($flag, $validFlags, true) ? $flag : '';
-        $update['recruiter_note'] = mb_substr($note, 0, 1000);
-        $update['status'] = 'finalized';
-
-        $sessionModel->update((int) $session['id'], $update);
-        model('StageHistoryModel')->moveToStage($applicationId, 'AI Interview Finalized');
-
-        $notificationModel = new NotificationModel();
-        $candidateId = (int) ($application['candidate_id'] ?? 0);
-        if ($candidateId > 0) {
-            $notificationModel->createNotification(
-                $candidateId,
-                (int) $applicationId,
-                'result_published',
-                'Your AI interview review has been finalized. Please check your application for the latest update.',
-                base_url('candidate/applications')
-            );
-            $sessionModel->update((int) $session['id'], [
-                'status' => 'candidate_notified',
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
-            model('StageHistoryModel')->moveToStage($applicationId, 'AI Interview Candidate Notified');
-        }
-
-        return redirect()->to(base_url('recruiter/applications/' . $applicationId . '/ai-report'))
-            ->with('override_success', 'AI interview finalized and candidate notified.');
-    }
-
-    public function aiInterviewReport($applicationId)
-    {
-        $applicationModel = model('ApplicationModel');
-        $currentUserId = (int) session()->get('user_id');
-
-        $application = $applicationModel
-            ->select('applications.*, jobs.title as job_title, jobs.company, jobs.recruiter_id, users.name as candidate_name, users.email as candidate_email')
-            ->join('jobs', 'jobs.id = applications.job_id', 'left')
-            ->join('users', 'users.id = applications.candidate_id', 'left')
-            ->where('applications.id', (int) $applicationId)
-            ->first();
-
-        if (!$application || (int) ($application['recruiter_id'] ?? 0) !== $currentUserId) {
-            return redirect()->to(base_url('recruiter/jobs'))->with('error', 'AI interview report not found.');
-        }
-
-        $sessionModel = new InterviewSessionModel();
-        $answerModel = new InterviewSessionAnswerModel();
-        $round1Model = new AiInterviewRound1AttemptModel();
-
-        $session = $sessionModel->findLatestByApplication((int) $applicationId);
-        if (!$session) {
-            return redirect()->to(base_url('recruiter/jobs/' . (int) $application['job_id'] . '/applications'))
-                ->with('error', 'No AI interview session found for this application.');
-        }
-
-        if (($session['status'] ?? '') === 'submitted') {
-            $sessionModel->update((int) $session['id'], [
-                'status' => 'under_review',
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
-            model('StageHistoryModel')->moveToStage((int) $applicationId, 'AI Interview Under Review');
-            $session['status'] = 'under_review';
-        }
-
-        $answers = $answerModel->findBySession((int) $session['id']);
-        $round1Attempts = \Config\Database::connect()->tableExists('ai_interview_round1_attempts')
-            ? $round1Model->findBySession((int) $session['id'])
-            : [];
-        $sectionScores = json_decode((string) ($session['section_scores'] ?? '[]'), true) ?: [];
-        if (empty($sectionScores) && !empty($answers)) {
-            $hasMissingAiScore = false;
-            $bucketed = [];
-            foreach ($answers as $answer) {
-                $sectionKey = strtolower(trim((string) ($answer['section_key'] ?? '')));
-                $score = $answer['ai_score'] ?? null;
-                if ($score === null) {
-                    $hasMissingAiScore = true;
-                    continue;
-                }
-                if ($sectionKey === '') {
-                    continue;
-                }
-                if (!isset($bucketed[$sectionKey])) {
-                    $bucketed[$sectionKey] = [];
-                }
-                $bucketed[$sectionKey][] = (float) $score;
-            }
-
-            if (!$hasMissingAiScore) {
-                foreach ($bucketed as $sectionKey => $scores) {
-                    if (!empty($scores)) {
-                        $sectionScores[$sectionKey] = round(array_sum($scores) / count($scores), 2);
-                    }
-                }
-                if (!empty($sectionScores)) {
-                    ksort($sectionScores);
-                }
-            }
-        }
-        $strengths = json_decode((string) ($session['strengths'] ?? '[]'), true) ?: [];
-        $concerns = json_decode((string) ($session['concerns'] ?? '[]'), true) ?: [];
-        $integrityEvents = json_decode((string) ($session['integrity_events'] ?? '[]'), true) ?: [];
-        $integrityFlags = json_decode((string) ($session['integrity_flags'] ?? '[]'), true) ?: [];
-        $integritySummary = $this->extractInterviewIntegritySummary($session);
-
-        return view('recruiter/applications/ai_report', [
-            'application' => $application,
-            'session' => $session,
-            'answers' => $answers,
-            'round1Attempts' => $round1Attempts,
-            'sectionScores' => $sectionScores,
-            'strengths' => $strengths,
-            'concerns' => $concerns,
-            'integrityEvents' => $integrityEvents,
-            'integrityFlags' => $integrityFlags,
-            'integritySummary' => $integritySummary,
-        ]);
     }
 
     public function bulkAction($jobId)
@@ -410,7 +227,7 @@ class RecruiterApplications extends BaseController
         }
 
         $applications = $applicationModel
-            ->select('applications.*, jobs.recruiter_id, jobs.ai_interview_policy, users.name as candidate_name')
+            ->select('applications.*, jobs.recruiter_id, users.name as candidate_name')
             ->join('jobs', 'jobs.id = applications.job_id')
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->where('applications.job_id', (int) $jobId)
@@ -482,8 +299,7 @@ class RecruiterApplications extends BaseController
                 continue;
             }
 
-            $aiPolicy = JobModel::normalizeAiPolicy($application['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
-            if (!$this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''))) {
+            if (!$this->canTakeManualDecision((string) ($application['status'] ?? ''))) {
                 $skipped++;
                 continue;
             }
@@ -519,7 +335,7 @@ class RecruiterApplications extends BaseController
         $isAjax = $this->request->isAJAX();
 
         $application = $applicationModel
-            ->select('applications.*, jobs.recruiter_id, jobs.ai_interview_policy')
+            ->select('applications.*, jobs.recruiter_id')
             ->join('jobs', 'jobs.id = applications.job_id')
             ->where('applications.id', $applicationId)
             ->first();
@@ -540,9 +356,8 @@ class RecruiterApplications extends BaseController
             return redirect()->back()->with('error', 'Booked interview applications cannot be changed here');
         }
 
-        $aiPolicy = JobModel::normalizeAiPolicy($application['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
-        if (!$this->canTakeManualDecision($aiPolicy, (string) ($application['status'] ?? ''))) {
-            $message = 'For AI compulsory jobs, recruiter decision is allowed only after AI interview completion.';
+        if (!$this->canTakeManualDecision((string) ($application['status'] ?? ''))) {
+            $message = 'This application is not eligible for recruiter action right now.';
             if ($isAjax) {
                 return $this->respondApplicationStatus(false, $message, null, 422);
             }
@@ -553,7 +368,7 @@ class RecruiterApplications extends BaseController
         $applicationModel->update($applicationId, ['status' => $status]);
 
         $stageModel = model('StageHistoryModel');
-        $stageModel->moveToStage($applicationId, $status === 'shortlisted' ? 'Shortlisted (Recruiter Override)' : 'Rejected (Recruiter Override)');
+        $stageModel->moveToStage($applicationId, $status === 'shortlisted' ? 'Shortlisted' : 'Rejected');
 
         $this->notifyApplicationStatusChange(
             $notificationModel,
@@ -606,26 +421,13 @@ class RecruiterApplications extends BaseController
         return $statusColors[$status] ?? 'secondary';
     }
 
-    private function isAiCompulsory(string $aiPolicy): bool
-    {
-        return in_array(
-            JobModel::normalizeAiPolicy($aiPolicy),
-            [JobModel::AI_POLICY_REQUIRED_HARD, JobModel::AI_POLICY_REQUIRED_SOFT],
-            true
-        );
-    }
-
-    private function canTakeManualDecision(string $aiPolicy, string $applicationStatus): bool
+    private function canTakeManualDecision(string $applicationStatus): bool
     {
         if (in_array($applicationStatus, ['interview_slot_booked', 'selected'], true)) {
             return false;
         }
 
-        if (!$this->isAiCompulsory($aiPolicy)) {
-            return true;
-        }
-
-        return in_array($applicationStatus, ['applied', 'shortlisted', 'rejected'], true);
+        return in_array($applicationStatus, ['applied', 'shortlisted', 'rejected', 'pending', 'hold'], true);
     }
 
     private function notifyApplicationStatusChange(
@@ -682,21 +484,10 @@ class RecruiterApplications extends BaseController
             $experienceScore = (int) round(min(1, $candidateMonths / $requiredMonths) * 20);
         }
 
-        // AI performance (15 points)
-        $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
-        $rating = $application['overall_rating'] !== null ? (float) $application['overall_rating'] : null;
-        if ($aiPolicy === JobModel::AI_POLICY_OFF) {
-            $aiScore = 15;
-        } elseif ($rating === null) {
-            $aiScore = 0;
-        } else {
-            $aiScore = (int) round(min(10, max(0, $rating)) / 10 * 15);
-        }
-
-        // Profile readiness (5 points): resume uploaded
+        // Profile readiness (20 points): resume uploaded
         $profileScore = !empty($application['resume_path']) ? 5 : 0;
 
-        return max(0, min(100, $skillScore + $experienceScore + $aiScore + $profileScore));
+        return max(0, min(100, $skillScore + $experienceScore + $profileScore));
     }
 
     private function normalizeSkillTokens(string $skills): array
@@ -730,31 +521,4 @@ class RecruiterApplications extends BaseController
         return null;
     }
 
-    private function extractInterviewIntegritySummary(array $session): array
-    {
-        $summary = [
-            'warning_count' => (int) ($session['integrity_warning_count'] ?? 0),
-            'tab_switch_count' => (int) ($session['tab_switch_count'] ?? 0),
-            'hidden_duration_seconds' => (int) ($session['hidden_duration_seconds'] ?? 0),
-            'reconnect_count' => (int) ($session['reconnect_count'] ?? 0),
-            'flags' => [],
-            'last_event_type' => null,
-            'last_event_at' => null,
-        ];
-
-        $history = json_decode((string) ($session['conversation_history'] ?? '[]'), true);
-        if (is_array($history)) {
-            $historySummary = (array) ($history['integrity_summary'] ?? []);
-            $summary['warning_count'] = (int) ($historySummary['warning_count'] ?? $summary['warning_count']);
-            $summary['tab_switch_count'] = (int) ($historySummary['tab_switch_count'] ?? $summary['tab_switch_count']);
-            $summary['hidden_duration_seconds'] = (int) ($historySummary['hidden_duration_seconds'] ?? $summary['hidden_duration_seconds']);
-            $summary['reconnect_count'] = (int) ($historySummary['reconnect_count'] ?? $summary['reconnect_count']);
-            $summary['last_event_type'] = $historySummary['last_event_type'] ?? null;
-            $summary['last_event_at'] = $historySummary['last_event_at'] ?? null;
-        }
-
-        $summary['flags'] = array_values(array_unique(array_filter(array_map('strval', json_decode((string) ($session['integrity_flags'] ?? '[]'), true) ?: []))));
-
-        return $summary;
-    }
 }

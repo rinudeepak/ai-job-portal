@@ -79,9 +79,6 @@
             <?php if ($pendingActions['pending_screening'] > 0): ?>
                 <span class="badge badge-warning"><?= $pendingActions['pending_screening'] ?></span> applications to screen, 
             <?php endif; ?>
-            <?php if ($pendingActions['ai_interviews_to_review'] > 0): ?>
-                <span class="badge badge-info"><?= $pendingActions['ai_interviews_to_review'] ?></span> screening reviews pending, 
-            <?php endif; ?>
             <?php if ($pendingActions['hr_interviews_today'] > 0): ?>
                 <span class="badge badge-primary"><?= $pendingActions['hr_interviews_today'] ?></span> HR interviews today
             <?php endif; ?>
@@ -194,7 +191,7 @@
                     <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-bolt"></i> Action Center</h6>
                 </div>
                 <div class="card-body p-0">
-                    <?php $hasActionCenterItems = ((int) ($pendingActions['pending_screening'] ?? 0) > 0) || ((int) ($pendingActions['ai_interviews_to_review'] ?? 0) > 0) || ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0); ?>
+                    <?php $hasActionCenterItems = ((int) ($pendingActions['pending_screening'] ?? 0) > 0) || ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0); ?>
                     <?php if ($hasActionCenterItems): ?>
                         <?php if ((int) ($pendingActions['pending_screening'] ?? 0) > 0): ?>
                             <a href="<?= $jobsUrl ?>" class="action-item-link">
@@ -203,15 +200,6 @@
                                     <small class="text-muted d-block">Review and shortlist incoming candidates.</small>
                                 </div>
                                 <span class="badge badge-warning"><?= (int) ($pendingActions['pending_screening'] ?? 0) ?></span>
-                            </a>
-                        <?php endif; ?>
-                        <?php if ((int) ($pendingActions['ai_interviews_to_review'] ?? 0) > 0): ?>
-                            <a href="<?= $jobsUrl ?>" class="action-item-link">
-                                <div class="action-item-label">
-                                    <strong>Review AI Interview Results</strong>
-                                    <small class="text-muted d-block">Take recruiter decisions for AI-cleared candidates.</small>
-                                </div>
-                                <span class="badge badge-info"><?= (int) ($pendingActions['ai_interviews_to_review'] ?? 0) ?></span>
                             </a>
                         <?php endif; ?>
                         <?php if ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0): ?>
@@ -396,18 +384,18 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Application → AI Interview</td>
+                                    <td>Application → Screening</td>
                                     <td class="text-right">
-                                        <span class="badge badge-<?= $rateClass($conversionMetrics['application_to_ai_interview'] ?? null, 50) ?>">
-                                            <?= $formatRate($conversionMetrics['application_to_ai_interview'] ?? null) ?>
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['application_to_screening'] ?? null, 50) ?>">
+                                            <?= $formatRate($conversionMetrics['application_to_screening'] ?? null) ?>
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>AI Interview → Shortlist</td>
+                                    <td>Screening → Shortlist</td>
                                     <td class="text-right">
-                                        <span class="badge badge-<?= $rateClass($conversionMetrics['ai_interview_to_shortlist'] ?? null, 40) ?>">
-                                            <?= $formatRate($conversionMetrics['ai_interview_to_shortlist'] ?? null) ?>
+                                        <span class="badge badge-<?= $rateClass($conversionMetrics['screening_to_shortlist'] ?? null, 40) ?>">
+                                            <?= $formatRate($conversionMetrics['screening_to_shortlist'] ?? null) ?>
                                         </span>
                                     </td>
                                 </tr>
