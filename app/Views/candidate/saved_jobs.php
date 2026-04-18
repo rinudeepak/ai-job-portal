@@ -42,7 +42,8 @@ $resolveAssetUrl = static function (string $path): string {
                             $title = (string) ($job['title'] ?? 'Untitled Role');
                             $company = (string) ($job['company'] ?? 'Company');
                             $location = (string) ($job['location'] ?? 'N/A');
-                            $experience = (string) ($job['experience_level'] ?? 'Not specified');
+                            $experience = trim((string) ($job['experience_level'] ?? ''));
+                            $salary = trim((string) ($job['salary_range'] ?? ''));
                             $type = strtolower((string) ($job['employment_type'] ?? ''));
                             $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
                             $initial = strtoupper(substr($company, 0, 1) ?: 'J');
@@ -75,7 +76,12 @@ $resolveAssetUrl = static function (string $path): string {
                             <p class="job-card-company"><?= esc($company) ?></p>
                             <div class="job-card-meta">
                                 <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
-                                <span><i class="fas fa-layer-group"></i> <?= esc($experience) ?></span>
+                                <?php if ($experience !== ''): ?>
+                                    <span><i class="fas fa-briefcase"></i> <?= esc($experience) ?></span>
+                                <?php endif; ?>
+                                <?php if ($salary !== ''): ?>
+                                    <span><i class="fas fa-rupee-sign"></i> <?= esc($salary) ?></span>
+                                <?php endif; ?>
                                 <?php if ($postedAt !== null): ?>
                                     <span><i class="fas fa-clock"></i> <?= esc($postedAt) ?></span>
                                 <?php endif; ?>

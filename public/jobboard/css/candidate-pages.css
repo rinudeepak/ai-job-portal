@@ -6,6 +6,7 @@
     font-size: 14px;
 }
 
+
 .candidate-app .page-board-title,
 .candidate-app .section-title,
 .candidate-app .dashboard-strategy-title,
@@ -6027,4 +6028,361 @@ mark { background: #fef9c3; padding: 0 2px; border-radius: 3px; }
     pointer-events: none;
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.applications-jobboard .applications-shell {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.applications-jobboard .applications-sidebar,
+.applications-jobboard .application-detail-card-plain {
+    background: #fff;
+    border: 1px solid #e6ebf2;
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.applications-jobboard .applications-sidebar {
+    position: sticky;
+    top: 18px;
+    overflow: hidden;
+}
+
+.applications-jobboard .applications-sidebar-header {
+    padding: 18px 18px 12px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.applications-jobboard .applications-sidebar-list {
+    display: grid;
+    gap: 0;
+}
+
+.applications-jobboard .application-list-item-plain {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid #edf2f7;
+    background: #fff;
+    text-align: left;
+    padding: 16px 18px;
+    transition: background .18s ease, border-left-color .18s ease;
+    border-left: 3px solid transparent;
+}
+
+.applications-jobboard .application-list-item-plain:last-child {
+    border-bottom: 0;
+}
+
+.applications-jobboard .application-list-item-plain:hover,
+.applications-jobboard .application-list-item-plain.is-active {
+    background: #f8fbff;
+    border-left-color: #2563eb;
+}
+
+.applications-jobboard .application-list-topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.applications-jobboard .application-list-title {
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.35;
+}
+
+.applications-jobboard .application-list-company {
+    color: #334155;
+    font-size: 0.88rem;
+    margin-bottom: 3px;
+}
+
+.applications-jobboard .application-list-meta,
+.applications-jobboard .application-list-footnote {
+    font-size: 0.78rem;
+    color: #6b7280;
+}
+
+.applications-jobboard .application-detail-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.applications-jobboard .application-detail-card-plain {
+    display: none;
+    padding: 22px;
+}
+
+.applications-jobboard .application-detail-card-plain.is-active {
+    display: block;
+}
+
+.applications-jobboard .application-detail-kicker {
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #2563eb;
+    margin-bottom: 6px;
+}
+
+.applications-jobboard .application-detail-head-plain {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.applications-jobboard .application-status-summary {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.applications-jobboard .application-status-summary-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.applications-jobboard .application-status-summary-text {
+    color: #0f172a;
+    font-size: 0.96rem;
+    line-height: 1.55;
+}
+
+.applications-jobboard .application-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.applications-jobboard .application-detail-main,
+.applications-jobboard .application-detail-side {
+    display: grid;
+    gap: 16px;
+}
+
+.applications-jobboard .application-section-card {
+    border: 1px solid #e8edf5;
+    border-radius: 14px;
+    padding: 18px;
+    background: #fff;
+}
+
+.applications-jobboard .application-section-title {
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 14px;
+}
+
+.applications-jobboard .application-section-copy {
+    color: #64748b;
+    font-size: 0.87rem;
+    line-height: 1.6;
+}
+
+.applications-jobboard .application-timeline-list {
+    display: grid;
+    gap: 14px;
+}
+
+.applications-jobboard .application-timeline-item {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.applications-jobboard .application-timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    margin-top: 4px;
+    position: relative;
+}
+
+.applications-jobboard .application-timeline-item.is-done .application-timeline-dot,
+.applications-jobboard .application-timeline-item.is-current .application-timeline-dot {
+    background: #2563eb;
+}
+
+.applications-jobboard .application-timeline-label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+
+.applications-jobboard .application-timeline-note {
+    color: #64748b;
+    font-size: 0.84rem;
+    line-height: 1.55;
+}
+
+.applications-jobboard .application-activity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.applications-jobboard .application-activity-item {
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 14px 12px;
+    text-align: center;
+}
+
+.applications-jobboard .application-activity-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.applications-jobboard .application-activity-label,
+.applications-jobboard .application-activity-note {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.applications-jobboard .application-activity-note {
+    margin-top: 12px;
+}
+
+.applications-jobboard .application-section-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.applications-jobboard .application-coach-skill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.applications-jobboard .application-coach-skill-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.applications-jobboard .application-coach-mini-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.applications-jobboard .application-coach-mini-list ul {
+    margin: 0;
+    padding-left: 18px;
+    color: #475569;
+}
+
+.applications-jobboard .application-coach-mini-list li + li {
+    margin-top: 6px;
+}
+
+.applications-jobboard .application-meta-list {
+    display: grid;
+    gap: 10px;
+}
+
+.applications-jobboard .application-meta-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.applications-jobboard .application-meta-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.applications-jobboard .application-meta-row span {
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+.applications-jobboard .application-meta-row strong {
+    font-size: 0.84rem;
+    color: #0f172a;
+    text-align: right;
+}
+
+.applications-jobboard .application-next-step-copy {
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 14px;
+}
+
+.applications-jobboard .detail-actions-plain {
+    display: grid;
+    gap: 10px;
+}
+
+.applications-jobboard .detail-actions-plain .btn-block {
+    width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .applications-jobboard .applications-shell,
+    .applications-jobboard .application-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .applications-jobboard .applications-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .applications-jobboard .application-detail-card-plain,
+    .applications-jobboard .applications-sidebar-header,
+    .applications-jobboard .application-list-item-plain {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .applications-jobboard .application-activity-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .applications-jobboard .application-section-row,
+    .applications-jobboard .application-detail-head-plain,
+    .applications-jobboard .application-list-topline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

@@ -311,9 +311,16 @@ class PremiumCareerMentorController extends BaseController
     public function createCareerPlan()
     {
         $userId = session()->get('user_id');
-        $targetRole = $this->request->getPost('target_role');
-        $timeline = $this->request->getPost('timeline');
-        $currentRole = $this->request->getPost('current_role');
+        $targetRole = trim((string) $this->request->getPost('target_role'));
+        $timeline = trim((string) $this->request->getPost('timeline'));
+        $currentRole = trim((string) $this->request->getPost('current_role'));
+
+        if ($targetRole === '' || $timeline === '') {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Target role and timeline are required.'
+            ])->setStatusCode(422);
+        }
 
         // Generate comprehensive career plan using AI
         $prompt = "Create a detailed career transition plan:
@@ -352,12 +359,31 @@ class PremiumCareerMentorController extends BaseController
             'status' => 'active'
         ];
 
-        $sessionId = $this->sessionModel->insert($sessionData);
+        $existingSession = $this->sessionModel->findSimilarActiveSession(
+            (int) $userId,
+            'career_strategy',
+            $currentRole,
+            $targetRole,
+            $timeline
+        );
+
+        if ($existingSession) {
+            $sessionId = (int) ($existingSession['id'] ?? 0);
+            $this->sessionModel->update($sessionId, [
+                'ai_analysis' => $aiAnalysis,
+                'progress_tracking' => json_encode($initialProgress),
+                'status' => 'active'
+            ]);
+        } else {
+            $sessionId = $this->sessionModel->insert($sessionData, true);
+        }
 
         return $this->response->setJSON([
             'success' => true,
             'session_id' => $sessionId,
-            'message' => 'Career plan created successfully!'
+            'message' => $existingSession
+                ? 'Career plan updated successfully!'
+                : 'Career plan created successfully!'
         ]);
     }
 

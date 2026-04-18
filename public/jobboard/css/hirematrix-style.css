@@ -836,6 +836,20 @@ a:hover {
   flex-wrap: wrap;
 }
 
+.job-card-meta span,
+.candidate-card-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  line-height: 1.4;
+}
+
+.job-card-meta i,
+.candidate-card-meta i {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
 .job-card-tags,
 .candidate-card-tags {
   display: flex;

@@ -279,6 +279,8 @@ $resolveAssetUrl = static function (string $path): string {
                         $title = (string) ($job['title'] ?? 'Untitled Role');
                         $company = (string) ($job['company'] ?? 'Company');
                         $location = (string) ($job['location'] ?? 'N/A');
+                        $experience = trim((string) ($job['experience_level'] ?? ''));
+                        $salary = trim((string) ($job['salary_range'] ?? ''));
                         $postedAt = isset($job['posted_at']) ? $formatDate($job['posted_at']) : 'Recently';
                         $companyInitial = strtoupper(substr($company, 0, 1) ?: 'C');
                         $companyLogo = trim((string) ($job['company_logo'] ?? ''));
@@ -296,20 +298,31 @@ $resolveAssetUrl = static function (string $path): string {
                                         <span><?= esc($companyInitial) ?></span>
                                     <?php endif; ?>
                                 </div>
-                                <div class="job-card-match-badge"><?= esc($matchLabel) ?></div>
                                 <h3 class="job-card-title"><?= esc($title) ?></h3>
                                 <p class="job-card-company"><?= esc($company) ?></p>
                                 <div class="job-card-meta">
                                     <span><i class="fas fa-map-pin"></i> <?= esc($location) ?></span>
+                                    <?php if ($experience !== ''): ?>
+                                        <span><i class="fas fa-briefcase"></i> <?= esc($experience) ?></span>
+                                    <?php endif; ?>
+                                    <?php if ($salary !== ''): ?>
+                                        <span><i class="fas fa-rupee-sign"></i> <?= esc($salary) ?></span>
+                                    <?php endif; ?>
                                     <span><i class="fas fa-clock"></i> <?= esc($postedAt) ?></span>
                                 </div>
                                 <div class="job-card-tags">
-                                    <span class="badge badge-primary">Full-time</span>
+                                    <span class="badge badge-primary"><?= esc($job['employment_type'] ?: 'Full-time') ?></span>
                                     <?php if ($isExternalJob): ?>
                                         <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
                                     <?php endif; ?>
                                     <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                 </div>
+                                <?php if (!$isExternalJob): ?>
+                                <div class="progress-container">
+                                    <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
+                                    <span class="progress-label"><?= esc($matchLabel) ?></span>
+                                </div>
+                                <?php endif; ?>
                                 <a href="<?= base_url('job/' . (int) $job['id']) ?>" class="view-details">View Details &rarr;</a>
                             </div>
                         </div>
