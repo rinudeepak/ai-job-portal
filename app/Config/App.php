@@ -17,7 +17,7 @@ class App extends BaseConfig
      * E.g., http://example.com/
      */
     //public string $baseURL = 'http://localhost:8080/';
-    public string $baseURL = 'http://localhost/hirematrix/public/';
+    public string $baseURL = 'http://localhost/ai-job-portal/public/';
 
 
     /**
