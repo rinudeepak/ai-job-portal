@@ -36,6 +36,7 @@ class JobModel extends Model
         'employment_type',
         'salary_range',
         'application_deadline',
+        'application_questionnaire',
     ];
 
     public static function isExternalJob(array $job): bool
@@ -108,23 +109,34 @@ class JobModel extends Model
         $skillsModel = new \App\Models\CandidateSkillsModel();
         $userModel = new \App\Models\UserModel();
         $db = \Config\Database::connect();
-
-        $skillRow = $skillsModel->where('candidate_id', $candidateId)->first();
-        $candidateSkills = $this->tokenizeCsv((string) ($skillRow['skill_name'] ?? ''));
-        if (empty($candidateSkills)) {
-            return [];
-        }
+        $resumeVersionModel = new \App\Models\CandidateResumeVersionModel();
 
         $profile = $userModel->findCandidateWithProfile((int) $candidateId) ?? [];
-        $preferredLocations = $this->tokenizeCsv((string) ($profile['preferred_locations'] ?? ''));
+        $skillRow = $skillsModel->where('candidate_id', $candidateId)->first();
+        
+        // 1. Aggregate skills from all sources (Profile table, Bio, and Primary Resume)
+        $profileSkills = $this->tokenizeCsv((string) ($skillRow['skill_name'] ?? ''));
+        $metaSkills = $this->tokenizeCsv((string) ($profile['key_skills'] ?? ''));
+        $resumeSkills = [];
+        if ($db->tableExists('candidate_resume_versions')) {
+            $primary = $resumeVersionModel->where('candidate_id', $candidateId)->where('is_primary', 1)->first();
+            if ($primary) {
+                $resumeSkills = $this->tokenizeCsv((string)($primary['highlight_skills'] ?? ''));
+            }
+        }
+        
+        $allCandidateSkills = array_values(array_unique(array_merge($profileSkills, $metaSkills, $resumeSkills)));
 
+        $preferredJobTitles = $this->tokenizeCsv((string) ($profile['preferred_job_titles'] ?? ''));
+        $preferredLocations = $this->tokenizeCsv((string) ($profile['preferred_locations'] ?? ''));
+        $preferredEmploymentTypes = $this->tokenizeCsv((string) ($profile['preferred_employment_type'] ?? ''));
+
+        // Calculate total experience
         $experienceRow = $db->query(
             "SELECT SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, ''), CURDATE()))) AS total_experience_months\n             FROM work_experiences\n             WHERE user_id = ?",
             [(int) $candidateId]
         )->getRowArray();
         $candidateMonths = (int) ($experienceRow['total_experience_months'] ?? 0);
-
-        $preferredEmploymentTypes = $this->tokenizeCsv((string) ($profile['preferred_employment_type'] ?? ''));
 
         $jobs = $this->where('status', 'open')
             ->whereNotIn('id', static function ($builder) use ($candidateId) {
@@ -135,35 +147,61 @@ class JobModel extends Model
 
         $ranked = [];
         foreach ($jobs as $job) {
+            $jobTitle = strtolower(trim((string) ($job['title'] ?? '')));
             $requiredSkills = $this->tokenizeCsv((string) ($job['required_skills'] ?? ''));
+            
+            // 1. Title/Role Match (30%) - New logic to align with user intent
+            $titleScore = 0.0;
+            if (empty($preferredJobTitles)) {
+                $titleScore = 15.0; // Default neutral score if no preference set
+            } else {
+                foreach ($preferredJobTitles as $prefTitle) {
+                    if ($prefTitle !== '' && (str_contains($jobTitle, $prefTitle) || str_contains($prefTitle, $jobTitle))) {
+                        $titleScore = 30.0;
+                        break;
+                    }
+                }
+            }
+
+            // 2. Skills Match (40%) - Rebalanced from 60%
+            $skillScore = 0.0;
+            $matchedSkills = 0;
             if (empty($requiredSkills)) {
-                continue;
+                $skillScore = 20.0; // Neutral score if recruiter didn't list structured skills
+            } else {
+                $matchedSkills = $this->countTokenOverlap($requiredSkills, $allCandidateSkills);
+                $skillCoverage = $matchedSkills / max(1, count($requiredSkills));
+                // Rebalanced: Matching any skill grants 35 points immediately to prevent low outliers.
+                $skillScore = ($matchedSkills > 0 ? 35.0 : 0.0) + ($skillCoverage * 5.0); // Max 40 points
             }
 
-            $matchedSkills = $this->countTokenOverlap($requiredSkills, $candidateSkills);
-            if ($matchedSkills <= 0) {
-                continue;
-            }
-
-            $skillCoverage = $matchedSkills / max(1, count($requiredSkills));
-            $skillScore = $skillCoverage * 60.0;
-
+            // 3. Experience Fit (15%) - Rebalanced from 20%
             $requiredMonths = $this->extractRequiredExperienceMonths((string) ($job['experience_level'] ?? ''));
             if ($requiredMonths === null || $requiredMonths <= 0) {
                 $experienceFit = 1.0;
             } else {
                 $experienceFit = min(1.0, $candidateMonths / max(1, $requiredMonths));
             }
-            $experienceScore = $experienceFit * 20.0;
+            $experienceScore = $experienceFit * 15.0;
 
+            // 4. Location & Type (15%)
             $locationScore = 0.0;
             $jobLocation = strtolower(trim((string) ($job['location'] ?? '')));
-            if ($jobLocation === '' || empty($preferredLocations)) {
-                $locationScore = 5.0;
+            $remoteKeywords = ['remote', 'anywhere', 'wfh', 'home', 'distante', 'hybrid'];
+            $isRemoteJob = false;
+            foreach ($remoteKeywords as $kw) {
+                if (str_contains($jobLocation, $kw)) $isRemoteJob = true;
+            }
+            
+            $candidatePrefersRemote = !empty($preferredLocations) && (in_array('remote', $preferredLocations) || in_array('anywhere', $preferredLocations));
+
+            if ($jobLocation === '' || empty($preferredLocations) || $isRemoteJob || $candidatePrefersRemote) {
+                // If no preference or no job location, assume neutral
+                $locationScore = 12.5; 
             } else {
                 foreach ($preferredLocations as $preferredLocation) {
                     if ($preferredLocation !== '' && (str_contains($jobLocation, $preferredLocation) || str_contains($preferredLocation, $jobLocation))) {
-                        $locationScore = 10.0;
+                        $locationScore = 15.0;
                         break;
                     }
                 }
@@ -172,18 +210,19 @@ class JobModel extends Model
             $employmentScore = 0.0;
             $jobEmploymentType = strtolower(trim((string) ($job['employment_type'] ?? '')));
             if ($jobEmploymentType === '' || empty($preferredEmploymentTypes)) {
-                $employmentScore = 5.0;
+                $employmentScore = 2.5;
             } else {
-                $employmentScore = in_array($jobEmploymentType, $preferredEmploymentTypes, true) ? 10.0 : 0.0;
+                $employmentScore = in_array($jobEmploymentType, $preferredEmploymentTypes, true) ? 5.0 : 0.0;
             }
 
-            $matchPercent = (float) round(max(0, min(100, $skillScore + $experienceScore + $locationScore + $employmentScore)), 1);
+            $totalScore = $titleScore + $skillScore + $experienceScore + $locationScore + $employmentScore;
+            $matchPercent = (float) round(max(0, min(100, $totalScore)), 1);
             if ($matchPercent <= 0) {
                 continue;
             }
 
             $job['match_score'] = $matchPercent;
-            $job['match_reason'] = 'Matched ' . $matchedSkills . '/' . count($requiredSkills) . ' required skills';
+            $job['match_reason'] = 'Profile compatibility based on role, skills, and experience.';
             $ranked[] = $job;
         }
 
@@ -291,7 +330,7 @@ class JobModel extends Model
     /** @return array<int, string> */
     private function tokenizeCsv(string $value): array
     {
-        $parts = preg_split('/[,|\\/]+/', strtolower($value)) ?: [];
+        $parts = preg_split('/[,|\\/;\t\n\r]+/', strtolower($value)) ?: [];
         $tokens = [];
         foreach ($parts as $part) {
             $token = trim($part);
@@ -306,20 +345,45 @@ class JobModel extends Model
     /** @param array<int, string> $a @param array<int, string> $b */
     private function countTokenOverlap(array $a, array $b): int
     {
+        if (empty($a) || empty($b)) {
+            return 0;
+        }
+
+        // Common synonyms map to bridge the gap between human typing and AI understanding
+        $synonyms = [
+            'javascript' => ['js', 'ecmascript', 'es6', 'node'],
+            'react' => ['reactjs', 'react.js'],
+            'node' => ['nodejs', 'node.js'],
+            'python' => ['py', 'django', 'flask', 'numpy', 'pandas'],
+            'mongodb' => ['mongo'],
+            'postgresql' => ['postgres'],
+            'aws' => ['amazon web services', 'amazon', 'cloud'],
+            'css' => ['css3', 'scss', 'sass'],
+            'html' => ['html5'],
+            'dotnet' => ['.net', 'asp.net', 'c#'],
+        ];
+
         $matched = [];
         foreach ($a as $left) {
+            $leftLower = strtolower($left);
             foreach ($b as $right) {
-                if ($left === $right) {
-                    $matched[$left] = true;
+                $rightLower = strtolower($right);
+                
+                // Direct match (crucial for short tech) or fuzzy match
+                if ($leftLower === $rightLower ||
+                   ($leftLower !== '' && strlen($leftLower) >= 2 && (str_contains($rightLower, $leftLower) || str_contains($leftLower, $rightLower)))) {
+                    $matched[$leftLower] = true;
                     break;
                 }
-                if (strlen($left) >= 4 && str_contains($right, $left)) {
-                    $matched[$left] = true;
-                    break;
-                }
-                if (strlen($right) >= 4 && str_contains($left, $right)) {
-                    $matched[$left] = true;
-                    break;
+
+                // Check synonyms
+                foreach ($synonyms as $core => $aliases) {
+                    if ($leftLower === $core || in_array($leftLower, $aliases)) {
+                        if ($rightLower === $core || in_array($rightLower, $aliases)) {
+                            $matched[$leftLower] = true;
+                            break 2;
+                        }
+                    }
                 }
             }
         }

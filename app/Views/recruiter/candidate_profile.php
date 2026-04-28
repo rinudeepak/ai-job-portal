@@ -19,6 +19,21 @@
     $recruiterNote = $recruiterNote ?? null;
     $interests = $interests ?? [];
     $projects = $projects ?? [];
+    $recruiterJobs = $recruiterJobs ?? [];
+    $jobInvitations = $jobInvitations ?? [];
+    $applicationContext = is_array($applicationContext ?? null) ? $applicationContext : null;
+
+    $formatExperienceDisplay = static function (int $months): string {
+        if ($months <= 0) {
+            return '0 years';
+        }
+        $years = floor($months / 12);
+        $remainingMonths = $months % 12;
+        $parts = [];
+        if ($years > 0) { $parts[] = $years . ' year' . ($years === 1 ? '' : 's'); }
+        if ($remainingMonths > 0) { $parts[] = $remainingMonths . ' month' . ($remainingMonths === 1 ? '' : 's'); }
+        return implode(' ', $parts);
+    };
     ?>
     <div class="page-board-header page-board-header-tight recruiter-page-board-header">
         <div class="page-board-copy">
@@ -108,6 +123,40 @@
 
             <div class="card shadow-sm mt-3 candidate-profile-rail-card">
                 <div class="card-body">
+                    <h6><i class="fas fa-paper-plane"></i> Invite to Apply</h6>
+                    <p class="small text-muted mb-3">Send a direct invitation for one of your open roles. The candidate gets an in-app alert and an email if their notification settings allow it.</p>
+                    <form method="post" action="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/invite-job') ?>">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="return_to" value="<?= current_url() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
+                        <div class="form-group mb-2">
+                            <label class="small text-muted">Choose Job</label>
+                            <select name="job_id" class="form-control" required>
+                                <option value="">Select an open job</option>
+                                <?php foreach ($recruiterJobs as $jobOption): ?>
+                                    <?php
+                                    $jobOptionId = (int) ($jobOption['id'] ?? 0);
+                                    $invitation = $jobInvitations[$jobOptionId] ?? null;
+                                    $labelSuffix = $invitation ? ' [' . ucfirst((string) ($invitation['status'] ?? 'sent')) . ']' : '';
+                                    ?>
+                                    <option value="<?= $jobOptionId ?>" <?= $jobId === $jobOptionId ? 'selected' : '' ?>>
+                                        <?= esc((string) ($jobOption['title'] ?? 'Untitled role') . $labelSuffix) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="small text-muted">Optional note</label>
+                            <textarea name="message" class="form-control" rows="4" maxlength="500" placeholder="Add a short personal note about why this role could fit them."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fas fa-paper-plane mr-1"></i> Send Invitation
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3 candidate-profile-rail-card">
+                <div class="card-body">
                     <h6><i class="fas fa-sticky-note"></i> Recruiter Notes & Tags</h6>
                     <?php if (!empty($recruiterNote['tags'])): ?>
                         <div class="mb-2">
@@ -172,6 +221,47 @@
         </div>
         
         <div class="candidate-profile-main">
+            <?php if (!empty($applicationContext['questionnaire_items'])): ?>
+            <div class="card shadow-sm mb-3 candidate-profile-section">
+                <div class="card-body">
+                    <h5><i class="fas fa-clipboard-list"></i> Application Questionnaire</h5>
+                    <?php if (!empty($applicationContext['job_title'])): ?>
+                        <p class="text-muted mb-3">Responses submitted for <?= esc((string) $applicationContext['job_title']) ?>.</p>
+                    <?php endif; ?>
+                    <div class="candidate-detail-grid mt-3">
+                        <?php foreach ((array) $applicationContext['questionnaire_items'] as $item): ?>
+                            <div class="candidate-detail-item">
+                                <label><?= esc((string) ($item['label'] ?? 'Question')) ?></label>
+                                <div style="white-space: pre-wrap;"><?= esc((string) ($item['answer'] ?? '')) ?></div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <div class="card shadow-sm mb-3 candidate-profile-section">
+                <div class="card-body">
+                    <h5><i class="fas fa-info-circle"></i> Professional Summary</h5>
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase font-weight-bold d-block">Candidate Type</label>
+                            <div class="h6 mb-0">
+                                <?php if ($isFresherCandidate): ?>
+                                    <span class="badge badge-info">Fresher</span>
+                                <?php else: ?>
+                                    <span class="badge badge-primary">Experienced</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase font-weight-bold d-block">Total Experience</label>
+                            <div class="h6 mb-0"><?= esc($formatExperienceDisplay($totalExperienceMonths)) ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card shadow-sm mb-3 candidate-profile-section">
                 <div class="card-body">
                     <h5><i class="fas fa-id-card"></i> Personal Information</h5>
@@ -397,8 +487,3 @@
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>
-
-
-
-
-

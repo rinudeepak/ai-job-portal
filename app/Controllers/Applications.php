@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Models\ApplicationModel;
 use App\Models\CandidateResumeVersionModel;
 use App\Models\JobModel;
+use App\Models\RecruiterJobInvitationModel;
 
 class Applications extends BaseController
 {
+    private const QUESTIONNAIRE_TYPES = ['text', 'textarea'];
+
     public function apply($jobId)
     {
         $session = session();
@@ -32,6 +35,14 @@ class Applications extends BaseController
                 return $this->respondApplicationAction(false, 'Job not found or no longer open.', null, 404);
             }
             return redirect()->to(base_url('jobs'))->with('error', 'Job not found or no longer open.');
+        }
+
+        // Enforce application deadline
+        if (!empty($job['application_deadline'])) {
+            if (strtotime($job['application_deadline'] . ' 23:59:59') < time()) {
+                if ($isAjax) return $this->respondApplicationAction(false, 'The application deadline for this job has passed.', null, 410);
+                return redirect()->back()->with('error', 'The application deadline for this job has passed.');
+            }
         }
 
         if (JobModel::isExternalJob($job)) {
@@ -140,11 +151,33 @@ class Applications extends BaseController
             'applied_at' => date('Y-m-d H:i:s')
         ];
 
+        $questionnaire = $this->decodeQuestionnaire((string) ($job['application_questionnaire'] ?? ''));
+        if ($db->fieldExists('questionnaire_responses', 'applications')) {
+            [$responses, $questionnaireError] = $this->buildQuestionnaireResponses(
+                $questionnaire,
+                $this->request->getPost('questionnaire_response')
+            );
+
+            if ($questionnaireError !== null) {
+                if ($isAjax) {
+                    return $this->respondApplicationAction(false, $questionnaireError, null, 422);
+                }
+
+                return redirect()->back()->withInput()->with('error', $questionnaireError);
+            }
+
+            $payload['questionnaire_responses'] = $responses !== [] ? json_encode($responses) : null;
+        }
+
         if ($db->fieldExists('resume_version_id', 'applications')) {
             $payload['resume_version_id'] = (int) ($resumeVersion['id'] ?? 0) > 0 ? (int) $resumeVersion['id'] : null;
         }
 
         $model->insert($payload);
+        $db = \Config\Database::connect();
+        if ($db->tableExists('recruiter_job_invitations')) {
+            (new RecruiterJobInvitationModel())->markAppliedForCandidateJob((int) $candidateId, (int) $jobId);
+        }
         
         $applicationId = $model->getInsertID();
         $stageModel = model('StageHistoryModel');
@@ -293,6 +326,88 @@ class Applications extends BaseController
         }
 
         return $this->response->setStatusCode($statusCode)->setJSON($payload);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function decodeQuestionnaire(string $rawQuestionnaire): array
+    {
+        if (trim($rawQuestionnaire) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($rawQuestionnaire, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $questions = [];
+        foreach ($decoded as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $id = trim((string) ($row['id'] ?? ''));
+            $label = trim((string) ($row['label'] ?? ''));
+            $type = strtolower(trim((string) ($row['type'] ?? 'textarea')));
+
+            if ($id === '' || $label === '' || !in_array($type, self::QUESTIONNAIRE_TYPES, true)) {
+                continue;
+            }
+
+            $questions[] = [
+                'id' => $id,
+                'label' => $label,
+                'type' => $type,
+                'placeholder' => trim((string) ($row['placeholder'] ?? '')),
+                'required' => (bool) ($row['required'] ?? false),
+            ];
+        }
+
+        return $questions;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $questionnaire
+     * @param mixed $rawResponses
+     * @return array{0: array<int, array<string, mixed>>, 1: string|null}
+     */
+    private function buildQuestionnaireResponses(array $questionnaire, $rawResponses): array
+    {
+        if (empty($questionnaire)) {
+            return [[], null];
+        }
+
+        $rawResponses = is_array($rawResponses) ? $rawResponses : [];
+        $responses = [];
+
+        foreach ($questionnaire as $question) {
+            $questionId = (string) ($question['id'] ?? '');
+            $answer = trim((string) ($rawResponses[$questionId] ?? ''));
+
+            if (!empty($question['required']) && $answer === '') {
+                return [[], '"' . (string) ($question['label'] ?? 'This question') . '" is required.'];
+            }
+
+            if ($answer === '') {
+                continue;
+            }
+
+            if (mb_strlen($answer) > 5000) {
+                return [[], 'Each application response must be 5000 characters or fewer.'];
+            }
+
+            $responses[] = [
+                'question_id' => $questionId,
+                'label' => (string) ($question['label'] ?? ''),
+                'type' => (string) ($question['type'] ?? 'textarea'),
+                'answer' => $answer,
+                'required' => (bool) ($question['required'] ?? false),
+            ];
+        }
+
+        return [$responses, null];
     }
 
     private function getApplySuccessMessage(string $aiPolicy): string

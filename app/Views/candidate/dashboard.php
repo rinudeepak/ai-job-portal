@@ -1,5 +1,8 @@
 <?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
 
+<!-- CSS Circle Progress (Required for visual ATS Score) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/css-percentage-circle/0.0.3/css/circle.min.css">
+
 <?php
 $applicationCount = count($applications ?? []);
 $recentApps = array_slice($applications ?? [], 0, 5);
@@ -146,7 +149,7 @@ $resolveAssetUrl = static function (string $path): string {
                         <?php endif; ?>
                     </div>
                 </div>
-                <a href="<?= base_url('candidate/profile') ?>" class="btn btn-sm btn-outline-primary dashboard-sidebar-view-profile">View profile</a>
+                <a href="<?= base_url('candidate/profile') ?>" class="btn btn-sm btn-primary dashboard-sidebar-view-profile">View profile</a>
             </div>
             <div class="dashboard-sidebar-progress">
                 <div class="dashboard-sidebar-progress-header">
@@ -266,7 +269,7 @@ $resolveAssetUrl = static function (string $path): string {
                         Live Recommendations
                     </div>
                     <h2 class="section-title">Jobs Matching Your Profile</h2>
-                    <p class="section-subtitle">Based on your skills, preferences, and application history</p>
+                    <p class="section-subtitle">Based on your skills, target roles, and work preferences</p>
                 </div>
                 <a href="<?= base_url('jobs?tab=suggested') ?>" class="btn btn-ghost text-primary">View all jobs <i class="fas fa-arrow-right ms-2"></i></a>
             </div>
@@ -312,21 +315,12 @@ $resolveAssetUrl = static function (string $path): string {
                                 </div>
                                 <div class="job-card-tags">
                                     <span class="badge badge-primary"><?= esc($job['employment_type'] ?: 'Full-time') ?></span>
-                                    <?php if ($isExternalJob): ?>
-                                        <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
-                                    <?php endif; ?>
                                     <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                 </div>
-                                <?php if (!$isExternalJob): ?>
-                                <div class="progress-container">
-                                    <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
-                                    <span class="progress-label"><?= esc($matchLabel) ?></span>
-                                </div>
-                                <?php endif; ?>
                                 <a href="<?= base_url('job/' . (int) $job['id']) ?>" class="view-details">View Details &rarr;</a>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
                 <?php else: ?>
                     <div class="col-12">
                         <div class="dashboard-panel">
@@ -487,6 +481,10 @@ $resolveAssetUrl = static function (string $path): string {
         </div>
     </section>
 
+    <?php if (!empty($blogPosts)): ?>
+        <?= view('candidate/dashboard_blog_section', ['blogPosts' => $blogPosts]) ?>
+    <?php endif; ?>
+
     <section class="dashboard-section pt-0">
         <div class="container">
             <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -549,6 +547,7 @@ $resolveAssetUrl = static function (string $path): string {
     </div>
 
 </div>
+
 
 <?php if (count($bannerItems) > 1): ?>
 <script>

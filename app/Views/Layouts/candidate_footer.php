@@ -1,4 +1,4 @@
-</main>
+        </main>
 <?php
 $candidateId = (int) (session()->get('user_id') ?? 0);
 $premiumMentorSubscription = null;
@@ -188,6 +188,7 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
                 <ul class="list-unstyled">
                     <li><a href="<?= base_url('candidate/settings') ?>">Settings</a></li>
                     <li><a href="<?= base_url('account/change-password') ?>">Change Password</a></li>
+                    <li><a href="<?= base_url('feedback') ?>">Feedback</a></li>
                     <li><a href="<?= base_url('logout') ?>">Logout</a></li>
                 </ul>
             </div>
@@ -240,3 +241,4 @@ if ('serviceWorker' in navigator) {
 </body>
 
 </html>
+    

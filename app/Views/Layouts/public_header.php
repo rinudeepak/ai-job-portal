@@ -28,6 +28,7 @@ $bodyClass = trim('hirematrix-app public-header-page ' . ($body_class ?? ''));
                 </div>
                 <nav class="mx-auto site-navigation col-xl">
                     <ul class="site-menu js-clone-nav d-none d-lg-flex ml-0 pl-0 landing-header-nav">
+                        <li><a href="<?= base_url('blog') ?>">Blog</a></li>
                         <li><a href="<?= base_url('register') ?>">Register Candidate</a></li>
                         <li><a href="<?= base_url('recruiter/register') ?>">Register Recruiter</a></li>
                     </ul>

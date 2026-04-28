@@ -1,4 +1,4 @@
-</main>
+        </main>
 <footer class="site-footer">
     <a href="#top" class="smoothscroll scroll-top">
         <span class="icon-keyboard_arrow_up"></span>
@@ -26,6 +26,7 @@
                 <h3>Analytics</h3>
                 <ul class="list-unstyled">
                     <li><a href="<?= base_url('recruiter/dashboard/export-excel') ?>">Export Data</a></li>
+                    <li><a href="<?= base_url('feedback') ?>">Feedback</a></li>
                     <li><a href="<?= base_url('logout') ?>">Logout</a></li>
                 </ul>
             </div>
@@ -69,3 +70,4 @@
 </html>
 
 
+    

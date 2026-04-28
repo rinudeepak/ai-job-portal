@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Libraries\AtsScoreService;
 use App\Models\NotificationModel;
 use App\Models\RecruiterCandidateMessageModel;
 
@@ -81,12 +82,22 @@ class RecruiterApplications extends BaseController
 
         // Pre-aggregate total experience (months) per candidate from work_experiences.
         $experienceSubQuery = '(SELECT user_id, SUM(TIMESTAMPDIFF(MONTH, start_date, COALESCE(NULLIF(end_date, \'\'), CURDATE()))) AS total_experience_months FROM work_experiences GROUP BY user_id) candidate_experience';
+
+        $db = \Config\Database::connect();
+        $resumeSkillsSelect = $db->tableExists('candidate_resume_versions') 
+            ? ', candidate_resume_versions.highlight_skills as resume_version_skills' 
+            : ', "" as resume_version_skills';
+
         // Get applications for this job with optional filters
         $builder = $applicationModel
-            ->select('applications.*, users.name, users.email, candidate_profiles.location as candidate_location, candidate_profiles.resume_path as resume_path, 0 as overall_rating, candidate_skills.skill_name, COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months, recruiter_candidate_notes.tags as recruiter_tags, recruiter_candidate_notes.notes as recruiter_notes')
+            ->select('applications.*, users.name, users.email, candidate_profiles.location as candidate_location, candidate_profiles.resume_path as resume_path, 
+                    candidate_profiles.preferred_job_titles, candidate_profiles.preferred_locations, candidate_profiles.preferred_employment_type, candidate_profiles.key_skills,
+                    0 as overall_rating, candidate_skills.skill_name, ' . $resumeSkillsSelect . ',
+                    COALESCE(candidate_experience.total_experience_months, 0) as total_experience_months, recruiter_candidate_notes.tags as recruiter_tags, recruiter_candidate_notes.notes as recruiter_notes')
             ->join('users', 'users.id = applications.candidate_id', 'left')
             ->join('candidate_profiles', 'candidate_profiles.user_id = applications.candidate_id', 'left')
             ->join('candidate_skills', 'candidate_skills.candidate_id = applications.candidate_id', 'left')
+            ->join('candidate_resume_versions', 'candidate_resume_versions.id = applications.resume_version_id', 'left')
             ->join(
                 'recruiter_candidate_notes',
                 'recruiter_candidate_notes.candidate_id = applications.candidate_id AND recruiter_candidate_notes.recruiter_id = ' . (int) $currentUserId,
@@ -130,6 +141,7 @@ class RecruiterApplications extends BaseController
             ->findAll();
 
         $applicationIds = array_values(array_filter(array_map(static fn (array $application): int => (int) ($application['id'] ?? 0), $applications)));
+        $atsScoreService = new AtsScoreService();
         foreach ($applications as &$application) {
             $months = (int) ($application['total_experience_months'] ?? 0);
             if ($months <= 0) {
@@ -146,8 +158,16 @@ class RecruiterApplications extends BaseController
                     $application['experience_display'] = $remainingMonths . 'm';
                 }
             }
-            $application['ats_score'] = $this->calculateAtsScore($application, $job);
+            $analysis = $atsScoreService->analyzeCandidateJob(
+                (int) ($application['candidate_id'] ?? 0),
+                $job,
+                (int) ($application['resume_version_id'] ?? 0)
+            );
+            $application['ats_score'] = (int) ($analysis['score'] ?? 0);
             $application['can_manual_decision'] = $this->canTakeManualDecision((string) ($application['status'] ?? ''));
+            $application['questionnaire_preview'] = $this->buildQuestionnairePreview(
+                (string) ($application['questionnaire_responses'] ?? '')
+            );
         }
         unset($application);
 
@@ -182,12 +202,45 @@ class RecruiterApplications extends BaseController
             'applications' => $applications,
             'filters' => $filters,
             'statusOptions' => $validStatuses,
+            'unread_count' => model('NotificationModel')->getUnreadCount($currentUserId)
         ]);
     }
 
     public function shortlist($applicationId)
     {
         return $this->updateApplicationStatus($applicationId, 'shortlisted');
+    }
+
+    private function buildQuestionnairePreview(string $rawResponses): string
+    {
+        if (trim($rawResponses) === '') {
+            return '';
+        }
+
+        $decoded = json_decode($rawResponses, true);
+        if (!is_array($decoded)) {
+            return '';
+        }
+
+        $parts = [];
+        foreach ($decoded as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $label = trim((string) ($row['label'] ?? ''));
+            $answer = trim((string) ($row['answer'] ?? ''));
+            if ($label === '' || $answer === '') {
+                continue;
+            }
+
+            $parts[] = $label . ': ' . $answer;
+            if (count($parts) >= 2) {
+                break;
+            }
+        }
+
+        return implode(' | ', $parts);
     }
 
     public function reject($applicationId)
@@ -423,11 +476,7 @@ class RecruiterApplications extends BaseController
 
     private function canTakeManualDecision(string $applicationStatus): bool
     {
-        if (in_array($applicationStatus, ['interview_slot_booked', 'selected'], true)) {
-            return false;
-        }
-
-        return in_array($applicationStatus, ['applied', 'shortlisted', 'rejected', 'pending', 'hold'], true);
+        return in_array($applicationStatus, ['applied', 'pending', 'hold'], true);
     }
 
     private function notifyApplicationStatusChange(
@@ -457,68 +506,5 @@ class RecruiterApplications extends BaseController
         );
     }
 
-    private function calculateAtsScore(array $application, array $job): int
-    {
-        $candidateSkills = $this->normalizeSkillTokens((string) ($application['skill_name'] ?? ''));
-        $requiredSkills = $this->normalizeSkillTokens((string) ($job['required_skills'] ?? ''));
-
-        // Skill fit (60 points)
-        if (empty($requiredSkills)) {
-            $skillScore = 60;
-        } else {
-            $matched = 0;
-            foreach ($requiredSkills as $requiredSkill) {
-                if (in_array($requiredSkill, $candidateSkills, true)) {
-                    $matched++;
-                }
-            }
-            $skillScore = (int) round(($matched / max(1, count($requiredSkills))) * 60);
-        }
-
-        // Experience fit (20 points)
-        $requiredMonths = $this->extractRequiredExperienceMonths((string) ($job['experience_level'] ?? ''));
-        $candidateMonths = max(0, (int) ($application['total_experience_months'] ?? 0));
-        if ($requiredMonths === null || $requiredMonths <= 0) {
-            $experienceScore = 20;
-        } else {
-            $experienceScore = (int) round(min(1, $candidateMonths / $requiredMonths) * 20);
-        }
-
-        // Profile readiness (20 points): resume uploaded
-        $profileScore = !empty($application['resume_path']) ? 5 : 0;
-
-        return max(0, min(100, $skillScore + $experienceScore + $profileScore));
-    }
-
-    private function normalizeSkillTokens(string $skills): array
-    {
-        $parts = preg_split('/[,|\\/]+/', strtolower($skills)) ?: [];
-        $tokens = [];
-        foreach ($parts as $part) {
-            $value = trim($part);
-            if ($value !== '') {
-                $tokens[] = $value;
-            }
-        }
-        return array_values(array_unique($tokens));
-    }
-
-    private function extractRequiredExperienceMonths(string $experienceLevel): ?int
-    {
-        $value = strtolower(trim($experienceLevel));
-        if ($value === '') {
-            return null;
-        }
-
-        if (preg_match('/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/', $value, $matches)) {
-            return (int) round(((float) $matches[1]) * 12);
-        }
-
-        if (preg_match('/(\d+(?:\.\d+)?)/', $value, $matches)) {
-            return (int) round(((float) $matches[1]) * 12);
-        }
-
-        return null;
-    }
-
 }
+    

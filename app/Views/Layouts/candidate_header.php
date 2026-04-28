@@ -18,6 +18,64 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/responsive.css?v=' . @filemtime(FCPATH . 'jobboard/css/responsive.css')) ?>">
+    <style>
+        /* Styles for the job card tools dropdown */
+        .job-card-tools-wrapper {
+            position: absolute;
+            bottom: 14px;
+            right: 44px; /* Positioned side-by-side with the save button */
+            z-index: 100; /* Ensure wrapper is above card content */
+            display: block;
+        }
+
+        .job-card-tools-toggle {
+            height: 31px; /* Match standard button height */
+            width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 !important;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .job-card-tools-dropdown {
+            display: none; /* Hidden by default */
+            position: absolute;
+            background-color: #ffffff;
+            min-width: 170px;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+            z-index: 1000; /* High z-index to allow selection */
+            padding: 6px 0;
+            border-radius: 4px;
+            right: 0; /* Align dropdown to the right of the icon */
+            bottom: 100%; /* Flip direction to open upwards */
+            top: auto;
+            margin-bottom: 6px; /* Small gap at the bottom */
+            border: 1px solid #e2e8f0;
+        }
+
+        .job-card-tools-wrapper:hover .job-card-tools-dropdown {
+            display: block; /* Show on hover */
+        }
+
+        .job-card-tools-item {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            font-size: 13px;
+            color: #334155;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .job-card-tools-item:hover {
+            background-color: #f1f5f9;
+            color: #2563eb;
+        }
+    </style>
 </head>
 <body id="top" class="hirematrix-app candidate-app">
 <div id="overlayer"></div>
@@ -82,6 +140,7 @@
     $isRecommendedActive = $isJobsListActive && $activeTab === 'suggested';
     $isApplicationStatusActive = $pathEndsWith('/candidate/applications');
     $isSavedJobsActive = $pathEndsWith('/candidate/saved-jobs');
+    
     $isJobAlertsActive = false;
     $isCompaniesActive = $pathEndsWith('/companies') || str_contains($currentPath, '/company/');
     $isJobsRoot = $isJobsListActive || $isSavedJobsActive || $isJobDetailsActive;
@@ -89,7 +148,8 @@
     $isCareerTransitionActive = str_contains($currentPath, '/career-transition');
     $isResumeStudioActive = $pathEndsWith('/candidate/resume-studio');
     $isPremiumMentorActive = str_contains($currentPath, '/premium-mentor');
-    $isServicesActive = $isCareerTransitionActive || $isResumeStudioActive || $isPremiumMentorActive;
+    $isJobStrategyActive = str_contains($currentPath, '/job-strategy');
+    $isServicesActive = $isCareerTransitionActive || $isResumeStudioActive || $isPremiumMentorActive || $isJobStrategyActive ;
 
     $homeNavClass = $isHomeActive ? 'nav-link active' : 'nav-link';
     $jobsNavClass = $isJobsActive ? 'nav-link active' : 'nav-link';
@@ -98,9 +158,11 @@
     $recommendedClass = $isRecommendedActive ? 'active' : '';
     $applicationStatusClass = $isApplicationStatusActive ? 'active' : '';
     $savedJobsClass = $isSavedJobsActive ? 'active' : '';
+    
     $careerTransitionClass = $isCareerTransitionActive ? 'active' : '';
     $resumeStudioClass = $isResumeStudioActive ? 'active' : '';
-
+    $jobStrategyClass = $isJobStrategyActive ? 'active' : '';
+    
     if ($candidatePhoto === '' && $candidateId > 0) {
         $candidateRecord = model('UserModel')->findCandidateWithProfile($candidateId);
         $candidatePhoto = (string) ($candidateRecord['profile_photo'] ?? '');
@@ -243,9 +305,13 @@
                     </a>
                 </div>
 
-                <!-- Section: Career Tools -->
+                <!-- Section: Career Tools & Interview Prep -->
                 <div class="hm-drawer-section">
                     <div class="hm-drawer-section-title">Career Tools</div>
+                    <a href="<?= base_url('candidate/job-search-strategy') ?>" class="hm-drawer-link <?= $isJobStrategyActive ? 'is-active' : '' ?>">
+                        <span class="hm-drawer-link-icon"><i class="fas fa-chart-line"></i></span>
+                        <span>Job Search Strategy Coach</span>
+                    </a>
                     <a href="<?= esc($careerTransitionUrl) ?>" class="hm-drawer-link <?= $isCareerTransitionActive ? 'is-active' : '' ?>">
                         <span class="hm-drawer-link-icon"><i class="fas fa-route"></i></span>
                         <span>Career Transition AI</span>
@@ -260,10 +326,6 @@
                         <span class="hm-drawer-link-icon"><i class="fas fa-robot"></i></span>
                         <span>AI Career Mentor</span>
                         <?php if ($premiumLocked): ?><span class="hm-drawer-pro">Pro</span><?php endif; ?>
-                    </a>
-                    <a href="<?= base_url('candidate/mock-interview') ?>" class="hm-drawer-link">
-                        <span class="hm-drawer-link-icon"><i class="fas fa-microphone"></i></span>
-                        <span>Mock Interview</span>
                     </a>
                 </div>
 
@@ -324,6 +386,7 @@
                         <li class="has-children">
                             <a href="#" class="<?= $servicesNavClass ?>">Services</a>
                             <ul class="dropdown">
+                                <li><a href="<?= base_url('candidate/job-search-strategy') ?>" class="<?= $jobStrategyClass ?>">Job Strategy</a></li>
                                 <li><a href="<?= esc($careerTransitionUrl) ?>" class="<?= $careerTransitionClass ?>">Career Transition AI</a></li>
                                 <li><a href="<?= esc($resumeStudioUrl) ?>" class="<?= $resumeStudioClass ?>">Resume Studio</a></li>
                                 <li><a href="<?= esc($mentorUrl) ?>" class="">AI Career Mentor</a></li>

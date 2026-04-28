@@ -71,6 +71,15 @@ class Candidate extends BaseController
             ? $projectModel->getByUser((int) $userId)
             : [];
 
+        // Calculate total experience in months
+        $totalExperienceMonths = 0;
+        foreach ($workExperiences as $exp) {
+            $startDate = new \DateTime($exp['start_date']);
+            $endDate = $exp['is_current'] ? new \DateTime() : new \DateTime($exp['end_date']);
+            $interval = $startDate->diff($endDate);
+            $totalExperienceMonths += ($interval->y * 12) + $interval->m;
+        }
+
         // Get application stats
         $applicationModel = model('ApplicationModel');
         $bookingModel = model('InterviewBookingModel');
@@ -80,6 +89,8 @@ class Candidate extends BaseController
         $totalOffers = $applicationModel->where('candidate_id', $userId)
                                       ->whereIn('status', ['selected', 'hired'])
                                       ->countAllResults();
+
+        $profileReadiness = $this->getProfileReadinessForResume($userId);
 
         // Calculate profile completion percentage
         $completionFields = [
@@ -95,7 +106,7 @@ class Candidate extends BaseController
             'bio' => !empty($user['bio'])
         ];
         
-        $completedFields = array_sum($completionFields);
+        $completedFields = array_sum($completionFields); // This is for the overall profile completion, not specific missing details
         $totalFields = count($completionFields);
         $completionPercentage = round(($completedFields / $totalFields) * 100);
 
@@ -116,7 +127,10 @@ class Candidate extends BaseController
             'completion' => [
                 'percentage' => $completionPercentage,
                 'fields'     => $completionFields
-            ]
+            ],
+            'totalExperienceMonths' => $totalExperienceMonths,
+            'isFresherCandidate' => (int)($user['is_fresher_candidate'] ?? 0) === 1,
+            'profileReadiness' => $profileReadiness,
         ]);
     }
 
@@ -219,6 +233,12 @@ class Candidate extends BaseController
         $jobId = (int) ($this->request->getPost('job_id') ?? 0);
         $makePrimary = (int) ($this->request->getPost('make_primary') ?? 0) === 1;
         $templateKey = trim((string) $this->request->getPost('template_key'));
+
+        // Enforce Readiness Check
+        $readiness = $this->getProfileReadinessForResume($candidateId);
+        if (!$readiness['is_ready']) {
+            return redirect()->back()->with('error', 'Profile incomplete: ' . implode(', ', $readiness['missing_details']));
+        }
 
         if (!in_array($generationMode, ['role', 'job'], true)) {
             return redirect()->back()->with('error', 'Choose either Generate By Role or Generate For Specific Job.');
@@ -578,8 +598,7 @@ class Candidate extends BaseController
             'location' => $this->request->getPost('location'),
             'bio' => $this->request->getPost('bio'),
             'gender' => $this->request->getPost('gender'),
-            'date_of_birth' => $this->request->getPost('date_of_birth'),
-            'work_experience' => $this->request->getPost('work_experience')
+            'date_of_birth' => $this->request->getPost('date_of_birth')
         ];
 
         $userModel->update($userId, [
@@ -606,7 +625,8 @@ class Candidate extends BaseController
         $data = [
             'resume_headline' => $this->request->getPost('resume_headline'),
             'current_salary' => $this->normalizeSalaryToLpa($this->request->getPost('current_salary')),
-            'notice_period' => $this->request->getPost('notice_period')
+            'notice_period' => $this->request->getPost('notice_period'),
+            'is_fresher_candidate' => $this->request->getPost('is_fresher_candidate') === '1' ? 1 : 0
         ];
         $userModel->upsertCandidateProfile((int) $userId, $data);
         
@@ -1118,6 +1138,35 @@ class Candidate extends BaseController
         ];
     }
 
+    /**
+     * Checks if the profile has the minimum data needed to generate an AI resume.
+     */
+    private function getProfileReadinessForResume(int $candidateId): array
+    {
+        $userModel = new UserModel();
+        $user = $userModel->findCandidateWithProfile($candidateId);
+        $isFresher = (int)($user['is_fresher_candidate'] ?? 0) === 1;
+        
+        $missing = [];
+        
+        if ($isFresher) {
+            $edu = (new EducationModel())->where('user_id', $candidateId)->first();
+            if (!$edu || empty($edu['degree']) || empty($edu['institution'])) {
+                $missing[] = 'At least one education entry with Degree and Institution';
+            }
+        } else {
+            $exp = (new WorkExperienceModel())->where('user_id', $candidateId)->first();
+            if (!$exp || empty($exp['job_title']) || empty($exp['company_name'])) {
+                $missing[] = 'At least one work experience entry with Job Title and Company';
+            }
+        }
+
+        return [
+            'is_ready' => empty($missing),
+            'missing_details' => $missing
+        ];
+    }
+
     private function detectCurrentRole(array $profile): string
     {
         $workExperiences = (array) ($profile['work_experiences'] ?? []);
@@ -1172,6 +1221,7 @@ class Candidate extends BaseController
         $templateRenderer = new ResumeTemplateRenderer();
         $profileSnapshot = $this->buildResumeProfileSnapshot($userId);
         $blockedResumeTemplates = $this->getBlockedResumeTemplates($profileSnapshot);
+        $readiness = $this->getProfileReadinessForResume($userId);
 
         $resumeVersions = $db->tableExists('candidate_resume_versions')
             ? (new CandidateResumeVersionModel())->getForCandidate($userId)
@@ -1192,6 +1242,17 @@ class Candidate extends BaseController
                 'summary' => (string) ($resumeVersion['summary'] ?? ''),
                 'highlight_skills' => $this->splitCsvList((string) ($resumeVersion['highlight_skills'] ?? '')),
             ]);
+
+            // Calculate a pseudo-strength score (can be improved with AI later)
+            $contentLength = strlen((string)($resumeVersion['content'] ?? ''));
+            $skillCount = count($this->splitCsvList((string)($resumeVersion['highlight_skills'] ?? '')));
+            
+            $score = 40; // Base score
+            $score += min(30, ($contentLength / 100)); // Up to 30 points for detail
+            $score += min(30, ($skillCount * 3)); // Up to 30 points for skills
+            
+            $resumeVersion['strength_score'] = min(100, $score);
+            $resumeVersion['strength_class'] = $score > 80 ? 'success' : ($score > 50 ? 'warning' : 'danger');
         }
         unset($resumeVersion);
 
@@ -1230,6 +1291,7 @@ class Candidate extends BaseController
             'activeTransition' => $transitionModel->getActiveTransition($userId),
             'resumeTemplates' => $templateRenderer->getTemplates(),
             'blockedResumeTemplates' => $blockedResumeTemplates,
+            'profileReadiness' => $readiness,
         ];
     }
 

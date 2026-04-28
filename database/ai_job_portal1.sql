@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 13, 2026 at 12:01 PM
+-- Generation Time: Apr 20, 2026 at 06:31 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -179,58 +179,176 @@ INSERT INTO `admin_api_usage_logs` (`id`, `user_id`, `user_email`, `user_role`, 
 (126, NULL, '', '', 'remoteok', '/api', 'fetch_jobs_feed', 0, 0, 0, 1, 200, 2796, 1, 0.000000, '2026-04-13 05:21:43'),
 (127, NULL, '', '', 'arbeitnow', '/api/job-board-api', 'fetch_jobs_feed', 0, 0, 0, 1, 200, 998, 1, 0.000000, '2026-04-13 05:21:44'),
 (128, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 291, 1020, 1020, 200, NULL, 1, 0.000284, '2026-04-13 05:53:20'),
-(129, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 4895, 625, 5520, 5520, 200, NULL, 1, 0.001109, '2026-04-13 06:50:23');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `ai_interview_round1_attempts`
---
-
-CREATE TABLE `ai_interview_round1_attempts` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `interview_session_id` int(11) UNSIGNED NOT NULL,
-  `application_id` int(11) UNSIGNED NOT NULL,
-  `candidate_id` int(11) UNSIGNED NOT NULL,
-  `question_bank_id` int(11) UNSIGNED DEFAULT NULL,
-  `section_key` enum('reasoning','logical','fill_blank') NOT NULL DEFAULT 'reasoning',
-  `question_type` enum('mcq','fill_blank') NOT NULL DEFAULT 'mcq',
-  `question_text` text NOT NULL,
-  `selected_answer` text DEFAULT NULL,
-  `correct_answer` text DEFAULT NULL,
-  `is_correct` tinyint(1) DEFAULT NULL,
-  `score` decimal(5,2) NOT NULL DEFAULT 0.00,
-  `max_score` decimal(5,2) NOT NULL DEFAULT 10.00,
-  `answered_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `client_context` text DEFAULT NULL,
-  `integrity_flags` text DEFAULT NULL,
-  `paste_event_count` int(11) UNSIGNED DEFAULT 0,
-  `pasted_character_count` int(11) UNSIGNED DEFAULT 0,
-  `copy_paste_detected` tinyint(1) DEFAULT 0,
-  `large_insert_count` int(11) UNSIGNED DEFAULT 0,
-  `large_insert_character_count` int(11) UNSIGNED DEFAULT 0,
-  `large_insert_detected` tinyint(1) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Dumping data for table `ai_interview_round1_attempts`
---
-
-INSERT INTO `ai_interview_round1_attempts` (`id`, `interview_session_id`, `application_id`, `candidate_id`, `question_bank_id`, `section_key`, `question_type`, `question_text`, `selected_answer`, `correct_answer`, `is_correct`, `score`, `max_score`, `answered_at`, `created_at`, `updated_at`, `client_context`, `integrity_flags`, `paste_event_count`, `pasted_character_count`, `copy_paste_detected`, `large_insert_count`, `large_insert_character_count`, `large_insert_detected`) VALUES
-(97, 34, 12, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Clear team ____ prevents delivery confusion.', 'alignment', 'communication', 0, 0.00, 10.00, '2026-04-04 09:32:03', '2026-04-04 09:32:03', '2026-04-04 09:32:03', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(98, 34, 12, 2, NULL, 'reasoning', 'mcq', 'Which is the best signal of a maintainable solution in Google Ads?', 'Clear modules, readable code, and test coverage', 'Clear modules, readable code, and test coverage', 1, 10.00, 10.00, '2026-04-04 09:32:17', '2026-04-04 09:32:17', '2026-04-04 09:32:17', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(99, 34, 12, 2, NULL, 'reasoning', 'mcq', 'In a product engineering issue, what should be your first step?', 'Identify impact, gather evidence, then act', 'Identify impact, gather evidence, then act', 1, 10.00, 10.00, '2026-04-04 09:32:33', '2026-04-04 09:32:33', '2026-04-04 09:32:33', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(100, 34, 12, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'feedback', 'communication', 0, 0.00, 10.00, '2026-04-04 09:33:06', '2026-04-04 09:33:06', '2026-04-04 09:33:06', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(101, 34, 12, 2, NULL, 'reasoning', 'mcq', 'When priorities conflict, what is the best next action?', 'Clarify impact and align on a ranked priority list', 'Clarify impact and align on a ranked priority list', 1, 10.00, 10.00, '2026-04-04 09:33:39', '2026-04-04 09:33:39', '2026-04-04 09:33:39', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(102, 34, 12, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Good ____ helps teams detect issues early.', 'monitoring', 'monitoring', 1, 10.00, 10.00, '2026-04-04 09:34:16', '2026-04-04 09:34:16', '2026-04-04 09:34:16', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(103, 35, 11, 2, NULL, 'reasoning', 'mcq', 'In a data pipeline issue, what should be your first step?', 'Wait for more complaints before acting', 'Identify impact, gather evidence, then act', 0, 0.00, 10.00, '2026-04-04 10:12:01', '2026-04-04 10:12:01', '2026-04-04 10:12:01', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(104, 35, 11, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: Strong data ____ improves reporting trust.', 'na', 'validation', 0, 0.00, 10.00, '2026-04-04 10:12:06', '2026-04-04 10:12:06', '2026-04-04 10:12:06', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(105, 35, 11, 2, NULL, 'fill_blank', 'fill_blank', 'Fill in the blank: In code reviews, clear ____ helps teams maintain quality.', 'na', 'communication', 0, 0.00, 10.00, '2026-04-04 10:12:09', '2026-04-04 10:12:09', '2026-04-04 10:12:09', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(106, 35, 11, 2, NULL, 'reasoning', 'mcq', 'Which is the best signal of a maintainable solution in SQL?', 'Clear modules, readable code, and test coverage', 'Clear modules, readable code, and test coverage', 1, 10.00, 10.00, '2026-04-04 10:12:12', '2026-04-04 10:12:12', '2026-04-04 10:12:12', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(107, 35, 11, 2, NULL, 'logical', 'mcq', 'For the Data Analyst role, which approach is most reliable under deadline pressure?', 'Delay until perfect architecture appears', 'Deliver the smallest safe increment with validation', 0, 0.00, 10.00, '2026-04-04 10:12:15', '2026-04-04 10:12:15', '2026-04-04 10:12:15', NULL, NULL, 0, 0, 0, 0, 0, 0),
-(108, 35, 11, 2, NULL, 'reasoning', 'mcq', 'When two dashboards conflict, what should you do first?', 'Ignore mismatch', 'Trace data source, filters, and definitions', 0, 0.00, 10.00, '2026-04-04 10:12:18', '2026-04-04 10:12:18', '2026-04-04 10:12:18', NULL, NULL, 0, 0, 0, 0, 0, 0);
+(129, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 4895, 625, 5520, 5520, 200, NULL, 1, 0.001109, '2026-04-13 06:50:23'),
+(130, 7, 'jacob@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 178, 508, 508, 200, NULL, 1, 0.000156, '2026-04-13 11:13:00'),
+(131, 7, 'jacob@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 327, 178, 505, 505, 200, NULL, 1, 0.000156, '2026-04-13 11:13:05'),
+(132, 7, 'jacob@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 656, 293, 949, 949, 200, NULL, 1, 0.000274, '2026-04-13 11:13:13'),
+(133, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 145, 479, 479, 200, NULL, 1, 0.000137, '2026-04-14 05:05:37'),
+(134, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 171, 502, 502, 200, NULL, 1, 0.000152, '2026-04-14 05:05:41'),
+(135, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 172, 502, 502, 200, NULL, 1, 0.000153, '2026-04-14 05:05:45'),
+(136, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 169, 504, 504, 200, NULL, 1, 0.000152, '2026-04-14 05:05:49'),
+(137, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 132, 458, 458, 200, NULL, 1, 0.000128, '2026-04-14 05:05:52'),
+(138, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 136, 465, 465, 200, NULL, 1, 0.000131, '2026-04-14 05:05:56'),
+(139, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 237, 966, 966, 200, NULL, 1, 0.000252, '2026-04-14 05:06:01'),
+(140, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 610, 7442, 7442, 200, NULL, 1, 0.001391, '2026-04-14 05:50:21'),
+(141, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 237, 966, 966, 200, NULL, 1, 0.000252, '2026-04-14 08:16:20'),
+(142, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 182, 516, 516, 200, NULL, 1, 0.000159, '2026-04-14 11:10:28'),
+(143, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 131, 462, 462, 200, NULL, 1, 0.000128, '2026-04-14 11:10:31'),
+(144, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 137, 467, 467, 200, NULL, 1, 0.000132, '2026-04-14 11:10:36'),
+(145, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 157, 492, 492, 200, NULL, 1, 0.000144, '2026-04-14 11:10:40'),
+(146, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 139, 465, 465, 200, NULL, 1, 0.000132, '2026-04-14 11:10:44'),
+(147, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 164, 493, 493, 200, NULL, 1, 0.000148, '2026-04-14 11:10:48'),
+(148, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 659, 820, 1479, 1479, 200, NULL, 1, 0.000591, '2026-04-14 11:37:52'),
+(149, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 238, 967, 967, 200, NULL, 1, 0.000252, '2026-04-14 11:39:13'),
+(150, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 660, 7492, 7492, 200, NULL, 1, 0.001421, '2026-04-14 12:59:09'),
+(151, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 599, 7431, 7431, 200, NULL, 1, 0.001384, '2026-04-14 12:59:47'),
+(152, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 585, 7417, 7417, 200, NULL, 1, 0.001376, '2026-04-14 13:00:12'),
+(153, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 556, 7388, 7388, 200, NULL, 1, 0.001358, '2026-04-14 13:00:58'),
+(154, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 616, 7448, 7448, 200, NULL, 1, 0.001394, '2026-04-14 13:05:13'),
+(155, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 162, 496, 496, 200, NULL, 1, 0.000147, '2026-04-15 04:40:31'),
+(156, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 177, 508, 508, 200, NULL, 1, 0.000156, '2026-04-15 04:40:37'),
+(157, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 180, 510, 510, 200, NULL, 1, 0.000158, '2026-04-15 04:40:41'),
+(158, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 177, 512, 512, 200, NULL, 1, 0.000156, '2026-04-15 04:40:46'),
+(159, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 187, 513, 513, 200, NULL, 1, 0.000161, '2026-04-15 04:40:50'),
+(160, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 138, 467, 467, 200, NULL, 1, 0.000132, '2026-04-15 04:40:53'),
+(161, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 245, 974, 974, 200, NULL, 1, 0.000256, '2026-04-15 04:41:00'),
+(162, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 245, 974, 974, 200, NULL, 1, 0.000256, '2026-04-15 04:41:35'),
+(163, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 576, 7408, 7408, 200, NULL, 1, 0.001370, '2026-04-15 04:45:34'),
+(164, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 617, 7449, 7449, 200, NULL, 1, 0.001395, '2026-04-15 04:48:15'),
+(165, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 604, 7436, 7436, 200, NULL, 1, 0.001387, '2026-04-15 04:51:06'),
+(166, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 232, 961, 961, 200, NULL, 1, 0.000249, '2026-04-15 04:52:08'),
+(167, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 727, 316, 1043, 1043, 200, NULL, 1, 0.000299, '2026-04-15 04:52:40'),
+(168, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 238, 967, 967, 200, NULL, 1, 0.000252, '2026-04-15 05:05:08'),
+(169, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 727, 237, 964, 964, 200, NULL, 1, 0.000251, '2026-04-15 05:13:29'),
+(170, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 250, 979, 979, 200, NULL, 1, 0.000259, '2026-04-15 05:24:08'),
+(171, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 612, 7444, 7444, 200, NULL, 1, 0.001392, '2026-04-15 05:39:53'),
+(172, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 597, 7429, 7429, 200, NULL, 1, 0.001383, '2026-04-15 05:47:43'),
+(173, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 771, 147, 918, 918, 200, NULL, 1, 0.000204, '2026-04-15 06:01:09'),
+(174, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 583, 7415, 7415, 200, NULL, 1, 0.001375, '2026-04-15 06:53:13'),
+(175, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 626, 7458, 7458, 200, NULL, 1, 0.001400, '2026-04-15 07:04:36'),
+(176, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 601, 7433, 7433, 200, NULL, 1, 0.001385, '2026-04-15 08:20:17'),
+(177, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 239, 968, 968, 200, NULL, 1, 0.000253, '2026-04-15 08:20:24'),
+(178, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 629, 7461, 7461, 200, NULL, 1, 0.001402, '2026-04-15 08:20:35'),
+(179, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 616, 7448, 7448, 200, NULL, 1, 0.001394, '2026-04-15 08:20:46'),
+(180, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 605, 7437, 7437, 200, NULL, 1, 0.001388, '2026-04-15 10:35:14'),
+(181, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 612, 7444, 7444, 200, NULL, 1, 0.001392, '2026-04-15 10:41:42'),
+(182, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 169, 503, 503, 200, NULL, 1, 0.000152, '2026-04-15 10:48:02'),
+(183, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 142, 473, 473, 200, NULL, 1, 0.000135, '2026-04-15 10:48:06'),
+(184, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 253, 583, 583, 200, NULL, 1, 0.000201, '2026-04-15 10:48:10'),
+(185, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 193, 528, 528, 200, NULL, 1, 0.000166, '2026-04-15 10:48:14'),
+(186, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 175, 501, 501, 200, NULL, 1, 0.000154, '2026-04-15 10:48:19'),
+(187, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 169, 498, 498, 200, NULL, 1, 0.000151, '2026-04-15 10:48:22'),
+(188, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 602, 7434, 7434, 200, NULL, 1, 0.001386, '2026-04-15 10:49:06'),
+(189, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 628, 7460, 7460, 200, NULL, 1, 0.001402, '2026-04-15 10:52:56'),
+(190, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 604, 7436, 7436, 200, NULL, 1, 0.001387, '2026-04-15 12:51:19'),
+(191, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 183, 517, 517, 200, NULL, 1, 0.000160, '2026-04-16 04:11:15'),
+(192, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 135, 466, 466, 200, NULL, 1, 0.000131, '2026-04-16 04:11:19'),
+(193, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 179, 509, 509, 200, NULL, 1, 0.000157, '2026-04-16 04:11:24'),
+(194, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 140, 475, 475, 200, NULL, 1, 0.000134, '2026-04-16 04:11:30'),
+(195, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 131, 457, 457, 200, NULL, 1, 0.000128, '2026-04-16 04:11:33'),
+(196, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 133, 462, 462, 200, NULL, 1, 0.000129, '2026-04-16 04:11:36'),
+(197, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 312, 1041, 1041, 200, NULL, 1, 0.000297, '2026-04-16 04:11:43'),
+(198, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 244, 973, 973, 200, NULL, 1, 0.000256, '2026-04-16 04:19:23'),
+(199, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 223, 952, 952, 200, NULL, 1, 0.000243, '2026-04-16 05:20:00'),
+(200, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 659, 805, 1464, 1464, 200, NULL, 1, 0.000582, '2026-04-16 05:20:39'),
+(201, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 667, 730, 1397, 1397, 200, NULL, 1, 0.000538, '2026-04-16 05:44:28'),
+(202, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 240, 59, 299, 299, 200, NULL, 1, 0.000071, '2026-04-16 06:41:02'),
+(203, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 239, 60, 299, 299, 200, NULL, 1, 0.000072, '2026-04-16 06:41:45'),
+(204, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 328, 130, 458, 458, 200, NULL, 1, 0.000127, '2026-04-16 07:08:54'),
+(205, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 261, 55, 316, 316, 200, NULL, 1, 0.000072, '2026-04-16 07:11:25'),
+(206, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 249, 65, 314, 314, 200, NULL, 1, 0.000076, '2026-04-16 07:13:10'),
+(207, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 659, 797, 1456, 1456, 200, NULL, 1, 0.000577, '2026-04-16 11:03:59'),
+(208, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 140, 474, 474, 200, NULL, 1, 0.000134, '2026-04-16 11:15:04'),
+(209, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 189, 520, 520, 200, NULL, 1, 0.000163, '2026-04-16 11:15:09'),
+(210, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 174, 506, 506, 200, NULL, 1, 0.000154, '2026-04-16 11:15:13'),
+(211, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 157, 492, 492, 200, NULL, 1, 0.000144, '2026-04-16 11:15:16'),
+(212, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 164, 493, 493, 200, NULL, 1, 0.000148, '2026-04-16 11:15:19'),
+(213, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 328, 131, 459, 459, 200, NULL, 1, 0.000128, '2026-04-16 13:12:58'),
+(214, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 675, 805, 1480, 1480, 200, NULL, 1, 0.000584, '2026-04-16 13:13:25'),
+(215, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 253, 58, 311, 311, 200, NULL, 1, 0.000073, '2026-04-16 13:48:44'),
+(216, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 337, 174, 511, 511, 200, NULL, 1, 0.000155, '2026-04-16 13:49:50'),
+(217, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 172, 504, 504, 200, NULL, 1, 0.000153, '2026-04-16 13:51:13'),
+(218, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 130, 459, 459, 200, NULL, 1, 0.000127, '2026-04-16 13:51:16'),
+(219, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 175, 505, 505, 200, NULL, 1, 0.000155, '2026-04-16 13:51:20'),
+(220, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 136, 462, 462, 200, NULL, 1, 0.000131, '2026-04-16 13:51:23'),
+(221, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 662, 801, 1463, 1463, 200, NULL, 1, 0.000580, '2026-04-16 13:51:43'),
+(222, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 175, 509, 509, 200, NULL, 1, 0.000155, '2026-04-17 04:49:13'),
+(223, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 132, 461, 461, 200, NULL, 1, 0.000129, '2026-04-17 04:49:17'),
+(224, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 180, 510, 510, 200, NULL, 1, 0.000158, '2026-04-17 04:49:28'),
+(225, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 179, 514, 514, 200, NULL, 1, 0.000158, '2026-04-17 04:49:31'),
+(226, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 139, 465, 465, 200, NULL, 1, 0.000132, '2026-04-17 04:49:35'),
+(227, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 137, 466, 466, 200, NULL, 1, 0.000132, '2026-04-17 04:49:39'),
+(228, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 238, 967, 967, 200, NULL, 1, 0.000252, '2026-04-17 04:49:43'),
+(229, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 658, 758, 1416, 1416, 200, NULL, 1, 0.000554, '2026-04-17 04:50:19'),
+(230, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 266, 68, 334, 334, 200, NULL, 1, 0.000081, '2026-04-17 04:54:03'),
+(231, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 274, 62, 336, 336, 200, NULL, 1, 0.000078, '2026-04-17 04:55:48'),
+(232, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 429, 63, 492, 492, 200, NULL, 1, 0.000102, '2026-04-17 04:56:31'),
+(233, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 430, 66, 496, 496, 200, NULL, 1, 0.000104, '2026-04-17 04:57:17'),
+(234, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 430, 65, 495, 495, 200, NULL, 1, 0.000104, '2026-04-17 04:58:14'),
+(235, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 174, 505, 505, 200, NULL, 1, 0.000154, '2026-04-17 05:17:21'),
+(236, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 659, 761, 1420, 1420, 200, NULL, 1, 0.000555, '2026-04-17 05:17:43'),
+(237, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 240, 65, 305, 305, 200, NULL, 1, 0.000075, '2026-04-17 05:21:20'),
+(238, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 238, 55, 293, 293, 200, NULL, 1, 0.000069, '2026-04-17 05:22:05'),
+(239, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 176, 508, 508, 200, NULL, 1, 0.000155, '2026-04-17 05:40:18'),
+(240, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 675, 769, 1444, 1444, 200, NULL, 1, 0.000563, '2026-04-17 05:40:56'),
+(241, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 337, 151, 488, 488, 200, NULL, 1, 0.000141, '2026-04-17 05:56:23'),
+(242, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 667, 785, 1452, 1452, 200, NULL, 1, 0.000571, '2026-04-17 05:59:41'),
+(243, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 328, 127, 455, 455, 200, NULL, 1, 0.000125, '2026-04-17 06:56:33'),
+(244, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 176, 508, 508, 200, NULL, 1, 0.000155, '2026-04-17 07:00:47'),
+(245, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 662, 810, 1472, 1472, 200, NULL, 1, 0.000585, '2026-04-17 07:11:23'),
+(246, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 658, 781, 1439, 1439, 200, NULL, 1, 0.000567, '2026-04-17 07:22:10'),
+(247, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 243, 53, 296, 296, 200, NULL, 1, 0.000068, '2026-04-17 07:25:10'),
+(248, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 242, 64, 306, 306, 200, NULL, 1, 0.000075, '2026-04-17 07:25:50'),
+(249, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 659, 822, 1481, 1481, 200, NULL, 1, 0.000592, '2026-04-17 07:30:31'),
+(250, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 262, 57, 319, 319, 200, NULL, 1, 0.000074, '2026-04-17 07:32:22'),
+(251, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 662, 817, 1479, 1479, 200, NULL, 1, 0.000590, '2026-04-17 09:37:07'),
+(252, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 658, 808, 1466, 1466, 200, NULL, 1, 0.000584, '2026-04-17 09:48:03'),
+(253, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 659, 739, 1398, 1398, 200, NULL, 1, 0.000542, '2026-04-17 10:35:03'),
+(254, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 237, 64, 301, 301, 200, NULL, 1, 0.000074, '2026-04-17 10:36:22'),
+(255, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 142, 476, 476, 200, NULL, 1, 0.000135, '2026-04-18 04:36:29'),
+(256, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 331, 177, 508, 508, 200, NULL, 1, 0.000156, '2026-04-18 04:36:38'),
+(257, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 332, 201, 533, 533, 200, NULL, 1, 0.000170, '2026-04-18 04:36:45'),
+(258, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 168, 503, 503, 200, NULL, 1, 0.000151, '2026-04-18 04:36:50'),
+(259, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 135, 461, 461, 200, NULL, 1, 0.000130, '2026-04-18 04:36:53'),
+(260, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 131, 460, 460, 200, NULL, 1, 0.000128, '2026-04-18 04:36:56'),
+(261, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 241, 970, 970, 200, NULL, 1, 0.000254, '2026-04-18 04:37:02'),
+(262, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 333, 144, 477, 477, 200, NULL, 1, 0.000136, '2026-04-18 05:18:50'),
+(263, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 328, 141, 469, 469, 200, NULL, 1, 0.000134, '2026-04-18 05:18:54'),
+(264, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 243, 572, 572, 200, NULL, 1, 0.000195, '2026-04-18 05:18:59'),
+(265, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 167, 501, 501, 200, NULL, 1, 0.000150, '2026-04-18 05:19:03'),
+(266, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 325, 140, 465, 465, 200, NULL, 1, 0.000133, '2026-04-18 05:19:06'),
+(267, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 328, 169, 497, 497, 200, NULL, 1, 0.000151, '2026-04-18 05:19:10'),
+(268, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 302, 1031, 1031, 200, NULL, 1, 0.000291, '2026-04-18 05:19:38'),
+(269, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 373, 782, 1155, 1155, 200, NULL, 1, 0.000525, '2026-04-18 05:23:04'),
+(270, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 170, 496, 496, 200, NULL, 1, 0.000151, '2026-04-18 06:08:59'),
+(271, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 327, 181, 508, 508, 200, NULL, 1, 0.000158, '2026-04-18 06:09:05'),
+(272, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 173, 502, 502, 200, NULL, 1, 0.000153, '2026-04-18 06:52:13'),
+(273, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 195, 525, 525, 200, NULL, 1, 0.000167, '2026-04-18 06:52:17'),
+(274, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 370, 892, 1262, 1262, 200, NULL, 1, 0.000591, '2026-04-18 06:52:53'),
+(275, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 374, 1130, 1504, 1504, 200, NULL, 1, 0.000734, '2026-04-18 09:14:30'),
+(276, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 645, 7477, 7477, 200, NULL, 1, 0.001412, '2026-04-18 09:32:02'),
+(277, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 596, 7428, 7428, 200, NULL, 1, 0.001382, '2026-04-18 09:32:26'),
+(278, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 622, 7454, 7454, 200, NULL, 1, 0.001398, '2026-04-18 09:37:26'),
+(279, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 615, 7447, 7447, 200, NULL, 1, 0.001394, '2026-04-18 09:52:00'),
+(280, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 642, 7474, 7474, 200, NULL, 1, 0.001410, '2026-04-18 10:14:46'),
+(281, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 600, 7432, 7432, 200, NULL, 1, 0.001385, '2026-04-18 10:15:13'),
+(282, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 603, 7435, 7435, 200, NULL, 1, 0.001387, '2026-04-18 10:24:40'),
+(283, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 677, 7509, 7509, 200, NULL, 1, 0.001431, '2026-04-18 10:26:21'),
+(284, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 611, 7443, 7443, 200, NULL, 1, 0.001391, '2026-04-18 10:51:05'),
+(285, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 6832, 615, 7447, 7447, 200, NULL, 1, 0.001394, '2026-04-18 10:52:01'),
+(286, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 139, 473, 473, 200, NULL, 1, 0.000134, '2026-04-18 10:52:29'),
+(287, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 150, 485, 485, 200, NULL, 1, 0.000140, '2026-04-18 10:52:32'),
+(288, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 169, 495, 495, 200, NULL, 1, 0.000150, '2026-04-18 10:52:36'),
+(289, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 176, 505, 505, 200, NULL, 1, 0.000155, '2026-04-18 10:52:39'),
+(290, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 219, 948, 948, 200, NULL, 1, 0.000241, '2026-04-18 10:52:45'),
+(291, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 988, 247, 1235, 1235, 200, NULL, 1, 0.000296, '2026-04-18 10:53:10'),
+(292, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 334, 188, 522, 522, 200, NULL, 1, 0.000163, '2026-04-20 04:14:20'),
+(293, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 179, 508, 508, 200, NULL, 1, 0.000157, '2026-04-20 04:14:24'),
+(294, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 330, 185, 515, 515, 200, NULL, 1, 0.000161, '2026-04-20 04:14:30'),
+(295, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 335, 201, 536, 536, 200, NULL, 1, 0.000171, '2026-04-20 04:14:34'),
+(296, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 326, 184, 510, 510, 200, NULL, 1, 0.000159, '2026-04-20 04:14:38'),
+(297, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 329, 137, 466, 466, 200, NULL, 1, 0.000132, '2026-04-20 04:14:41'),
+(298, 2, 'manju@gmail.com', 'candidate', 'openai', '/v1/chat/completions', 'gpt-4o-mini', 729, 297, 1026, 1026, 200, NULL, 1, 0.000288, '2026-04-20 04:14:47');
 
 -- --------------------------------------------------------
 
@@ -264,7 +382,7 @@ INSERT INTO `applications` (`id`, `candidate_id`, `resume_version_id`, `job_id`,
 (8, 2, NULL, 11, 'applied', NULL, NULL, '2026-03-26 08:25:14'),
 (9, 2, NULL, 9, 'applied', NULL, NULL, '2026-03-26 08:39:10'),
 (10, 2, NULL, 5, 'applied', NULL, NULL, '2026-03-26 08:49:27'),
-(11, 2, NULL, 3, 'ai_interview_completed', NULL, NULL, '2026-03-26 08:56:56'),
+(11, 2, NULL, 3, 'applied', NULL, NULL, '2026-03-26 08:56:56'),
 (12, 2, NULL, 8, 'ai_interview_completed', NULL, NULL, '2026-03-26 09:02:49');
 
 -- --------------------------------------------------------
@@ -532,7 +650,7 @@ INSERT INTO `career_transitions` (`id`, `candidate_id`, `current_role`, `target_
 (1, 8, 'Core PHP, MySQL, WordPress', 'DevOps Engineer', '[\"Linux command line proficiency\",\"Containerization (Docker, Kubernetes)\",\"CI\\/CD pipelines understanding\",\"Infrastructure as Code (Terraform, Ansible)\",\"Monitoring and logging tools (Prometheus, Grafana)\"]', '[{\"phase\":\"Phase 1\",\"duration\":\"4 weeks\",\"focus\":\"Learn the fundamentals of Linux and command line tools, essential for server management.\"},{\"phase\":\"Phase 2\",\"duration\":\"4 weeks\",\"focus\":\"Gain knowledge in containerization technologies, specifically Docker and Kubernetes.\"},{\"phase\":\"Phase 3\",\"duration\":\"4 weeks\",\"focus\":\"Understand CI\\/CD concepts and tools, and learn Infrastructure as Code practices.\"}]', 'active', 0, '2026-03-21 10:04:47', '2026-03-23 17:56:42', '2026-03-23 17:58:37', 1, '2026-03-21 10:04:47', 'pending'),
 (2, 2, 'Web Developer', 'Data Analyst', '[\"Statistical Analysis\",\"Data Visualization\",\"SQL\"]', '[{\"phase\":\"Phase 1\",\"duration\":\"2 weeks\",\"focus\":\"Introduction to Data Analysis and Statistics\"},{\"phase\":\"Phase 2\",\"duration\":\"3 weeks\",\"focus\":\"Learning SQL and Database Management\"},{\"phase\":\"Phase 3\",\"duration\":\"2 weeks\",\"focus\":\"Data Visualization Techniques\"},{\"phase\":\"Phase 4\",\"duration\":\"1 week\",\"focus\":\"Capstone Project and Portfolio Development\"}]', 'inactive', 0, '2026-03-23 06:23:00', '2026-03-27 15:27:08', NULL, 0, '2026-03-23 06:23:00', 'pending'),
 (3, 2, 'Web Developer', 'Data Scientist', '[\"Statistical Analysis\",\"Machine Learning\",\"Data Visualization\",\"Data Wrangling\",\"Big Data Technologies\"]', '[{\"phase\":\"Phase 1\",\"duration\":\"4 weeks\",\"focus\":\"Fundamentals of Statistics and Python for Data Science\"},{\"phase\":\"Phase 2\",\"duration\":\"4 weeks\",\"focus\":\"Machine Learning Concepts and Techniques\"},{\"phase\":\"Phase 3\",\"duration\":\"4 weeks\",\"focus\":\"Practical Applications and Projects\"}]', 'inactive', 0, '2026-03-27 09:58:23', '2026-04-04 15:48:25', NULL, 0, '2026-03-27 09:58:23', 'pending'),
-(4, 2, 'Web Developer', 'Full Stack Developer', '[\"Core Skills\",\"Best Practices\",\"Industry Tools\"]', '[{\"phase\":\"Foundation\",\"duration\":\"4 weeks\",\"focus\":\"Learn fundamentals\"},{\"phase\":\"Advanced\",\"duration\":\"4 weeks\",\"focus\":\"Master advanced topics\"},{\"phase\":\"Career Prep\",\"duration\":\"4 weeks\",\"focus\":\"Build portfolio\"}]', 'inactive', 0, '2026-04-04 10:18:33', '2026-04-11 12:48:52', NULL, 0, '2026-04-04 10:18:33', 'pending');
+(4, 2, 'Web Developer', 'Full Stack Developer', '[\"Core Skills\",\"Best Practices\",\"Industry Tools\"]', '[{\"phase\":\"Foundation\",\"duration\":\"4 weeks\",\"focus\":\"Learn fundamentals\"},{\"phase\":\"Advanced\",\"duration\":\"4 weeks\",\"focus\":\"Master advanced topics\"},{\"phase\":\"Career Prep\",\"duration\":\"4 weeks\",\"focus\":\"Build portfolio\"}]', 'active', 0, '2026-04-04 10:18:33', '2026-04-11 12:48:52', '2026-04-18 17:11:30', 1, '2026-04-04 10:18:33', 'pending');
 
 -- --------------------------------------------------------
 
@@ -606,6 +724,7 @@ CREATE TABLE `companies` (
   `last_enriched_at` datetime DEFAULT NULL,
   `industry` varchar(150) DEFAULT NULL,
   `size` varchar(50) DEFAULT NULL,
+  `founded_year` varchar(10) DEFAULT NULL,
   `hq` varchar(200) DEFAULT NULL,
   `branches` text DEFAULT NULL,
   `short_description` varchar(255) DEFAULT NULL,
@@ -628,22 +747,24 @@ CREATE TABLE `companies` (
 -- Dumping data for table `companies`
 --
 
-INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `career_page`, `linkedin`, `twitter`, `facebook`, `instagram`, `youtube`, `source`, `last_enriched_at`, `industry`, `size`, `hq`, `branches`, `short_description`, `what_we_do`, `mission_values`, `culture_summary`, `employee_benefits`, `workplace_photos`, `office_tour_title`, `office_tour_url`, `office_tour_summary`, `contact_email`, `contact_phone`, `contact_public`, `created_at`, `updated_at`) VALUES
-(1, 'TechNova Solutions', 'uploads/company_logos/1772797666_1de3e808ef5b10255dc2.jpg', 'https://technovasolutions.in/', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '50-200', 'Bangalore', 'Bangalore, Kochi, Pune, Hyderabad, Chennai', '', '', '', '', '', '[\"uploads\\/company_branding\\/1772797666_bbda61ca6960368af974.jpg\",\"uploads\\/company_branding\\/1772797666_69ee990c60d9e2e4a4d0.jpg\",\"uploads\\/company_branding\\/1772797666_9589276903dce23ee7f1.jpg\"]', 'Explore Our Workspace', 'https://vimeo.com/areaworkplaces/videos', 'Take a quick look at the team environment and workplace setup.', '', '', 0, '2026-03-06 11:41:11', '2026-04-11 05:33:45'),
-(2, 'PrecisionTech Industries', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-03-06 11:52:06', '2026-03-06 11:52:06'),
-(3, 'InsightData Labs', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-03-23 05:51:54', '2026-03-23 05:51:54'),
-(4, 'Accenture', NULL, 'https://accenture.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '', '', NULL, 'Learn more about job and career opportunities at Accenture. Search our current openings today to find the best fit for you and your career goals.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 06:09:28', '2026-04-11 06:10:15'),
-(5, 'tcs', NULL, 'https://tcs.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '', '', NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 06:10:52', '2026-04-11 06:11:30'),
-(6, 'Wipro', '', 'https://www.wipro.com', 'https://careers.wipro.com', 'https://www.linkedin.com/company/wipro', '', 'https://www.facebook.com/WiproLimited/', 'https://www.instagram.com/wiprolimited', 'https://www.youtube.com/user/Wiprovideos', 'official_career_page', '2026-04-13 09:16:18', 'Information Technology', '10000+', 'Bangalore, India', NULL, 'Consulting-Led and AI-Powered Technology Services & Consulting Company', 'As a global leader, Wipro blends consulting and AI expertise across design, engineering and operations to accelerate business transformation and deliver future-ready technology.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 09:31:53', '2026-04-13 09:16:18'),
-(7, 'Technova', '', 'https://technova.com', 'https://technova.com', '', '', '', '', '', 'official_career_page', '2026-04-11 10:15:47', '', '', '', NULL, 'Putting our customers first since 1989.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 10:09:01', '2026-04-11 10:15:47'),
-(8, 'KPMG', '', 'https://kpmg.com', '/xx/en/careers.html', 'https://www.linkedin.com/company/kpmg', 'https://x.com/kpmg', 'https://www.facebook.com/KPMG', '', 'https://www.youtube.com/kpmg', 'official_career_page', '2026-04-11 10:24:37', '', '', '', NULL, 'Welcome to KPMG International.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 10:24:14', '2026-04-11 10:24:37'),
-(9, 'peritus', '', 'https://www.peritus.com', 'https://www.peritus.com/careers', '', '', '', '', '', 'official_career_page', '2026-04-13 06:11:35', '', '', '', NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:10:23', '2026-04-13 06:11:35'),
-(10, 'Infosys', '', 'https://www.infosys.com', 'https://www.infosys.com/careers/', 'https://www.linkedin.com/company/infosys', 'https://twitter.com/InfosysCareers', 'https://www.facebook.com/Infosys', 'https://www.instagram.com/infosyscareers/', 'https://www.youtube.com/user/Infosys', 'official_career_page', '2026-04-13 09:57:49', 'Information Technology', '10000+', 'Bangalore, India', NULL, 'We are a people company powering technology.', 'Infosys provides equal employment opportunities to applicants and employees without regard to race, color, sex, gender identity, sexual orientation, religious practices and observances, national origin, pregnancy, childbirth, or related medical conditions, status as a protected veteran or spouse/family member of a protected veteran, or disability. We are committed to creating a diverse and inclusive workplace.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:42:12', '2026-04-13 09:57:49'),
-(11, 'McDonald\'s', '', 'https://www.mcdonalds.com/us/en-us.html', 'https://careers.mcdonalds.com/', 'https://www.linkedin.com/company/mcdonald\'s-corporation', 'https://www.x.com/McDonalds', 'https://www.facebook.com/McDonalds/', 'https://www.instagram.com/wearegolden/', 'https://www.youtube.com/channel/UCRI5ZedBs0_BYY4PlxD6m7w', 'official_career_page', '2026-04-13 06:44:07', '', '', '', NULL, 'McDonalds.com is your hub for everything McDonald\'s. Find out more about our menu items and promotions today!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:44:07', '2026-04-13 06:44:07'),
-(13, 'Qatar Airways', '', 'https://careers.qatarairways.com', 'https://careers.qatarairways.com/global', 'https://www.linkedin.com/company/10834', 'https://x.com/qatarairways', 'https://www.facebook.com/qatarairways', 'https://www.instagram.com/qatarairways/', 'https://www.youtube.com/user/qatarairways', 'official_career_page', '2026-04-13 06:47:50', '', '', '', NULL, 'Find Jobs Qatar Airways Careers', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:46:59', '2026-04-13 06:47:50'),
-(14, 'IBM', '', 'https://www.ibm.com', 'https://www.ibm.com/employment/', 'https://www.linkedin.com/feed/update/urn:li:ugcPost:7307264598594789376/', '', '', 'https://www.instagram.com/reel/DA539ATMtaI/?igsh=MTlsbzc0eDV2MDlvNQ==', 'https://www.youtube.com/playlist?list=PLaFe0BJiho2pltHkAktlWX3zEwMDXtZnc', 'official_career_page', '2026-04-13 09:17:54', 'Information Technology', '10000+', 'Armonk, United States', NULL, 'For more than a century, IBM has been a global technology innovator.', 'IBM is a global technology company that provides a wide range of services and products, including AI, automation, and hybrid cloud solutions. They help businesses grow by leveraging advanced technologies to improve efficiency and drive innovation.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 07:03:41', '2026-04-13 09:17:54'),
-(15, 'Dell Technologies', '', 'https://www.dell.com', 'https://www.dell.com/en-us/jobs', '//linkedin.com/company/delltechnologies', 'https://x.com/DellTech', 'https://www.facebook.com/DellTechnologies', '//www.instagram.com/delltechcareers/', 'https://www.youtube.com/@DellTechnologies', 'official_career_page', '2026-04-13 09:19:12', 'Information Technology', '10000+', 'Round Rock, United States', NULL, 'Visit Dell.com to see our technology solutions, services & support.', 'Dell Technologies provides a wide range of technology solutions, services, and support to help businesses and individuals achieve their goals. From personal computers to enterprise solutions, Dell is committed to delivering innovative products and services that enhance productivity and drive success.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 09:19:12', '2026-04-13 09:19:12'),
-(20, 'Dell', '', 'https://www.dell.com', 'https://jobs.dell.com', '//linkedin.com/company/delltechnologies', 'https://x.com/DellTech', 'https://www.facebook.com/DellTechnologies', '//www.instagram.com/delltechcareers/', 'https://www.youtube.com/@DellTechnologies', 'official_career_page', '2026-04-13 09:41:21', 'Information Technology', '10000+', 'Round Rock, United States', NULL, 'Visit Dell.com to see our technology solutions, services & support.', 'Dell Technologies provides a wide range of technology solutions, services, and support to help businesses and individuals achieve their goals. From personal computers to enterprise solutions, Dell is committed to delivering innovative products and services that enhance productivity and drive success.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 09:41:21', '2026-04-13 09:41:21');
+INSERT INTO `companies` (`id`, `name`, `logo`, `website`, `career_page`, `linkedin`, `twitter`, `facebook`, `instagram`, `youtube`, `source`, `last_enriched_at`, `industry`, `size`, `founded_year`, `hq`, `branches`, `short_description`, `what_we_do`, `mission_values`, `culture_summary`, `employee_benefits`, `workplace_photos`, `office_tour_title`, `office_tour_url`, `office_tour_summary`, `contact_email`, `contact_phone`, `contact_public`, `created_at`, `updated_at`) VALUES
+(1, 'TechNova Solutions', 'uploads/company_logos/1772797666_1de3e808ef5b10255dc2.jpg', 'https://technovasolutions.in/', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '50-200', NULL, 'Bangalore', 'Bangalore, Kochi, Pune, Hyderabad, Chennai', '', '', '', '', '', '[\"uploads\\/company_branding\\/1772797666_bbda61ca6960368af974.jpg\",\"uploads\\/company_branding\\/1772797666_69ee990c60d9e2e4a4d0.jpg\",\"uploads\\/company_branding\\/1772797666_9589276903dce23ee7f1.jpg\"]', 'Explore Our Workspace', 'https://vimeo.com/areaworkplaces/videos', 'Take a quick look at the team environment and workplace setup.', '', '', 0, '2026-03-06 11:41:11', '2026-04-11 05:33:45'),
+(2, 'PrecisionTech Industries', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-03-06 11:52:06', '2026-03-06 11:52:06'),
+(3, 'InsightData Labs', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-03-23 05:51:54', '2026-03-23 05:51:54'),
+(4, 'Accenture', NULL, 'https://accenture.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '', NULL, '', NULL, 'Learn more about job and career opportunities at Accenture. Search our current openings today to find the best fit for you and your career goals.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 06:09:28', '2026-04-11 06:10:15'),
+(5, 'tcs', NULL, 'https://tcs.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '', NULL, '', NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 06:10:52', '2026-04-11 06:11:30'),
+(7, 'Technova', '', 'https://technova.com', 'https://technova.com', '', '', '', '', '', 'official_career_page', '2026-04-11 10:15:47', '', '', NULL, '', NULL, 'Putting our customers first since 1989.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 10:09:01', '2026-04-11 10:15:47'),
+(8, 'KPMG', '', 'https://kpmg.com', '/xx/en/careers.html', 'https://www.linkedin.com/company/kpmg', 'https://x.com/kpmg', 'https://www.facebook.com/KPMG', '', 'https://www.youtube.com/kpmg', 'official_career_page', '2026-04-11 10:24:37', '', '', NULL, '', NULL, 'Welcome to KPMG International.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-11 10:24:14', '2026-04-11 10:24:37'),
+(9, 'peritus', '', 'https://www.peritus.com', 'https://www.peritus.com/careers', '', '', '', '', '', 'official_career_page', '2026-04-13 12:47:48', '', '', NULL, '', NULL, '', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:10:23', '2026-04-13 12:47:48'),
+(10, 'Infosys', '', 'https://www.infosys.com', 'https://www.infosys.com/careers/', 'https://www.linkedin.com/company/infosys', 'https://twitter.com/InfosysCareers', 'https://www.facebook.com/Infosys', 'https://www.instagram.com/infosyscareers/', 'https://www.youtube.com/user/Infosys', 'official_career_page', '2026-04-13 09:57:49', 'Information Technology', '10000+', NULL, 'Bangalore, India', NULL, 'We are a people company powering technology.', 'Infosys provides equal employment opportunities to applicants and employees without regard to race, color, sex, gender identity, sexual orientation, religious practices and observances, national origin, pregnancy, childbirth, or related medical conditions, status as a protected veteran or spouse/family member of a protected veteran, or disability. We are committed to creating a diverse and inclusive workplace.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:42:12', '2026-04-13 09:57:49'),
+(11, 'McDonald\'s', '', 'https://www.mcdonalds.com/us/en-us.html', 'https://careers.mcdonalds.com/', 'https://www.linkedin.com/company/mcdonald\'s-corporation', 'https://www.x.com/McDonalds', 'https://www.facebook.com/McDonalds/', 'https://www.instagram.com/wearegolden/', 'https://www.youtube.com/channel/UCRI5ZedBs0_BYY4PlxD6m7w', 'official_career_page', '2026-04-13 06:44:07', '', '', NULL, '', NULL, 'McDonalds.com is your hub for everything McDonald\'s. Find out more about our menu items and promotions today!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:44:07', '2026-04-13 06:44:07'),
+(13, 'Qatar Airways', '', 'https://careers.qatarairways.com', 'https://careers.qatarairways.com/global', 'https://www.linkedin.com/company/10834', 'https://x.com/qatarairways', 'https://www.facebook.com/qatarairways', 'https://www.instagram.com/qatarairways/', 'https://www.youtube.com/user/qatarairways', 'official_career_page', '2026-04-13 06:47:50', '', '', NULL, '', NULL, 'Find Jobs Qatar Airways Careers', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 06:46:59', '2026-04-13 06:47:50'),
+(14, 'IBM', '', 'https://www.ibm.com', 'https://www.ibm.com/employment/', 'https://www.linkedin.com/feed/update/urn:li:ugcPost:7307264598594789376/', '', '', 'https://www.instagram.com/reel/DA539ATMtaI/?igsh=MTlsbzc0eDV2MDlvNQ==', 'https://www.youtube.com/playlist?list=PLaFe0BJiho2pltHkAktlWX3zEwMDXtZnc', 'official_career_page', '2026-04-13 09:17:54', 'Information Technology', '10000+', NULL, 'Armonk, United States', NULL, 'For more than a century, IBM has been a global technology innovator.', 'IBM is a global technology company that provides a wide range of services and products, including AI, automation, and hybrid cloud solutions. They help businesses grow by leveraging advanced technologies to improve efficiency and drive innovation.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 07:03:41', '2026-04-13 09:17:54'),
+(15, 'Dell Technologies', '', 'https://www.dell.com', 'https://www.dell.com/en-us/jobs', '//linkedin.com/company/delltechnologies', 'https://x.com/DellTech', 'https://www.facebook.com/DellTechnologies', '//www.instagram.com/delltechcareers/', 'https://www.youtube.com/@DellTechnologies', 'official_career_page', '2026-04-13 09:19:12', 'Information Technology', '10000+', NULL, 'Round Rock, United States', NULL, 'Visit Dell.com to see our technology solutions, services & support.', 'Dell Technologies provides a wide range of technology solutions, services, and support to help businesses and individuals achieve their goals. From personal computers to enterprise solutions, Dell is committed to delivering innovative products and services that enhance productivity and drive success.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 09:19:12', '2026-04-13 09:19:12'),
+(20, 'Dell', '', 'https://www.dell.com', 'https://jobs.dell.com', '//linkedin.com/company/delltechnologies', 'https://x.com/DellTech', 'https://www.facebook.com/DellTechnologies', '//www.instagram.com/delltechcareers/', 'https://www.youtube.com/@DellTechnologies', 'official_career_page', '2026-04-13 09:41:21', 'Information Technology', '10000+', NULL, 'Round Rock, United States', NULL, 'Visit Dell.com to see our technology solutions, services & support.', 'Dell Technologies provides a wide range of technology solutions, services, and support to help businesses and individuals achieve their goals. From personal computers to enterprise solutions, Dell is committed to delivering innovative products and services that enhance productivity and drive success.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 09:41:21', '2026-04-13 09:41:21'),
+(21, 'Mc Donalds', '', 'https://www.mcdonalds.com', 'https://careers.mcdonalds.com/', 'https://www.linkedin.com/company/mcdonald\'s-corporation', 'https://www.x.com/McDonalds', 'https://www.facebook.com/McDonalds/', 'https://www.instagram.com/wearegolden/', 'https://www.youtube.com/channel/UCRI5ZedBs0_BYY4PlxD6m7w', 'official_career_page', '2026-04-13 12:44:07', 'Fast Food', '10000+', NULL, 'Chicago, USA', NULL, 'Burgers, Fries & More. Quality Ingredients.', 'McDonald\'s is a global fast-food chain known for its burgers, fries, and breakfast items. We serve millions of customers daily, offering a variety of menu options that cater to different tastes and preferences.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 12:18:37', '2026-04-13 12:44:07'),
+(22, 'peritus soft', '', 'https://peritussoft.com', 'https://peritussoft.com/careers', '', '', '', '', '', 'official_career_page', '2026-04-13 12:50:08', 'Information Technology', '500+', NULL, 'Not specified', NULL, 'PeritusSoft is a leading One-Stop IT Consulting Services/Firms in USA for business IT Solutions & Services.', 'PeritusSoft offers technology solutions and business outsourcing services. With over 25 years in business, we help companies strategize, plan, and deploy cutting-edge technologies to achieve their business goals.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-13 12:49:07', '2026-04-13 12:50:08'),
+(23, 'wipro', '', 'https://www.wipro.com', 'https://careers.wipro.com', 'https://www.linkedin.com/wiprolimited', '', 'https://www.facebook.com/WiproLimited/', 'https://www.instagram.com/wiprolimited', 'https://www.youtube.com/user/Wiprovideos', 'official_career_page', '2026-04-15 09:39:03', 'Information Technology', '10000+', NULL, 'Bangalore, India', NULL, 'Wipro, in North America, delivers advanced Industrial & Technology Solutions leveraging emerging technologies.', 'Wipro helps North America do business better through industry-wide experience, deep technology expertise, comprehensive portfolio of services, a vertically-aligned business model, and persistent innovation. We harness the power of emerging technologies to create breakthrough applications and solutions that shape the future.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-04-15 09:37:32', '2026-04-15 09:39:03');
 
 -- --------------------------------------------------------
 
@@ -928,119 +1049,6 @@ INSERT INTO `interview_booking_reviews` (`id`, `booking_id`, `application_id`, `
 -- --------------------------------------------------------
 
 --
--- Table structure for table `interview_evaluation_logs`
---
-
-CREATE TABLE `interview_evaluation_logs` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `interview_session_id` int(11) UNSIGNED NOT NULL,
-  `status` enum('queued','processing','completed','failed') NOT NULL DEFAULT 'queued',
-  `provider` varchar(100) DEFAULT NULL,
-  `request_payload` longtext DEFAULT NULL,
-  `response_payload` longtext DEFAULT NULL,
-  `error_message` text DEFAULT NULL,
-  `started_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `interview_sessions`
---
-
-CREATE TABLE `interview_sessions` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `user_id` int(11) UNSIGNED NOT NULL,
-  `application_id` int(11) UNSIGNED DEFAULT NULL,
-  `job_id` int(11) UNSIGNED DEFAULT NULL,
-  `resume_version_id` int(11) UNSIGNED DEFAULT NULL,
-  `session_id` varchar(100) NOT NULL,
-  `position` varchar(255) NOT NULL,
-  `conversation_history` longtext NOT NULL,
-  `integrity_events` longtext DEFAULT NULL,
-  `integrity_flags` longtext DEFAULT NULL,
-  `integrity_warning_count` int(11) DEFAULT 0,
-  `tab_switch_count` int(11) DEFAULT 0,
-  `hidden_duration_seconds` int(11) DEFAULT 0,
-  `reconnect_count` int(11) DEFAULT 0,
-  `last_integrity_ping_at` datetime DEFAULT NULL,
-  `last_resume_at` datetime DEFAULT NULL,
-  `turn` int(11) NOT NULL DEFAULT 1,
-  `max_turns` int(11) NOT NULL DEFAULT 10,
-  `status` enum('active','submitted','under_review','finalized','candidate_notified','pending_evaluation','completed','evaluated','expired') DEFAULT 'active',
-  `evaluation_data` longtext DEFAULT NULL,
-  `section_scores` longtext DEFAULT NULL,
-  `strengths` longtext DEFAULT NULL,
-  `concerns` longtext DEFAULT NULL,
-  `recommendation_summary` text DEFAULT NULL,
-  `evaluation_version` varchar(50) DEFAULT NULL,
-  `technical_score` decimal(5,2) DEFAULT NULL,
-  `communication_score` decimal(5,2) DEFAULT NULL,
-  `problem_solving_score` decimal(5,2) DEFAULT NULL,
-  `adaptability_score` decimal(5,2) DEFAULT NULL,
-  `enthusiasm_score` decimal(5,2) DEFAULT NULL,
-  `overall_rating` decimal(5,2) DEFAULT NULL,
-  `recruiter_override_score` decimal(4,1) DEFAULT NULL,
-  `recruiter_flag` varchar(20) DEFAULT NULL,
-  `recruiter_note` text DEFAULT NULL,
-  `round1_score` decimal(5,2) DEFAULT NULL,
-  `round2_score` decimal(5,2) DEFAULT NULL,
-  `round1_answered` int(11) DEFAULT 0,
-  `round1_total_questions` int(11) DEFAULT 0,
-  `interview_total_seconds` int(11) DEFAULT 1800,
-  `ai_decision` enum('pending','qualified','needs_review','rejected') NOT NULL DEFAULT 'pending',
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Dumping data for table `interview_sessions`
---
-
-INSERT INTO `interview_sessions` (`id`, `user_id`, `application_id`, `job_id`, `resume_version_id`, `session_id`, `position`, `conversation_history`, `integrity_events`, `integrity_flags`, `integrity_warning_count`, `tab_switch_count`, `hidden_duration_seconds`, `reconnect_count`, `last_integrity_ping_at`, `last_resume_at`, `turn`, `max_turns`, `status`, `evaluation_data`, `section_scores`, `strengths`, `concerns`, `recommendation_summary`, `evaluation_version`, `technical_score`, `communication_score`, `problem_solving_score`, `adaptability_score`, `enthusiasm_score`, `overall_rating`, `recruiter_override_score`, `recruiter_flag`, `recruiter_note`, `round1_score`, `round2_score`, `round1_answered`, `round1_total_questions`, `interview_total_seconds`, `ai_decision`, `created_at`, `updated_at`, `completed_at`) VALUES
-(34, 2, 12, 8, NULL, 'ai_12_6e18dde5d1ae', 'Digital Marketing Executive', '{\"events\":[{\"type\":\"integrity:session_started\",\"created_at\":\"2026-04-04 09:28:18\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:28:27\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:28:40\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":13,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:tab_hidden\",\"created_at\":\"2026-04-04 09:29:03\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:session_started\",\"created_at\":\"2026-04-04 09:29:11\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:29:30\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:inactivity_warning\",\"created_at\":\"2026-04-04 09:31:30\",\"details\":{\"idle_seconds\":120,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\",\"reason\":\"idle_period\"}},{\"type\":\"integrity:inactivity_resumed\",\"created_at\":\"2026-04-04 09:31:50\",\"details\":{\"idle_seconds\":141,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:31:50\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":140,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:tab_hidden\",\"created_at\":\"2026-04-04 09:31:53\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:session_started\",\"created_at\":\"2026-04-04 09:32:00\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:32:49\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:33:00\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":11,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:33:13\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":3,\"phase\":\"round1\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:33:29\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":15,\"section_key\":\"reasoning\",\"question_index\":3,\"phase\":\"round1\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:33:46\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":4,\"phase\":\"round1\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:34:03\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":17,\"section_key\":\"reasoning\",\"question_index\":4,\"phase\":\"round1\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:34:53\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:35:03\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":10,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:35:05\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:focus\",\"created_at\":\"2026-04-04 09:35:42\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":37,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:35:50\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:36:00\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:focus\",\"created_at\":\"2026-04-04 09:36:09\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":10,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:36:22\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:37:26\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:focus\",\"created_at\":\"2026-04-04 09:37:56\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":31,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:38:38\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:focus\",\"created_at\":\"2026-04-04 09:38:40\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:38:44\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_hidden\",\"created_at\":\"2026-04-04 09:38:46\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:38:51\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":3,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:39:07\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:39:22\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:focus\",\"created_at\":\"2026-04-04 09:39:23\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:39:23\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:focus\",\"created_at\":\"2026-04-04 09:39:27\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":4,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:39:38\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:39:42\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:focus\",\"created_at\":\"2026-04-04 09:39:43\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:39:47\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:39:49\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:40:03\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:40:40\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_hidden\",\"created_at\":\"2026-04-04 09:40:41\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:inactivity_warning\",\"created_at\":\"2026-04-04 09:42:26\",\"details\":{\"idle_seconds\":120,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\",\"reason\":\"idle_period\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:44:36\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":235,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:inactivity_resumed\",\"created_at\":\"2026-04-04 09:44:37\",\"details\":{\"idle_seconds\":253,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:44:41\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:44:52\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:45:08\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:45:13\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":5,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:45:26\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:inactivity_warning\",\"created_at\":\"2026-04-04 09:47:27\",\"details\":{\"idle_seconds\":120,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\",\"reason\":\"idle_period\"}},{\"type\":\"integrity:inactivity_resumed\",\"created_at\":\"2026-04-04 09:48:21\",\"details\":{\"idle_seconds\":175,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:48:31\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_hidden\",\"created_at\":\"2026-04-04 09:48:31\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:48:40\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":6,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 09:48:45\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 09:49:11\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":26,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:resume\",\"created_at\":\"2026-04-04 09:49:31\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0}},{\"type\":\"integrity:session_completed\",\"created_at\":\"2026-04-04 09:52:47\",\"details\":{\"tab_switch_count\":44,\"hidden_duration_seconds\":569,\"reconnect_count\":8,\"integrity_warning_count\":29}}],\"adaptive_state\":{\"pending_followup\":null,\"asked_followups\":0},\"integrity_events\":[{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0},\"created_at\":\"2026-04-04 09:28:18\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:28:27\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":13,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:28:40\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:29:03\"},{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0},\"created_at\":\"2026-04-04 09:29:11\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:29:30\"},{\"event_type\":\"inactivity_warning\",\"severity\":\"warning\",\"details\":{\"idle_seconds\":120,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\",\"reason\":\"idle_period\"},\"created_at\":\"2026-04-04 09:31:30\"},{\"event_type\":\"inactivity_resumed\",\"severity\":\"info\",\"details\":{\"idle_seconds\":141,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:31:50\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":140,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:31:50\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:31:53\"},{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0},\"created_at\":\"2026-04-04 09:32:00\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:32:49\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":11,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:00\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":3,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:13\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":15,\"section_key\":\"reasoning\",\"question_index\":3,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:29\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":4,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:46\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":17,\"section_key\":\"reasoning\",\"question_index\":4,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:34:03\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:34:53\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":10,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:35:03\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:35:05\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":37,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:35:42\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:35:50\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:36:00\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":10,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:36:09\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:36:22\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:37:26\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":31,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:37:56\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:38\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:40\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:44\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:46\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":3,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:51\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:39:07\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:22\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:23\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:23\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":4,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:27\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:39:38\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:42\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:43\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:47\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:49\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:40:03\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:40:40\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:40:41\"},{\"event_type\":\"inactivity_warning\",\"severity\":\"warning\",\"details\":{\"idle_seconds\":120,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\",\"reason\":\"idle_period\"},\"created_at\":\"2026-04-04 09:42:26\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":235,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:44:36\"},{\"event_type\":\"inactivity_resumed\",\"severity\":\"info\",\"details\":{\"idle_seconds\":253,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:44:37\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:44:41\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:44:52\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:45:08\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":5,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:45:13\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:45:26\"},{\"event_type\":\"inactivity_warning\",\"severity\":\"warning\",\"details\":{\"idle_seconds\":120,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\",\"reason\":\"idle_period\"},\"created_at\":\"2026-04-04 09:47:27\"},{\"event_type\":\"inactivity_resumed\",\"severity\":\"info\",\"details\":{\"idle_seconds\":175,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:21\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:31\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:31\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":6,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:40\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:45\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":26,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:49:11\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:49:31\"},{\"event_type\":\"session_completed\",\"severity\":\"info\",\"details\":{\"tab_switch_count\":44,\"hidden_duration_seconds\":569,\"reconnect_count\":8,\"integrity_warning_count\":29},\"created_at\":\"2026-04-04 09:52:47\"}],\"integrity_summary\":{\"warning_count\":29,\"tab_switch_count\":44,\"hidden_duration_seconds\":1138,\"reconnect_count\":8,\"last_event_type\":\"session_completed\",\"last_event_at\":\"2026-04-04 09:52:47\"}}', '[{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0},\"created_at\":\"2026-04-04 09:28:18\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:28:27\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":13,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:28:40\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:29:03\"},{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0},\"created_at\":\"2026-04-04 09:29:11\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:29:30\"},{\"event_type\":\"inactivity_warning\",\"severity\":\"warning\",\"details\":{\"idle_seconds\":120,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\",\"reason\":\"idle_period\"},\"created_at\":\"2026-04-04 09:31:30\"},{\"event_type\":\"inactivity_resumed\",\"severity\":\"info\",\"details\":{\"idle_seconds\":141,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:31:50\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":140,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:31:50\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:31:53\"},{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":8,\"resume_version_id\":0},\"created_at\":\"2026-04-04 09:32:00\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:32:49\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":11,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:00\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":3,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:13\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":15,\"section_key\":\"reasoning\",\"question_index\":3,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:29\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":4,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:33:46\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":17,\"section_key\":\"reasoning\",\"question_index\":4,\"phase\":\"round1\"},\"created_at\":\"2026-04-04 09:34:03\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:34:53\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":10,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:35:03\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:35:05\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":37,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:35:42\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:35:50\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:36:00\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":10,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:36:09\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:36:22\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:37:26\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":31,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:37:56\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:38\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:40\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:44\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:46\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":3,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:38:51\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:39:07\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:22\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:23\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:23\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":4,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:27\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:39:38\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:42\"},{\"event_type\":\"focus\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":2,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:43\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:47\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:39:49\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:40:03\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:40:40\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:40:41\"},{\"event_type\":\"inactivity_warning\",\"severity\":\"warning\",\"details\":{\"idle_seconds\":120,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\",\"reason\":\"idle_period\"},\"created_at\":\"2026-04-04 09:42:26\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":235,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:44:36\"},{\"event_type\":\"inactivity_resumed\",\"severity\":\"info\",\"details\":{\"idle_seconds\":253,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:44:37\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:44:41\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:44:52\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:45:08\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":5,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:45:13\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:45:26\"},{\"event_type\":\"inactivity_warning\",\"severity\":\"warning\",\"details\":{\"idle_seconds\":120,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\",\"reason\":\"idle_period\"},\"created_at\":\"2026-04-04 09:47:27\"},{\"event_type\":\"inactivity_resumed\",\"severity\":\"info\",\"details\":{\"idle_seconds\":175,\"section_key\":\"reasoning\",\"question_index\":1,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:21\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:31\"},{\"event_type\":\"tab_hidden\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"hidden\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:31\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":6,\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:40\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"logical\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:48:45\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":26,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 09:49:11\"},{\"event_type\":\"resume\",\"severity\":\"info\",\"details\":{\"resume_reason\":\"reload_or_return\",\"phase\":\"round2\",\"section_key\":\"reasoning\",\"question_index\":0},\"created_at\":\"2026-04-04 09:49:31\"},{\"event_type\":\"session_completed\",\"severity\":\"info\",\"details\":{\"tab_switch_count\":44,\"hidden_duration_seconds\":569,\"reconnect_count\":8,\"integrity_warning_count\":29},\"created_at\":\"2026-04-04 09:52:47\"}]', '[]', 29, 44, 1138, 8, '2026-04-04 09:52:47', '2026-04-04 09:49:31', 1, 8, 'under_review', NULL, NULL, NULL, NULL, 'AI scoring is unavailable until the recruiter reviews this interview.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 66.67, NULL, 6, 6, 1800, 'pending', '2026-04-04 09:28:18', '2026-04-04 09:56:15', '2026-04-04 09:52:30'),
-(35, 2, 11, 3, NULL, 'ai_11_3aa0a330758c', 'Data Analyst', '{\"events\":[{\"type\":\"integrity:session_started\",\"created_at\":\"2026-04-04 10:11:24\",\"details\":{\"started_from\":\"browser\",\"job_id\":3,\"resume_version_id\":0}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 10:11:42\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:tab_visible\",\"created_at\":\"2026-04-04 10:11:56\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":14,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:blur\",\"created_at\":\"2026-04-04 10:12:23\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"}},{\"type\":\"integrity:session_completed\",\"created_at\":\"2026-04-04 10:12:24\",\"details\":{\"tab_switch_count\":3,\"hidden_duration_seconds\":14,\"reconnect_count\":1,\"integrity_warning_count\":2}}],\"adaptive_state\":{\"pending_followup\":null,\"asked_followups\":0},\"integrity_events\":[{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":3,\"resume_version_id\":0},\"created_at\":\"2026-04-04 10:11:24\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 10:11:42\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":14,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 10:11:56\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 10:12:23\"},{\"event_type\":\"session_completed\",\"severity\":\"info\",\"details\":{\"tab_switch_count\":3,\"hidden_duration_seconds\":14,\"reconnect_count\":1,\"integrity_warning_count\":2},\"created_at\":\"2026-04-04 10:12:24\"}],\"integrity_summary\":{\"warning_count\":2,\"tab_switch_count\":3,\"hidden_duration_seconds\":28,\"reconnect_count\":0,\"last_event_type\":\"session_completed\",\"last_event_at\":\"2026-04-04 10:12:24\"}}', '[{\"event_type\":\"session_started\",\"severity\":\"info\",\"details\":{\"started_from\":\"browser\",\"job_id\":3,\"resume_version_id\":0},\"created_at\":\"2026-04-04 10:11:24\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 10:11:42\"},{\"event_type\":\"tab_visible\",\"severity\":\"info\",\"details\":{\"visibility_state\":\"visible\",\"hidden_duration_seconds\":14,\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 10:11:56\"},{\"event_type\":\"blur\",\"severity\":\"warning\",\"details\":{\"visibility_state\":\"visible\",\"section_key\":\"reasoning\",\"question_index\":0,\"phase\":\"round2\"},\"created_at\":\"2026-04-04 10:12:23\"},{\"event_type\":\"session_completed\",\"severity\":\"info\",\"details\":{\"tab_switch_count\":3,\"hidden_duration_seconds\":14,\"reconnect_count\":1,\"integrity_warning_count\":2},\"created_at\":\"2026-04-04 10:12:24\"}]', '[]', 2, 3, 28, 0, '2026-04-04 10:12:24', NULL, 1, 8, 'submitted', NULL, NULL, NULL, NULL, 'AI scoring is unavailable until the recruiter reviews this interview.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16.67, NULL, 6, 6, 1800, 'pending', '2026-04-04 10:11:24', '2026-04-04 10:12:24', '2026-04-04 10:12:23');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `interview_session_answers`
---
-
-CREATE TABLE `interview_session_answers` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `interview_session_id` int(11) UNSIGNED NOT NULL,
-  `application_id` int(11) UNSIGNED NOT NULL,
-  `candidate_id` int(11) UNSIGNED NOT NULL,
-  `section_key` enum('reasoning','logical','technical') NOT NULL,
-  `question_index` int(11) NOT NULL,
-  `question_text` text NOT NULL,
-  `answer_type` enum('video','audio','text','mixed') NOT NULL DEFAULT 'mixed',
-  `video_path` varchar(255) DEFAULT NULL,
-  `audio_path` varchar(255) DEFAULT NULL,
-  `transcript` longtext DEFAULT NULL,
-  `duration_seconds` int(11) DEFAULT NULL,
-  `ai_score` decimal(5,2) DEFAULT NULL,
-  `ai_feedback` text DEFAULT NULL,
-  `started_at` datetime DEFAULT NULL,
-  `submitted_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `client_context` longtext DEFAULT NULL,
-  `integrity_flags` longtext DEFAULT NULL,
-  `tab_switch_count` int(11) DEFAULT 0,
-  `hidden_duration_seconds` int(11) DEFAULT 0,
-  `recording_health` varchar(30) DEFAULT NULL,
-  `recording_metrics` longtext DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `interview_slots`
 --
 
@@ -1095,6 +1103,21 @@ CREATE TABLE `jobs` (
   `employment_type` varchar(50) DEFAULT 'Full-time',
   `salary_range` varchar(100) DEFAULT NULL,
   `application_deadline` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `blog_posts` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL,
+  `excerpt` text NOT NULL,
+  `content` longtext NOT NULL,
+  `cover_image` varchar(255) DEFAULT NULL,
+  `status` enum('draft','published') NOT NULL DEFAULT 'draft',
+  `featured` tinyint(1) NOT NULL DEFAULT 0,
+  `published_at` datetime DEFAULT NULL,
+  `author_email` varchar(150) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1314,7 +1337,9 @@ INSERT INTO `jobs` (`id`, `recruiter_id`, `company_id`, `is_external`, `external
 (211, 10, 10, 1, 'https://www.infosys.com/careers/', 'https://digitalcareers.infosys.com/global-careers/company-job/description/reqid/146679BR', 'Database Admin - DB2\n			\n			\n																														Hartford, CT,															Indianapolis, IN,															Raleigh, NC,															Richardson, TX -														USA \n																		\n', 'External', 'Infosys', 'Not specified', 'Database Admin - DB2\n			\n			\n																														Hartford, CT,															Indianapolis, IN,															Raleigh, NC,															Richardson, TX -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n									\n						146679BR\n					\n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							\n			\n								In the assigned Job Role of Infrastructure Consultant 2,  your Area Of Responsibility will be as bel...\n			\n\n			\n\n		\n		\n			\n									Apply', NULL, NULL, 1, 0, 'OFF', 'open', '2026-04-13 15:16:21', '', NULL, NULL),
 (212, 10, 10, 1, 'https://www.infosys.com/careers/', 'https://digitalcareers.infosys.com/global-careers/company-job/description/reqid/146619BR', 'Cloud Data Platform Admin\n			\n			\n																														Philadelphia, PA -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n			', 'External', 'Infosys', 'Not specified', 'Cloud Data Platform Admin\n			\n			\n																														Philadelphia, PA -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n									\n						146619BR\n					\n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							\n			\n								In the assigned Job Role of Technology Consultant 2,  your Area Of Responsibility will be as below: ...\n			\n\n			\n\n		\n		\n			\n									Apply', NULL, NULL, 1, 0, 'OFF', 'open', '2026-04-13 15:16:21', '', NULL, NULL),
 (213, 10, 10, 1, 'https://www.infosys.com/careers/', 'https://digitalcareers.infosys.com/global-careers/company-job/description/reqid/146844BR', 'Associate Engagement Manager - Manufacturing Sector\n			\n			\n																														Atlanta, GA,															Peoria, IL,															West Palm Beach, FL -														USA \n																	', 'External', 'Infosys', 'Not specified', 'Associate Engagement Manager - Manufacturing Sector\n			\n			\n																														Atlanta, GA,															Peoria, IL,															West Palm Beach, FL -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n									\n						146844BR\n					\n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							\n			\n								Associate Engagement Manager - Manufacturing SectorInfosys\'s Manufacturing Practice Unit is seeking ...\n			\n\n			\n\n		\n		\n			\n									Apply', NULL, NULL, 1, 0, 'OFF', 'open', '2026-04-13 15:16:21', '', NULL, NULL),
-(214, 10, 10, 1, 'https://www.infosys.com/careers/', 'https://digitalcareers.infosys.com/global-careers/company-job/description/reqid/146843BR', 'Pega Senior Developer\n			\n			\n																														Charlotte, NC -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n									\n', 'External', 'Infosys', 'Not specified', 'Pega Senior Developer\n			\n			\n																														Charlotte, NC -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n									\n						146843BR\n					\n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							\n			\n								In the assigned Job Role of Package Consultant 2,  your Area Of Responsibility will be as below: ⦁...\n			\n\n			\n\n		\n		\n			\n									Apply', NULL, NULL, 1, 0, 'OFF', 'open', '2026-04-13 15:16:21', '', NULL, NULL);
+(214, 10, 10, 1, 'https://www.infosys.com/careers/', 'https://digitalcareers.infosys.com/global-careers/company-job/description/reqid/146843BR', 'Pega Senior Developer\n			\n			\n																														Charlotte, NC -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n									\n', 'External', 'Infosys', 'Not specified', 'Pega Senior Developer\n			\n			\n																														Charlotte, NC -														USA \n																		\n			 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n									\n						146843BR\n					\n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							 \n							\n			\n								In the assigned Job Role of Package Consultant 2,  your Area Of Responsibility will be as below: ⦁...\n			\n\n			\n\n		\n		\n			\n									Apply', NULL, NULL, 1, 0, 'OFF', 'open', '2026-04-13 15:16:21', '', NULL, NULL),
+(215, 10, 21, 1, 'https://careers.mcdonalds.com/', 'https://careers.mcdonalds.com/', 'McDonald\'s Restaurant Global Careers', 'External', 'McDonald\'s', 'Not specified', 'McDonald\'s Restaurant Global Careers', NULL, NULL, 1, 0, 'OFF', 'open', '2026-04-13 17:44:58', '', NULL, NULL),
+(216, 10, 22, 1, 'https://peritussoft.com/careers', 'https://www.jobpostingtoday.com/application/68807/apply', 'Software Developer', 'Engineering', 'Peritus Soft', 'Irving, TX', 'Software Developer', NULL, NULL, 1, 0, 'OFF', 'open', '2026-04-13 18:19:28', '', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1457,30 +1482,18 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (38, '2026-03-14-120000', 'App\\Database\\Migrations\\AddOfficeTourFieldsToCompanies', 'default', 'App', 1773469023, 35),
 (39, '2026-03-23-120000', 'App\\Database\\Migrations\\CreateInterviewBookingReviewsTable', 'default', 'App', 1774258446, 36),
 (40, '2026-03-23-130000', 'App\\Database\\Migrations\\UpdateApplicationStatusEnumForHold', 'default', 'App', 1774260543, 37),
-(41, '2026-03-25-100000', 'App\\Database\\Migrations\\UpdateInterviewSessionsForAiFlow', 'default', 'App', 1774433639, 38),
-(42, '2026-03-25-101000', 'App\\Database\\Migrations\\CreateInterviewSessionAnswersTable', 'default', 'App', 1774433639, 38),
-(43, '2026-03-25-102000', 'App\\Database\\Migrations\\CreateInterviewEvaluationLogsTable', 'default', 'App', 1774433639, 38),
 (44, '2026-03-26-090000', 'App\\Database\\Migrations\\CreateRememberLoginTokensTable', 'default', 'App', 1774499655, 39),
-(45, '2026-03-26-100000', 'App\\Database\\Migrations\\EnsureInterviewSessionsTable', 'default', 'App', 1774502734, 40),
-(46, '2026-03-26-150000', 'App\\Database\\Migrations\\CreateAiInterviewQuestionBankTable', 'default', 'App', 1774520084, 41),
-(47, '2026-03-26-151000', 'App\\Database\\Migrations\\CreateAiInterviewRound1AttemptsTable', 'default', 'App', 1774520084, 41),
-(48, '2026-03-26-152000', 'App\\Database\\Migrations\\AddRoundScoresToInterviewSessions', 'default', 'App', 1774520084, 41),
 (49, '2026-03-27-110000', 'App\\Database\\Migrations\\AddExternalSourceFieldsToJobs', 'default', 'App', 1774593493, 42),
 (50, '2026-03-27-170000', 'App\\Database\\Migrations\\CreateAdminAnalyticsTables', 'default', 'App', 1774604665, 43),
 (51, '2026-03-28-090000', 'App\\Database\\Migrations\\AddOperationalFieldsToAdminApiUsageLogs', 'default', 'App', 1774679099, 44),
 (52, '2026-05-01-100000', 'App\\Database\\Migrations\\AddRecruiterOverrideFieldsToInterviewSessions', 'default', 'App', 1774691990, 45),
-(53, '2026-04-01-090000', 'App\\Database\\Migrations\\DropAiInterviewQuestionBankTable', 'default', 'App', 1775038431, 46),
-(54, '2026-04-01-120000', 'App\\Database\\Migrations\\AddPendingEvaluationStatusToInterviewSessions', 'default', 'App', 1775039877, 47),
-(55, '2026-05-02-090000', 'App\\Database\\Migrations\\AddAiInterviewReviewFlowStatusesToInterviewSessions', 'default', 'App', 1775113304, 48),
-(56, '2026-04-04-100000', 'App\\Database\\Migrations\\AddIntegrityTrackingToInterviewSessionsAndAnswers', 'default', 'App', 1775287985, 49),
-(57, '2026-04-04-110000', 'App\\Database\\Migrations\\AddCopyPasteTrackingToAiInterviewRound1Attempts', 'default', 'App', 1775631310, 50),
-(58, '2026-04-06-120000', 'App\\Database\\Migrations\\AddExpiredStatusToInterviewSessions', 'default', 'App', 1775631310, 50),
 (59, '2026-04-08-130000', 'App\\Database\\Migrations\\CreateCareerGoalsTable', 'default', 'App', 1775644161, 51),
 (60, '2026-04-09-090000', 'App\\Database\\Migrations\\CreatePremiumMentorMemoryTables', 'default', 'App', 1775710674, 52),
 (61, '2026-04-09-120000', 'App\\Database\\Migrations\\AddCandidateIntroVideoFields', 'default', 'App', 1775719570, 53),
 (62, '2026-04-11-000000', 'App\\Database\\Migrations\\AddCompanyEnrichmentFields', 'default', 'App', 1775900744, 54),
 (63, '2026-04-11-010000', 'App\\Database\\Migrations\\CreateCompanyAtsMappingsTable', 'default', 'App', 1775900744, 54),
-(64, '2026-05-10-100000', 'App\\Database\\Migrations\\CreatePaymentOrdersTable', 'default', 'App', 1776058670, 55);
+(64, '2026-05-10-100000', 'App\\Database\\Migrations\\CreatePaymentOrdersTable', 'default', 'App', 1776058670, 55),
+(65, '2026-05-10-110000', 'App\\Database\\Migrations\\AddFoundedYearToCompanies', 'default', 'App', 1776401145, 56);
 
 -- --------------------------------------------------------
 
@@ -1519,9 +1532,9 @@ INSERT INTO `notifications` (`id`, `user_id`, `application_id`, `type`, `title`,
 (12, 8, 5, '', 'Application Status Updated', 'Your application status was updated to Shortlisted.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-23 11:18:47', NULL),
 (13, 8, 5, '', 'Application Status Updated', 'Good news! Your application has been shortlisted.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-24 10:06:46', NULL),
 (14, 8, 5, '', 'Application Status Updated', 'Your application has been updated to Rejected.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-24 10:07:02', NULL),
-(15, 2, 7, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-03-31 14:59:27', NULL),
-(16, 2, 7, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-04-10 05:36:21', NULL),
-(17, 2, NULL, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 0, '2026-04-10 10:37:21', NULL);
+(15, 2, 7, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-03-31 14:59:27', '2026-04-15 11:09:50'),
+(16, 2, 7, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-04-10 05:36:21', '2026-04-15 11:09:50'),
+(17, 2, NULL, '', 'Profile Viewed', 'Rohith Kumar viewed your profile.', 'http://localhost/ai-job-portal/public/candidate/applications', 1, '2026-04-10 10:37:21', '2026-04-15 12:24:40');
 
 -- --------------------------------------------------------
 
@@ -1549,7 +1562,8 @@ CREATE TABLE `payment_orders` (
 --
 
 INSERT INTO `payment_orders` (`id`, `user_id`, `plan_id`, `razorpay_order_id`, `razorpay_payment_id`, `razorpay_signature`, `amount`, `currency`, `receipt`, `status`, `paid_at`, `created_at`) VALUES
-(1, 2, 4, 'order_ScruqRp2PYH6Ex', 'pay_Scs3VhSzE0a049', 'e879bd1042d4b11dafbb6f2046b87796120fcc6d0c9f18b8800bbb23cf02fbab', 7999.00, 'INR', 'rcpt_2_4_1776059621', 'paid', '2026-04-13 06:02:16', '2026-04-13 05:53:41');
+(1, 2, 4, 'order_ScruqRp2PYH6Ex', 'pay_Scs3VhSzE0a049', 'e879bd1042d4b11dafbb6f2046b87796120fcc6d0c9f18b8800bbb23cf02fbab', 7999.00, 'INR', 'rcpt_2_4_1776059621', 'paid', '2026-04-13 06:02:16', '2026-04-13 05:53:41'),
+(2, 7, 2, 'order_ScxMpHt3KeoyPt', 'pay_ScxN1YaQ4JRQep', '82b1f02dba260a7b0bcadd950a203e3742bd39733a3e6311a0ccadfbf63542dd', 999.00, 'INR', 'rcpt_7_2_1776078818', 'paid', '2026-04-13 11:14:06', '2026-04-13 11:13:38');
 
 -- --------------------------------------------------------
 
@@ -1841,7 +1855,8 @@ INSERT INTO `saved_jobs` (`id`, `candidate_id`, `job_id`, `created_at`, `updated
 (6, 8, 10, '2026-03-24 06:53:33', '2026-03-24 06:53:33'),
 (7, 8, 11, '2026-03-24 06:53:46', '2026-03-24 06:53:46'),
 (8, 8, 5, '2026-03-24 06:53:49', '2026-03-24 06:53:49'),
-(12, 2, 1, '2026-04-11 05:18:14', '2026-04-11 05:18:14');
+(12, 2, 1, '2026-04-11 05:18:14', '2026-04-11 05:18:14'),
+(13, 2, 212, '2026-04-14 06:28:34', '2026-04-14 06:28:34');
 
 -- --------------------------------------------------------
 
@@ -1929,13 +1944,38 @@ INSERT INTO `stage_history` (`id`, `application_id`, `stage_name`, `start_time`,
 (26, 11, 'Applied', '2026-03-26 08:56:56', '2026-04-04 06:14:17'),
 (27, 12, 'Applied', '2026-03-26 09:02:49', '2026-04-04 09:52:30'),
 (28, 11, 'AI Interview Submitted', '2026-04-04 06:14:17', '2026-04-04 10:12:23'),
-(29, 10, 'AI Interview Submitted', '2026-04-04 06:57:29', NULL),
-(30, 9, 'AI Interview Submitted', '2026-04-04 07:01:26', NULL),
-(31, 8, 'AI Interview Submitted', '2026-04-04 07:40:37', NULL),
+(29, 10, 'AI Interview Submitted', '2026-04-04 06:57:29', '2026-04-16 07:12:35'),
+(30, 9, 'AI Interview Submitted', '2026-04-04 07:01:26', '2026-04-16 13:48:46'),
+(31, 8, 'AI Interview Submitted', '2026-04-04 07:40:37', '2026-04-16 06:41:05'),
 (32, 1, 'AI Interview Submitted', '2026-04-04 07:47:37', NULL),
 (33, 12, 'AI Interview Submitted', '2026-04-04 09:52:30', '2026-04-04 09:56:15'),
-(34, 12, 'AI Interview Under Review', '2026-04-04 09:56:15', NULL),
-(35, 11, 'AI Interview Submitted', '2026-04-04 10:12:23', NULL);
+(34, 12, 'AI Interview Under Review', '2026-04-04 09:56:15', '2026-04-16 13:54:54'),
+(35, 11, 'AI Interview Submitted', '2026-04-04 10:12:23', '2026-04-17 04:55:48'),
+(36, 8, 'AI Interview Submitted', '2026-04-16 06:41:05', '2026-04-16 06:41:45'),
+(37, 8, 'AI Interview Submitted', '2026-04-16 06:41:45', '2026-04-17 06:08:59'),
+(38, 10, 'AI Interview Submitted', '2026-04-16 07:12:35', '2026-04-16 07:19:26'),
+(39, 10, 'AI Interview Under Review', '2026-04-16 07:19:26', '2026-04-17 05:21:21'),
+(40, 9, 'AI Interview Submitted', '2026-04-16 13:48:46', '2026-04-16 13:49:03'),
+(41, 9, 'AI Interview Submitted', '2026-04-16 13:49:03', '2026-04-17 05:43:16'),
+(42, 12, 'AI Interview Submitted', '2026-04-16 13:54:54', '2026-04-16 13:55:10'),
+(43, 12, 'AI Interview Submitted', '2026-04-16 13:55:10', '2026-04-16 13:56:37'),
+(44, 12, 'AI Interview Under Review', '2026-04-16 13:56:37', '2026-04-17 07:12:52'),
+(45, 11, 'AI Interview Submitted', '2026-04-17 04:55:48', '2026-04-17 04:59:36'),
+(46, 11, 'AI Interview Under Review', '2026-04-17 04:59:36', '2026-04-17 07:25:11'),
+(47, 10, 'AI Interview Submitted', '2026-04-17 05:21:21', '2026-04-17 07:32:22'),
+(48, 9, 'AI Interview Submitted', '2026-04-17 05:43:16', '2026-04-17 05:43:33'),
+(49, 9, 'AI Interview Submitted', '2026-04-17 05:43:33', '2026-04-17 07:35:15'),
+(50, 8, 'AI Interview Submitted', '2026-04-17 06:08:59', '2026-04-17 07:37:33'),
+(51, 12, 'AI Interview Submitted', '2026-04-17 07:12:52', '2026-04-17 09:37:56'),
+(52, 11, 'AI Interview Submitted', '2026-04-17 07:25:11', '2026-04-17 07:25:51'),
+(53, 11, 'AI Interview Submitted', '2026-04-17 07:25:51', '2026-04-17 10:00:35'),
+(54, 10, 'AI Interview Submitted', '2026-04-17 07:32:22', '2026-04-17 10:36:23'),
+(55, 9, 'AI Interview Submitted', '2026-04-17 07:35:15', NULL),
+(56, 8, 'AI Interview Submitted', '2026-04-17 07:37:33', NULL),
+(57, 12, 'AI Interview Submitted', '2026-04-17 09:37:56', NULL),
+(58, 11, 'AI Interview Submitted', '2026-04-17 10:00:35', NULL),
+(59, 10, 'AI Interview Submitted', '2026-04-17 10:36:23', '2026-04-17 10:36:36'),
+(60, 10, 'AI Interview Submitted', '2026-04-17 10:36:36', NULL);
 
 -- --------------------------------------------------------
 
@@ -2063,7 +2103,22 @@ INSERT INTO `user_login_performance_logs` (`id`, `user_id`, `user_email`, `user_
 (30, 5, 'arun@gmail.com', 'candidate', '2026-04-11 07:19:54', '/ai-job-portal/public/candidate/dashboard', '2026-04-11 07:19:54', 131),
 (31, 1, 'rohith@technova.com', 'recruiter', '2026-04-11 10:32:45', '/ai-job-portal/public/recruiter/company-profile', '2026-04-11 10:32:45', 234),
 (32, 6, 'john@gmail.com', 'candidate', '2026-04-11 11:15:49', '/ai-job-portal/public/candidate/dashboard', '2026-04-11 11:15:50', 358),
-(33, 2, 'manju@gmail.com', 'candidate', '2026-04-13 05:03:18', '/ai-job-portal/public/candidate/dashboard', '2026-04-13 05:03:18', 145);
+(33, 2, 'manju@gmail.com', 'candidate', '2026-04-13 05:03:18', '/ai-job-portal/public/candidate/dashboard', '2026-04-13 05:03:18', 145),
+(34, 7, 'jacob@gmail.com', 'candidate', '2026-04-13 11:12:54', '/ai-job-portal/public/candidate/dashboard', '2026-04-13 11:12:54', 271),
+(35, 2, 'manju@gmail.com', 'candidate', '2026-04-14 05:05:31', '/ai-job-portal/public/candidate/dashboard', '2026-04-14 05:05:32', 557),
+(36, 2, 'manju@gmail.com', 'candidate', '2026-04-14 10:29:50', '/ai-job-portal/public/candidate/dashboard', '2026-04-14 10:29:50', 312),
+(37, 2, 'manju@gmail.com', 'candidate', '2026-04-15 04:40:26', '/ai-job-portal/public/candidate/dashboard', '2026-04-15 04:40:26', 344),
+(38, 2, 'manju@gmail.com', 'candidate', '2026-04-16 04:11:09', '/ai-job-portal/public/candidate/dashboard', '2026-04-16 04:11:10', 349),
+(39, 1, 'rohith@technova.com', 'recruiter', '2026-04-16 07:18:20', '/ai-job-portal/public/recruiter/dashboard', '2026-04-16 07:18:20', 312),
+(40, 2, 'manju@gmail.com', 'candidate', '2026-04-16 11:03:42', '/ai-job-portal/public/interview/start/10', '2026-04-16 11:03:43', 499),
+(41, 1, 'rohith@technova.com', 'recruiter', '2026-04-16 13:55:14', '/ai-job-portal/public/recruiter/dashboard', '2026-04-16 13:55:14', 343),
+(42, 3, 'arun@precisiontech.com', 'recruiter', '2026-04-16 13:56:19', '/ai-job-portal/public/recruiter/dashboard', '2026-04-16 13:56:19', 251),
+(43, 2, 'manju@gmail.com', 'candidate', '2026-04-17 04:49:08', '/ai-job-portal/public/candidate/dashboard', '2026-04-17 04:49:08', 190),
+(44, 1, 'rohith@technova.com', 'recruiter', '2026-04-17 04:50:48', '/ai-job-portal/public/recruiter/dashboard', '2026-04-17 04:50:48', 126),
+(45, 2, 'manju@gmail.com', 'candidate', '2026-04-18 04:36:22', '/ai-job-portal/public/candidate/dashboard', '2026-04-18 04:36:22', 156),
+(46, 1, 'rohith@technova.com', 'recruiter', '2026-04-18 04:41:24', '/ai-job-portal/public/recruiter/dashboard', '2026-04-18 04:41:25', 152),
+(47, 2, 'manju@gmail.com', 'candidate', '2026-04-18 09:00:44', '/ai-job-portal/public/candidate/applications', '2026-04-18 09:00:45', 333),
+(48, 2, 'manju@gmail.com', 'candidate', '2026-04-20 04:14:14', '/ai-job-portal/public/candidate/dashboard', '2026-04-20 04:14:14', 234);
 
 -- --------------------------------------------------------
 
@@ -2090,7 +2145,8 @@ CREATE TABLE `user_subscriptions` (
 --
 
 INSERT INTO `user_subscriptions` (`id`, `user_id`, `plan_id`, `start_date`, `end_date`, `status`, `payment_id`, `order_id`, `amount_paid`, `auto_renewal`, `created_at`) VALUES
-(4, 2, 4, '2026-04-13', '2027-04-13', 'active', 'pay_Scs3VhSzE0a049', 'order_ScruqRp2PYH6Ex', 7999.00, 1, '2026-04-13 06:02:16');
+(4, 2, 4, '2026-04-13', '2027-04-13', 'active', 'pay_Scs3VhSzE0a049', 'order_ScruqRp2PYH6Ex', 7999.00, 1, '2026-04-13 06:02:16'),
+(5, 7, 2, '2026-04-13', '2026-05-13', 'active', 'pay_ScxN1YaQ4JRQep', 'order_ScxMpHt3KeoyPt', 999.00, 1, '2026-04-13 11:14:06');
 
 -- --------------------------------------------------------
 
@@ -2132,16 +2188,6 @@ ALTER TABLE `admin_api_usage_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `created_at` (`created_at`),
   ADD KEY `user_id` (`user_id`);
-
---
--- Indexes for table `ai_interview_round1_attempts`
---
-ALTER TABLE `ai_interview_round1_attempts`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_interview_round1_question` (`interview_session_id`,`question_text`) USING HASH,
-  ADD KEY `interview_session_id` (`interview_session_id`),
-  ADD KEY `application_id` (`application_id`),
-  ADD KEY `interview_session_id_section_key` (`interview_session_id`,`section_key`);
 
 --
 -- Indexes for table `applications`
@@ -2307,36 +2353,6 @@ ALTER TABLE `interview_booking_reviews`
   ADD KEY `recruiter_id` (`recruiter_id`);
 
 --
--- Indexes for table `interview_evaluation_logs`
---
-ALTER TABLE `interview_evaluation_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `interview_session_id` (`interview_session_id`),
-  ADD KEY `status` (`status`);
-
---
--- Indexes for table `interview_sessions`
---
-ALTER TABLE `interview_sessions`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `session_id` (`session_id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `application_id` (`application_id`),
-  ADD KEY `job_id` (`job_id`),
-  ADD KEY `status` (`status`),
-  ADD KEY `created_at` (`created_at`);
-
---
--- Indexes for table `interview_session_answers`
---
-ALTER TABLE `interview_session_answers`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `interview_session_id` (`interview_session_id`),
-  ADD KEY `application_id` (`application_id`),
-  ADD KEY `candidate_id` (`candidate_id`),
-  ADD KEY `interview_session_id_section_key` (`interview_session_id`,`section_key`);
-
---
 -- Indexes for table `interview_slots`
 --
 ALTER TABLE `interview_slots`
@@ -2352,6 +2368,15 @@ ALTER TABLE `jobs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `recruiter_id` (`recruiter_id`),
   ADD KEY `jobs_company_id_idx` (`company_id`);
+
+--
+-- Indexes for table `blog_posts`
+--
+ALTER TABLE `blog_posts`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `status` (`status`),
+  ADD KEY `published_at` (`published_at`);
 
 --
 -- Indexes for table `job_alerts`
@@ -2557,13 +2582,7 @@ ALTER TABLE `work_experiences`
 -- AUTO_INCREMENT for table `admin_api_usage_logs`
 --
 ALTER TABLE `admin_api_usage_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
-
---
--- AUTO_INCREMENT for table `ai_interview_round1_attempts`
---
-ALTER TABLE `ai_interview_round1_attempts`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=299;
 
 --
 -- AUTO_INCREMENT for table `applications`
@@ -2635,7 +2654,7 @@ ALTER TABLE `chatbot_usage`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `company_ats_mappings`
@@ -2686,24 +2705,6 @@ ALTER TABLE `interview_booking_reviews`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `interview_evaluation_logs`
---
-ALTER TABLE `interview_evaluation_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `interview_sessions`
---
-ALTER TABLE `interview_sessions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
-
---
--- AUTO_INCREMENT for table `interview_session_answers`
---
-ALTER TABLE `interview_session_answers`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
-
---
 -- AUTO_INCREMENT for table `interview_slots`
 --
 ALTER TABLE `interview_slots`
@@ -2713,7 +2714,13 @@ ALTER TABLE `interview_slots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=215;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=217;
+
+--
+-- AUTO_INCREMENT for table `blog_posts`
+--
+ALTER TABLE `blog_posts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT for table `job_alerts`
@@ -2737,7 +2744,7 @@ ALTER TABLE `job_suggestions`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -2749,7 +2756,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `payment_orders`
 --
 ALTER TABLE `payment_orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `premium_career_sessions`
@@ -2809,7 +2816,7 @@ ALTER TABLE `reschedule_history`
 -- AUTO_INCREMENT for table `saved_jobs`
 --
 ALTER TABLE `saved_jobs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `skills`
@@ -2821,7 +2828,7 @@ ALTER TABLE `skills`
 -- AUTO_INCREMENT for table `stage_history`
 --
 ALTER TABLE `stage_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT for table `subscription_plans`
@@ -2839,13 +2846,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_login_performance_logs`
 --
 ALTER TABLE `user_login_performance_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `user_subscriptions`
 --
 ALTER TABLE `user_subscriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `work_experiences`

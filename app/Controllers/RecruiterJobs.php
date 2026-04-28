@@ -7,6 +7,8 @@ use App\Models\JobModel;
 
 class RecruiterJobs extends BaseController
 {
+    private const QUESTIONNAIRE_TYPES = ['text', 'textarea'];
+
     public function index()
     {
         $jobModel = model('JobModel');
@@ -21,7 +23,10 @@ class RecruiterJobs extends BaseController
             ->orderBy('jobs.created_at', 'DESC')
             ->findAll();
 
-        return view('recruiter/jobs/index', ['jobs' => $jobs]);
+        return view('recruiter/jobs/index', [
+            'jobs' => $jobs,
+            'unread_count' => model('NotificationModel')->getUnreadCount($currentUserId)
+        ]);
     }
 
     public function edit($jobId)
@@ -61,6 +66,7 @@ class RecruiterJobs extends BaseController
         $openings = (int) $this->request->getPost('openings');
         $minAiCutoffRaw = trim((string) $this->request->getPost('min_ai_cutoff_score'));
         $minAiCutoff = $minAiCutoffRaw === '' ? null : (int) $minAiCutoffRaw;
+        [$questionnaire, $questionnaireError] = $this->buildQuestionnairePayload($this->request->getPost('questionnaire'));
 
         if ($title === '' || $category === '' || $description === '' || $location === '') {
             return redirect()->back()->withInput()->with('error', 'Title, category, description and location are required.');
@@ -68,6 +74,10 @@ class RecruiterJobs extends BaseController
 
         if ($openings <= 0) {
             return redirect()->back()->withInput()->with('error', 'Openings must be greater than 0.');
+        }
+
+        if ($questionnaireError !== null) {
+            return redirect()->back()->withInput()->with('error', $questionnaireError);
         }
 
         $applicationDeadline = null;
@@ -122,6 +132,10 @@ class RecruiterJobs extends BaseController
             $data['application_deadline'] = $applicationDeadline;
         }
 
+        if ($db->fieldExists('application_questionnaire', 'jobs')) {
+            $data['application_questionnaire'] = $questionnaire !== [] ? json_encode($questionnaire) : null;
+        }
+
         $jobModel->update($jobId, $data);
 
         return redirect()->to('recruiter/jobs')->with('success', 'Job updated successfully');
@@ -157,5 +171,62 @@ class RecruiterJobs extends BaseController
         $jobModel->update($jobId, ['status' => 'open']);
 
         return redirect()->to('recruiter/jobs')->with('success', 'Job reopened successfully');
+    }
+
+    /**
+     * @param mixed $rawQuestionnaire
+     * @return array{0: array<int, array<string, mixed>>, 1: string|null}
+     */
+    private function buildQuestionnairePayload($rawQuestionnaire): array
+    {
+        if (!is_array($rawQuestionnaire)) {
+            return [[], null];
+        }
+
+        $questions = [];
+        foreach ($rawQuestionnaire as $index => $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $label = trim((string) ($row['label'] ?? ''));
+            $type = strtolower(trim((string) ($row['type'] ?? 'textarea')));
+            $placeholder = trim((string) ($row['placeholder'] ?? ''));
+            $required = (int) ($row['required'] ?? 0) === 1;
+
+            if ($label === '' && $placeholder === '') {
+                continue;
+            }
+
+            if ($label === '') {
+                return [[], 'Each application question needs a prompt.'];
+            }
+
+            if (!in_array($type, self::QUESTIONNAIRE_TYPES, true)) {
+                return [[], 'Application questionnaire contains an unsupported field type.'];
+            }
+
+            if (mb_strlen($label) > 150) {
+                return [[], 'Question prompts must be 150 characters or fewer.'];
+            }
+
+            if ($placeholder !== '' && mb_strlen($placeholder) > 200) {
+                return [[], 'Question placeholders must be 200 characters or fewer.'];
+            }
+
+            $questions[] = [
+                'id' => 'q_' . substr(sha1($label . '|' . $index . '|' . microtime(true)), 0, 12),
+                'label' => $label,
+                'type' => $type,
+                'placeholder' => $placeholder,
+                'required' => $required,
+            ];
+        }
+
+        if (count($questions) > 8) {
+            return [[], 'You can add up to 8 application questions per job.'];
+        }
+
+        return [$questions, null];
     }
 }

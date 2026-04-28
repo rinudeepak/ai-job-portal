@@ -1,6 +1,7 @@
 <?php
 $platformStats = $platformStats ?? [];
 $featuredJobs = $featuredJobs ?? [];
+$blogPosts = $blogPosts ?? [];
 
 $jobsPostedCount = (int) ($platformStats['jobs_posted'] ?? count($featuredJobs));
 $candidateCount = (int) ($platformStats['candidates'] ?? 0);
@@ -146,7 +147,6 @@ $formatAge = static function ($value): string {
                         $company = trim((string) ($job['company'] ?? 'Company'));
                         $location = trim((string) ($job['location'] ?? 'N/A'));
                         $postedAt = $formatAge($job['created_at'] ?? $job['posted_at'] ?? null);
-                        $matchScore = (int) round((float) ($job['match_score'] ?? 85));
                         ?>
                         <div class="landing-featured-jobs-item">
                             <div class="job-card">
@@ -161,10 +161,7 @@ $formatAge = static function ($value): string {
                                     <span class="badge badge-primary">Full-time</span>
                                     <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                 </div>
-                                <div class="progress-container">
-                                    <div class="progress-bar-custom" style="width: <?= max(10, min(100, $matchScore)) ?>%;"></div>
-                                    <span class="progress-label"><?= max(10, min(100, $matchScore)) ?>%</span>
-                                </div>
+                                
                                 <a href="<?= base_url('login') ?>" class="view-details">View Details &rarr;</a>
                             </div>
                         </div>
@@ -263,6 +260,47 @@ $formatAge = static function ($value): string {
                         <i class="fas fa-sparkles"></i>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+                <div>
+                    <div class="ai-badge">
+                        <i class="fas fa-newspaper"></i>
+                        Admin Curated
+                    </div>
+                    <h2 class="section-title">Career Blog</h2>
+                    <p class="section-subtitle">Interview prep, resume advice, hiring trends, and job market guidance published by the HireMatrix admin team.</p>
+                </div>
+                <a href="<?= base_url('blog') ?>" class="btn btn-ghost landing-view-all-link">Visit blog <i class="fas fa-arrow-right ms-2"></i></a>
+            </div>
+
+            <div class="row g-4">
+                <?php if (!empty($blogPosts)): ?>
+                    <?php foreach ($blogPosts as $post): ?>
+                        <div class="col-md-6 col-xl-4">
+                            <article class="job-card h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="badge badge-primary"><?= !empty($post['featured']) ? 'Featured' : 'Article' ?></span>
+                                    <span class="text-muted small"><?= esc(date('M d, Y', strtotime((string) ($post['published_at'] ?: $post['created_at'])))) ?></span>
+                                </div>
+                                <h3 class="job-card-title"><?= esc($post['title']) ?></h3>
+                                <p class="text-muted mb-4"><?= esc($post['excerpt']) ?></p>
+                                <a href="<?= base_url('blog/' . $post['slug']) ?>" class="view-details mt-auto">Read Article &rarr;</a>
+                            </article>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-12">
+                        <div class="job-card">
+                            <h3 class="job-card-title">Launch your content hub</h3>
+                            <p class="text-muted mb-0">Once you add the `blog_posts` table and create posts from admin, they will appear here automatically.</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>

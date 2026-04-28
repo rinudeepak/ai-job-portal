@@ -1,6 +1,16 @@
-﻿<?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard', 'showHero' => false]) ?>
-
-<div class="recruiter-dashboard-jobboard">
+        <?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard', 'showHero' => false]) ?>
+<style>
+    .recruiter-dashboard-hero-aside .btn {
+    white-space: nowrap;      /* prevents line break */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 14px;
+    padding: 10px 16px;
+}
+</style>
+ <div class="recruiter-dashboard-jobboard">
     <?php
     $applicationsUrl = base_url('recruiter/jobs');
     $jobsUrl = base_url('recruiter/jobs');
@@ -28,33 +38,34 @@
         <div class="container">
             <div class="recruiter-dashboard-hero-grid">
                 <div class="recruiter-dashboard-hero-copy">
-                    <div class="status-pill recruiter-dashboard-status-pill">
-                        <i class="fas fa-arrow-trend-up" style="color: #ff7b2a;"></i>
-                        <?= number_format((int) $funnel['total_applications']) ?> Active Candidates
-                    </div>
-
-                    <h1 class="recruiter-dashboard-hero-title">
-                        Find Your Next Great <span class="gradient-text">Hire</span>
-                    </h1>
-
                     <p class="recruiter-dashboard-hero-subtitle">
+                        Find Your Next Great <span class="gradient-text">Hire</span><br/>
                         A quick view of open roles, active applications, and what needs attention today.
                     </p>
 
                 </div>
 
-                <div class="recruiter-dashboard-hero-aside">
-                        <div class="recruiter-dashboard-hero-panel">
-                            <div class="recruiter-dashboard-hero-panel-icon">
-                                <i class="fas fa-briefcase"></i>
-                            </div>
-                        <h3>Post a role</h3>
-                        <p>Create a role and start receiving qualified applicants faster.</p>
-                        <a href="<?= $postJobUrl ?>" class="btn btn-primary w-100 mt-3">
-                            <i class="fas fa-plus"></i> Post Job
-                        </a>
-                    </div>
-                </div>
+              <div class="recruiter-dashboard-hero-aside">
+    <div class="row g-2">
+        <div class="col-md-4 col-12">
+            <a href="<?= $postJobUrl ?>" class="btn btn-primary w-100">
+                <i class="fas fa-plus"></i> Post Job
+            </a>
+        </div>
+
+        <div class="col-md-4 col-12">
+            <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-primary w-100">
+                <i class="fas fa-briefcase"></i> Manage Job
+            </a>
+        </div>
+
+        <div class="col-md-4 col-12">
+            <a href="<?= base_url('recruiter/candidates') ?>" class="btn btn-primary w-100">
+                <i class="fas fa-arrow-trend-up"></i> <?= number_format((int) $funnel['total_applications']) ?> Candidates
+            </a>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </section>
@@ -183,6 +194,133 @@
         </div>
         </div>
 
+         <div class="row recruiter-pipeline-row" id="conversion-metrics">
+        <div class="col-12 mb-4">
+            <div class="card shadow h-100 recruiter-dashboard-panel-card recruiter-pipeline-card">
+                <div class="card-header py-3 recruiter-section-header">
+                    <div>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar"></i> Recruitment Pipeline</h6>
+                        <small class="text-muted">A quick read on volume, screening progress, and where the process slows down.</small>
+                    </div>
+                    <a href="<?= $jobsUrl ?>" class="btn btn-outline-primary btn-sm">Review jobs</a>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center recruiter-pipeline-stats">
+                        <div class="col-md-3 col-6 mb-3 mb-md-0">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-primary">
+                                    <i class="fas fa-inbox"></i>
+                                </div>
+                                <h3><?= number_format($funnel['total_applications']) ?></h3>
+                                <p class="text-muted mb-0">Applications</p>
+                            </div>
+                        </div>
+                        <?php $screeningCompleted = (int) ($funnel['shortlisted'] ?? 0) + (int) ($funnel['rejected'] ?? 0); ?>
+                        <div class="col-md-3 col-6 mb-3 mb-md-0">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-info">
+                                    <i class="fas fa-cogs"></i>
+                                </div>
+                                <h3><?= number_format($screeningCompleted) ?></h3>
+                                <p class="text-muted mb-0">Screening Completed</p>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($screeningCompleted / $funnel['total_applications']) * 100, 1) : 0 ?>% from applications</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-success">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h3><?= number_format($funnel['shortlisted']) ?></h3>
+                                <p class="text-muted mb-0">Shortlisted</p>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $screeningCompleted > 0 ? round(($funnel['shortlisted'] / $screeningCompleted) * 100, 1) : 0 ?>% from screened</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="pipeline-stat">
+                                <div class="stat-icon bg-warning">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <h3><?= number_format($funnel['interview_slot_booked']) ?></h3>
+                                <p class="text-muted mb-0">HR Interviews</p>
+                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['shortlisted'] > 0 ? round(($funnel['interview_slot_booked'] / $funnel['shortlisted']) * 100, 1) : 0 ?>% from shortlisted</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-light mt-3 mb-0 recruiter-pipeline-note">
+                        <small class="text-muted"><i class="fas fa-info-circle"></i> Each stage shows conversion rate from the previous stage.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+         <!-- Recent Applications -->
+        <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow recruiter-dashboard-panel-card">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Applications</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Candidate</th>
+                                    <th>Job</th>
+                                    <th>Status</th>
+                                    <th>Applied</th>
+                                    <!-- <th>Actions</th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($recentApplications)): ?>
+                                    <?php foreach ($recentApplications as $app): ?>
+                                          <tr onclick="window.location='<?= base_url('recruiter/jobs/' . $app['job_id'] . '/leaderboard') ?>'" style="cursor:pointer;">
+                                            <td>#<?= $app['id'] ?></td>
+                                            <td>
+                                                <strong><?= esc($app['candidate_name']) ?></strong>
+                                            </td>
+                                            <td><?= esc($app['job_title']) ?></td>
+                                            <td>
+                                                <?php
+                                                $statusColors = [
+                                                    'pending' => 'warning',
+                                                    'shortlisted' => 'info',
+                                                    'selected' => 'success',
+                                                    'rejected' => 'danger'
+                                                ];
+                                                $color = $statusColors[$app['status']] ?? 'secondary';
+                                                ?>
+                                                <span class="badge badge-<?= $color ?>">
+                                                    <?= ucwords(str_replace('_', ' ', $app['status'])) ?>
+                                                </span>
+                                            </td>
+                                            <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
+                                            <!-- <td>
+                                                <a href="<?= base_url('recruiter/applications/view/' . $app['id']) ?>" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td> -->
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center">No recent applications</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        
         <?php if (empty($noJobs)): ?>
         <div class="row mb-4 recruiter-action-center">
         <div class="col-12 mb-3">
@@ -230,130 +368,6 @@
         <?php endif; ?>
 
         <!-- Main Content Row -->
-        <div class="row recruiter-pipeline-row" id="conversion-metrics">
-        <div class="col-12 mb-4">
-            <div class="card shadow h-100 recruiter-dashboard-panel-card recruiter-pipeline-card">
-                <div class="card-header py-3 recruiter-section-header">
-                    <div>
-                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar"></i> Recruitment Pipeline</h6>
-                        <small class="text-muted">A quick read on volume, screening progress, and where the process slows down.</small>
-                    </div>
-                    <a href="<?= $jobsUrl ?>" class="btn btn-outline-primary btn-sm">Review jobs</a>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center recruiter-pipeline-stats">
-                        <div class="col-md-3 col-6 mb-3 mb-md-0">
-                            <div class="pipeline-stat">
-                                <div class="stat-icon bg-primary">
-                                    <i class="fas fa-inbox"></i>
-                                </div>
-                                <h3><?= number_format($funnel['total_applications']) ?></h3>
-                                <p class="text-muted mb-0">Applications</p>
-                            </div>
-                        </div>
-                        <?php $screeningCompleted = (int) ($funnel['shortlisted'] ?? 0) + (int) ($funnel['rejected'] ?? 0); ?>
-                        <div class="col-md-3 col-6 mb-3 mb-md-0">
-                            <div class="pipeline-stat">
-                                <div class="stat-icon bg-info">
-                                    <i class="fas fa-robot"></i>
-                                </div>
-                                <h3><?= number_format($screeningCompleted) ?></h3>
-                                <p class="text-muted mb-0">Screening Completed</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['total_applications'] > 0 ? round(($screeningCompleted / $funnel['total_applications']) * 100, 1) : 0 ?>% from applications</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="pipeline-stat">
-                                <div class="stat-icon bg-success">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <h3><?= number_format($funnel['shortlisted']) ?></h3>
-                                <p class="text-muted mb-0">Shortlisted</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $screeningCompleted > 0 ? round(($funnel['shortlisted'] / $screeningCompleted) * 100, 1) : 0 ?>% from screened</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="pipeline-stat">
-                                <div class="stat-icon bg-warning">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                                <h3><?= number_format($funnel['interview_slot_booked']) ?></h3>
-                                <p class="text-muted mb-0">HR Interviews</p>
-                                <small class="text-success"><i class="fas fa-arrow-right"></i> <?= $funnel['shortlisted'] > 0 ? round(($funnel['interview_slot_booked'] / $funnel['shortlisted']) * 100, 1) : 0 ?>% from shortlisted</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="alert alert-light mt-3 mb-0 recruiter-pipeline-note">
-                        <small class="text-muted"><i class="fas fa-info-circle"></i> Each stage shows conversion rate from the previous stage.</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-        <!-- Recent Applications -->
-        <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow recruiter-dashboard-panel-card">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Applications</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Candidate</th>
-                                    <th>Job</th>
-                                    <th>Status</th>
-                                    <th>Applied</th>
-                                    <!-- <th>Actions</th> -->
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($recentApplications)): ?>
-                                    <?php foreach ($recentApplications as $app): ?>
-                                        <tr>
-                                            <td>#<?= $app['id'] ?></td>
-                                            <td>
-                                                <strong><?= esc($app['candidate_name']) ?></strong>
-                                            </td>
-                                            <td><?= esc($app['job_title']) ?></td>
-                                            <td>
-                                                <?php
-                                                $statusColors = [
-                                                    'pending' => 'warning',
-                                                    'shortlisted' => 'info',
-                                                    'selected' => 'success',
-                                                    'rejected' => 'danger'
-                                                ];
-                                                $color = $statusColors[$app['status']] ?? 'secondary';
-                                                ?>
-                                                <span class="badge badge-<?= $color ?>">
-                                                    <?= ucwords(str_replace('_', ' ', $app['status'])) ?>
-                                                </span>
-                                            </td>
-                                            <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
-                                            <!-- <td>
-                                                <a href="<?= base_url('recruiter/applications/view/' . $app['id']) ?>" 
-                                                   class="btn btn-sm btn-primary">
-                                                    <i class="fas fa-eye"></i> View
-                                                </a>
-                                            </td> -->
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="6" class="text-center">No recent applications</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
 
         <!-- Conversion Metrics -->
         <div class="row">
@@ -431,9 +445,8 @@
         </div>
         </div>
     </div>
-</div>
-
-
+</div> 
 
 <?= view('Layouts/recruiter_footer') ?>
 
+    

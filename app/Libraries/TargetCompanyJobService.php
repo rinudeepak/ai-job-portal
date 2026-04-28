@@ -68,15 +68,53 @@ class TargetCompanyJobService
             'career_url' => 'https://www.accenture.com/us-en/careers',
             'website_url' => 'https://www.accenture.com/',
         ],
-        'cognizant' => [
+         'cognizant' => [
             'company_name' => 'Cognizant',
             'company_key' => 'cognizant',
             'aliases' => 'Cognizant Technology Solutions',
             'platform' => 'generic',
             'platform_slug' => '',
-            'career_url' => 'https://careers.cognizant.com/global-en/jobs/',
+            'career_url' => 'https://careers.cognizant.com/india-en/jobs/',
             'website_url' => 'https://www.cognizant.com/',
         ],
+        'deloitte' => [
+        'company_name' => 'Deloitte',
+        'company_key' => 'deloitte',
+        'aliases' => 'Deloitte Touche Tohmatsu Limited',
+        'platform' => 'successfactors',
+        'platform_slug' => '',
+        'career_url' => 'https://jobs2.deloitte.com/global/en',
+        'website_url' => 'https://www.deloitte.com/',
+    ],
+     'capgemini' => [
+        'company_name' => 'Capgemini',
+        'company_key' => 'capgemini',
+        'aliases' => 'Capgemini SE',
+        'platform' => 'smartrecruiters',
+        'platform_slug' => 'capgemini',
+        'career_url' => 'https://www.capgemini.com/careers/join-capgemini/job-search/?page=1&size=11',
+        'website_url' => 'https://www.capgemini.com/',
+    ],
+
+    'hcl' => [
+        'company_name' => 'HCLTech',
+        'company_key' => 'hcl',
+        'aliases' => 'HCL Technologies',
+        'platform' => 'successfactors',
+        'platform_slug' => '',
+        'career_url' => 'https://careers.hcltech.com/go/India/9553955/',
+        'website_url' => 'https://www.hcltech.com/',
+    ],
+
+    'ibm' => [
+        'company_name' => 'IBM',
+        'company_key' => 'ibm',
+        'aliases' => 'International Business Machines',
+        'platform' => 'workday',
+        'platform_slug' => '',
+        'career_url' => 'https://www.ibm.com/in-en/careers/search',
+        'website_url' => 'https://www.ibm.com/',
+    ],
     ];
 
     private const GENERIC_CAREER_PATHS = [
@@ -1507,3 +1545,4 @@ class TargetCompanyJobService
         return array_map('ucfirst', array_keys(self::KNOWN_COMPANIES));
     }
 }
+        

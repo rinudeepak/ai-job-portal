@@ -14,6 +14,7 @@
                 <div class="footer-section col-md-3">
                     <h3>For Job Seekers</h3>
                     <a href="<?= base_url('jobs') ?>">Browse Jobs</a>
+                    <a href="<?= base_url('blog') ?>">Career Blog</a>
                     <a href="<?= base_url('/#get-started') ?>">Get Started</a>
                     <a href="<?= base_url('register') ?>">Create Candidate Account</a>
                 </div>

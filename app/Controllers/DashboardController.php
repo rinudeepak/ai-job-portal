@@ -76,6 +76,13 @@ class DashboardController extends BaseController
         $todayStart = date('Y-m-d 00:00:00');
         $todayEnd = date('Y-m-d 23:59:59');
 
+        // Specifically track unread candidate messages for the dashboard alert
+        $unreadMessagesCount = model('NotificationModel')
+            ->where('user_id', $currentUserId)
+            ->where('type', 'candidate_message_reply')
+            ->where('is_read', 0)
+            ->countAllResults();
+
         $pendingActions = [
             'pending_screening' => $applicationModel->where('status', 'pending')
                 ->whereIn('job_id', $jobIds ?: [0])
@@ -85,7 +92,8 @@ class DashboardController extends BaseController
                 ->where('slot_datetime <=', $todayEnd)
                 ->whereIn('booking_status', ['booked', 'rescheduled', 'confirmed'])
                 ->whereIn('job_id', $jobIds ?: [0])
-                ->countAllResults()
+                ->countAllResults(),
+            'unread_messages' => $unreadMessagesCount
             // 'pending_offers' => $applicationModel->where('status', 'selected')
             //                                      ->where('offer_status', 'pending')
             // ->whereIn('job_id', $jobIds ?: [0])
@@ -114,6 +122,18 @@ class DashboardController extends BaseController
                 'tone' => 'primary',
             ];
         }
+
+        if ($unreadMessagesCount > 0) {
+            $reminders[] = [
+                'label' => 'Reply to ' . $unreadMessagesCount . ' candidate message' . ($unreadMessagesCount === 1 ? '' : 's'),
+                'description' => 'Candidates have responded to your messages. Quick replies improve hiring momentum.',
+                'link' => base_url('notifications'),
+                'icon' => 'fas fa-comments',
+                'tone' => 'info',
+            ];
+        }
+
+        $unreadNotificationsCount = model('NotificationModel')->getUnreadCount($currentUserId);
 
         // Recent Activity
         $recentApplicationsBuilder = $applicationModel
@@ -187,7 +207,8 @@ class DashboardController extends BaseController
             'topJobs' => $topJobs,
             'conversionMetrics' => $conversionMetrics,
             'monthlyTrends' => $monthlyTrends
-            ,'reminders' => $reminders
+            , 'reminders' => $reminders
+            , 'unread_count' => $unreadNotificationsCount
         ]);
     }
 
@@ -204,6 +225,7 @@ class DashboardController extends BaseController
         // Get current recruiter/admin ID
         $currentUserId = session()->get('user_id');
         $jobIds = [];
+        $unreadCount = model('NotificationModel')->getUnreadCount($currentUserId);
         // Get jobs posted by this recruiter
         $recruiterJobs = $jobModel->where('recruiter_id', $currentUserId)->orderBy('created_at', 'DESC')->findAll();
         $jobIds = array_column($recruiterJobs, 'id');
@@ -221,7 +243,8 @@ class DashboardController extends BaseController
                     'job_id' => null
                 ],
                 'selectedJob' => null,
-                'noJobs' => true
+                'noJobs' => true,
+                'unread_count' => $unreadCount
             ]);
         }
         // Get filters
@@ -328,7 +351,8 @@ class DashboardController extends BaseController
                 'sort_by' => $sortBy,
                 'job_id' => $jobId
             ],
-            'selectedJob' => $selectedJob
+            'selectedJob' => $selectedJob,
+            'unread_count' => $unreadCount
         ]);
     }
 
@@ -663,7 +687,7 @@ class DashboardController extends BaseController
         return array_values(array_unique($languages));
     }
 
-    private function calculateLeaderboardAtsScore(array $candidate): ?int
+    private function calculateLeaderboardAtsScore(array $candidate): int
     {
         $requiredSkills = $this->normalizeSkillTokens($candidate['required_skills'] ?? '');
         $requiredMonths = $this->extractRequiredExperienceMonths((string) ($candidate['experience_level'] ?? ''));
@@ -671,7 +695,7 @@ class DashboardController extends BaseController
             || ($requiredMonths !== null && $requiredMonths > 0);
 
         if (!$hasMeaningfulInputs) {
-            return null;
+            return 0; // Return 0 if no meaningful inputs for ATS score calculation
         }
 
         $candidateSkills = $this->normalizeSkillTokens($candidate['candidate_skills'] ?? []);

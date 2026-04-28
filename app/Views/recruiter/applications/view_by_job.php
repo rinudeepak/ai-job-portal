@@ -175,6 +175,7 @@
                                 <th>Email</th>
                                 <th>Experience</th>
                                 <th>Skills</th>
+                                <th>Questionnaire</th>
                                 <th>Tags</th>
                                 <th>Notes</th>
                                 <th>Status</th>
@@ -196,6 +197,17 @@
                                     <td>
                                         <?php if (!empty($app['skill_name'])): ?>
                                             <small><?= esc($app['skill_name']) ?></small>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($app['questionnaire_preview'])): ?>
+                                            <?php
+                                            $fullPreview = trim((string) $app['questionnaire_preview']);
+                                            $shortPreview = mb_strlen($fullPreview) > 100 ? mb_substr($fullPreview, 0, 100) . '...' : $fullPreview;
+                                            ?>
+                                            <small title="<?= esc($fullPreview) ?>"><?= esc($shortPreview) ?></small>
                                         <?php else: ?>
                                             <span class="text-muted">-</span>
                                         <?php endif; ?>

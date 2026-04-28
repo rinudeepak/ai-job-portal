@@ -37,6 +37,8 @@ if ($benefitsRaw !== '') {
 }
 $cultureSummary = trim((string) ($company['culture_summary'] ?? ''));
 $resumeCoach = is_array($resumeCoach ?? null) ? $resumeCoach : [];
+$invitation = is_array($invitation ?? null) ? $invitation : [];
+$applicationQuestionnaire = is_array($applicationQuestionnaire ?? null) ? $applicationQuestionnaire : [];
 $successFlash = session()->getFlashdata('success');
 $errorFlash = session()->getFlashdata('error');
 $careerSuggestion = session()->getFlashdata('career_suggestion');
@@ -110,6 +112,12 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
         <div class="job-details-page-header">
             <div class="page-board-copy">
                 <span class="page-board-kicker"><i class="fas fa-briefcase"></i> Job details</span>
+                <?php if ($isExpired): ?>
+    <div class="badge-deadline-passed">
+        <i class="fas fa-history"></i> Application Deadline Passed
+    </div>
+<?php endif; ?>
+
                 <h1 class="page-board-title"><?= esc($job['title']) ?></h1>
                 <p class="page-board-subtitle">
                     <?= $isExternalJob
@@ -152,11 +160,17 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                         <button class="btn job-details-applied-btn js-job-details-top-applied" disabled>
                             <i class="fas fa-check mr-1"></i> Already Applied
                         </button>
+                        <button type="button" class="btn btn-info ml-2" onclick="generateCoverLetter(<?= (int) $job['id'] ?>)">
+                            <i class="fas fa-magic mr-1"></i> AI Cover Letter
+                        
                     <?php else: ?>
                         <a href="#apply-job" class="btn btn-primary js-job-details-apply-link">
                             <i class="fas fa-paper-plane mr-1"></i> Apply Now
                         </a>
+                        <button type="button" class="btn btn-info ml-2" onclick="generateCoverLetter(<?= (int) $job['id'] ?>)">
+                            <i class="fas fa-magic mr-1"></i> AI Cover Letter
                     <?php endif; ?>
+                    
                 </div>
             </div>
         </div>
@@ -174,6 +188,31 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
             <?php if ($errorFlash): ?>
                 <div class="alert alert-danger">
                     <?= esc($errorFlash) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($invitation)): ?>
+                <?php
+                $inviteStatus = (string) ($invitation['status'] ?? 'sent');
+                $inviteHeading = $inviteStatus === 'applied' ? 'You already responded to this invitation' : 'You were personally invited to apply';
+                $inviteMeta = trim((string) ($invitation['recruiter_name'] ?? 'A recruiter'));
+                ?>
+                <div class="job-invite-banner">
+                    <div class="job-invite-banner__eyebrow">Direct recruiter signal</div>
+                    <div class="job-invite-banner__content">
+                        <div>
+                            <h3><?= esc($inviteHeading) ?></h3>
+                            <p><?= esc((string) ($invitation['message'] ?? 'A recruiter believes your profile aligns with this role.')) ?></p>
+                            <div class="job-invite-banner__meta">
+                                <span><i class="fas fa-user-tie"></i> <?= esc($inviteMeta) ?></span>
+                                <span><i class="fas fa-building"></i> <?= esc($jobCompany) ?></span>
+                                <span><i class="fas fa-briefcase"></i> <?= esc((string) ($job['title'] ?? 'Job')) ?></span>
+                            </div>
+                        </div>
+                        <div class="job-invite-banner__badge is-<?= esc($inviteStatus) ?>">
+                            <?= esc(ucfirst($inviteStatus)) ?>
+                        </div>
+                    </div>
                 </div>
             <?php endif; ?>
 
@@ -264,7 +303,7 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                                     <i class="fas fa-briefcase mr-1"></i> View My Application
                                 </a>
                                 <?php if (!empty($application['id'])): ?>
-                                    <a href="<?= base_url('candidate/applications/' . (int) $application['id'] . '/mock-interview') ?>" class="btn btn-outline-primary">
+                                    <a href="<?= base_url('candidate/applications/' . (int) $application['id'] . '/mock-interview') ?>" class="btn btn-outline-primary job-details-mock-btn">
                                         <i class="fas fa-comments mr-1"></i> Open Mock Interview
                                     </a>
                                 <?php endif; ?>
@@ -288,22 +327,14 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                             <span>Required Knowledge, Skills, and Abilities</span>
                         </div>
                         <?php if (!empty($skills)): ?>
-                            <ul class="job-details-skill-list">
+                            <div class="job-details-chip-list">
                                 <?php foreach ($skills as $skill): ?>
-                                    <li><i class="fas fa-check-circle"></i><span><?= esc($skill) ?></span></li>
+                                    <span class="summary-chip"><?= esc($skill) ?></span>
                                 <?php endforeach; ?>
-                            </ul>
+                            </div>
                         <?php else: ?>
                             <p class="job-details-section-text mb-0">Skills not specified.</p>
                         <?php endif; ?>
-                    </div>
-
-                    <div class="detail-card">
-                        <div class="detail-card-title">
-                            <span class="detail-card-icon"><i class="fas fa-book"></i></span>
-                            <span>Education + Experience</span>
-                        </div>
-                        <p class="job-details-section-text mb-0"><?= esc($jobExperience) ?></p>
                     </div>
 
                     <?php if ($cultureSummary !== '' || !empty($benefits) || !empty($brandingPhotos)): ?>
@@ -352,9 +383,52 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                             <button class="btn btn-block btn-outline-primary btn-md job-details-applied-btn" disabled data-application-state="applied">
                                 <span class="icon-check mr-2"></span>Already Applied
                             </button>
+                            <?php elseif ($isExpired): ?>
+        <button class="btn btn-secondary btn-md job-details-applied-btn" disabled title="The deadline for this position has passed">
+            <i class="fas fa-ban mr-1"></i> Applications Closed
+        </button>
+
                         <?php else: ?>
                             <form method="post" action="<?= base_url('job/apply/' . $job['id']) ?>" class="js-apply-job-form" data-job-id="<?= (int) $job['id'] ?>">
                                 <?= csrf_field() ?>
+                                <?php if (!empty($applicationQuestionnaire)): ?>
+                                    <div class="mb-3 text-left">
+                                        <div class="small text-uppercase font-weight-bold text-muted mb-2">Additional Questions</div>
+                                        <?php foreach ($applicationQuestionnaire as $question): ?>
+                                            <?php
+                                            $questionId = (string) ($question['id'] ?? '');
+                                            $questionType = (string) ($question['type'] ?? 'textarea');
+                                            $questionLabel = (string) ($question['label'] ?? 'Question');
+                                            $questionPlaceholder = (string) ($question['placeholder'] ?? '');
+                                            $questionRequired = !empty($question['required']);
+                                            ?>
+                                            <div class="form-group">
+                                                <label for="questionnaire_<?= esc($questionId) ?>" class="font-weight-bold">
+                                                    <?= esc($questionLabel) ?><?= $questionRequired ? ' *' : '' ?>
+                                                </label>
+                                                <?php if ($questionType === 'text'): ?>
+                                                    <input
+                                                        type="text"
+                                                        class="form-control"
+                                                        id="questionnaire_<?= esc($questionId) ?>"
+                                                        name="questionnaire_response[<?= esc($questionId) ?>]"
+                                                        value="<?= esc(old('questionnaire_response.' . $questionId)) ?>"
+                                                        placeholder="<?= esc($questionPlaceholder) ?>"
+                                                        <?= $questionRequired ? 'required' : '' ?>>
+                                                <?php else: ?>
+                                                    <textarea
+                                                        class="form-control"
+                                                        id="questionnaire_<?= esc($questionId) ?>"
+                                                        name="questionnaire_response[<?= esc($questionId) ?>]"
+                                                        rows="<?= stripos($questionLabel, 'cover letter') !== false ? '6' : '4' ?>"
+                                                        placeholder="<?= esc($questionPlaceholder) ?>"
+                                                        <?= $questionRequired ? 'required' : '' ?>
+                                                    ><?= esc(old('questionnaire_response.' . $questionId)) ?></textarea>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                                 <button type="submit" class="btn btn-block btn-primary btn-md">Apply Now</button>
                             </form>
                         <?php endif; ?>
@@ -426,5 +500,89 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
         </div>
     </section>
 </div>
+
+<!-- AI Cover Letter Modal -->
+<div class="modal fade" id="coverLetterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-magic mr-2"></i>AI Cover Letter Draft</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body bg-light">
+                <div id="coverLetterLoading" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 font-weight-bold">Our AI is analyzing the job and your profile...</p>
+                </div>
+                <div id="coverLetterContent">
+                    <div class="form-group">
+                        <label class="font-weight-bold small text-muted text-uppercase">Targeting:</label>
+                        <div id="jobTargetDisplay" class="h6 font-weight-bold"></div>
+                        <hr>
+                        <textarea id="coverLetterTextArea" class="form-control border-0 shadow-none" rows="15" style="background: transparent; resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Discard</button>
+                <button type="button" class="btn btn-primary px-4" id="copyLetterBtn" onclick="copyCoverLetter()">
+                    <i class="far fa-copy mr-1"></i> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function generateCoverLetter(jobId) {
+    const modal = $('#coverLetterModal');
+    const contentArea = $('#coverLetterContent');
+    const loadingArea = $('#coverLetterLoading');
+    const textArea = $('#coverLetterTextArea');
+    const targetDisplay = $('#jobTargetDisplay');
+
+    textArea.val('');
+    contentArea.addClass('d-none');
+    loadingArea.removeClass('d-none');
+    modal.modal('show');
+
+    try {
+        const response = await fetch(`<?= base_url('candidate/generate-ai-cover-letter') ?>?job_id=${jobId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            targetDisplay.text(`${data.job_title} at ${data.company}`);
+            textArea.val(data.cover_letter);
+            loadingArea.addClass('d-none');
+            contentArea.removeClass('d-none');
+        } else {
+            alert('Error: ' + (data.error || 'Failed to generate cover letter'));
+            modal.modal('hide');
+        }
+    } catch (error) {
+        console.error('AI Error:', error);
+        modal.modal('hide');
+    }
+}
+
+function copyCoverLetter() {
+    const textArea = document.getElementById('coverLetterTextArea');
+    const btn = document.getElementById('copyLetterBtn');
+    
+    textArea.select();
+    document.execCommand('copy');
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+    btn.className = 'btn btn-success px-4';
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.className = 'btn btn-primary px-4';
+    }, 2000);
+}
+</script>
 
 <?= view('Layouts/candidate_footer') ?>

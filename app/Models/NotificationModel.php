@@ -142,6 +142,13 @@ class NotificationModel extends Model
             'priority' => 13,
             'action_text' => 'View'
         ],
+        'job_invitation' => [
+            'title' => 'Invitation to Apply',
+            'icon' => 'fas fa-paper-plane',
+            'color' => 'primary',
+            'priority' => 13,
+            'action_text' => 'Review invitation'
+        ],
         'daily_resume_tip' => [
             'title' => 'Daily Resume Tip',
             'icon' => 'fas fa-file-lines',

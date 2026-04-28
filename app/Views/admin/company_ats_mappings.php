@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Company ATS Mappings</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: #f7f8fb; }
-        .table td, .table th { vertical-align: middle; }
-        .code-pill { font-size: 12px; background: #eef3ff; color: #1f4ed8; border-radius: 999px; padding: 4px 10px; display: inline-block; }
-    </style>
+     <?= view('Layouts/styles') ?>
 </head>
 <body>
 <div class="container py-4">
+     <?= view('Layouts/header') ?>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <div class="text-uppercase text-muted small fw-semibold">Admin</div>
@@ -185,5 +182,6 @@
         </div>
     </div>
 </div>
+<?= view('Layouts/footer') ?>
 </body>
 </html>

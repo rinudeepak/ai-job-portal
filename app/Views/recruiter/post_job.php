@@ -1,4 +1,28 @@
 <?= view('Layouts/recruiter_header', ['title' => 'Post Job']) ?>
+<?php
+$questionnaireRows = old('questionnaire');
+if (!is_array($questionnaireRows)) {
+    $questionnaireRows = [];
+}
+$jobCategoryOptions = [
+    'Software Development',
+    'Data Science',
+    'DevOps',
+    'Quality Assurance',
+    'UI/UX Design',
+    'Product Management',
+    'Project Management',
+    'Marketing',
+    'Sales',
+    'Human Resources',
+    'Finance',
+    'Operations',
+    'Customer Support',
+    'Business Analysis',
+    'Cybersecurity',
+];
+$selectedCategory = old('category');
+?>
 
 <div class="recruiter-post-jobboard">
 <div class="container-fluid py-5">
@@ -44,7 +68,14 @@
                             <div class="col-sm-12">
                                 <div class="form-group">
                                     <label>Category *</label>
-                                    <input class="form-control" name="category" id="category" type="text" value="<?= old('category') ?>" placeholder="Job Category (e.g., Software Development)" required>
+                                    <select class="form-control" name="category" id="category" required>
+                                        <option value="">Select Job Category</option>
+                                        <?php foreach ($jobCategoryOptions as $categoryOption): ?>
+                                            <option value="<?= esc($categoryOption) ?>" <?= $selectedCategory === $categoryOption ? 'selected' : '' ?>>
+                                                <?= esc($categoryOption) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                     <small class="text-danger" id="category-error"></small>
                                 </div>
                             </div>
@@ -132,6 +163,28 @@
                                     <small class="text-danger" id="required_skills-error"></small>
                                 </div>
                             </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2" style="gap: 10px;">
+                                        <div>
+                                            <label class="mb-0">Application Questionnaire</label>
+                                            <small class="text-muted d-block">Add optional screening prompts. You can use this for a cover letter, notice period, motivation, or any short written response.</small>
+                                        </div>
+                                        <div class="d-flex flex-wrap" style="gap: 8px;">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="addCoverLetterQuestion">
+                                                <i class="fas fa-file-alt mr-1"></i> Add Cover Letter Prompt
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="addQuestionnaireRow">
+                                                <i class="fas fa-plus mr-1"></i> Add Question
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="questionnaireBuilder"
+                                         data-next-index="<?= count($questionnaireRows) ?>"
+                                         data-initial-items="<?= esc(json_encode(array_values($questionnaireRows)), 'attr') ?>"></div>
+                                    <small class="text-muted d-block mt-2">Candidates will answer these questions inside the Apply form.</small>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group mt-3">
                             <button type="submit" class="button button-contactForm boxed-btn">Post Job</button>
@@ -163,4 +216,101 @@
         </div>
     </div>
 </div>
+<script>
+(function () {
+    const builder = document.getElementById('questionnaireBuilder');
+    const addButton = document.getElementById('addQuestionnaireRow');
+    const addCoverLetterButton = document.getElementById('addCoverLetterQuestion');
+
+    if (!builder || !addButton || !addCoverLetterButton) {
+        return;
+    }
+
+    let nextIndex = parseInt(builder.dataset.nextIndex || '0', 10) || 0;
+    let initialItems = [];
+
+    try {
+        initialItems = JSON.parse(builder.dataset.initialItems || '[]');
+    } catch (error) {
+        initialItems = [];
+    }
+
+    function createRow(data) {
+        const index = nextIndex++;
+        const row = document.createElement('div');
+        row.className = 'border rounded p-3 mb-3 questionnaire-row';
+        row.innerHTML = `
+            <div class="row">
+                <div class="col-md-5">
+                    <label class="small text-muted">Question Prompt</label>
+                    <input type="text" class="form-control" name="questionnaire[${index}][label]" maxlength="150" placeholder="e.g. Why are you a fit for this role?" value="${escapeHtml(data.label || '')}">
+                </div>
+                <div class="col-md-3">
+                    <label class="small text-muted">Field Type</label>
+                    <select class="form-control" name="questionnaire[${index}][type]">
+                        <option value="textarea"${data.type === 'textarea' ? ' selected' : ''}>Long answer</option>
+                        <option value="text"${data.type === 'text' ? ' selected' : ''}>Short answer</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small text-muted">Placeholder</label>
+                    <input type="text" class="form-control" name="questionnaire[${index}][placeholder]" maxlength="200" placeholder="Optional helper text" value="${escapeHtml(data.placeholder || '')}">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-danger btn-block js-remove-question">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="col-12 mt-2">
+                    <div class="custom-control custom-checkbox">
+                        <input type="hidden" name="questionnaire[${index}][required]" value="0">
+                        <input type="checkbox" class="custom-control-input" id="questionnaire_required_${index}" name="questionnaire[${index}][required]" value="1"${data.required ? ' checked' : ''}>
+                        <label class="custom-control-label" for="questionnaire_required_${index}">Required question</label>
+                    </div>
+                </div>
+            </div>
+        `;
+        builder.appendChild(row);
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    addButton.addEventListener('click', function () {
+        createRow({ type: 'textarea', required: false });
+    });
+
+    addCoverLetterButton.addEventListener('click', function () {
+        createRow({
+            label: 'Cover letter / Why are you a fit?',
+            type: 'textarea',
+            placeholder: 'Share why you are interested in this role and what makes you a strong fit.',
+            required: true
+        });
+    });
+
+    builder.addEventListener('click', function (event) {
+        const button = event.target.closest('.js-remove-question');
+        if (!button) {
+            return;
+        }
+
+        const row = button.closest('.questionnaire-row');
+        if (row) {
+            row.remove();
+        }
+    });
+
+    if (initialItems.length > 0) {
+        initialItems.forEach(function (item) {
+            createRow(item || {});
+        });
+    }
+})();
+</script>
 <?= view('Layouts/recruiter_footer') ?>

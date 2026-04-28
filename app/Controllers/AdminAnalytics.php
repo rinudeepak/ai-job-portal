@@ -110,6 +110,59 @@ class AdminAnalytics extends BaseController
                 ->getResultArray();
         }
 
+        // --- Subscription and Revenue Analytics ---
+        $totalRevenue = 0;
+        $activeSubscriptionsCount = 0;
+        $cancelledSubscriptionsCount = 0;
+        $churnRate = 0;
+        $subscriptionBreakdown = [];
+        $monthlyRevenueTrend = [];
+
+        if ($db->tableExists('user_subscriptions')) {
+            // Total Revenue
+            $revenueRow = $db->table('user_subscriptions')
+                ->selectSum('amount_paid', 'total_paid')
+                ->get()
+                ->getRowArray();
+            $totalRevenue = (float) ($revenueRow['total_paid'] ?? 0);
+
+            // Active Subscriptions
+            $activeSubscriptionsCount = $db->table('user_subscriptions')
+                ->where('status', 'active')
+                ->countAllResults();
+
+            // Cancelled/Expired Subscriptions
+            $cancelledSubscriptionsCount = $db->table('user_subscriptions')
+                ->whereIn('status', ['cancelled', 'expired'])
+                ->countAllResults();
+
+            // Calculate Churn Rate Percentage
+            $totalEverSubscribed = $activeSubscriptionsCount + $cancelledSubscriptionsCount;
+            if ($totalEverSubscribed > 0) {
+                $churnRate = ($cancelledSubscriptionsCount / $totalEverSubscribed) * 100;
+            }
+
+            // Subscription Breakdown by Plan
+            if ($db->tableExists('subscription_plans')) {
+                $subscriptionBreakdown = $db->table('user_subscriptions')
+                    ->select('subscription_plans.name as plan_name, COUNT(user_subscriptions.id) as count')
+                    ->join('subscription_plans', 'subscription_plans.id = user_subscriptions.plan_id', 'left')
+                    ->groupBy('subscription_plans.name')
+                    ->orderBy('count', 'DESC')
+                    ->get()
+                    ->getResultArray();
+            }
+
+            // Monthly Revenue Trend (last 6 months)
+            $monthlyRevenueTrend = $db->table('user_subscriptions')
+                ->select("DATE_FORMAT(start_date, '%Y-%m') as month, SUM(amount_paid) as revenue")
+                ->where('start_date >=', date('Y-m-01', strtotime('-5 months')))
+                ->groupBy('month')
+                ->orderBy('month', 'ASC')
+                ->get()
+                ->getResultArray();
+        }
+
         return view('admin/dashboard', [
             'days' => $days,
             'dailyUsers' => $dailyUsers,
@@ -117,6 +170,69 @@ class AdminAnalytics extends BaseController
             'providerBreakdown' => $providerBreakdown,
             'apiTotals' => $apiTotals,
             'firstPageDurations' => $firstPageDurations,
+            'totalRevenue' => $totalRevenue,
+            'activeSubscriptionsCount' => $activeSubscriptionsCount,
+            'cancelledSubscriptionsCount' => $cancelledSubscriptionsCount,
+            'churnRate' => $churnRate,
+            'subscriptionBreakdown' => $subscriptionBreakdown,
+            'monthlyRevenueTrend' => $monthlyRevenueTrend,
         ]);
+    }
+
+    /**
+     * Displays a list of all user subscriptions for admin management.
+     */
+    public function subscriptions()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->to(base_url('admin/login'));
+        }
+
+        $db = \Config\Database::connect();
+        $subscriptions = [];
+
+        if ($db->tableExists('user_subscriptions')) {
+            $builder = $db->table('user_subscriptions us');
+            $builder->select('us.id, us.start_date, us.end_date, us.amount_paid, us.status, u.name as user_name, u.email as user_email, p.name as plan_name');
+            $builder->join('users u', 'u.id = us.user_id', 'left');
+            
+            if ($db->tableExists('subscription_plans')) {
+                $builder->join('subscription_plans p', 'p.id = us.plan_id', 'left');
+            }
+
+            $builder->orderBy('us.start_date', 'DESC');
+            $subscriptions = $builder->get()->getResultArray();
+        }
+
+        return view('admin/subscriptions', ['subscriptions' => $subscriptions]);
+    }
+
+    /**
+     * View specific subscription details
+     */
+    public function viewSubscription($id)
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->to(base_url('admin/login'));
+        }
+
+        $db = \Config\Database::connect();
+        $subscription = null;
+
+        if ($db->tableExists('user_subscriptions')) {
+            $builder = $db->table('user_subscriptions us');
+            $builder->select('us.*, u.name as user_name, u.email as user_email, p.name as plan_name');
+            $builder->join('users u', 'u.id = us.user_id', 'left');
+            if ($db->tableExists('subscription_plans')) {
+                $builder->join('subscription_plans p', 'p.id = us.plan_id', 'left');
+            }
+            $subscription = $builder->where('us.id', $id)->get()->getRowArray();
+        }
+
+        if (!$subscription) {
+            return redirect()->to(base_url('admin/subscriptions'))->with('error', 'Subscription not found.');
+        }
+
+        return view('admin/subscription_details', ['subscription' => $subscription]);
     }
 }

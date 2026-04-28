@@ -1388,6 +1388,32 @@
     line-height: 1.65;
 }
 
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card .form-control {
+    width: 100%;
+    min-height: 48px;
+    height: auto;
+    padding: 0.75rem 0.95rem;
+    border-radius: 0.95rem;
+    border: 1px solid #dbe4f5;
+    background: #fff;
+    color: #1f2f57;
+    line-height: 1.35;
+    box-sizing: border-box;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card select.form-control {
+    appearance: auto;
+    -webkit-appearance: auto;
+    -moz-appearance: auto;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    padding-right: 2.5rem;
+}
+
+.recruiter-candidate-profile-jobboard .candidate-profile-rail-card textarea.form-control {
+    min-height: 120px;
+}
+
 .recruiter-candidate-profile-jobboard .candidate-profile-section .card-body {
     padding: 1.2rem 1.25rem;
 }
@@ -1837,6 +1863,48 @@
     border-radius: 0.95rem;
     border-color: #dbe4f5;
     min-height: 46px;
+}
+
+.recruiter-candidates-jobboard .recruiter-bulk-invite-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    border: 1px solid #dbe4f5;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.recruiter-candidates-jobboard .recruiter-bulk-invite-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.recruiter-candidates-jobboard .recruiter-bulk-invite-note {
+    min-width: 320px;
+    min-height: 46px;
+    border-radius: 12px;
+}
+
+.recruiter-candidates-jobboard .js-select-all-candidates,
+.recruiter-candidates-jobboard .js-candidate-checkbox {
+    width: 16px;
+    height: 16px;
+}
+
+@media (max-width: 991.98px) {
+    .recruiter-candidates-jobboard .recruiter-bulk-invite-bar,
+    .recruiter-candidates-jobboard .recruiter-bulk-invite-actions {
+        flex-direction: column;
+    }
+
+    .recruiter-candidates-jobboard .recruiter-bulk-invite-note {
+        min-width: 100%;
+        width: 100%;
+    }
 }
 
 .recruiter-candidates-jobboard .recruiter-filter-actions {

@@ -1,4 +1,8 @@
 <?= view('Layouts/candidate_header', ['title' => 'Find Jobs']) ?>
+
+<!-- CSS Circle Progress (Required for visual ATS Score) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/css-percentage-circle/0.0.3/css/circle.min.css">
+
 <?php
 $allJobsAreExternal = $allJobsAreExternal ?? false;
 
@@ -108,7 +112,7 @@ $renderRecommendedPane = static function (
     string $recType,
     array $jobs,
     string $tabLabel
-) use ($recommendationType, $formatPostedMeta, $savedJobIds, $resolveAssetUrl): string {
+) use ($recommendationType, $formatPostedMeta, $savedJobIds, $resolveAssetUrl, $hasBaseResume, $primaryResumeId): string {
     ob_start();
     $isActivePane = $recommendationType === $recType;
     ?>
@@ -137,19 +141,7 @@ $renderRecommendedPane = static function (
                     $externalSource = trim((string) ($job['external_source'] ?? ''));
                 ?>
                 <article class="job-card recommended-job-card">
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save js-save-job-toggle <?= $isSaved ? 'is-saved' : '' ?>"
-                        aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
-                        title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
-                        data-save-url="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
-                        data-job-id="<?= (int) $job['id'] ?>"
-                        data-saved="<?= $isSaved ? '1' : '0' ?>"
-                        data-save-label-save="Save Job"
-                        data-save-label-saved="Saved"
-                    >
-                        <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
-                    </button>
+                    
                     <div class="job-card-icon">
                         <?php if ($companyLogo !== ''): ?>
                             <img src="<?= esc($resolveAssetUrl($companyLogo)) ?>" alt="<?= esc($company) ?>">
@@ -158,7 +150,6 @@ $renderRecommendedPane = static function (
                         <?php endif; ?>
                     </div>
                     <div class="job-card-body">
-                        <div class="job-card-match-badge"><?= esc($matchLabel) ?></div>
                         <h3 class="job-card-title"><?= esc($title) ?></h3>
                         <p class="job-card-company"><?= esc($company) ?></p>
                         <div class="job-card-meta">
@@ -177,14 +168,47 @@ $renderRecommendedPane = static function (
                         <?php if (!empty($job['match_reason'])): ?>
                             <div class="small text-muted mb-2"><?= esc($job['match_reason']) ?></div>
                         <?php endif; ?>
-                        <?php if (!$isExternalJob): ?>
+
                         <div class="progress-container">
-                            <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
+                            <div class="progress-track">
+                                <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
+                            </div>
                             <span class="progress-label"><?= $matchPct ?>% match</span>
                         </div>
-                        <?php endif; ?>
+
+                        <div class="job-card-tools-wrapper">
+                            <button type="button" class="btn btn-sm btn-outline-secondary job-card-tools-toggle" title="Tools">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="job-card-tools-dropdown">
+                                <?php if ($primaryResumeId > 0 || ($hasBaseResume ?? false)): ?>
+                                    <button type="button" class="job-card-tools-item js-analyze-ats" data-job-id="<?= (int) $job['id'] ?>" data-resume-id="<?= $primaryResumeId ?>">
+                                        Analyze ATS Match
+                                    </button>
+                                <?php endif; ?>
+                            <button type="button" class="job-card-tools-item" onclick="event.stopPropagation(); generateCoverLetter(<?= (int) $job['id'] ?>)">
+                                AI Cover Letter
+                            </button>
+                            <button type="button" class="job-card-tools-item" onclick="event.stopPropagation(); shareJob(<?= (int) $job['id'] ?>)">
+                                Share Job
+                            </button>
+                            </div>
+                        </div>
                         <a href="<?= $isExternalJob && !empty($job['external_apply_url']) ? esc($job['external_apply_url']) : base_url('job/' . $job['id']) ?>" class="view-details" <?= $isExternalJob ? 'target="_blank" rel="noopener"' : '' ?>>View Details &rarr;</a>
                     </div>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save js-save-job-toggle <?= $isSaved ? 'is-saved' : '' ?>"
+                        aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
+                        title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
+                        data-save-url="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
+                        data-job-id="<?= (int) $job['id'] ?>"
+                        data-saved="<?= $isSaved ? '1' : '0' ?>"
+                        data-save-label-save="Save Job"
+                        data-save-label-saved="Saved"
+                    >
+                        <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                    </button>
                 </article>
             <?php endforeach; ?>
             </div>
@@ -617,25 +641,14 @@ $activeFilterCount = count($activeFilterChips);
                             $companyInitial = strtoupper(substr($company, 0, 1) ?: 'C');
                             $companyLogo = trim((string) ($job['company_logo'] ?? ''));
                             $score = (int) round((float) ($job['match_score'] ?? 0));
+                            $matchPct = max(10, min(100, (int) round($score)));
                             $matchLabel = $score > 0 ? max(10, min(100, $score)) . '% match' : 'Open role';
                             $isExternalJob = (int) ($job['is_external'] ?? 0) === 1;
                             $externalSource = trim((string) ($job['external_source'] ?? ''));
                         ?>
                         <div class="col-12">
                             <div class="job-card">
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save js-save-job-toggle <?= $isSaved ? 'is-saved' : '' ?>"
-                                    aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
-                                    title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
-                                    data-save-url="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
-                                    data-job-id="<?= (int) $job['id'] ?>"
-                                    data-saved="<?= $isSaved ? '1' : '0' ?>"
-                                    data-save-label-save="Save Job"
-                                    data-save-label-saved="Saved"
-                                >
-                                    <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
-                                </button>
+                                
                                 <div class="job-card-icon">
                                     <?php if ($companyLogo !== ''): ?>
                                         <img src="<?= esc($resolveAssetUrl($companyLogo)) ?>" alt="<?= esc($company) ?>">
@@ -644,7 +657,6 @@ $activeFilterCount = count($activeFilterChips);
                                     <?php endif; ?>
                                 </div>
                                 <div class="job-card-body">
-                                    <div class="job-card-match-badge"><?= esc($matchLabel) ?></div>
                                     <h3 class="job-card-title"><?= esc($title) ?></h3>
                                     <p class="job-card-company"><?= esc($company) ?></p>
                                     <div class="job-card-meta">
@@ -660,14 +672,41 @@ $activeFilterCount = count($activeFilterChips);
                                         <?php endif; ?>
                                         <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                     </div>
-                                    <?php if (!$isExternalJob): ?>
-                                    <div class="progress-container">
-                                        <div class="progress-bar-custom" style="width: 100%;"></div>
-                                        <span class="progress-label">Open role</span>
+                                    
+                                    <div class="job-card-tools-wrapper">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary job-card-tools-toggle" title="Tools">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div class="job-card-tools-dropdown">
+                                            <?php if ($primaryResumeId > 0 || ($hasBaseResume ?? false)): ?>
+                                                <button type="button" class="job-card-tools-item js-analyze-ats" data-job-id="<?= (int) $job['id'] ?>" data-resume-id="<?= $primaryResumeId ?>">
+                                                    Analyze ATS Match
+                                                </button>
+                                            <?php endif; ?>
+                                            <button type="button" class="job-card-tools-item" onclick="event.stopPropagation(); generateCoverLetter(<?= (int) $job['id'] ?>)">
+                                                AI Cover Letter
+                                            </button>
+                                            <button type="button" class="job-card-tools-item" onclick="event.stopPropagation(); shareJob(<?= (int) $job['id'] ?>)">
+                                                Share Job
+                                            </button>
+                                        </div>
                                     </div>
-                                    <?php endif; ?>
+                                    
                                     <a href="<?= $isExternalJob && !empty($job['external_apply_url']) ? esc($job['external_apply_url']) : base_url('job/' . $job['id']) ?>" class="view-details" <?= $isExternalJob ? 'target="_blank" rel="noopener"' : '' ?>>View Details &rarr;</a>
                                 </div>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save js-save-job-toggle <?= $isSaved ? 'is-saved' : '' ?>"
+                                    aria-label="<?= $isSaved ? 'Saved job' : 'Save job' ?>"
+                                    title="<?= $isSaved ? 'Saved' : 'Save Job' ?>"
+                                    data-save-url="<?= base_url($isSaved ? 'job/unsave/' . $job['id'] : 'job/save/' . $job['id']) ?>"
+                                    data-job-id="<?= (int) $job['id'] ?>"
+                                    data-saved="<?= $isSaved ? '1' : '0' ?>"
+                                    data-save-label-save="Save Job"
+                                    data-save-label-saved="Saved"
+                                >
+                                    <i class="<?= $isSaved ? 'fas' : 'far' ?> fa-bookmark"></i>
+                                </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -777,5 +816,198 @@ $activeFilterCount = count($activeFilterChips);
 </div>
 </section>
 </div>
+
+<!-- AI Cover Letter Modal -->
+<div class="modal fade" id="coverLetterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-magic mr-2"></i>AI Cover Letter Draft</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body bg-light">
+                <div id="coverLetterLoading" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 font-weight-bold">Our AI is analyzing the job and your profile...</p>
+                </div>
+                <div id="coverLetterContent">
+                    <div class="form-group">
+                        <label class="font-weight-bold small text-muted text-uppercase">Targeting:</label>
+                        <div id="jobTargetDisplay" class="h6 font-weight-bold"></div>
+                        <hr>
+                        <textarea id="coverLetterTextArea" class="form-control border-0 shadow-none" rows="15" style="background: transparent; resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Discard</button>
+                <button type="button" class="btn btn-primary px-4" id="copyLetterBtn" onclick="copyCoverLetter()">
+                    <i class="far fa-copy mr-1"></i> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function generateCoverLetter(jobId) {
+    const modal = $('#coverLetterModal');
+    const contentArea = $('#coverLetterContent');
+    const loadingArea = $('#coverLetterLoading');
+    const textArea = $('#coverLetterTextArea');
+    const targetDisplay = $('#jobTargetDisplay');
+
+    textArea.val('');
+    contentArea.addClass('d-none');
+    loadingArea.removeClass('d-none');
+    modal.modal('show');
+
+    try {
+        const response = await fetch(`<?= base_url('candidate/generate-ai-cover-letter') ?>?job_id=${jobId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            targetDisplay.text(`${data.job_title} at ${data.company}`);
+            textArea.val(data.cover_letter);
+            loadingArea.addClass('d-none');
+            contentArea.removeClass('d-none');
+        } else {
+            alert('Error: ' + (data.error || 'Failed to generate cover letter'));
+            modal.modal('hide');
+        }
+    } catch (error) {
+        console.error('AI Error:', error);
+        modal.modal('hide');
+    }
+}
+
+function copyCoverLetter() {
+    const textArea = document.getElementById('coverLetterTextArea');
+    textArea.select();
+    document.execCommand('copy');
+    alert('Cover letter copied to clipboard!');
+}
+</script>
+
+<script>
+/**
+ * Copies the job detail URL to the clipboard.
+ * @param {number} jobId - The ID of the job to share.
+ */
+function shareJob(jobId) {
+    const jobUrl = `<?= base_url('job/') ?>${jobId}`;
+    navigator.clipboard.writeText(jobUrl).then(() => {
+        alert('Job link copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy job link: ', err);
+        alert('Failed to copy link. Please try again.');
+    });
+}
+</script>
+
+<!-- ATS Analysis Modal -->
+<div class="modal fade" id="atsAnalysisModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-robot mr-2"></i>AI ATS Match Analysis</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="atsLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3">AI is analyzing your match against <strong><span id="atsJobTitle"></span></strong>...</p>
+                </div>
+                <div id="atsResults" class="d-none">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-4 text-center">
+                            <div id="atsScoreCircle" class="c100 p0 big center">
+                                <span id="atsScoreText">0%</span>
+                                <div class="slice"><div class="bar"></div><div class="fill"></div></div>
+                            </div>
+                            <div class="mt-2 font-weight-bold">ATS Match Score</div>
+                        </div>
+                        <div class="col-md-8">
+                            <h6 class="text-danger"><i class="fas fa-exclamation-circle mr-1"></i> Critical Gap</h6>
+                            <p id="atsGap" class="text-muted small"></p>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <h6><i class="fas fa-tags mr-1"></i> Missing Keywords</h6>
+                        <div id="atsKeywords" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <h6><i class="fas fa-lightbulb mr-1"></i> Suggestions to Improve Score</h6>
+                        <ul id="atsSuggestions" class="list-unstyled small"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="<?= base_url('candidate/resume-studio') ?>" class="btn btn-primary">Improve in Resume Studio</a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = $('#atsAnalysisModal');
+    
+    $(document).on('click', '.js-analyze-ats', function() {
+        const jobId = $(this).data('job-id');
+        const resumeId = $(this).data('resume-id');
+        const jobTitle = $(this).closest('.job-card').find('.job-card-title').text();
+        
+        $('#atsJobTitle').text(jobTitle);
+        $('#atsLoading').removeClass('d-none');
+        $('#atsResults').addClass('d-none');
+        modal.modal('show');
+        
+        fetch(`<?= base_url('candidate/analyze-ats-match') ?>?job_id=${jobId}`)
+            .then(async res => {
+                const responseText = await res.text();
+                let responseData;
+                try { responseData = JSON.parse(responseText); } catch (e) { responseData = null; }
+                if (!res.ok) { throw new Error(responseData?.error || responseText.substring(0, 100) || `HTTP ${res.status}`); }
+                return responseData;
+            })
+            .then(data => {
+                if (data.success) {
+                    $('#atsScoreCircle').attr('class', 'c100 p' + data.score + ' big center');
+                    $('#atsScoreText').text(data.score + '%');
+                    $('#atsGap').text(data.gap);
+                    
+                    let keywordsHtml = '';
+                    data.keywords.forEach(kw => {
+                        keywordsHtml += `<span class="badge badge-light border px-2 py-1 mr-1 mb-1">${kw}</span>`;
+                    });
+                    $('#atsKeywords').html(keywordsHtml || '<small class="text-muted">None identified.</small>');
+                    
+                    let suggestionsHtml = '';
+                    data.suggestions.forEach(s => {
+                        suggestionsHtml += `<li class="mb-2"><i class="fas fa-arrow-right text-primary mr-2"></i>${s}</li>`;
+                    });
+                    $('#atsSuggestions').html(suggestionsHtml);
+                    
+                    $('#atsLoading').addClass('d-none');
+                    $('#atsResults').removeClass('d-none');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to analyze match'));
+                    modal.modal('hide');
+                }
+            })
+            .catch(err => {
+                console.error('ATS Analysis Error:', err);
+                alert('Error: ' + err.message);
+                modal.modal('hide');
+            });
+    });
+});
+</script>
 
 <?= view('Layouts/candidate_footer') ?>

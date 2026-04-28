@@ -1,5 +1,35 @@
-<?= view('Layouts/recruiter_header', ['title' => 'Candidate Database']) ?>
+                <?= view('Layouts/recruiter_header', ['title' => 'Candidate Database']) ?>
+<style>
+    .application-actions-wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 8px;
+}
 
+.application-actions-wrap a {
+    display: inline-flex !important;
+    width: auto !important;
+    white-space: nowrap;
+}
+.application-actions-wrap .btn {
+    display: inline-flex !important;
+    align-items: center;          /* vertical center */
+    justify-content: center;
+    gap: 6px;                     /* space between icon & text */
+    padding: 6px 14px;
+    line-height: 1;               /* remove extra height */
+}
+
+.application-actions-wrap .btn i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    margin: 0;
+}
+</style>
 <div class="recruiter-candidates-jobboard">
 <div class="container-fluid py-5">
     <?php
@@ -95,21 +125,44 @@
                 <?php if (empty($aiSuggestions)): ?>
                     <p class="text-muted mb-0">No suitable candidates found for this role.</p>
                 <?php else: ?>
+                <form method="post" action="<?= base_url('recruiter/candidates/invite-job/bulk') ?>" class="mb-3 recruiter-bulk-invite-form" id="recruiterBulkInviteForm">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="job_id" value="<?= (int) ($selectedJob['id'] ?? 0) ?>">
+                        <input type="hidden" name="return_to" value="<?= current_url() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
+                        <div class="recruiter-bulk-invite-bar">
+                            <div>
+                                <div class="font-weight-bold text-dark">Invite multiple candidates</div>
+                                <div class="small text-muted">Select candidates below, then send one role invitation to everyone at once.</div>
+                            </div>
+                            <div class="recruiter-bulk-invite-actions">
+                                <textarea name="message" class="form-control recruiter-bulk-invite-note" rows="2" maxlength="500" placeholder="Optional shared note for all selected candidates"></textarea>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane mr-1"></i> Invite Selected
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover recruiter-candidates-table">
                             <thead class="thead-light">
                                 <tr>
+                                    <th style="width: 44px;">
+                                        <input type="checkbox" class="js-select-all-candidates" aria-label="Select all candidates">
+                                    </th>
                                     <th>Candidate</th>
                                     <th>Score</th>
                                     <th>Experience</th>
                                     <th>Skills</th>
-                                    <th>AI Reason</th>
+                                    <th>ATS Reason</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($aiSuggestions as $candidate): ?>
                                     <tr>
+                                        <td>
+                                            <input type="checkbox" name="candidate_ids[]" value="<?= (int) $candidate['id'] ?>" class="js-candidate-checkbox" aria-label="Select <?= esc($candidate['name'] ?? 'candidate') ?>" form="recruiterBulkInviteForm">
+                                        </td>
                                         <td>
                                             <strong><?= esc($candidate['name'] ?? '-') ?></strong><br>
                                             <small class="text-muted"><?= esc($candidate['email'] ?? '-') ?></small>
@@ -124,6 +177,14 @@
                                             <a href="<?= base_url('recruiter/candidate/' . $candidate['id']) ?>" class="btn btn-sm btn-primary">
                                                 <i class="fas fa-user"></i> View
                                             </a>
+                                            <form method="post" action="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/invite-job') ?>" class="d-inline-block">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="job_id" value="<?= (int) ($selectedJob['id'] ?? 0) ?>">
+                                                <input type="hidden" name="return_to" value="<?= current_url() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-paper-plane"></i> Invite
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -164,7 +225,7 @@
                             </thead>
                             <tbody>
                                 <?php foreach ($candidates as $candidate): ?>
-                                    <tr>
+                                   <tr onclick="window.location='<?= base_url('recruiter/candidate/' . $candidate['id'] . '/view-contact') ?>'" style="cursor:pointer;">
                                         <td>
                                             <strong><?= esc($candidate['name'] ?? '-') ?></strong><br>
                                             <small class="text-muted"><?= esc($candidate['email'] ?? '-') ?></small>
@@ -187,19 +248,27 @@
                                         </td>
                                         <td><?= !empty($candidate['created_at']) ? date('M d, Y', strtotime($candidate['created_at'])) : '-' ?></td>
                                         <td>
-                                            <div class="application-actions-wrap">
-                                                <a href="<?= base_url('recruiter/candidate/' . $candidate['id']) ?>" class="btn btn-sm btn-primary">
-                                                    <i class="fas fa-user"></i> View Profile
-                                                </a>
-                                                <a href="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/view-contact') ?>" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-address-card"></i> View Contact
-                                                </a>
-                                                <?php if (!empty($candidate['resume_path'])): ?>
-                                                    <a href="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/download-resume') ?>" class="btn btn-sm btn-success">
-                                                        <i class="fas fa-download"></i> Resume
-                                                    </a>
+                                             <div class="application-actions-wrap">
+    <a href="<?= base_url('recruiter/candidate/' . $candidate['id']) ?>" class="btn btn-sm btn-primary">
+        <i class="fas fa-user"></i> View Profile
+    </a>
+
+    <?php if (!empty($candidate['resume_path'])): ?>
+        <a href="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/download-resume') ?>" class="btn btn-sm btn-success">
+            <i class="fas fa-download"></i> Resume
+        </a>
+    <?php endif; ?>
+    <?php if (!empty($selectedJob['id'])): ?>
+                                                    <form method="post" action="<?= base_url('recruiter/candidate/' . $candidate['id'] . '/invite-job') ?>" class="d-inline-block">
+                                                        <?= csrf_field() ?>
+                                                        <input type="hidden" name="job_id" value="<?= (int) $selectedJob['id'] ?>">
+                                                        <input type="hidden" name="return_to" value="<?= current_url() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-paper-plane"></i> Invite
+                                                        </button>
+                                                    </form>
                                                 <?php endif; ?>
-                                            </div>
+</div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -219,4 +288,30 @@
 </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectAll = document.querySelector('.js-select-all-candidates');
+    if (!selectAll) {
+        return;
+    }
+
+    const checkboxes = Array.from(document.querySelectorAll('.js-candidate-checkbox'));
+    selectAll.addEventListener('change', function () {
+        checkboxes.forEach(function (checkbox) {
+            checkbox.checked = selectAll.checked;
+        });
+    });
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            selectAll.checked = checkboxes.length > 0 && checkboxes.every(function (item) {
+                return item.checked;
+            });
+        });
+    });
+});
+</script>
+
+
 <?= view('Layouts/recruiter_footer') ?>
+        

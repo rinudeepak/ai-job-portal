@@ -8,6 +8,22 @@ $introVideoPath = trim((string) ($user['intro_video_path'] ?? ''));
 $introVideoUrl = $introVideoPath !== ''
     ? (preg_match('/^https?:\/\//i', $introVideoPath) ? $introVideoPath : base_url($introVideoPath))
     : '';
+
+$profileReadiness = $profileReadiness ?? ['is_ready' => true, 'missing_details' => []];
+$totalExperienceMonths = $totalExperienceMonths ?? 0;
+$isFresherCandidate = $isFresherCandidate ?? false;
+
+$formatExperienceDisplay = static function (int $months): string {
+    if ($months <= 0) {
+        return '0 years';
+    }
+    $years = floor($months / 12);
+    $remainingMonths = $months % 12;
+    $parts = [];
+    if ($years > 0) { $parts[] = $years . ' year' . ($years === 1 ? '' : 's'); }
+    if ($remainingMonths > 0) { $parts[] = $remainingMonths . ' month' . ($remainingMonths === 1 ? '' : 's'); }
+    return implode(' ', $parts);
+};
 ?>
 <style>
     .intro-video-upload-input {
@@ -179,6 +195,29 @@ $introVideoUrl = $introVideoPath !== ''
                     </div>
                 <?php endif; ?>
 
+                <div class="profile-section mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Profile Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-user-tag"></i> Candidate Type
+                                        <i class="fas fa-info-circle text-muted ml-1" data-toggle="tooltip" title="Derived from your work experience or 'I am a Fresher' checkbox in Career Details."></i>
+                                    </label>
+                                    <div class="profile-readonly-field"><?= $isFresherCandidate ? 'Fresher' : 'Experienced' ?></div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-briefcase"></i> Total Experience</label>
+                                    <div class="profile-readonly-field"><?= esc($formatExperienceDisplay($totalExperienceMonths)) ?></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="profileSections">
                     <div class="profile-section mb-4" id="personal">
                         <div class="card shadow-sm">
@@ -297,6 +336,10 @@ $introVideoUrl = $introVideoPath !== ''
                                             <div class="profile-readonly-field<?= empty($user['resume_headline']) ? ' is-empty' : '' ?>"><?= !empty($user['resume_headline']) ? esc($user['resume_headline']) : 'Not provided' ?></div>
                                         </div>
                                         <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-user-tag"></i> Candidate Type</label>
+                                            <div class="profile-readonly-field"><?= (int)($user['is_fresher_candidate'] ?? 0) === 1 ? 'Fresher' : 'Experienced' ?></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
                                             <label class="form-label"><i class="fas fa-clock"></i> Notice Period</label>
                                             <div class="profile-readonly-field<?= empty($user['notice_period']) ? ' is-empty' : '' ?>"><?= !empty($user['notice_period']) ? esc($user['notice_period']) : 'Not provided' ?></div>
                                         </div>
@@ -314,6 +357,16 @@ $introVideoUrl = $introVideoPath !== ''
                                             <label class="form-label"><i class="fas fa-heading"></i> Resume Headline</label>
                                             <input type="text" name="resume_headline" class="form-control" value="<?= esc($user['resume_headline'] ?? '') ?>" placeholder="e.g. Senior Full Stack Developer with 5+ years experience" maxlength="255">
                                             <small class="text-muted">A one-line professional summary that appears at the top of your profile</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><i class="fas fa-user-tag"></i> Candidate Type</label>
+                                            <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" name="is_fresher_candidate" value="1" id="isFresherCheck" <?= (int)($user['is_fresher_candidate'] ?? 0) === 1 ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="isFresherCheck">
+                                                    I am a Fresher
+                                                    <small class="text-muted">(Check if you have no prior work experience)</small>
+                                                </label>
+                                            </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label"><i class="fas fa-clock"></i> Notice Period</label>
@@ -823,6 +876,9 @@ $introVideoUrl = $introVideoPath !== ''
                                 </div>
                             </div>
                             <div class="card-body">
+                                <p class="text-muted mb-3">
+                                    <i class="fas fa-info-circle mr-1"></i> Your <strong>Total Experience</strong> shown in the summary is automatically calculated from the entries below.
+                                </p>
                                 <?php if (!empty($workExperiences)): ?>
                                     <?php foreach($workExperiences as $exp): ?>
                                     <div class="experience-item border-bottom pb-3 mb-3">
@@ -1042,6 +1098,7 @@ $introVideoUrl = $introVideoPath !== ''
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <small class="text-muted mr-auto"><i class="fas fa-calculator mr-1"></i> Updates Total Experience automatically</small>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>
@@ -1203,8 +1260,3 @@ $introVideoUrl = $introVideoPath !== ''
 </div>
 
 <?= view('Layouts/candidate_footer') ?>
-
-
-
-
-

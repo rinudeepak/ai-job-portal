@@ -200,6 +200,11 @@
                                 </div>
 
                                 <div class="booking-timeline-actions">
+                                    <?php if (!empty($booking['calendar_add_link'])): ?>
+                                        <a href="<?= esc($booking['calendar_add_link']) ?>" target="_blank" class="btn btn-outline-primary">
+                                            <i class="fas fa-calendar-plus mr-1"></i>Add to Calendar
+                                        </a>
+                                    <?php endif; ?>
                                     <?php if ($canReschedule): ?>
                                         <a href="<?= base_url('candidate/reschedule-slot/' . $booking['application_id']) ?>" class="btn btn-warning">
                                             <i class="fas fa-sync mr-1"></i>Reschedule interview
