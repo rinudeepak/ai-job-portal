@@ -1,9 +1,9 @@
-<?= view('Layouts/candidate_header', ['title' => 'Applications']) ?>
+        <?= view('Layouts/candidate_header', ['title' => 'Applications']) ?>
 
 <?php
 $totalApplications = count($applications ?? []);
 $activeApplications = count(array_filter($applications ?? [], function ($application) {
-    return !in_array($application['status'] ?? '', ['rejected', 'selected', 'withdrawn', 'hired'], true);
+    return !in_array($application['status'] ?? '', ['filtered_out', 'rejected', 'selected', 'withdrawn', 'hired'], true);
 }));
 $completedApplications = count(array_filter($applications ?? [], function ($application) {
     return in_array($application['status'] ?? '', ['selected', 'hired'], true);
@@ -16,12 +16,16 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
             <div class="page-board-copy">
                 <span class="page-board-kicker"><i class="fas fa-list-check"></i> Application tracking</span>
                 <h1 class="page-board-title">My Applications</h1>
-                <p class="page-board-subtitle">Track application status, recruiter activity, and next steps in a simple dashboard.</p>
+                <p class="page-board-subtitle">Track application status, recruiter activity, and next steps in a simple
+                    dashboard.</p><br/>
             </div>
             <div class="page-board-metrics">
-                <span class="hero-stat-chip"><strong id="applicationsTotalCount"><?= $totalApplications ?></strong>Total</span>
-                <span class="hero-stat-chip"><strong id="applicationsActiveCount"><?= $activeApplications ?></strong>Active</span>
-                <span class="hero-stat-chip"><strong id="applicationsCompletedCount"><?= $completedApplications ?></strong>Completed</span>
+                <span class="hero-stat-chip"><strong
+                        id="applicationsTotalCount"><?= $totalApplications ?></strong>Total</span>
+                <span class="hero-stat-chip"><strong
+                        id="applicationsActiveCount"><?= $activeApplications ?></strong>Active</span>
+                <span class="hero-stat-chip"><strong
+                        id="applicationsCompletedCount"><?= $completedApplications ?></strong>Completed</span>
             </div>
         </div>
     </div>
@@ -32,7 +36,7 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
             <div class="text-center bg-white rounded shadow-sm p-5 mb-4">
                 <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
                 <h4 class="text-muted">No Applications Yet</h4>
-                <p class="text-muted mb-4">You have not applied to any jobs yet.</p>
+                <p class="text-muted mb-4">You have not applied to any jobs yet.</p><br/>
                 <a href="<?= base_url('jobs') ?>" class="btn btn-primary btn-lg">
                     <i class="fas fa-search"></i> Browse Jobs
                 </a>
@@ -42,7 +46,9 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                 <aside class="applications-sidebar">
                     <div class="applications-sidebar-header">
                         <h5 class="mb-1">Applied Jobs</h5>
-                        <p class="text-muted mb-0 small"><span id="applicationsSidebarTotal"><?= $totalApplications ?></span> total, <span id="applicationsSidebarActive"><?= $activeApplications ?></span> active</p>
+                        <p class="text-muted mb-0 small"><span
+                                id="applicationsSidebarTotal"><?= $totalApplications ?></span> total, <span
+                                id="applicationsSidebarActive"><?= $activeApplications ?></span> active</p>
                     </div>
                     <div class="applications-sidebar-list">
                         <?php foreach ($applications as $index => $application): ?>
@@ -53,19 +59,19 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                 + (int) ($listActivity['resume_downloaded_count'] ?? 0);
                             $statusLabel = getStatusLabel((string) ($application['status'] ?? ''));
                             ?>
-                            <button
-                                type="button"
+                            <button type="button"
                                 class="application-list-item application-list-item-plain<?= $index === 0 ? ' is-active' : '' ?>"
-                                data-application-target="application-<?= (int) $application['id'] ?>"
-                                data-application-list-item
+                                data-application-target="application-<?= (int) $application['id'] ?>" data-application-list-item
                                 data-application-id="<?= (int) $application['id'] ?>">
                                 <div class="application-list-topline">
                                     <div class="application-list-title"><?= esc($application['job_title']) ?></div>
-                                    <span class="badge status-badge badge-<?= getStatusBadgeColor($application['status']) ?> js-application-status-badge">
+                                    <span
+                                        class="badge status-badge badge-<?= getStatusBadgeColor($application['status']) ?> js-application-status-badge">
                                         <?= esc($statusLabel) ?>
                                     </span>
                                 </div>
-                                <div class="application-list-company"><?= esc($application['company'] ?? 'Company not available') ?></div>
+                                <div class="application-list-company">
+                                    <?= esc($application['company'] ?? 'Company not available') ?></div>
                                 <div class="application-list-meta">
                                     Applied <?= date('M d, Y', strtotime($application['applied_at'])) ?>
                                 </div>
@@ -90,14 +96,17 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                         $lastActivityAt = $recruiterActivity['last_recruiter_activity_at'] ?? null;
                         $timeline = buildApplicationTimeline($status);
                         $prep = $application['interview_prep'] ?? [];
-                        $canShowCoaching = !empty($prep) && !in_array($status, ['rejected', 'withdrawn', 'selected', 'hired'], true);
+                        $canShowCoaching = !empty($prep) && !in_array($status, ['filtered_out', 'rejected', 'withdrawn', 'selected', 'hired'], true);
                         ?>
-                        <article id="application-<?= (int) $application['id'] ?>" class="application-detail-card application-detail-card-plain<?= $index === 0 ? ' is-active' : '' ?>" data-application-id="<?= (int) $application['id'] ?>">
+                        <article id="application-<?= (int) $application['id'] ?>"
+                            class="application-detail-card application-detail-card-plain<?= $index === 0 ? ' is-active' : '' ?>"
+                            data-application-id="<?= (int) $application['id'] ?>">
                             <div class="application-detail-head application-detail-head-plain">
                                 <div>
                                     <div class="application-detail-kicker">Application status</div>
                                     <h2 class="application-detail-title">
-                                        <a href="<?= base_url('job/' . $application['job_id']) ?>" target="_blank" class="application-detail-title-link">
+                                        <a href="<?= base_url('job/' . $application['job_id']) ?>" target="_blank"
+                                            class="application-detail-title-link">
                                             <?= esc($application['job_title']) ?>
                                         </a>
                                     </h2>
@@ -125,7 +134,8 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                         <div class="application-section-title">Application Timeline</div>
                                         <div class="application-timeline-list">
                                             <?php foreach ($timeline as $step): ?>
-                                                <div class="application-timeline-item <?= !empty($step['is_done']) ? 'is-done' : '' ?> <?= !empty($step['is_current']) ? 'is-current' : '' ?>">
+                                                <div
+                                                    class="application-timeline-item <?= !empty($step['is_done']) ? 'is-done' : '' ?> <?= !empty($step['is_current']) ? 'is-current' : '' ?>">
                                                     <div class="application-timeline-dot"></div>
                                                     <div class="application-timeline-content">
                                                         <div class="application-timeline-label"><?= esc($step['label']) ?></div>
@@ -153,7 +163,8 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                             </div>
                                         </div>
                                         <?php if (!empty($lastActivityAt)): ?>
-                                            <div class="application-activity-note">Last recruiter activity: <?= date('M d, Y h:i A', strtotime($lastActivityAt)) ?></div>
+                                            <div class="application-activity-note">Last recruiter activity:
+                                                <?= date('M d, Y h:i A', strtotime($lastActivityAt)) ?></div>
                                         <?php else: ?>
                                             <div class="application-activity-note">No recruiter activity recorded yet.</div>
                                         <?php endif; ?>
@@ -190,18 +201,38 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                         <div class="application-section-title">Next Step</div>
                                         <div class="application-next-step-copy"><?= esc($statusMessage) ?></div>
                                         <div class="detail-actions detail-actions-plain">
-                                            <?php if ($status === 'shortlisted'): ?>
-                                                <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>" class="btn btn-warning btn-sm btn-block"><i class="fas fa-calendar-plus"></i> Book Interview Slot</a>
+                                            <?php if ($application['status'] === 'applied'): ?>
+                                                <?php $policy = strtoupper($application['ai_interview_policy'] ?? 'REQUIRED_HARD'); ?>
+                                                <?php if ($policy === 'OFF'): ?>
+                                                    <span class="badge badge-info p-2">AI interview disabled for this job</span>
+                                                <?php else: ?>
+                                                    <a href="<?= base_url('interview/start/' . $application['id']) ?>"
+                                                        class="btn btn-success btn-sm"><i class="fas fa-video"></i>
+                                                        <?= $policy === 'OPTIONAL' ? 'Start AI Interview (Optional)' : 'Start AI Interview' ?></a>
+                                                <?php endif; ?>
+                                            <?php elseif ($status === 'shortlisted'): ?>
+                                                <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>"
+                                                    class="btn btn-warning btn-sm btn-block"><i class="fas fa-calendar-plus"></i>
+                                                    Book Interview Slot</a>
                                             <?php elseif ($status === 'interview_slot_booked'): ?>
-                                                <a href="<?= base_url('candidate/my-bookings') ?>" class="btn btn-info btn-sm text-white btn-block"><i class="fas fa-calendar-check"></i> View Interview Schedule</a>
+                                                <a href="<?= base_url('candidate/my-bookings') ?>"
+                                                    class="btn btn-info btn-sm text-white btn-block"><i
+                                                        class="fas fa-calendar-check"></i> View Interview Schedule</a>
                                             <?php elseif ($canShowCoaching): ?>
-                                                <a href="<?= base_url('candidate/applications/' . (int) $application['id'] . '/mock-interview') ?>" class="btn btn-outline-primary btn-sm btn-block"><i class="fas fa-comments"></i> Continue Preparation</a>
+                                                <a href="<?= base_url('candidate/applications/' . (int) $application['id'] . '/mock-interview') ?>"
+                                                    class="btn btn-outline-primary btn-sm btn-block"><i class="fas fa-comments"></i>
+                                                    Continue Preparation</a>
                                             <?php endif; ?>
 
-                                            <?php if (!in_array($status, ['withdrawn', 'rejected', 'selected', 'hired', 'interview_slot_booked'], true)): ?>
-                                                <form action="<?= base_url('candidate/applications/withdraw/' . $application['id']) ?>" method="post" onsubmit="return confirm('Withdraw this application?');" class="js-withdraw-application-form" data-application-id="<?= (int) $application['id'] ?>">
+                                            <?php if (!in_array($status, ['withdrawn', 'filtered_out', 'rejected', 'selected', 'hired', 'interview_slot_booked'], true)): ?>
+                                                <form
+                                                    action="<?= base_url('candidate/applications/withdraw/' . $application['id']) ?>"
+                                                    method="post" onsubmit="return confirm('Withdraw this application?');"
+                                                    class="js-withdraw-application-form"
+                                                    data-application-id="<?= (int) $application['id'] ?>">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm btn-block"><i class="fas fa-times-circle"></i> Withdraw Application</button>
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm btn-block"><i
+                                                            class="fas fa-times-circle"></i> Withdraw Application</button>
                                                 </form>
                                             <?php endif; ?>
                                         </div>
@@ -223,6 +254,7 @@ function getStatusBadgeColor($status)
         'applied' => 'warning',
         'shortlisted' => 'success',
         'hold' => 'secondary',
+        'filtered_out' => 'dark',
         'rejected' => 'danger',
         'interview_slot_booked' => 'warning',
         'selected' => 'success',
@@ -239,6 +271,7 @@ function getStatusLabel(string $status): string
         'applied' => 'Applied',
         'shortlisted' => 'Shortlisted',
         'hold' => 'On Hold',
+        'filtered_out' => 'Filtered Out',
         'rejected' => 'Rejected',
         'interview_slot_booked' => 'Interview Booked',
         'selected' => 'Selected',
@@ -255,6 +288,7 @@ function getStatusMessage(string $status): string
         'applied' => 'Your application has been submitted and is under recruiter review.',
         'shortlisted' => 'You have been shortlisted. Book your next interview slot to continue.',
         'hold' => 'Your application is on hold for now. Recruiters may review it again later.',
+        'filtered_out' => 'This application did not meet one or more mandatory screening criteria.',
         'interview_slot_booked' => 'Your interview slot is booked. Check your schedule for timing details.',
         'selected' => 'You have been selected for this role.',
         'hired' => 'You have been marked as hired for this role.',
@@ -276,6 +310,7 @@ function buildApplicationTimeline(string $status): array
     $progressMap = [
         'applied' => 0,
         'hold' => 0,
+        'filtered_out' => 0,
         'rejected' => 0,
         'withdrawn' => 0,
         'shortlisted' => 1,
@@ -288,12 +323,14 @@ function buildApplicationTimeline(string $status): array
 
     foreach ($steps as $index => &$step) {
         $step['is_done'] = $index < $currentIndex;
-        $step['is_current'] = $index === $currentIndex && !in_array($status, ['rejected', 'withdrawn', 'hold'], true);
+        $step['is_current'] = $index === $currentIndex && !in_array($status, ['filtered_out', 'rejected', 'withdrawn', 'hold'], true);
     }
     unset($step);
 
     if ($status === 'hold') {
         $steps[] = ['key' => 'hold', 'label' => 'On Hold', 'note' => 'Recruiter has paused the application.', 'is_done' => false, 'is_current' => true];
+    } elseif ($status === 'filtered_out') {
+        $steps[] = ['key' => 'filtered_out', 'label' => 'Filtered Out', 'note' => 'Mandatory screening criteria were not met.', 'is_done' => false, 'is_current' => true];
     } elseif ($status === 'rejected') {
         $steps[] = ['key' => 'rejected', 'label' => 'Rejected', 'note' => 'Application was not moved forward.', 'is_done' => false, 'is_current' => true];
     } elseif ($status === 'withdrawn') {
@@ -307,3 +344,4 @@ function buildApplicationTimeline(string $status): array
 ?>
 
 <?= view('Layouts/candidate_footer') ?>
+    

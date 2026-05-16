@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Libraries\AiInterviewPrepCoach;
 use App\Libraries\AiJobSearchStrategyCoach;
+use App\Libraries\AtsScoreService;
 use App\Models\CandidateSkillsModel;
+use App\Models\BlogModel;
 use App\Models\CompanyModel;
 use App\Models\JobModel;
+use App\Models\MncJobModel;
 use App\Models\RecruiterCandidateActionModel;
 use App\Models\UserModel;
 
@@ -38,21 +41,40 @@ class CandidateDashboardController extends BaseController
         // Get notifications
         $notifications = $this->getRecentNotifications($candidateId);
 
+        // Get base profile info to check for uploaded resume
+        $userModel = model('UserModel');
+        $userProfile = $userModel->findCandidateWithProfile((int) $candidateId) ?? [];
+        $hasBaseResume = !empty($userProfile['resume_path']);
+
+        // Get primary resume ID for ATS analysis
+        $primaryResumeId = 0;
+        if ($candidateId > 0 && \Config\Database::connect()->tableExists('candidate_resume_versions')) {
+            $primary = model('CandidateResumeVersionModel')
+                ->where('candidate_id', $candidateId)
+                ->where('is_primary', 1)
+                ->first();
+            $primaryResumeId = (int) ($primary['id'] ?? 0);
+        }
+
         // Top suggested jobs for dashboard (best matches only)
         $topSuggestedJobs = $this->getTopSuggestedJobs($candidateId, 3);
         $jobSearchStrategy = $this->buildJobSearchStrategyCoach((int) $candidateId, $applications, $topSuggestedJobs);
         $dailyReminder = $this->buildDailyReminder($candidateId, $applications, $topSuggestedJobs);
         $engagementBanners = $this->buildDashboardEngagementBanners($candidateId, $applications, $topSuggestedJobs, (string) ($dailyReminder['key'] ?? ''));
-        
-        $targetCompanies = [];
-        try {
-            $targetCompanies = (new \App\Models\TargetCompanyModel())->getUserCompanies((int) $candidateId);
-        } catch (\Exception $e) {
-            log_message('warning', 'Target companies table unavailable: ' . $e->getMessage());
-        }
+        $applications = $this->maskApplicationsList($applications);
 
         // Top hiring companies for dashboard
         $topHiringCompanies = $this->getTopHiringCompanies(8);
+
+        // Fetch recent blog posts for the dashboard (Naukri style)
+        $blogPosts = [];
+        $db = \Config\Database::connect();
+        if ($db->tableExists('blog_posts')) {
+            $blogPosts = model('BlogModel')->getPublishedPosts(3);
+        }
+
+        // Get job category shortcuts (Data Science, ML, etc.) for the dashboard
+        $jobCategories = $this->getJobCategoryShortcuts();
 
         return view('candidate/dashboard', [
             'applications' => $applications,
@@ -64,8 +86,11 @@ class CandidateDashboardController extends BaseController
             'engagementBanners' => $engagementBanners,
             'topSuggestedJobs' => $topSuggestedJobs,
             'jobSearchStrategy' => $jobSearchStrategy,
-            'targetCompanies'   => $targetCompanies,
             'topHiringCompanies' => $topHiringCompanies,
+            'primaryResumeId' => $primaryResumeId,
+            'hasBaseResume' => $hasBaseResume,
+            'blogPosts' => $blogPosts,
+            'jobCategories' => $jobCategories,
         ]);
     }
     
@@ -163,7 +188,7 @@ class CandidateDashboardController extends BaseController
 
     private function buildInterviewPrepCoach(array $application): array
     {
-        if (in_array((string) ($application['status'] ?? ''), ['rejected', 'withdrawn', 'selected', 'hired'], true)) {
+        if (in_array((string) ($application['status'] ?? ''), ['filtered_out', 'rejected', 'withdrawn', 'selected', 'hired'], true)) {
             return [];
         }
 
@@ -246,7 +271,7 @@ class CandidateDashboardController extends BaseController
             ->where('is_read', 0)
             ->countAllResults();
         $activeApplications = array_values(array_filter($applications, static function (array $application): bool {
-            return !in_array((string) ($application['status'] ?? ''), ['rejected', 'withdrawn', 'selected', 'hired'], true);
+            return !in_array((string) ($application['status'] ?? ''), ['filtered_out', 'rejected', 'withdrawn', 'selected', 'hired'], true);
         }));
         $practiceApplication = $this->findBestPracticeApplication($applications);
         $suggestedJob = $topSuggestedJobs[0] ?? [];
@@ -305,6 +330,17 @@ class CandidateDashboardController extends BaseController
                 'motivation' => 'Seeing movement is motivating because it shows your effort is being noticed.',
                 'action_text' => 'Check updates',
                 'action_link' => base_url('notifications'),
+                'score' => 0,
+            ],
+            [
+                'key' => 'cover_letter_task',
+                'notification_type' => 'daily_career_reminder',
+                'title' => 'Personalize your pitch',
+                'message' => 'Create a tailored cover letter for your top matching job.',
+                'detail' => 'A personalized note shows recruiters you have researched the role specifically.',
+                'motivation' => 'Tailored applications have a 40% higher response rate than generic ones.',
+                'action_text' => 'Generate Letter',
+                'action_link' => base_url('jobs?tab=suggested'),
                 'score' => 0,
             ],
         ];
@@ -410,6 +446,15 @@ class CandidateDashboardController extends BaseController
                         $task['score'] += 5;
                     }
                     break;
+                
+                case 'cover_letter_task':
+                    if (!empty($topSuggestedJobs)) {
+                        $task['score'] += 20;
+                    }
+                    if ($profileStrength > 80) {
+                        $task['score'] += 10;
+                    }
+                    break;
             }
 
             $task['tie_breaker'] = abs(crc32(date('Y-m-d') . '|' . $candidateId . '|' . $task['key']));
@@ -463,6 +508,11 @@ class CandidateDashboardController extends BaseController
                 'Quick follow-up keeps momentum alive when recruiter interest is already there.',
                 'Progress feels real when you can see who viewed or moved your application.',
                 'Responding at the right time can turn interest into the next step.',
+            ],
+            'cover_letter_task' => [
+                'A cover letter is your chance to explain "Why you?" beyond just your skills.',
+                'Focus on one specific problem the company has and how you can solve it.',
+                'Keep it brief—recruiters usually scan cover letters in under 30 seconds.',
             ],
             default => [
                 'Small, focused improvements help your profile get stronger over time.',
@@ -685,7 +735,7 @@ class CandidateDashboardController extends BaseController
     {
         foreach ($applications as $application) {
             $status = (string) ($application['status'] ?? '');
-            if (!in_array($status, ['rejected', 'withdrawn', 'selected', 'hired'], true)) {
+            if (!in_array($status, ['filtered_out', 'rejected', 'withdrawn', 'selected', 'hired'], true)) {
                 return $application;
             }
         }
@@ -724,17 +774,16 @@ class CandidateDashboardController extends BaseController
         // Active applications (not rejected or withdrawn)
         $activeApplications = $applicationModel
             ->where('candidate_id', $candidateId)
-            ->whereNotIn('status', ['rejected', 'withdrawn'])
+            ->whereNotIn('status', ['filtered_out', 'rejected', 'withdrawn'])
             ->countAllResults();
         
-        // Scheduled interviews are the real slot bookings in the current lifecycle.
+        // Scheduled interviews are the real slot bookings in the current lifecycle. 
+        // We filter for future datetimes to ensure the counter remains relevant to the candidate.
         $interviewsScheduled = $bookingModel
             ->where('user_id', $candidateId)
+            ->where('slot_datetime >=', date('Y-m-d H:i:s'))
             ->whereIn('booking_status', ['booked', 'rescheduled'])
             ->countAllResults();
-        
-        // Average AI score
-        $averageAIScore = 0;
         
         // Unread notifications
         $unreadNotifications = $notificationModel
@@ -746,7 +795,6 @@ class CandidateDashboardController extends BaseController
             'total_applications' => $totalApplications,
             'active_applications' => $activeApplications,
             'interviews_scheduled' => $interviewsScheduled,
-            'average_ai_score' => $averageAIScore,
             'unread_notifications' => $unreadNotifications
         ];
     }
@@ -836,7 +884,7 @@ class CandidateDashboardController extends BaseController
             ->join('jobs', 'jobs.id = interview_bookings.job_id', 'left')
             ->join('interview_slots', 'interview_slots.id = interview_bookings.slot_id', 'left')
             ->where('interview_bookings.user_id', $candidateId)
-            ->where('interview_bookings.slot_datetime', date('Y-m-d'))
+            ->where('DATE(interview_bookings.slot_datetime)', date('Y-m-d'))
             ->whereIn('interview_bookings.booking_status', ['booked', 'rescheduled'])
             ->findAll();
         
@@ -948,6 +996,9 @@ class CandidateDashboardController extends BaseController
 
             case 'hold':
                 return 'Your application is on hold. The recruiter may revisit it later.';
+
+            case 'filtered_out':
+                return 'Your application is under recruiter review.';
                 
             case 'rejected':
                 return 'Unfortunately, we are proceeding with other candidates at this time.';
@@ -976,7 +1027,8 @@ class CandidateDashboardController extends BaseController
         }
         
         $applications = $this->getApplicationsWithDetails($candidateId);
-        
+        $applications = $this->maskApplicationsList($applications);
+
         return view('candidate/applications', [
             'applications' => $applications
         ]);
@@ -996,6 +1048,7 @@ class CandidateDashboardController extends BaseController
         $applications = $this->getApplicationsWithDetails($candidateId);
         $topSuggestedJobs = $this->getTopSuggestedJobs($candidateId, 6);
         $jobSearchStrategy = $this->buildJobSearchStrategyCoach($candidateId, $applications, $topSuggestedJobs);
+        $applications = $this->maskApplicationsList($applications);
 
         return view('candidate/job_search_strategy', [
             'applications' => $applications,
@@ -1020,7 +1073,7 @@ class CandidateDashboardController extends BaseController
             return redirect()->to(base_url('candidate/applications'))->with('error', 'Application not found.');
         }
 
-        if (in_array((string) ($application['status'] ?? ''), ['rejected', 'withdrawn', 'selected', 'hired'], true)) {
+        if (in_array((string) ($application['status'] ?? ''), ['filtered_out', 'rejected', 'withdrawn', 'selected', 'hired'], true)) {
             return redirect()->to(base_url('candidate/applications'))->with('error', 'Detailed mock interview is available only for active applications.');
         }
 
@@ -1157,7 +1210,7 @@ class CandidateDashboardController extends BaseController
         $behavior = (new JobModel())->getCandidateBehaviorProfile($candidateId);
 
         $activeApplications = count(array_filter($applications, static function (array $application): bool {
-            return !in_array((string) ($application['status'] ?? ''), ['rejected', 'withdrawn', 'selected', 'hired'], true);
+            return !in_array((string) ($application['status'] ?? ''), ['filtered_out', 'rejected', 'withdrawn', 'selected', 'hired'], true);
         }));
         $appliedCount = count($applications);
         $shortlistedCount = count(array_filter($applications, static function (array $application): bool {
@@ -1368,5 +1421,321 @@ class CandidateDashboardController extends BaseController
             return trim((string) ($row['name'] ?? '')) !== '';
         }));
     }
-}
 
+    /**
+     * Real-time ATS Scorer: Compares a candidate's resume version against a specific job.
+     */
+    public function analyzeAtsMatch()
+    {
+        try {
+            $candidateId = (int) session()->get('user_id');
+            $jobId = (int) $this->request->getGet('job_id');
+            $resumeVersionId = (int) $this->request->getGet('resume_id');
+
+            if ($candidateId <= 0 || $jobId <= 0) {
+                return $this->response->setJSON(['error' => 'Invalid parameters (Missing user or job ID)'])->setStatusCode(400);
+            }
+
+            $jobModel = new JobModel();
+            $job = $jobModel->find($jobId);
+
+            if (!$job) {
+                return $this->response->setJSON(['error' => 'Job description not found.'])->setStatusCode(404);
+            }
+            $analysis = (new AtsScoreService())->analyzeCandidateJob($candidateId, $job, $resumeVersionId);
+            if (!($analysis['has_resume_source'] ?? false)) {
+                return $this->response->setJSON(['error' => 'No resume content found. Please upload a resume first.'])->setStatusCode(404);
+            }
+
+            $result = [
+                'success' => true,
+                'score' => (int) ($analysis['score'] ?? 0),
+                'keywords' => (array) ($analysis['missing_keywords'] ?? []),
+                'suggestions' => (array) ($analysis['suggestions'] ?? []),
+                'gap' => (string) ($analysis['critical_gap'] ?? 'No major gaps found.'),
+            ];
+
+            return $this->response->setJSON($result);
+
+        } catch (\Throwable $e) {
+            log_message('error', '[ATS Analysis Exception] ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false, 
+                'error' => 'Server Exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * AI Cover Letter Generator
+     * Generates a tailored cover letter based on Job Description and Candidate Profile
+     */
+    public function generateAiCoverLetter()
+    {
+        try {
+            $candidateId = (int) session()->get('user_id');
+            $jobId = (int) $this->request->getGet('job_id');
+
+            if ($candidateId <= 0 || $jobId <= 0) {
+                return $this->response->setJSON(['error' => 'Missing Job or User ID'])->setStatusCode(400);
+            }
+
+            $jobModel = new JobModel();
+            $job = $jobModel->find($jobId);
+            
+            $userModel = new UserModel();
+            $profile = $userModel->findCandidateWithProfile($candidateId);
+
+            if (!$job || !$profile) {
+                return $this->response->setJSON(['error' => 'Data not found'])->setStatusCode(404);
+            }
+
+            $apiKey = getenv('OPENAI_API_KEY');
+            if (!$apiKey) {
+                return $this->response->setJSON(['error' => 'AI Service unavailable'])->setStatusCode(500);
+            }
+
+            // Gather candidate context
+            $skillsRow = (new CandidateSkillsModel())->where('candidate_id', $candidateId)->first();
+            $skills = $skillsRow['skill_name'] ?? 'Relevant industry skills';
+            
+            $prompt = "Act as a professional career coach. Write a highly persuasive, tailored cover letter for:
+            JOB TITLE: {$job['title']}
+            COMPANY: {$job['company']}
+            JOB DESCRIPTION: " . substr($job['description'], 0, 1000) . "
+            
+            CANDIDATE STRENGTHS: {$skills}
+            CANDIDATE BIO: {$profile['bio']}
+            
+            INSTRUCTIONS:
+            1. Use a professional yet enthusiastic tone.
+            2. Length: 250-300 words.
+            3. Focus on how the candidate's skills specifically solve the needs mentioned in the job description.
+            4. Do not use placeholders like '[Name]'; write it as a ready-to-edit draft.
+            5. Format with clear paragraphs.";
+
+            $ch = curl_init('https://api.openai.com/v1/chat/completions');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . trim((string)$apiKey),
+                ],
+                CURLOPT_POSTFIELDS => json_encode([
+                    'model' => 'gpt-4o-mini',
+                    'messages' => [['role' => 'user', 'content' => $prompt]],
+                    'temperature' => 0.7
+                ]),
+                CURLOPT_TIMEOUT => 60,
+            ]);
+
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $data = json_decode($response, true);
+            $content = $data['choices'][0]['message']['content'] ?? '';
+
+            return $this->response->setJSON([
+                'success' => true,
+                'cover_letter' => trim($content),
+                'job_title' => $job['title'],
+                'company' => $job['company']
+            ]);
+
+        } catch (\Throwable $e) {
+            return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * View saved or recently generated cover letters
+     */
+    /*public function coverLetters()
+    {
+        $candidateId = (int) session()->get('user_id');
+        $applicationModel = model('ApplicationModel');
+        
+        // Fetch recent applications to populate the 'History' tab in the view
+        $recentApplications = $applicationModel
+            ->select('applications.*, jobs.title as job_title, jobs.company')
+            ->join('jobs', 'jobs.id = applications.job_id', 'left')
+            ->where('applications.candidate_id', $candidateId)
+            ->orderBy('applications.applied_at', 'DESC')
+            ->limit(10)
+            ->findAll();
+
+        $data = [
+            'title' => 'My Cover Letters',
+            'recent_suggestions' => session()->get('career_suggestions') ?? [],
+            'stats' => $this->calculateStats($candidateId),
+            'profileStrength' => $this->calculateProfileStrength($candidateId),
+            'recentApplications' => $recentApplications,
+        ];
+
+        return view('candidate/cover_letters', $data);
+    }*/
+    
+     /**
+     * Displays a full blog post, restricted to logged-in candidates.
+     */
+    public function blogDetail(int $id)
+    {
+        // Ensure user is a candidate and logged in
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('login'))->with('error', 'Please login to read the full article.');
+        }
+
+        $db = \Config\Database::connect();
+        if (!$db->tableExists('blog_posts')) {
+            return redirect()->back()->with('error', 'Blog feature is currently unavailable.');
+        }
+
+        $blogModel = model('BlogModel');
+        $post = $blogModel->where('status', 'published')->find($id);
+
+        if (!$post) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Blog post not found.');
+        }
+
+        $relatedPosts = $blogModel->where('status', 'published')
+                                  ->where('id !=', $id)
+                                  ->orderBy('created_at', 'DESC')
+                                  ->limit(3)
+                                  ->findAll();
+
+        return view('candidate/blog_detail', [
+            'post' => $post,
+            'title' => $post['title'] ?? 'Blog',
+            'relatedPosts' => $relatedPosts
+        ]);
+    }
+
+    /**
+     * Fetches top job categories with job counts for dashboard shortcuts.
+     */
+    private function getJobCategoryShortcuts(): array
+    {
+        $db = \Config\Database::connect();
+        $rows = $db->table('jobs')
+            ->select('category as name, COUNT(id) as job_count')
+            ->where('status', 'open')
+            ->groupBy('category')
+            ->orderBy('job_count', 'DESC')
+            ->limit(8)
+            ->get()
+            ->getResultArray();
+
+        $iconMap = [
+            'data science' => 'fas fa-chart-line',
+            'machine learning' => 'fas fa-microchip',
+            'artificial intelligence' => 'fas fa-robot',
+            'software engineering' => 'fas fa-code',
+            'web development' => 'fas fa-laptop-code',
+            'ui/ux design' => 'fas fa-bezier-curve',
+            'cloud computing' => 'fas fa-cloud',
+        ];
+
+        foreach ($rows as &$row) {
+            $row['icon'] = $iconMap[strtolower(trim((string)$row['name']))] ?? 'fas fa-briefcase';
+        }
+        unset($row);
+
+        return array_values(array_filter($rows, fn($r) => trim((string)($r['name'] ?? '')) !== ''));
+    }
+
+    /**
+     * Masks the 'filtered_out' status in a list of applications.
+     */
+    private function maskApplicationsList(array $applications): array
+    {
+        foreach ($applications as &$app) {
+            if (($app['status'] ?? '') === 'filtered_out') {
+                $app['status'] = 'applied';
+            }
+        }
+        unset($app);
+        return $applications;
+    }
+    
+     /**
+     * Combines Company Directory and MNC Job Discovery into a single UI page.
+     */
+    public function companyJobDiscovery()
+    {
+        if (session()->get('role') !== 'candidate') {
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', 'Access denied.');
+        }
+
+        $candidateId = session()->get('user_id');
+        if (!$candidateId) {
+            return redirect()->to('/login')->with('error', 'Please login to continue');
+        }
+
+        $companyModel = new CompanyModel();
+        $jobModel = new JobModel();
+        $request = service('request');
+
+        // --- Company Directory Logic (adapted from CompanyController) ---
+        $filters = [
+            'q'        => trim((string) $request->getGet('q')),
+            'industry' => trim((string) $request->getGet('industry')),
+            'location' => trim((string) $request->getGet('location')),
+        ];
+
+        $companiesBuilder = $companyModel->orderBy('name', 'ASC');
+
+        if (!empty($filters['q'])) {
+            $companiesBuilder->like('name', $filters['q'], 'both');
+        }
+        if (!empty($filters['industry'])) {
+            $companiesBuilder->where('industry', $filters['industry']);
+        }
+        if (!empty($filters['location'])) {
+            $companiesBuilder->groupStart()
+                             ->like('hq', $filters['location'], 'both')
+                             ->orLike('branches', $filters['location'], 'both')
+                             ->groupEnd();
+        }
+
+        $companiesPerPage = 12;
+        $companies = $companiesBuilder->paginate($companiesPerPage);
+
+        // Fetch open job counts for each company
+        $companyIds = array_column($companies, 'id');
+        $openJobsCounts = [];
+        if (!empty($companyIds)) {
+            $jobCounts = $jobModel->select('company_id, COUNT(id) as count')
+                                  ->whereIn('company_id', $companyIds)
+                                  ->where('status', 'open')
+                                  ->groupBy('company_id')
+                                  ->findAll();
+            foreach ($jobCounts as $count) {
+                $openJobsCounts[$count['company_id']] = (int) $count['count'];
+            }
+        }
+
+        foreach ($companies as &$company) {
+            $company['open_jobs_count'] = $openJobsCounts[$company['id']] ?? 0;
+            $company['profile_url'] = base_url('company/' . $company['id']);
+        }
+        unset($company);
+
+        $hasSearchQuery = !empty($filters['q']);
+        $foundRegisteredCompanies = !empty($companies);
+        $shouldAutoTriggerAiSearch = $hasSearchQuery && !$foundRegisteredCompanies;
+        $industries = $companyModel->select('industry')->distinct()->where('industry IS NOT NULL')->orderBy('industry', 'ASC')->findAll();
+        $industries = array_column($industries, 'industry');
+
+        return view('candidate/combined_job_company_discovery', [
+            'companies' => $companies,
+            'filters' => $filters,
+            'industries' => $industries,
+            'pager' => $companyModel->pager,
+            'hasSearchQuery' => $hasSearchQuery,
+            'foundRegisteredCompanies' => $foundRegisteredCompanies,
+            'shouldAutoTriggerAiSearch' => $shouldAutoTriggerAiSearch,
+        ]);
+    }
+}
+                

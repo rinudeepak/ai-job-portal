@@ -23,6 +23,43 @@ class SavedJobs extends BaseController
             ->orderBy('saved_jobs.created_at', 'DESC')
             ->findAll();
 
+        foreach ($savedRows as $index => $job) {
+            $savedRows[$index]['is_external'] = false;
+            $savedRows[$index]['details_url'] = base_url('job/' . (int) ($job['id'] ?? 0));
+            $savedRows[$index]['unsave_url'] = base_url('job/unsave/' . (int) ($job['id'] ?? 0));
+        }
+
+        $savedMncRows = (new SavedJobModel())
+            ->select(
+                'saved_jobs.created_at as saved_at, ' .
+                'mnc_external_jobs.id, ' .
+                'mnc_external_jobs.company_name as company, ' .
+                'mnc_external_jobs.title, ' .
+                'mnc_external_jobs.location, ' .
+                'mnc_external_jobs.apply_url, ' .
+                'mnc_external_jobs.source_platform, ' .
+                'mnc_external_jobs.posted_at_raw, ' .
+                'mnc_external_jobs.last_sync_at'
+            )
+            ->join('mnc_external_jobs', 'mnc_external_jobs.id = saved_jobs.mnc_external_job_id', 'inner')
+            ->where('saved_jobs.candidate_id', $candidateId)
+            ->where('mnc_external_jobs.is_active', 1)
+            ->orderBy('saved_jobs.created_at', 'DESC')
+            ->findAll();
+
+        foreach ($savedMncRows as $index => $job) {
+            $savedMncRows[$index]['is_external'] = true;
+            $savedMncRows[$index]['created_at'] = $job['saved_at'] ?? null;
+            $savedMncRows[$index]['employment_type'] = trim((string) ($job['source_platform'] ?? '')) ?: 'External';
+            $savedMncRows[$index]['details_url'] = trim((string) ($job['apply_url'] ?? ''));
+            $savedMncRows[$index]['unsave_url'] = base_url('mnc/job/unsave/' . (int) ($job['id'] ?? 0));
+        }
+
+        $savedRows = array_merge($savedRows, $savedMncRows);
+        usort($savedRows, static function (array $left, array $right): int {
+            return strtotime((string) ($right['saved_at'] ?? '')) <=> strtotime((string) ($left['saved_at'] ?? ''));
+        });
+
         $companyIds = [];
         foreach ($savedRows as $job) {
             $id = (int) ($job['company_id'] ?? 0);

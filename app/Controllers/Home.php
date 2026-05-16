@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\JobModel;
+use App\Models\BlogModel;
 use App\Models\CompanyModel;
 use App\Models\UserModel;
 use App\Models\InterviewBookingModel;
@@ -76,6 +77,13 @@ class Home extends BaseController
 
         $userModel = new UserModel();
         $interviewBookingModel = new InterviewBookingModel();
+        $blogPosts = [];
+
+        $db = \Config\Database::connect();
+        if ($db->tableExists('blog_posts')) {
+            $blogModel = new BlogModel();
+            $blogPosts = $blogModel->getPublishedPosts(3);
+        }
 
         $platformStats = [
             'candidates' => (int) $userModel->where('role', 'candidate')->countAllResults(),
@@ -87,6 +95,7 @@ class Home extends BaseController
         return view('landing', [
             'featuredJobs' => $featuredJobs,
             'platformStats' => $platformStats,
+            'blogPosts' => $blogPosts,
         ]);
     }
 }

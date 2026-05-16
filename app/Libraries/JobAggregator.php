@@ -3,192 +3,227 @@
 namespace App\Libraries;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 
 class JobAggregator
 {
-    private $indeedPublisherId;
     private $client;
     private $cache;
 
     public function __construct()
     {
-        $this->indeedPublisherId = env('INDEED_PUBLISHER_ID');
         $this->client = new Client();
-        $this->cache = service('cache');
+        $this->cache  = service('cache');
     }
 
     /**
-     * Search jobs by company name from Indeed API
+     * Fetch jobs for a company — LinkedIn primary, keyword search fallback.
      */
     public function fetchJobsByCompany(string $companyName, int $limit = 25): array
     {
-        $cacheKey = "jobs_company_" . strtolower(str_replace(' ', '_', $companyName));
-        
-        // Check cache first
+        $cacheKey = 'jobs_company_v2_' . strtolower(str_replace(' ', '_', $companyName));
+
         if ($cached = $this->cache->get($cacheKey)) {
             return $cached;
         }
 
+        $jobs = $this->fetchFromLinkedIn($companyName, $limit);
+        $jobs = $this->validateJobUrls($jobs);
+
+        $this->cache->save($cacheKey, $jobs, 21600);
+
+        log_message('info', 'Fetched ' . count($jobs) . ' valid jobs for ' . $companyName);
+
+        return $jobs;
+    }
+
+    /**
+     * Clear cache for a specific company.
+     */
+    public function clearCompanyCache(string $companyName): bool
+    {
+        $cacheKey = 'jobs_company_v2_' . strtolower(str_replace(' ', '_', $companyName));
+        return $this->cache->delete($cacheKey);
+    }
+
+    /**
+     * Fetch jobs from LinkedIn public search with two endpoint attempts.
+     */
+    private function fetchFromLinkedIn(string $companyName, int $limit = 25): array
+    {
+        $jobs = $this->fetchFromLinkedInAPI($companyName, $limit);
+
+        if (empty($jobs)) {
+            $jobs = $this->fetchFromLinkedInSearch($companyName, $limit);
+        }
+
+        return $jobs;
+    }
+
+    private function fetchFromLinkedInAPI(string $companyName, int $limit = 25): array
+    {
         try {
-            $jobs = $this->fetchFromIndeed($companyName, $limit);
-            
-            // Cache for 6 hours
-            $this->cache->save($cacheKey, $jobs, 21600);
-            
-            log_message('info', "Fetched " . count($jobs) . " jobs for {$companyName}");
-            
-            return $jobs;
+            $response = $this->client->get('https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search', [
+                'query' => [
+                    'keywords' => $companyName,
+                    'start'    => 0,
+                    'count'    => min($limit, 25),
+                ],
+                'headers' => [
+                    'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language' => 'en-US,en;q=0.9',
+                    'Referer'         => 'https://www.linkedin.com/jobs/search',
+                ],
+                'timeout'     => 15,
+                'http_errors' => false,
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                return [];
+            }
+
+            return $this->parseLinkedInJobs((string) $response->getBody(), $companyName);
         } catch (\Exception $e) {
-            log_message('error', 'Job Aggregator Error: ' . $e->getMessage());
+            log_message('error', 'LinkedIn API error: ' . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Fetch from Indeed API
-     */
-    private function fetchFromIndeed(string $companyName, int $limit = 25): array
+    private function fetchFromLinkedInSearch(string $companyName, int $limit = 25): array
     {
-        $url = 'https://api.indeed.com/ads/apisearch';
-        
-        $params = [
-            'publisher' => $this->indeedPublisherId,
-            'q' => '',
-            'co' => $companyName,
-            'format' => 'json',
-            'limit' => $limit,
-            'sort' => 'date',
-            'radius' => 25,
-            'start' => 0,
-            'userip' => $this->getUserIp(),
-            'useragent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0'
-        ];
+        try {
+            $response = $this->client->get('https://www.linkedin.com/jobs/search', [
+                'query' => [
+                    'keywords' => $companyName,
+                    'position' => 1,
+                    'pageNum'  => 0,
+                ],
+                'headers' => [
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'Accept'     => 'text/html',
+                ],
+                'timeout'     => 15,
+                'http_errors' => false,
+            ]);
 
-        $response = $this->client->get($url, ['query' => $params]);
-        $data = json_decode($response->getBody(), true);
+            if ($response->getStatusCode() !== 200) {
+                return [];
+            }
 
-        if (!isset($data['results'])) {
+            return $this->parseLinkedInJobs((string) $response->getBody(), $companyName);
+        } catch (\Exception $e) {
+            log_message('error', 'LinkedIn search error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function parseLinkedInJobs(string $html, string $companyName): array
+    {
+        if (empty($html)) {
             return [];
         }
 
-        return $this->formatIndeedJobs($data['results'], $companyName);
-    }
+        libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $dom->loadHTML($html);
+        libxml_clear_errors();
 
-    /**
-     * Format Indeed API response
-     */
-    private function formatIndeedJobs(array $results, string $companyName): array
-    {
-        $formatted = [];
+        $xpath    = new \DOMXPath($dom);
+        $jobCards = null;
 
-        foreach ($results as $job) {
-            $formatted[] = [
-                'id' => $job['jobkey'] ?? uniqid(),
-                'title' => $job['jobtitle'] ?? 'N/A',
-                'company' => $job['company'] ?? $companyName,
-                'location' => $job['formattedLocation'] ?? 'N/A',
-                'summary' => $job['snippet'] ?? '',
-                'url' => $job['url'] ?? '',
-                'posted_date' => $job['date'] ?? date('Y-m-d'),
-                'salary' => $job['salary'] ?? 'Not specified',
-                'job_type' => $job['jobtype'] ?? 'Full-time',
-                'source' => 'indeed',
-                'external_source' => 'Indeed',
-                'is_external' => 1
-            ];
+        foreach ([
+            "//li[contains(@class, 'result-card')]",
+            "//div[contains(@class, 'job-search-card')]",
+            "//div[contains(@class, 'base-card')]",
+        ] as $selector) {
+            $jobCards = $xpath->query($selector);
+            if ($jobCards && $jobCards->length > 0) {
+                break;
+            }
         }
 
-        return $formatted;
-    }
-
-    /**
-     * Get user IP for Indeed API
-     */
-    private function getUserIp(): string
-    {
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            $ip = $_SERVER['HTTP_CLIENT_IP'];
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
-        } else {
-            $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        if (!$jobCards || $jobCards->length === 0) {
+            return [];
         }
-        return trim($ip);
+
+        $jobs = [];
+
+        foreach ($jobCards as $card) {
+            try {
+                $titleNode    = $xpath->query(".//h3 | .//a[contains(@class, 'job-card-list__title')]", $card)->item(0);
+                $companyNode  = $xpath->query(".//h4 | .//a[contains(@class, 'job-card-container__company-name')]", $card)->item(0);
+                $locationNode = $xpath->query(".//span[contains(@class, 'location')] | .//span[contains(@class, 'job-card-container__metadata-item')]", $card)->item(0);
+                $linkNode     = $xpath->query(".//a[@href]", $card)->item(0);
+                $dateNode     = $xpath->query(".//time", $card)->item(0);
+
+                $title    = $titleNode    ? trim($titleNode->textContent)    : '';
+                $company  = $companyNode  ? trim($companyNode->textContent)  : $companyName;
+                $location = $locationNode ? trim($locationNode->textContent) : 'Remote';
+                $url      = $linkNode     ? $linkNode->getAttribute('href')  : '';
+                $date     = $dateNode     ? $dateNode->getAttribute('datetime') : date('Y-m-d');
+
+                if (!empty($url) && strpos($url, 'http') !== 0) {
+                    $url = 'https://www.linkedin.com' . $url;
+                }
+
+                if (preg_match('/\/jobs\/view\/(\d+)/', $url, $matches)) {
+                    $url = 'https://www.linkedin.com/jobs/view/' . $matches[1];
+                }
+
+                if (!empty($title) && !empty($url)) {
+                    $jobs[] = [
+                        'id'              => md5($url),
+                        'title'           => $title,
+                        'company'         => $company,
+                        'location'        => $location,
+                        'summary'         => '',
+                        'url'             => $url,
+                        'posted_date'     => $date,
+                        'salary'          => 'Not specified',
+                        'job_type'        => 'Full-time',
+                        'source'          => 'linkedin',
+                        'external_source' => 'LinkedIn',
+                        'is_external'     => 1,
+                    ];
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        return $jobs;
     }
 
     /**
-     * Search jobs by keyword and company
+     * Filter out jobs with invalid or missing URLs.
+     */
+    private function validateJobUrls(array $jobs): array
+    {
+        return array_values(array_filter($jobs, function (array $job): bool {
+            $url = $job['url'] ?? '';
+            return !empty($url)
+                && filter_var($url, FILTER_VALIDATE_URL)
+                && preg_match('/^https?:\/\//i', $url);
+        }));
+    }
+
+    /**
+     * Search jobs by keyword and company.
      */
     public function searchJobs(string $keyword, string $companyName = '', int $limit = 25): array
     {
-        $cacheKey = "jobs_search_" . md5($keyword . $companyName);
-        
+        $cacheKey = 'jobs_search_' . md5($keyword . $companyName);
+
         if ($cached = $this->cache->get($cacheKey)) {
             return $cached;
         }
 
-        try {
-            $url = 'https://api.indeed.com/ads/apisearch';
-            
-            $params = [
-                'publisher' => $this->indeedPublisherId,
-                'q' => $keyword,
-                'co' => $companyName,
-                'format' => 'json',
-                'limit' => $limit,
-                'sort' => 'relevance',
-                'userip' => $this->getUserIp(),
-                'useragent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0'
-            ];
+        $query = trim($keyword . ' ' . $companyName);
+        $jobs  = $this->fetchFromLinkedInAPI($query, $limit);
+        $jobs  = $this->validateJobUrls($jobs);
 
-            $response = $this->client->get($url, ['query' => $params]);
-            $data = json_decode($response->getBody(), true);
+        $this->cache->save($cacheKey, $jobs, 21600);
 
-            $jobs = isset($data['results']) ? $this->formatIndeedJobs($data['results'], $companyName) : [];
-            
-            $this->cache->save($cacheKey, $jobs, 21600);
-            
-            return $jobs;
-        } catch (\Exception $e) {
-            log_message('error', 'Job Search Error: ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    /**
-     * Get job details
-     */
-    public function getJobDetails(string $jobKey): array
-    {
-        $cacheKey = "job_detail_" . $jobKey;
-        
-        if ($cached = $this->cache->get($cacheKey)) {
-            return $cached;
-        }
-
-        try {
-            $url = 'https://api.indeed.com/ads/apisearch';
-            
-            $params = [
-                'publisher' => $this->indeedPublisherId,
-                'jobkeys' => $jobKey,
-                'format' => 'json',
-                'userip' => $this->getUserIp(),
-                'useragent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0'
-            ];
-
-            $response = $this->client->get($url, ['query' => $params]);
-            $data = json_decode($response->getBody(), true);
-
-            $job = isset($data['results'][0]) ? $data['results'][0] : [];
-            
-            $this->cache->save($cacheKey, $job, 86400);
-            
-            return $job;
-        } catch (\Exception $e) {
-            log_message('error', 'Job Details Error: ' . $e->getMessage());
-            return [];
-        }
+        return $jobs;
     }
 }

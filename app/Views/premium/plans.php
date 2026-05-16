@@ -1,4 +1,4 @@
-<?= view('Layouts/candidate_header', ['title' => $title ?? 'Premium Services Plans - HireMatrix']) ?>
+        <?= view('Layouts/candidate_header', ['title' => $title ?? 'Premium Services Plans - HireMatrix']) ?>
 
 <?php
 $selectedService = strtolower((string) ($selected_service ?? 'all'));
@@ -157,18 +157,7 @@ $serviceCards = [
                                             <i class="fas fa-check text-success mr-2"></i><?= esc((string) $feature) ?>
                                         </li>
                                     <?php endforeach; ?>
-                                    <li class="mb-2 small">
-                                        <?php if (!empty($plan['chat_limit'])): ?>
-                                            <i class="fas fa-comment text-info mr-2"></i><?= esc((string) $plan['chat_limit']) ?> chats/day
-                                        <?php else: ?>
-                                            <i class="fas fa-infinity text-success mr-2"></i>Unlimited chats
-                                        <?php endif; ?>
-                                    </li>
-                                    <?php if ((int) ($plan['mentor_sessions_included'] ?? 0) > 0): ?>
-                                        <li class="mb-2 small">
-                                            <i class="fas fa-user-tie text-warning mr-2"></i><?= (int) $plan['mentor_sessions_included'] ?> mentor session(s)
-                                        </li>
-                                    <?php endif; ?>
+                                   
                                 </ul>
 
                                 <?php if ((float) $plan['price'] <= 0): ?>
@@ -189,53 +178,9 @@ $serviceCards = [
                 <?php endforeach; ?>
             </div>
 
-            <div class="row mb-5">
-                <div class="col-12">
-                    <div class="table-responsive">
-                        <table class="table table-lg table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Feature</th>
-                                    <?php foreach ($plans as $plan): ?>
-                                        <th><?= esc($plan['name']) ?></th>
-                                    <?php endforeach; ?>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Career Transition AI</strong></td>
-                                    <?php foreach ($plans as $plan): ?>
-                                        <td><?= str_contains(strtolower((string) ($plan['features'] ?? '')), 'career_transition') || str_contains(strtolower((string) ($plan['features'] ?? '')), 'career transition') ? 'Yes' : 'No' ?></td>
-                                    <?php endforeach; ?>
-                                </tr>
-                                <tr>
-                                    <td><strong>Resume Studio</strong></td>
-                                    <?php foreach ($plans as $plan): ?>
-                                        <td><?= str_contains(strtolower((string) ($plan['features'] ?? '')), 'resume_ai') || str_contains(strtolower((string) ($plan['features'] ?? '')), 'resume') ? 'Yes' : 'No' ?></td>
-                                    <?php endforeach; ?>
-                                </tr>
-                                <tr>
-                                    <td><strong>AI Career Mentor</strong></td>
-                                    <?php foreach ($plans as $plan): ?>
-                                        <td><?= str_contains(strtolower((string) ($plan['features'] ?? '')), 'mentor') || str_contains(strtolower((string) ($plan['features'] ?? '')), 'career chat') ? 'Yes' : 'No' ?></td>
-                                    <?php endforeach; ?>
-                                </tr>
-                                <tr>
-                                    <td>Price</td>
-                                    <?php foreach ($plans as $plan): ?>
-                                        <td><strong>₹<?= number_format((float) $plan['price']) ?>/<?= (int) $plan['duration_days'] === 30 ? 'month' : ((int) $plan['duration_days'] === 90 ? 'quarter' : 'year') ?></strong></td>
-                                    <?php endforeach; ?>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="text-center mt-5">
-                <a href="<?= base_url('premium-mentor') ?>" class="btn btn-lg btn-primary">
-                    Open AI Career Mentor
-                </a>
                 <p class="mt-3 text-muted">
                     One subscription unlocks all three services. Cancel anytime.
                 </p>
@@ -330,3 +275,4 @@ document.querySelectorAll('.js-pay-btn').forEach(function(btn) {
     });
 });
 </script>
+    

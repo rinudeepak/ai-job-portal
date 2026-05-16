@@ -1,14 +1,23 @@
-<?= view('Layouts/candidate_header', ['title' => $title]) ?>
+        <?= view('Layouts/candidate_header', ['title' => $title]) ?>
 
 <div class="jobs-page-jobboard">
     <section class="hero dashboard-hero">
         <div class="container">
-            <h1 class="hero-title">
-                Jobs at <span class="gradient-text"><?= esc($company_name) ?></span>
-            </h1>
-            <p class="hero-subtitle">
-                Showing <?= $total_jobs ?> open positions
-            </p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="hero-title">
+                        Jobs at <span class="gradient-text"><?= esc($company_name) ?></span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Showing <?= $total_jobs ?> open positions
+                    </p>
+                </div>
+                <div>
+                    <button onclick="clearCompanyCache('<?= esc($company_name) ?>')" class="btn btn-sm btn-outline-secondary" title="Refresh job listings">
+                        <i class="fas fa-sync-alt"></i> Refresh Jobs
+                    </button>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -79,7 +88,7 @@
                         <div class="d-flex align-items-center mb-4">
                             <h3 class="mb-0">Similar Positions</h3>
                             <span class="badge badge-secondary ml-2"><?= count($external_jobs) ?></span>
-                            <small class="text-muted ml-2">(from Indeed)</small>
+                            <small class="text-muted ml-2">(from <?= esc($external_jobs[0]['external_source'] ?? 'Indeed') ?>)</small>
                         </div>
                         <div class="job-listings">
                             <?php foreach ($external_jobs as $job): ?>
@@ -92,7 +101,7 @@
                                     <div class="job-listing-content">
                                         <div class="job-listing-position">
                                             <h2>
-                                                <a href="<?= esc($job['url']) ?>" target="_blank" class="job-title-link">
+                                                <a href="<?= esc($job['url']) ?>" target="_blank" class="job-title-link" rel="noopener noreferrer">
                                                     <?= esc($job['title']) ?>
                                                 </a>
                                             </h2>
@@ -100,6 +109,10 @@
                                                 <i class="fas fa-map-marker-alt"></i> <?= esc($job['location']) ?>
                                                 <span class="mx-2">•</span>
                                                 <i class="fas fa-calendar"></i> <?= esc($job['posted_date']) ?>
+                                                <?php if (!empty($job['id'])): ?>
+                                                    <span class="mx-2">•</span>
+                                                    <small class="text-muted">ID: <?= esc(substr($job['id'], 0, 8)) ?></small>
+                                                <?php endif; ?>
                                             </p>
                                         </div>
                                         <div class="job-listing-about">
@@ -107,12 +120,12 @@
                                         </div>
                                         <div class="job-tags">
                                             <span class="jtag type"><?= esc($job['job_type']) ?></span>
-                                            <span class="jtag">Indeed</span>
+                                            <span class="jtag"><?= esc($job['external_source'] ?? 'Indeed') ?></span>
                                         </div>
                                     </div>
                                     <div class="smart-job-meta">
                                         <a href="<?= esc($job['url']) ?>" target="_blank" class="smart-view-link">
-                                            View on Indeed →
+                                            View on <?= esc($job['external_source'] ?? 'Indeed') ?> →
                                         </a>
                                     </div>
                                 </div>
@@ -131,4 +144,38 @@
     </div>
 </div>
 
+<script>
+function clearCompanyCache(companyName) {
+    if (!confirm('Clear cache and refresh job listings for ' + companyName + '?')) {
+        return;
+    }
+    
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
+    
+    fetch('<?= base_url("candidate/company-jobs/clear-cache/") ?>' + encodeURIComponent(companyName))
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                btn.innerHTML = '<i class="fas fa-check"></i> Cleared!';
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else {
+                alert('Error: ' + (data.message || 'Failed to clear cache'));
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(err => {
+            alert('Error clearing cache: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+}
+</script>
+
 <?= view('Layouts/candidate_footer') ?>
+    

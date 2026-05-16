@@ -147,9 +147,12 @@ class CompanyProfile extends BaseController
             'status' => $status
         ]);
         } catch (\Throwable $e) {
-            log_message('error', 'searchJobs error: ' . $e->getMessage());
-            return $this->response->setStatusCode(500)->setJSON([
-                'error' => 'An error occurred while fetching company details. Please try again.'
+            log_message('error', '[CompanySearch] ' . $e->getMessage());
+            return $this->response->setJSON([
+                'company' => $companyName,
+                'error' => 'Fetched company info, but could not connect to live job board. ' . $e->getMessage(),
+                'jobs' => [],
+                'status' => 'error'
             ]);
         }
     }

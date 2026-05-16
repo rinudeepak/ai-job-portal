@@ -1,4 +1,4 @@
-<?= view('Layouts/candidate_header', ['title' => 'Messages']) ?>
+        <?= view('Layouts/candidate_header', ['title' => 'Messages']) ?>
 <?php
 $messages = $messages ?? [];
 $recruiter = $recruiter ?? [];
@@ -13,10 +13,6 @@ $applicationId = (int) ($applicationId ?? 0);
                 <span class="page-board-kicker"><i class="fas fa-comments"></i> Candidate messages</span>
                 <h1 class="page-board-title">Messages</h1>
                 <p class="page-board-subtitle">Keep the recruiter conversation organized and continue the hiring discussion from one place.</p>
-                <div class="company-profile-meta">
-                    <span class="meta-chip"><strong><?= esc($recruiter['name'] ?? 'Recruiter') ?></strong> Contact</span>
-                    <span class="meta-chip"><strong><?= count($messages ?? []) ?></strong> Messages</span>
-                </div>
             </div>
             <div class="page-board-actions">
                 <a href="<?= base_url('notifications') ?>" class="btn btn-outline-secondary">
@@ -70,3 +66,4 @@ $applicationId = (int) ($applicationId ?? 0);
 </div>
 
 <?= view('Layouts/candidate_footer') ?>
+    

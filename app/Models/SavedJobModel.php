@@ -11,10 +11,10 @@ class SavedJobModel extends Model
     protected $allowedFields = [
         'candidate_id',
         'job_id',
+        'mnc_external_job_id',
     ];
 
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
 }
-

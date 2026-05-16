@@ -1326,7 +1326,7 @@ h1, h2, h3, h4 {
     transform: skewY(-5deg);
     position: absolute;
     left: 0;
-    top: -100px;
+    top: 0;
     right: 0;
     z-index: -1; }
   .site-footer h3 {

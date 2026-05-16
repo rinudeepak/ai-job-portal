@@ -1,4 +1,4 @@
-<?= view('Layouts/recruiter_header', ['title' => 'Candidate Insights']) ?>
+        <?= view('Layouts/recruiter_header', ['title' => 'Candidate Insights']) ?>
 
 <div class="recruiter-leaderboard-jobboard">
 <div class="container-fluid py-5">
@@ -292,6 +292,7 @@
                                             'applied' => 'secondary',
                                             'pending' => 'secondary',
                                             'shortlisted' => 'primary',
+                                            'filtered_out' => 'dark',
                                             'interview_slot_booked' => 'warning',
                                             'selected' => 'success',
                                             'rejected' => 'danger'
@@ -380,3 +381,4 @@
 </div>
 
 <?= view('Layouts/recruiter_footer') ?>
+    

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
+use App\Libraries\GoogleCalendarService;
 
 class InterviewBookingModel extends Model
 {
@@ -23,7 +24,11 @@ class InterviewBookingModel extends Model
         'max_reschedules',
         'can_reschedule',
         'booked_at',
-        'last_rescheduled_at'
+        'last_rescheduled_at',
+        'google_event_id',
+        'calendar_add_link',
+        'calendar_html_link',
+        'last_synced_at'
     ];
     
     protected $useTimestamps = false;
@@ -134,6 +139,23 @@ class InterviewBookingModel extends Model
         
         $db->transComplete();
         
+        // Sync to Google Calendar after successful reschedule
+        if ($db->transStatus()) {
+            $calendarService = new GoogleCalendarService();
+            $userModel = model('UserModel');
+            $user = $userModel->find($booking['user_id']);
+            
+            if ($user && !empty($user['google_refresh_token']) && !empty($user['calendar_sync_enabled'])) {
+                $tokens = $calendarService->refreshAccessToken($user['google_refresh_token']);
+                if ($tokens) {
+                    $calendarService->syncReschedule($bookingId, $tokens['access_token']);
+                }
+            } else {
+                // Just update the add link
+                $calendarService->syncBooking($bookingId);
+            }
+        }
+        
         return $db->transStatus();
     }
     
@@ -150,5 +172,32 @@ class InterviewBookingModel extends Model
                     ->where('interview_bookings.user_id', $userId)
                     ->orderBy('interview_bookings.slot_datetime', 'ASC')
                     ->findAll();
+    }
+    
+    /**
+     * Sync booking to Google Calendar
+     */
+    public function syncToCalendar(int $bookingId): bool
+    {
+        $calendarService = new GoogleCalendarService();
+        $userModel = model('UserModel');
+        
+        $booking = $this->find($bookingId);
+        
+        if (!$booking) {
+            return false;
+        }
+        
+        $user = $userModel->find($booking['user_id']);
+        
+        if ($user && !empty($user['google_refresh_token']) && !empty($user['calendar_sync_enabled'])) {
+            $tokens = $calendarService->refreshAccessToken($user['google_refresh_token']);
+            if ($tokens) {
+                return $calendarService->syncBooking($bookingId, $tokens['access_token']);
+            }
+        }
+        
+        // Fallback: just generate the add link
+        return $calendarService->syncBooking($bookingId);
     }
 }

@@ -136,29 +136,132 @@ class CompanyJobsController extends BaseController
     }
 
     /**
-     * Get job details
+     * Clear cache for a specific company
+     * Usage: /candidate/company-jobs/clear-cache/McDonald's
      */
-    public function getJobDetails(string $jobKey = '')
+    public function clearCache(string $companyName = '')
     {
-        if (empty($jobKey)) {
+        if (empty($companyName)) {
             return $this->response->setJSON([
                 'status' => 'error',
-                'message' => 'Job key is required'
+                'message' => 'Company name is required'
             ]);
         }
 
-        $job = $this->jobAggregator->getJobDetails($jobKey);
-
-        if (empty($job)) {
-            return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Job not found'
-            ]);
-        }
+        $companyName = urldecode($companyName);
+        $cleared = $this->jobAggregator->clearCompanyCache($companyName);
 
         return $this->response->setJSON([
             'status' => 'success',
-            'job' => $job
+            'message' => "Cache cleared for {$companyName}",
+            'cleared' => $cleared
         ]);
+    }
+
+    /**
+     * Clear all job caches
+     * Usage: /candidate/company-jobs/clear-all-cache
+     */
+    public function clearAllCache()
+    {
+        $cache = service('cache');
+        $cache->clean();
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'All job caches cleared successfully'
+        ]);
+    }
+
+    /**
+     * Get company suggestions for autocomplete
+     * Merges internal DB + Clearbit Autocomplete API (free, no key needed)
+     * Usage: /candidate/company-jobs/suggestions?q=goo
+     */
+    public function suggestions()
+    {
+        $query = trim((string) $this->request->getGet('q'));
+
+        if (strlen($query) < 2) {
+            return $this->response->setJSON(['status' => 'success', 'suggestions' => []]);
+        }
+
+        $cacheKey = 'company_suggestions_' . md5(strtolower($query));
+        $cache    = service('cache');
+
+        if ($cached = $cache->get($cacheKey)) {
+            return $this->response->setJSON(['status' => 'success', 'suggestions' => $cached]);
+        }
+
+        $seen        = [];
+        $suggestions = [];
+
+        // 1. Internal DB companies (highest priority)
+        $dbCompanies = $this->companyModel
+            ->select('name, industry, hq')
+            ->like('name', $query, 'both')
+            ->orderBy('name', 'ASC')
+            ->limit(5)
+            ->findAll();
+
+        foreach ($dbCompanies as $c) {
+            $key = strtolower($c['name']);
+            if (!isset($seen[$key])) {
+                $suggestions[] = [
+                    'name'   => $c['name'],
+                    'domain' => '',
+                    'logo'   => '',
+                    'source' => 'internal',
+                ];
+                $seen[$key] = true;
+            }
+        }
+
+        // 2. Clearbit Autocomplete API — free, no key, returns real companies with logos
+        try {
+            $client   = new \GuzzleHttp\Client();
+            $response = $client->get('https://autocomplete.clearbit.com/v1/companies/suggest', [
+                'query'   => ['query' => $query],
+                'headers' => ['Accept' => 'application/json'],
+                'timeout'         => 3, // Reduced to ensure snappy UI responsiveness
+                'connect_timeout' => 2, // Fail fast if DNS resolution hangs
+                'http_errors' => false,
+            ]);
+
+            if ($response->getStatusCode() === 200) {
+                $results = json_decode((string) $response->getBody(), true) ?? [];
+
+                foreach ($results as $item) {
+                    $name = trim((string) ($item['name'] ?? ''));
+                    $key  = strtolower($name);
+
+                    if (empty($name) || isset($seen[$key])) {
+                        continue;
+                    }
+
+                    $suggestions[] = [
+                        'name'   => $name,
+                        'domain' => $item['domain'] ?? '',
+                        'logo'   => !empty($item['logo']) ? $item['logo'] : '',
+                        'source' => 'clearbit',
+                    ];
+                    $seen[$key] = true;
+
+                    if (count($suggestions) >= 10) {
+                        break;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Log as warning since external service dependencies can be flaky
+            log_message('warning', 'Clearbit suggestions service error: ' . $e->getMessage());
+        }
+
+        $suggestions = array_slice($suggestions, 0, 10);
+
+        // Cache for 24 hours — company names rarely change
+        $cache->save($cacheKey, $suggestions, 86400);
+
+        return $this->response->setJSON(['status' => 'success', 'suggestions' => $suggestions]);
     }
 }

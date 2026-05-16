@@ -27,20 +27,19 @@
     function setHeaderBadge(count) {
         const badges = document.querySelectorAll('.js-notification-badge');
         badges.forEach(function (badge) {
+            const link = badge.closest('.header-notification-link, .mobile-nav-icon, .recruiter-notification-link, .recruiter-mobile-notification-link');
             if (count > 0) {
                 badge.textContent = count > 99 ? '99+' : String(count);
                 badge.dataset.unreadCount = String(count);
                 badge.style.display = '';
-                const link = badge.closest('.header-notification-link, .recruiter-notification-link');
                 if (link) {
                     link.classList.add('has-unread');
                 }
             } else {
-                badge.remove();
-                const link = badge.closest('.header-notification-link, .recruiter-notification-link');
                 if (link) {
                     link.classList.remove('has-unread');
                 }
+                badge.remove();
             }
         });
     }

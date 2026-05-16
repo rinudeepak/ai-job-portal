@@ -16,7 +16,7 @@ class MentoringController extends BaseController
         $this->sessionModel = new MentoringSessionModel();
     }
 
-    public function bookSession($mentorId)
+    /*public function bookSession($mentorId)
     {
         $mentor = $this->mentorModel->find($mentorId);
         
@@ -31,7 +31,7 @@ class MentoringController extends BaseController
         ];
 
         return view('mentoring/book_session', $data);
-    }
+    }*/
 
     public function processBooking($mentorId)
     {
@@ -63,7 +63,7 @@ class MentoringController extends BaseController
         return redirect()->back()->with('error', 'Failed to book session');
     }
 
-    public function mySessions()
+    /*public function mySessions()
     {
         $userId = session()->get('user_id');
         $sessions = $this->sessionModel->getUserSessions($userId);
@@ -74,5 +74,5 @@ class MentoringController extends BaseController
         ];
 
         return view('mentoring/my_sessions', $data);
-    }
+    }*/
 }

@@ -35,6 +35,7 @@ class AiJobMatcher
             JOIN jobs j ON js.job_id = j.id
             WHERE js.candidate_id = ?
               AND j.status = 'open'
+              AND (j.application_deadline IS NULL OR j.application_deadline = '' OR j.application_deadline >= CURDATE())
               AND js.score > 0
               AND js.created_at >= DATE_SUB(NOW(), INTERVAL ? MINUTE)
             ORDER BY js.score DESC
@@ -68,13 +69,15 @@ class AiJobMatcher
         }
         $behavior  = $jobModel->getCandidateBehaviorProfile($candidateId);
 
-        $openJobs = $jobModel->where('status', 'open')
+        $openJobsBuilder = $jobModel->where('status', 'open')
             ->whereNotIn('id', function($builder) use ($candidateId) {
                 return $builder->select('job_id')->from('applications')->where('candidate_id', $candidateId);
             })
             ->orderBy('created_at', 'DESC')
-            ->limit(50)
-            ->find();
+            ->limit(50);
+
+        JobModel::applyApplicationDeadlineFilter($openJobsBuilder);
+        $openJobs = $openJobsBuilder->find();
 
         if (empty($openJobs)) return [];
 
@@ -168,6 +171,7 @@ Score from 0-100. Reason should be 1 short sentence.";
             JOIN jobs j ON js.job_id = j.id
             WHERE js.candidate_id = ?
               AND j.status = 'open'
+              AND (j.application_deadline IS NULL OR j.application_deadline = '' OR j.application_deadline >= CURDATE())
               AND js.score > 0
             ORDER BY js.score DESC
             LIMIT ?

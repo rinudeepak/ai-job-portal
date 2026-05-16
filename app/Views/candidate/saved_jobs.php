@@ -46,10 +46,18 @@ $resolveAssetUrl = static function (string $path): string {
                             $salary = trim((string) ($job['salary_range'] ?? ''));
                             $type = strtolower((string) ($job['employment_type'] ?? ''));
                             $typeBadge = str_contains($type, 'part') ? 'badge-secondary' : 'badge-primary';
+                            $isExternal = !empty($job['is_external']);
                             $initial = strtoupper(substr($company, 0, 1) ?: 'J');
                             $postedAt = !empty($job['created_at']) ? date('d M Y', strtotime((string) $job['created_at'])) : null;
                             $companyLogo = trim((string) ($job['company_logo'] ?? ''));
-                            $matchLabel = 'Saved job';
+                            $detailsUrl = trim((string) ($job['details_url'] ?? ''));
+                            $unsaveUrl = trim((string) ($job['unsave_url'] ?? ''));
+                            if ($detailsUrl === '') {
+                                $detailsUrl = base_url('job/' . (int) ($job['id'] ?? 0));
+                            }
+                            if ($unsaveUrl === '') {
+                                $unsaveUrl = base_url('job/unsave/' . (int) ($job['id'] ?? 0));
+                            }
                         ?>
                         <article class="job-card saved-job-card">
                             <button
@@ -57,8 +65,10 @@ $resolveAssetUrl = static function (string $path): string {
                                 class="btn btn-sm btn-outline-secondary py-0 px-2 job-card-save js-save-job-toggle is-saved"
                                 aria-label="Remove saved job"
                                 title="Remove"
-                                data-save-url="<?= base_url('job/unsave/' . $job['id']) ?>"
-                                data-job-id="<?= (int) $job['id'] ?>"
+                                data-save-url="<?= esc($unsaveUrl) ?>"
+                                <?php if (!$isExternal): ?>
+                                    data-job-id="<?= (int) $job['id'] ?>"
+                                <?php endif; ?>
                                 data-saved="1"
                                 data-save-label-save="Save Job"
                                 data-save-label-saved="Saved"
@@ -87,10 +97,12 @@ $resolveAssetUrl = static function (string $path): string {
                                 <?php endif; ?>
                             </div>
                             <div class="job-card-tags">
-                                <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: 'Full Time') ?></span>
-                                <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
+                                <span class="badge <?= $typeBadge ?>"><?= esc($job['employment_type'] ?: ($isExternal ? 'External' : 'Full Time')) ?></span>
+                                <span class="badge badge-secondary"><?= $isExternal ? 'MNC Discovery' : esc(substr($title, 0, 15) ?: 'Role') ?></span>
                             </div>
-                            <a href="<?= base_url('job/' . $job['id']) ?>" class="view-details">View Details &rarr;</a>
+                            <a href="<?= esc($detailsUrl) ?>" class="view-details" <?= $isExternal ? 'target="_blank" rel="noopener"' : '' ?>>
+                                <?= $isExternal ? 'Apply Now' : 'View Details' ?> &rarr;
+                            </a>
                         </article>
                     <?php endforeach; ?>
                 </div>

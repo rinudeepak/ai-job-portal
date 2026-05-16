@@ -1,4 +1,4 @@
-<?= view('Layouts/candidate_header', ['title' => 'AI Career Mentor']) ?>
+        <?= view('Layouts/candidate_header', ['title' => 'AI Career Mentor']) ?>
 
 <div class="career-transition-jobboard">
     <section class="career-transition-content">
@@ -40,23 +40,33 @@
                     <div class="panel-body">
 
                         <!-- Quick Actions -->
-                        <div class="mb-3 d-flex flex-wrap gap-2">
-                            <button class="btn btn-sm btn-outline-primary" onclick="quickChat('Help me create a career plan to become a <?= esc($active_sessions[0]['target_role'] ?? 'Software Engineer') ?>')">
-                                <i class="fas fa-route mr-1"></i> Career Plan
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" onclick="quickChat('Do a skill gap analysis for my target role')">
-                                <i class="fas fa-chart-bar mr-1"></i> Skill Gap
-                            </button>
-                            <button class="btn btn-sm btn-outline-info" onclick="quickChat('Help me prepare for interviews')">
-                                <i class="fas fa-microphone mr-1"></i> Interview Prep
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning" onclick="quickChat('Review and optimize my resume')">
-                                <i class="fas fa-file-alt mr-1"></i> Resume Review
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="quickChat('Give me salary negotiation tips')">
-                                <i class="fas fa-dollar-sign mr-1"></i> Salary Tips
-                            </button>
-                        </div>
+                        <div class="mb-3 d-flex flex-wrap align-items-center">
+    <button class="btn btn-sm btn-outline-primary me-2 mb-2"
+        onclick="quickChat('Help me create a career plan to become a <?= esc($active_sessions[0]['target_role'] ?? 'Software Engineer') ?>')">
+        <i class="fas fa-route me-1"></i> Career Plan
+    </button>
+    &#160;
+    <button class="btn btn-sm btn-outline-success me-2 mb-2"
+        onclick="quickChat('Do a skill gap analysis for my target role')">
+        <i class="fas fa-chart-bar me-1"></i> Skill Gap
+    </button>
+    &#160;
+    <button class="btn btn-sm btn-outline-info me-2 mb-2"
+        onclick="quickChat('Help me prepare for interviews')">
+        <i class="fas fa-microphone me-1"></i> Interview Prep
+    </button>
+    &#160;
+    <button class="btn btn-sm btn-outline-warning me-2 mb-2"
+        onclick="quickChat('Review and optimize my resume')">
+        <i class="fas fa-file-alt me-1"></i> Resume Review
+    </button>
+    &#160;
+    <button class="btn btn-sm btn-outline-danger me-2 mb-2"
+        onclick="quickChat('Give me salary negotiation tips')">
+        <i class="fas fa-dollar-sign me-1"></i> Salary Tips
+    </button>
+
+</div>
 
                         <!-- Chat Messages -->
                         <div id="chat-messages" style="height: 400px; overflow-y: auto; background: #f8f9fa; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
@@ -70,92 +80,48 @@
                         </div>
 
                         <!-- Chat Input -->
-                        <div class="d-flex">
-                            <input type="text" id="chat-input" class="form-control mr-2"
-                                   placeholder="Ask your AI career mentor anything...">
-                            <button type="button" id="chat-send" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
+                        <div class="chat-input-area mt-4">
+                            <?php if (!empty($active_sessions)): ?>
+                                <?php
+                                    $s = $active_sessions[0];
+                                    $nextMilestones = array_slice($s['next_milestones'] ?? [], 0, 3);
+                                    $roleName = trim((string) ($s['target_role'] ?? 'career'));
+                                    $lastNudge = trim((string) ($s['last_nudge'] ?? ''));
+                                    $milestone = !empty($nextMilestones) ? $nextMilestones[0] : null;
+
+                                    if ($milestone) {
+                                        $continuePrompt = "I'm ready to work on '{$milestone}'. Any tips on getting started?";
+                                    } elseif ($lastNudge !== '' && mb_strlen($lastNudge) < 100) {
+                                        $continuePrompt = "Regarding your advice \"{$lastNudge}\"—what's the best next step?";
+                                    } else {
+                                        $continuePrompt = "I'm ready to keep moving on my {$roleName} goal. What's the next step?";
+                                    }
+                                    $planSessionDomId = 'plan-' . (int) ($s['id'] ?? 0);
+                                ?>
+                                <div class="mb-2" id="smart-prompt-wrapper">
+                                    <button type="button" class="btn btn-sm btn-light border text-primary" 
+                                            id="continue-plan-magic-btn"
+                                            data-plan-session-id="<?= esc($planSessionDomId, 'attr') ?>"
+                                            data-plan-title="<?= esc($s['target_role'], 'attr') ?>"
+                                            data-continue-plan-prompt="<?= esc($continuePrompt, 'attr') ?>"
+                                            style="border-radius: 20px; font-size: 11px; padding: 5px 14px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.04);">
+                                        <i class="fas fa-magic mr-1 text-warning"></i> <span><?= esc($continuePrompt) ?></span>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                            <div class="d-flex">
+                                <input type="text" id="chat-input" class="form-control mr-2"
+                                       placeholder="Ask your AI career mentor anything...">
+                                <button type="button" id="chat-send" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sidebar -->
                 <div>
-                    <!-- Active Career Plans -->
-                    <div class="dashboard-panel mb-4">
-                        <div class="panel-header">
-                            <h5 class="section-title mb-0"><i class="fas fa-tasks mr-2"></i>Active Career Plans</h5>
-                        </div>
-                        <div class="panel-body">
-                            <?php if (!empty($active_sessions)): ?>
-                                <?php foreach ($active_sessions as $s): ?>
-                                    <?php
-                                    $nextMilestones = array_slice($s['next_milestones'] ?? [], 0, 3);
-                                    $nextMilestonesText = implode(' | ', $nextMilestones);
-                                    $lastNudge = trim((string) ($s['last_nudge'] ?? ''));
-                                    $hideNudge = $lastNudge !== '' && $nextMilestonesText !== '' && (
-                                        stripos($lastNudge, $nextMilestones[0] ?? '') !== false ||
-                                        stripos($nextMilestonesText, $lastNudge) !== false
-                                    );
-                                    ?>
-                                    <div class="mb-3 p-3" style="background: #f8f9fa; border-radius: 8px;">
-                                        <h6 class="text-primary mb-1"><?= esc($s['target_role']) ?></h6>
-                                        <div class="small mb-1" style="line-height: 1.45; color: #1f2937; font-weight: 500;">
-                                            <?= esc($s['main_goal_text'] ?? 'Continue progressing on your active career plan') ?>
-                                        </div>
-                                        <small style="color: #475569;"><?= esc($s['timeline_label'] ?? ('Timeline: ' . ($s['timeline'] ?? ''))) ?></small>
-                                        <small class="float-right" style="color: #334155; font-weight: 600;"><?= (int) ($s['progress_percentage'] ?? 0) ?>%</small>
-                                        <div class="progress mt-2" style="height: 6px;">
-                                            <div class="progress-bar bg-success" style="width: <?= (int) ($s['progress_percentage'] ?? 0) ?>%"></div>
-                                        </div>
-                                        <?php if (!empty($nextMilestones)): ?>
-                                            <div class="small mt-2" style="color: #475569; line-height: 1.45;">
-                                                <strong>Next milestones:</strong>
-                                                <?= esc($nextMilestonesText) ?>
-                                            </div>
-                                        <?php endif; ?>
-                                        <?php if ($lastNudge !== '' && !$hideNudge): ?>
-                                            <div class="small mt-2" style="color: #64748b; line-height: 1.45;"><?= esc($lastNudge) ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <p class="text-muted small mb-0">No active plans yet. Ask the AI mentor to create one!</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- Create Career Plan -->
-                    <div class="dashboard-panel mb-4">
-                        <div class="panel-header">
-                            <h5 class="section-title mb-0"><i class="fas fa-plus-circle mr-2"></i>New Career Plan</h5>
-                        </div>
-                        <div class="panel-body">
-                            <form id="career-plan-form">
-                                <?= csrf_field() ?>
-                                <div class="mb-2">
-                                    <input type="text" class="form-control form-control-sm" name="current_role" placeholder="Current role (e.g. PHP Developer)">
-                                </div>
-                                <div class="mb-2">
-                                    <input type="text" class="form-control form-control-sm" name="target_role" placeholder="Target role (e.g. Full Stack Dev)" required>
-                                </div>
-                                <div class="mb-3">
-                                    <select class="form-control form-control-sm" name="timeline" required>
-                                        <option value="">Select timeline</option>
-                                        <option value="6 months">6 months</option>
-                                        <option value="12 months">12 months</option>
-                                        <option value="18 months">18 months</option>
-                                        <option value="24 months">24 months</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-primary btn-sm btn-block">
-                                    <i class="fas fa-rocket mr-1"></i> Generate Plan
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
                     <!-- Plan Features -->
                     <div class="dashboard-panel">
                         <div class="panel-header">
@@ -181,7 +147,6 @@
 <script>
 var chatSessionId = '';
 var chatUrl = '<?= base_url('premium-mentor/chat') ?>';
-var planUrl = '<?= base_url('premium-mentor/create-career-plan') ?>';
 
 function getCsrfData() {
     return {
@@ -282,6 +247,7 @@ function sendMessage() {
             if (res && res.message) {
                 chatSessionId = res.session_id || chatSessionId;
                 displayMessage(res.message, 'bot', res.premium_features || []);
+                updatePlanCard(chatSessionId, res.progress_tracking || null);
             } else if (res && res.error) {
                 displayMessage(res.error, 'bot');
             } else {
@@ -301,6 +267,58 @@ function quickChat(message) {
     sendMessage();
 }
 
+function updatePlanCard(sessionId, tracking) {
+    if (!tracking) return;
+
+    // Use tracking.plan_card_id if provided by the controller, otherwise fallback to sessionId
+    var targetId = tracking.plan_card_id || sessionId;
+    if (!targetId) return;
+
+    var progress = parseInt(tracking.progress_percentage, 10);
+
+    // Update the "Magic" smart follow-up chip above the chat input
+    var magicBtn = $('#continue-plan-magic-btn');
+    if (magicBtn.length) {
+        var nextStep = (tracking.next_milestones && tracking.next_milestones.length) ? tracking.next_milestones[0] : null;
+        var updatedPrompt = '';
+
+        if (nextStep) {
+            updatedPrompt = "I'm ready to work on '" + nextStep + "'. Any tips on getting started?";
+        } else if (tracking.last_nudge && tracking.last_nudge.length < 100) {
+            updatedPrompt = "Regarding your advice \"" + tracking.last_nudge + "\"—what's the best next step?";
+        } else {
+            updatedPrompt = "I'm ready to keep moving forward. What's the best next action for me?";
+        }
+            
+        magicBtn.data('continue-plan-prompt', updatedPrompt).attr('data-continue-plan-prompt', updatedPrompt);
+        magicBtn.find('span').text(updatedPrompt);
+    }
+
+    var card = $('[data-plan-card="' + String(targetId).replace(/"/g, '\\"') + '"]');
+    if (!card.length) return;
+
+    if (!isNaN(progress)) {
+        progress = Math.max(0, Math.min(100, progress));
+        card.find('.js-plan-progress-label').text(progress + '%');
+        card.find('.js-plan-progress-bar').css('width', progress + '%');
+    }
+
+    if (Array.isArray(tracking.next_milestones) && tracking.next_milestones.length) {
+        var milestonesText = tracking.next_milestones.slice(0, 3).join(' | ');
+        var milestones = card.find('.js-plan-milestones');
+        if (!milestones.length) {
+            milestones = $('<div class="small mt-2 js-plan-milestones" style="color: #475569; line-height: 1.45;"><strong>Next milestones:</strong> <span></span></div>');
+            card.find('.progress').after(milestones);
+        }
+        milestones.find('span').text(milestonesText);
+        milestones.removeClass('d-none');
+    }
+
+    if (tracking.last_nudge) {
+        card.find('.js-plan-nudge').text(tracking.last_nudge).removeClass('d-none');
+    }
+}
+
 $(document).ready(function() {
     $('#chat-send').on('click', function() {
         sendMessage();
@@ -310,22 +328,19 @@ $(document).ready(function() {
         if (e.which === 13) { sendMessage(); }
     });
 
-    $('#career-plan-form').on('submit', function(e) {
-        e.preventDefault();
-        var csrf = getCsrfData();
-        var data = $(this).serialize() + '&' + csrf.name + '=' + csrf.hash;
-        $.ajax({
-            url: planUrl,
-            type: 'POST',
-            data: data,
-            dataType: 'json',
-            success: function(res) {
-                if (res && res.success) {
-                    displayMessage('Career plan created! Check your Active Career Plans.', 'bot');
-                    setTimeout(function() { location.reload(); }, 2000);
-                }
-            }
-        });
+    $('[data-continue-plan-prompt]').on('click', function() {
+        var newSessionId = String($(this).data('plan-session-id') || '');
+        var planTitle = $(this).data('plan-title') || 'Active Plan';
+        
+        // Clear previous conversation when switching contexts to "remove the old"
+        if (newSessionId && chatSessionId !== newSessionId) {
+            $('#chat-messages').html('<div class="text-center my-3"><span class="badge badge-light px-3 py-2" style="color: #64748b; border: 1px solid #e2e8f0; font-weight: 500; border-radius: 99px;"><i class="fas fa-sync-alt mr-1"></i> Context switched: ' + planTitle + '</span></div>');
+            chatSessionId = newSessionId;
+        }
+
+        var prompt = $(this).data('continue-plan-prompt') || 'Continue my career plan';
+        quickChat(prompt);
     });
 });
 </script>
+    

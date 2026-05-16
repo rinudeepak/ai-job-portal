@@ -3,9 +3,20 @@
 namespace App\Controllers;
 
 use App\Models\JobModel;
+use App\Libraries\GoogleCalendarService;
+use App\Libraries\ReminderService;
 
 class SlotBookingController extends BaseController
 {
+    private GoogleCalendarService $calendarService;
+    private ReminderService $reminderService;
+    
+    public function __construct()
+    {
+        $this->calendarService = new GoogleCalendarService();
+        $this->reminderService = new ReminderService();
+    }
+    
     /**
      * Show available slots for booking
      */
@@ -27,6 +38,7 @@ class SlotBookingController extends BaseController
         }
         
         $job = $jobModel->find($application['job_id']);
+        $application['job_title'] = $job['title'] ?? null;
         $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
 
         if (!$this->canBookSlotForStatus($application['status'], $aiPolicy)) {
@@ -145,6 +157,12 @@ class SlotBookingController extends BaseController
         $db->transComplete();
         
         if ($db->transStatus()) {
+            // Sync to Google Calendar
+            $bookingModel->syncToCalendar($bookingId);
+            
+            // Send confirmation reminder
+            $this->reminderService->sendBookingConfirmation($bookingId);
+            
             return redirect()->to('/candidate/my-bookings')->with('success', 'Interview slot booked successfully!');
         } else {
             return redirect()->back()->with('error', 'Failed to book slot. Please try again.');
@@ -160,6 +178,7 @@ class SlotBookingController extends BaseController
         $userId = session()->get('user_id');
         
         $applicationModel = model('ApplicationModel');
+        $jobModel = model('JobModel');
         $slotModel = model('InterviewSlotModel');
         $bookingModel = model('InterviewBookingModel');
         $rescheduleHistoryModel = model('RescheduleHistoryModel');
@@ -170,6 +189,9 @@ class SlotBookingController extends BaseController
         if (!$application || $application['candidate_id'] != $userId) {
             return redirect()->to('/dashboard')->with('error', 'Application not found');
         }
+
+        $job = $jobModel->find($application['job_id']);
+        $application['job_title'] = $job['title'] ?? null;
         
         $booking = $bookingModel->getByApplicationId($applicationId);
         

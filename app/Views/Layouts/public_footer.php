@@ -1,7 +1,7 @@
-    <footer class="footer mt-5">
+    <footer class="footer">
         <div class="container">
             <div class="row g-5 mb-5">
-                <div class="col-md-3">
+                <div class="col-md-5">
                     <div class="d-flex align-items-center gap-2 mb-3">
                         <img src="<?= base_url('jobboard/images/Serp Hwak Logo.png') ?>" alt="HireMatrix Logo" style="height: 40px; width: auto;">
                         <span style="font-weight: 700; font-size: 1.125rem;">HireMatrix</span>

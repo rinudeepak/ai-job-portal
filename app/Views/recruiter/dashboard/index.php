@@ -1,6 +1,6 @@
-﻿<?= view('Layouts/recruiter_header', ['title' => 'Admin Dashboard', 'showHero' => false]) ?>
+                        <?= view('Layouts/recruiter_header', ['title' => 'Recruiter Dashboard', 'showHero' => false]) ?>
 
-<div class="recruiter-dashboard-jobboard">
+ <div class="recruiter-dashboard-jobboard">
     <?php
     $applicationsUrl = base_url('recruiter/jobs');
     $jobsUrl = base_url('recruiter/jobs');
@@ -28,33 +28,35 @@
         <div class="container">
             <div class="recruiter-dashboard-hero-grid">
                 <div class="recruiter-dashboard-hero-copy">
-                    <div class="status-pill recruiter-dashboard-status-pill">
-                        <i class="fas fa-arrow-trend-up" style="color: #ff7b2a;"></i>
-                        <?= number_format((int) $funnel['total_applications']) ?> Active Candidates
-                    </div>
-
-                    <h1 class="recruiter-dashboard-hero-title">
-                        Find Your Next Great <span class="gradient-text">Hire</span>
-                    </h1>
-
-                    <p class="recruiter-dashboard-hero-subtitle">
+                    <span class="page-board-kicker"><i class="fas fa-tachometer-alt"></i> Recruiter dashboard</span>
+                    <h1 class="page-board-title" style="margin-bottom:0.5rem;">Find Your Next Great Hire</h1>
+                    <p class="page-board-subtitle">
                         A quick view of open roles, active applications, and what needs attention today.
                     </p>
 
                 </div>
 
-                <div class="recruiter-dashboard-hero-aside">
-                        <div class="recruiter-dashboard-hero-panel">
-                            <div class="recruiter-dashboard-hero-panel-icon">
-                                <i class="fas fa-briefcase"></i>
-                            </div>
-                        <h3>Post a role</h3>
-                        <p>Create a role and start receiving qualified applicants faster.</p>
-                        <a href="<?= $postJobUrl ?>" class="btn btn-primary w-100 mt-3">
-                            <i class="fas fa-plus"></i> Post Job
-                        </a>
-                    </div>
-                </div>
+              <div class="recruiter-dashboard-hero-aside">
+    <div class="row g-2">
+        <div class="col-md-4 col-12">
+            <a href="<?= $postJobUrl ?>" class="btn btn-primary w-100">
+                <i class="fas fa-plus"></i> Post Job
+            </a>
+        </div>
+
+        <div class="col-md-4 col-12">
+            <a href="<?= base_url('recruiter/jobs') ?>" class="btn btn-primary w-100">
+                <i class="fas fa-briefcase"></i> Manage Job
+            </a>
+        </div>
+
+        <div class="col-md-4 col-12">
+            <a href="<?= base_url('recruiter/candidates') ?>" class="btn btn-primary w-100">
+                <i class="fas fa-arrow-trend-up"></i> <?= number_format((int) $funnel['total_applications']) ?> Candidates
+            </a>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </section>
@@ -183,54 +185,7 @@
         </div>
         </div>
 
-        <?php if (empty($noJobs)): ?>
-        <div class="row mb-4 recruiter-action-center">
-        <div class="col-12 mb-3">
-            <div class="card shadow h-100 recruiter-dashboard-panel-card">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-bolt"></i> Action Center</h6>
-                </div>
-                <div class="card-body p-0">
-                    <?php $hasActionCenterItems = ((int) ($pendingActions['pending_screening'] ?? 0) > 0) || ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0); ?>
-                    <?php if ($hasActionCenterItems): ?>
-                        <?php if ((int) ($pendingActions['pending_screening'] ?? 0) > 0): ?>
-                            <a href="<?= $jobsUrl ?>" class="action-item-link">
-                                <div class="action-item-label">
-                                    <strong>Screen New Applications</strong>
-                                    <small class="text-muted d-block">Review and shortlist incoming candidates.</small>
-                                </div>
-                                <span class="badge badge-warning"><?= (int) ($pendingActions['pending_screening'] ?? 0) ?></span>
-                            </a>
-                        <?php endif; ?>
-                        <?php if ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0): ?>
-                            <a href="<?= $bookingsUrl ?>" class="action-item-link">
-                                <div class="action-item-label">
-                                    <strong>Interviews Today</strong>
-                                    <small class="text-muted d-block">Track today&#39;s booked interviews and status.</small>
-                                </div>
-                                <span class="badge badge-primary"><?= (int) ($pendingActions['hr_interviews_today'] ?? 0) ?></span>
-                            </a>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <div class="recruiter-action-center-empty">
-                            <div class="recruiter-action-center-empty-icon">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <h6 class="mb-2">Everything is up to date</h6>
-                            <p class="text-muted mb-3">No pending screenings or interviews right now. You&#39;re all caught up.</p>
-                            <a href="<?= $jobsUrl ?>" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-briefcase mr-1"></i> Review Jobs
-                            </a>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-        </div>
-        <?php endif; ?>
-
-        <!-- Main Content Row -->
-        <div class="row recruiter-pipeline-row" id="conversion-metrics">
+         <div class="row recruiter-pipeline-row" id="conversion-metrics">
         <div class="col-12 mb-4">
             <div class="card shadow h-100 recruiter-dashboard-panel-card recruiter-pipeline-card">
                 <div class="card-header py-3 recruiter-section-header">
@@ -255,7 +210,7 @@
                         <div class="col-md-3 col-6 mb-3 mb-md-0">
                             <div class="pipeline-stat">
                                 <div class="stat-icon bg-info">
-                                    <i class="fas fa-robot"></i>
+                                    <i class="fas fa-cogs"></i>
                                 </div>
                                 <h3><?= number_format($screeningCompleted) ?></h3>
                                 <p class="text-muted mb-0">Screening Completed</p>
@@ -290,10 +245,11 @@
             </div>
         </div>
         </div>
-        <!-- Recent Applications -->
+
+         <!-- Recent Applications -->
         <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow recruiter-dashboard-panel-card">
+            <div class="card shadow recruiter-dashboard-panel-card blue-animated-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Recent Applications</h6>
                 </div>
@@ -313,7 +269,7 @@
                             <tbody>
                                 <?php if (!empty($recentApplications)): ?>
                                     <?php foreach ($recentApplications as $app): ?>
-                                        <tr>
+                                        <tr onclick="window.location='<?= base_url('recruiter/jobs/' . $app['job_id'] . '/leaderboard') ?>'" style="cursor:pointer;">
                                             <td>#<?= $app['id'] ?></td>
                                             <td>
                                                 <strong><?= esc($app['candidate_name']) ?></strong>
@@ -355,10 +311,59 @@
         </div>
         </div>
 
+        
+        <?php if (empty($noJobs)): ?>
+        <div class="row mb-4 recruiter-action-center">
+        <div class="col-12 mb-3">
+            <div class="card shadow h-100 recruiter-dashboard-panel-card recruiter-pipeline-card animated-glow-card">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-bolt"></i> Action Center</h6>
+                </div>
+                <div class="card-body p-0">
+                    <?php $hasActionCenterItems = ((int) ($pendingActions['pending_screening'] ?? 0) > 0) || ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0); ?>
+                    <?php if ($hasActionCenterItems): ?>
+                        <?php if ((int) ($pendingActions['pending_screening'] ?? 0) > 0): ?>
+                            <a href="<?= $jobsUrl ?>" class="action-item-link">
+                                <div class="action-item-label">
+                                    <strong>Screen New Applications</strong>
+                                    <small class="text-muted d-block">Review and shortlist incoming candidates.</small>
+                                </div>
+                                <span class="badge badge-warning"><?= (int) ($pendingActions['pending_screening'] ?? 0) ?></span>
+                            </a>
+                        <?php endif; ?>
+                        <?php if ((int) ($pendingActions['hr_interviews_today'] ?? 0) > 0): ?>
+                            <a href="<?= $bookingsUrl ?>" class="action-item-link">
+                                <div class="action-item-label">
+                                    <strong>Interviews Today</strong>
+                                    <small class="text-muted d-block">Track today&#39;s booked interviews and status.</small>
+                                </div>
+                                <span class="badge badge-primary"><?= (int) ($pendingActions['hr_interviews_today'] ?? 0) ?></span>
+                            </a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <div class="recruiter-action-center-empty recruiter-dashboard-panel-card animated-glow-card"> 
+                            <div class="recruiter-action-center-empty-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <h6 class="mb-2">Everything is up to date</h6>
+                            <p class="text-muted mb-3">No pending screenings or interviews right now. You&#39;re all caught up.</p>
+                            <a href="<?= $jobsUrl ?>" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-briefcase mr-1"></i> Review Jobs
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Main Content Row -->
+
         <!-- Conversion Metrics -->
         <div class="row">
         <div class="col-12 mb-4">
-            <div class="card shadow h-100 recruiter-dashboard-panel-card">
+            <div class="card shadow h-100 recruiter-dashboard-panel-card blue-animated-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Conversion Metrics</h6>
                 </div>
@@ -431,9 +436,8 @@
         </div>
         </div>
     </div>
-</div>
-
-
+</div> 
 
 <?= view('Layouts/recruiter_footer') ?>
 
+            

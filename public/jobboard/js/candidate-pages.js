@@ -100,9 +100,17 @@
         var savedLabel = button.getAttribute('data-save-label-saved') || 'Saved';
         var saveLabel = button.getAttribute('data-save-label-save') || 'Save Job';
         var jobId = button.getAttribute('data-job-id') || '';
-        var nextUrl = jobId
-            ? getBaseUrl() + '/job/' + (saved ? 'unsave/' : 'save/') + jobId
-            : (button.getAttribute('data-save-url') || '');
+        var explicitSaveUrl = button.getAttribute('data-save-url-save') || '';
+        var explicitUnsaveUrl = button.getAttribute('data-save-url-unsave') || '';
+        var nextUrl = '';
+
+        if (explicitSaveUrl || explicitUnsaveUrl) {
+            nextUrl = saved ? explicitUnsaveUrl : explicitSaveUrl;
+        } else if (jobId) {
+            nextUrl = getBaseUrl() + '/job/' + (saved ? 'unsave/' : 'save/') + jobId;
+        } else {
+            nextUrl = button.getAttribute('data-save-url') || '';
+        }
 
         button.setAttribute('data-saved', saved ? '1' : '0');
         button.setAttribute('aria-label', saved ? 'Saved job' : 'Save job');
@@ -849,6 +857,12 @@
         var onboardingForms = document.querySelectorAll('[data-onboarding-form]');
 
         if (onboardingForms.length) {
+            var getFieldLabel = function (field) {
+                var wrap = field.closest('.mb-3') || field.closest('.onboarding-card') || field.parentElement;
+                var label = wrap ? wrap.querySelector('label') : null;
+                return label ? String(label.textContent || '').replace(/\s+/g, ' ').trim() : 'This field';
+            };
+
             var fieldHasValue = function (field) {
                 if (!field || field.disabled) {
                     return true;
@@ -865,6 +879,115 @@
                 return String(field.value || '').trim() !== '';
             };
 
+            var getFieldWarning = function (field, forceRequired) {
+                if (!field || field.disabled) {
+                    return '';
+                }
+
+                var label = getFieldLabel(field);
+                var hasValue = fieldHasValue(field);
+                var isRequired = forceRequired || field.required;
+
+                if (field.type === 'file') {
+                    var resumeForm = field.closest('form[data-existing-resume="1"]');
+                    if (resumeForm && !hasValue) {
+                        return '';
+                    }
+                    if (isRequired && !hasValue) {
+                        return label + ' is required. Upload a PDF, DOC, or DOCX file.';
+                    }
+                    return '';
+                }
+
+                if (isRequired && !hasValue) {
+                    if (field.tagName === 'SELECT') {
+                        return 'Please select ' + label.toLowerCase() + '.';
+                    }
+                    return label + ' is required.';
+                }
+
+                if (hasValue && field.getAttribute('minlength')) {
+                    var minLength = parseInt(field.getAttribute('minlength'), 10);
+                    if (String(field.value || '').trim().length < minLength) {
+                        return label + ' must be at least ' + minLength + ' characters.';
+                    }
+                }
+
+                if (hasValue && field.type === 'email' && field.validity && field.validity.typeMismatch) {
+                    return 'Enter a valid email address.';
+                }
+
+                if (hasValue && field.type === 'number' && field.validity && (field.validity.rangeUnderflow || field.validity.rangeOverflow || field.validity.badInput)) {
+                    return 'Enter a valid number for ' + label.toLowerCase() + '.';
+                }
+
+                return '';
+            };
+
+            var ensureFieldHint = function (field) {
+                var wrap = field.closest('.mb-3') || field.closest('.onboarding-card') || field.parentElement;
+                if (!wrap) {
+                    return null;
+                }
+
+                var hint = field.nextElementSibling;
+                if (!hint || !hint.classList || !hint.classList.contains('onboarding-field-warning')) {
+                    hint = document.createElement('small');
+                    hint.className = 'onboarding-field-warning';
+                    hint.setAttribute('aria-live', 'polite');
+                    field.insertAdjacentElement('afterend', hint);
+                }
+
+                return hint;
+            };
+
+            var setFieldWarning = function (field, message) {
+                var hint = ensureFieldHint(field);
+                if (!hint) {
+                    return;
+                }
+
+                hint.textContent = message;
+                hint.classList.toggle('is-visible', !!message);
+                field.classList.toggle('is-onboarding-invalid', !!message);
+            };
+
+            var updateFormWarnings = function (form) {
+                var warnings = [];
+                var requiredFields = Array.prototype.slice.call(form.querySelectorAll('[required]'));
+
+                requiredFields.forEach(function (field) {
+                    var warning = getFieldWarning(field, false);
+                    setFieldWarning(field, warning);
+                    if (warning) {
+                        warnings.push(warning);
+                    }
+                });
+
+                if (form.action.indexOf('/candidate/onboarding/experience') !== -1) {
+                    var experienceFieldsToClear = Array.prototype.slice.call(form.querySelectorAll('.experience-item input[name="job_title[]"], .experience-item input[name="company_name[]"], .experience-item input[name="start_date[]"]'));
+                    experienceFieldsToClear.forEach(function (field) {
+                        setFieldWarning(field, '');
+                    });
+
+                    if (fresherCheckbox && !fresherCheckbox.checked) {
+                        var experienceItems = Array.prototype.slice.call(form.querySelectorAll('.experience-item'));
+                        experienceItems.forEach(function (item) {
+                            ['input[name="job_title[]"]', 'input[name="company_name[]"]', 'input[name="start_date[]"]'].forEach(function (selector) {
+                                var field = item.querySelector(selector);
+                                var warning = getFieldWarning(field, true);
+                                setFieldWarning(field, warning);
+                                if (warning) {
+                                    warnings.push(warning);
+                                }
+                            });
+                        });
+                    }
+                }
+
+                return warnings;
+            };
+
             var syncOnboardingSubmit = function (form) {
                 var submit = form.querySelector('[data-onboarding-submit]');
                 if (!submit) {
@@ -873,6 +996,9 @@
 
                 var requiredFields = Array.prototype.slice.call(form.querySelectorAll('[required]'));
                 var allValid = requiredFields.every(function (field) {
+                    if (field.type === 'file' && form.getAttribute('data-existing-resume') === '1' && !fieldHasValue(field)) {
+                        return true;
+                    }
                     return fieldHasValue(field) && (!field.checkValidity || field.checkValidity());
                 });
 
@@ -895,6 +1021,7 @@
                     }
                 }
 
+                updateFormWarnings(form);
                 submit.disabled = !allValid;
             };
 
@@ -996,6 +1123,9 @@
                             field.disabled = disabled;
                         });
                     }
+                    onboardingForms.forEach(function (form) {
+                        syncOnboardingSubmit(form);
+                    });
                 });
             }
         }

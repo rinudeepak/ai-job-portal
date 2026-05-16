@@ -91,6 +91,8 @@ class PremiumCareerMentorController extends BaseController
             'session_id' => $response['session_id'],
             'feature_used' => $response['feature_used'],
             'premium_features' => $response['premium_features'] ?? [],
+            'progress_tracking' => $response['progress_tracking'] ?? null,
+            'follow_up_chips' => $response['follow_up_chips'] ?? [],
             'csrf_hash' => csrf_hash()
         ]);
     }
@@ -108,6 +110,14 @@ class PremiumCareerMentorController extends BaseController
         $messages = $this->buildPremiumMessages($message, $userProfile, $subscription, $conversationHistory, $premiumFeatures, $responseType, $mentorMemory);
         $aiResponse = $this->generateCareerResponse($messages);
 
+        // Extract follow-up chips from the AI response
+        $followUpChips = [];
+        if (preg_match_all('/\[\[Chip:\s*(.*?)\]\]/i', $aiResponse, $matches)) {
+            $followUpChips = array_map('trim', $matches[1]);
+            $aiResponse = preg_replace('/\[\[Chip:\s*.*?\]\]/i', '', $aiResponse);
+            $aiResponse = trim($aiResponse);
+        }
+
         $this->appendConversationMessage($userId, $sessionId, 'user', $message);
         $this->appendConversationMessage($userId, $sessionId, 'assistant', $aiResponse);
         $this->compactMentorMemoryIfNeeded($userId, $userProfile);
@@ -122,7 +132,8 @@ class PremiumCareerMentorController extends BaseController
             'feature_used' => $responseType,
             'smart_goal_saved' => $smartGoalSaved,
             'progress_tracking' => $progressUpdate,
-            'premium_features' => array_keys(array_filter($premiumFeatures))
+            'premium_features' => array_keys(array_filter($premiumFeatures)),
+            'follow_up_chips' => $followUpChips
         ];
 
         return $response;
@@ -147,8 +158,9 @@ class PremiumCareerMentorController extends BaseController
             "Mentoring approach:\n" .
             "1. Continue from prior conversation context and avoid repeating generic advice.\n" .
             "2. Progress toward SMART goals gradually.\n" .
-            "3. Give actionable next steps and check-ins.\n" .
-            "4. Be encouraging, specific, and practical.\n\n" .
+            "3. Give actionable next steps and offer support, only asking for progress updates when relevant. Avoid generic motivational fluff.\n" .
+            "4. Suggest 3 short follow-ups at the end of every response, formatted as [[Chip: Suggestion Text]]. These should be context-aware next steps.\n" .
+            "5. Be encouraging, specific, and practical.\n\n" .
             "Current response type: {$responseType}\n" .
             "Active premium execution features: " . (empty($activePremiumFeatures) ? 'none' : implode(', ', $activePremiumFeatures)) . "\n\n" .
             $this->buildPersistentMemoryInstructions($mentorMemory) . "\n\n" .
@@ -690,6 +702,15 @@ class PremiumCareerMentorController extends BaseController
         return array_values(array_unique($normalized));
     }
 
+    private function normalizePlanIdentity(string $value): string
+    {
+        $value = strtolower(trim($value));
+        $value = preg_replace('/[^a-z0-9]+/', ' ', $value) ?? '';
+        $value = preg_replace('/\s+/', ' ', $value) ?? '';
+
+        return trim($value);
+    }
+
     private function syncSessionProgressTracking($userId, $chatSessionId, $latestUserMessage, $latestAssistantMessage, $userProfile)
     {
         if (!$this->canUseCareerGoals()) {
@@ -718,11 +739,25 @@ class PremiumCareerMentorController extends BaseController
         $this->sessionModel->updateProgress($sessionRecord['id'], $progressData);
         $this->careerGoalModel->updateProgress($goal['id'], (int) ($progressData['progress_percentage'] ?? 0));
 
+        // Include the target DOM ID for the asynchronous UI update
+        $progressData['plan_card_id'] = 'plan-' . $sessionRecord['id'];
+
         return $progressData;
     }
 
     private function shouldAttemptProgressUpdate($userId, $latestUserMessage)
     {
+        $text = strtolower((string) $latestUserMessage);
+        $keywords = [
+            'done', 'completed', 'finished', 'started', 'progress',
+            'achieved', 'milestone', 'stuck', 'blocked', 'next'
+        ];
+        foreach ($keywords as $keyword) {
+            if (strpos($text, $keyword) !== false) {
+                return true;
+            }
+        }
+
         $history = $this->getConversationHistory($userId);
         $userTurns = 0;
         foreach ($history as $item) {
@@ -735,17 +770,6 @@ class PremiumCareerMentorController extends BaseController
             return false;
         }
 
-        $text = strtolower((string) $latestUserMessage);
-        $keywords = [
-            'done', 'completed', 'finished', 'started', 'progress',
-            'achieved', 'milestone', 'stuck', 'blocked', 'next'
-        ];
-        foreach ($keywords as $keyword) {
-            if (strpos($text, $keyword) !== false) {
-                return true;
-            }
-        }
-
         return ($userTurns % 2) === 0;
     }
 
@@ -753,6 +777,20 @@ class PremiumCareerMentorController extends BaseController
     {
         if (!$this->canUseCareerGoals()) {
             return null;
+        }
+
+        if (preg_match('/^plan-(\d+)$/', (string) $chatSessionId, $matches) === 1) {
+            $session = $this->sessionModel
+                ->where('id', (int) $matches[1])
+                ->where('user_id', $userId)
+                ->where('status', 'active')
+                ->first();
+            if ($session) {
+                $goal = $this->findMatchingGoalForSession($session, $this->careerGoalModel->getUserGoals($userId));
+                if ($goal) {
+                    return $goal;
+                }
+            }
         }
 
         $goalMap = session()->get('premium_mentor_goal_map') ?? [];
@@ -783,6 +821,17 @@ class PremiumCareerMentorController extends BaseController
 
     private function getOrCreateProgressSessionRecord($userId, $chatSessionId, $goal, $userProfile)
     {
+        if (preg_match('/^plan-(\d+)$/', (string) $chatSessionId, $matches) === 1) {
+            $existing = $this->sessionModel
+                ->where('id', (int) $matches[1])
+                ->where('user_id', $userId)
+                ->where('status', 'active')
+                ->first();
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         $planMap = session()->get('premium_mentor_plan_map') ?? [];
         $planId = $planMap[$chatSessionId] ?? null;
 
@@ -796,6 +845,24 @@ class PremiumCareerMentorController extends BaseController
             }
         }
 
+        $currentRole = $this->truncateValue((string) ($userProfile['current_role'] ?? ''), 100);
+        $targetRole = $this->truncateValue((string) ($goal['aspiration'] ?? $goal['specific_goal'] ?? 'Career Goal'), 100);
+        $timeline = $this->truncateValue((string) ($goal['time_bound'] ?? 'Ongoing'), 50);
+
+        $existing = $this->sessionModel->findSimilarActiveSession(
+            (int) $userId,
+            'goal_review',
+            $currentRole,
+            $targetRole,
+            $timeline
+        );
+        if ($existing) {
+            $planMap[$chatSessionId] = (int) ($existing['id'] ?? 0);
+            session()->set('premium_mentor_plan_map', $planMap);
+
+            return $existing;
+        }
+
         $initialProgress = [
             'progress_percentage' => max(self::INITIAL_PLAN_PROGRESS, (int) ($goal['progress_percentage'] ?? 0)),
             'completed_milestones' => [],
@@ -807,9 +874,9 @@ class PremiumCareerMentorController extends BaseController
         $newId = $this->sessionModel->insert([
             'user_id' => $userId,
             'session_type' => 'goal_review',
-            'current_role' => $this->truncateValue((string) ($userProfile['current_role'] ?? ''), 100),
-            'target_role' => $this->truncateValue((string) ($goal['aspiration'] ?? $goal['specific_goal'] ?? 'Career Goal'), 100),
-            'timeline' => $this->truncateValue((string) ($goal['time_bound'] ?? 'Ongoing'), 50),
+            'current_role' => $currentRole,
+            'target_role' => $targetRole,
+            'timeline' => $timeline,
             'action_plan' => $goal['achievable_steps'] ?? json_encode([]),
             'progress_tracking' => json_encode($initialProgress),
             'status' => 'active'
@@ -862,7 +929,7 @@ class PremiumCareerMentorController extends BaseController
             "  \"progress_percentage\": 0,\n" .
             "  \"completed_milestones\": [\"...\"],\n" .
             "  \"next_milestones\": [\"...\"],\n" .
-            "  \"last_nudge\": \"one short follow-up nudge\"\n" .
+            "  \"last_nudge\": \"one short actionable nudge for the immediate next task\"\n" .
             "}\n" .
             "Rules: progress_percentage integer 0-100, milestones concise, keep continuity.";
 
@@ -876,7 +943,7 @@ class PremiumCareerMentorController extends BaseController
             return $this->fallbackProgressPayload($current, $latestUserMessage);
         }
 
-        $payload = [
+       return [
             'progress_percentage' => max(0, min(100, (int) ($decoded['progress_percentage'] ?? ($current['progress_percentage'] ?? 0)))),
             'completed_milestones' => $this->normalizeStringList($decoded['completed_milestones'] ?? ($current['completed_milestones'] ?? [])),
             'next_milestones' => $this->normalizeStringList($decoded['next_milestones'] ?? ($current['next_milestones'] ?? [])),
@@ -884,20 +951,12 @@ class PremiumCareerMentorController extends BaseController
             'updated_at' => date('c')
         ];
 
-        return $this->applyProgressSignalHeuristics($payload, $current, $latestUserMessage);
+        
     }
 
     private function fallbackProgressPayload($current, $latestUserMessage)
     {
-        $payload = [
-            'progress_percentage' => max(self::INITIAL_PLAN_PROGRESS, (int) ($current['progress_percentage'] ?? 0)),
-            'completed_milestones' => $this->normalizeStringList($current['completed_milestones'] ?? []),
-            'next_milestones' => $this->normalizeStringList($current['next_milestones'] ?? []),
-            'last_nudge' => 'Share one concrete task you can finish before our next check-in.',
-            'updated_at' => date('c')
-        ];
-
-        return $this->applyProgressSignalHeuristics($payload, $current, $latestUserMessage);
+        return $current; // No change if AI fails to parse, prevents false progress inflation
     }
 
     private function hydrateSessionProgress($sessions, $userId)
@@ -932,7 +991,56 @@ class PremiumCareerMentorController extends BaseController
             $session['timeline_label'] = $this->formatTimelineLabel($session, $session['main_goal_text']);
         }
 
-        return $sessions;
+        return $this->deduplicateActiveSessions($sessions);
+    }
+
+    private function deduplicateActiveSessions(array $sessions): array
+    {
+        $unique = [];
+
+        foreach ($sessions as $session) {
+            $key = $this->buildSessionDisplayKey($session);
+            if ($key === '') {
+                $unique[] = $session;
+                continue;
+            }
+
+            if (!isset($unique[$key]) || $this->isBetterDisplaySession($session, $unique[$key])) {
+                $unique[$key] = $session;
+            }
+        }
+
+        return array_values($unique);
+    }
+
+    private function buildSessionDisplayKey(array $session): string
+    {
+        $goalText = $this->normalizePlanIdentity((string) ($session['main_goal_text'] ?? ''));
+        $targetRole = $this->normalizePlanIdentity((string) ($session['target_role'] ?? ''));
+
+        // Exclude timeline from the key to ensure that plans for the same role and goal 
+        // are deduplicated even if the AI adjusts the timeline estimate during the conversation.
+        $parts = array_filter([$targetRole, $goalText], static fn ($part) => $part !== '');
+
+        return implode('|', $parts);
+    }
+
+    private function isBetterDisplaySession(array $candidate, array $current): bool
+    {
+        $candidateProgress = (int) ($candidate['progress_percentage'] ?? 0);
+        $currentProgress = (int) ($current['progress_percentage'] ?? 0);
+        if ($candidateProgress !== $currentProgress) {
+            return $candidateProgress > $currentProgress;
+        }
+
+        $candidateMilestones = count($candidate['next_milestones'] ?? []);
+        $currentMilestones = count($current['next_milestones'] ?? []);
+        if ($candidateMilestones !== $currentMilestones) {
+            return $candidateMilestones > $currentMilestones;
+        }
+
+        return strtotime((string) ($candidate['updated_at'] ?? $candidate['created_at'] ?? '')) >
+            strtotime((string) ($current['updated_at'] ?? $current['created_at'] ?? ''));
     }
 
     private function shouldBackfillLegacyProgress($tracking, $matchedGoal, $recentMessages)
@@ -1107,25 +1215,7 @@ class PremiumCareerMentorController extends BaseController
         return (bool) preg_match('/^\d+\s+(day|days|week|weeks|month|months|year|years)$/i', trim((string) $timeline));
     }
 
-    private function applyProgressSignalHeuristics($payload, $current, $latestUserMessage)
-    {
-        $currentProgress = max(self::INITIAL_PLAN_PROGRESS, (int) ($current['progress_percentage'] ?? 0));
-        $payload['progress_percentage'] = max(self::INITIAL_PLAN_PROGRESS, (int) ($payload['progress_percentage'] ?? $currentProgress));
-
-        if ($this->isCompletedMilestoneMessage($latestUserMessage)) {
-            $payload['progress_percentage'] = max(
-                $payload['progress_percentage'],
-                min(100, $currentProgress + self::COMPLETED_MILESTONE_PROGRESS_STEP)
-            );
-        } elseif ($this->isStartedMilestoneMessage($latestUserMessage)) {
-            $payload['progress_percentage'] = max(
-                $payload['progress_percentage'],
-                min(100, $currentProgress + self::STARTED_MILESTONE_PROGRESS_STEP)
-            );
-        }
-
-        return $payload;
-    }
+    
 
     private function isStartedMilestoneMessage($message)
     {

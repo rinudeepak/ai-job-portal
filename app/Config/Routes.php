@@ -8,6 +8,12 @@ use CodeIgniter\Router\RouteCollection;
 
 $routes->get('/', 'Home::index');
 // Login
+$routes->get('feedback', 'CandidateFeedbackController::index');
+$routes->post('feedback/save', 'CandidateFeedbackController::save');
+$routes->get('/localcompany', 'Companies::index');
+$routes->get('/fetch-companies', 'Companies::fetchCompanies');
+$routes->get('/suggest', 'Companies::suggest');
+
 $routes->get('login', 'Auth::login');
 $routes->post('login', 'Auth::authenticate');
 $routes->get('logout', 'Auth::logout');
@@ -15,6 +21,28 @@ $routes->get('admin/login', 'AdminAnalytics::login');
 $routes->post('admin/login', 'AdminAnalytics::authenticate');
 $routes->get('admin/logout', 'AdminAnalytics::logout', ['filter' => 'admin']);
 $routes->get('admin/dashboard', 'AdminAnalytics::dashboard', ['filter' => 'admin']);
+$routes->get('admin/users', 'AdminUserController::index');
+$routes->get('admin/users/suggestions', 'AdminUserController::suggestions');
+$routes->get('admin/feedback', 'AdminFeedbackController::index');
+$routes->get('admin/feedback/suggestions', 'AdminFeedbackController::suggestions');
+$routes->get('admin/companies', 'AdminCompanyController::index');
+$routes->get('admin/companies/suggestions', 'AdminCompanyController::suggestions');
+$routes->get('admin/company/(:num)', 'AdminCompanyController::getCompany/$1'); // for popup
+$routes->post('admin/company/delete/(:num)', 'AdminCompanyController::delete/$1');
+$routes->get('admin/jobs', 'AdminJobController::index');
+$routes->get('admin/jobs/suggestions', 'AdminJobController::suggestions');
+$routes->post('admin/jobs/import-manual', 'JobFeedScheduler::importManual', ['filter' => 'admin']);
+$routes->get('admin/jobs/import-stats', 'JobFeedScheduler::getImportStats', ['filter' => 'admin']);
+$routes->get('admin/job/(:num)', 'AdminJobController::getJob/$1');
+$routes->get('admin/blogs', 'AdminBlogController::index', ['filter' => 'admin']);
+$routes->get('admin/subscriptions', 'AdminAnalytics::subscriptions', ['filter' => 'admin']);
+$routes->get('admin/subscription/(:num)', 'AdminAnalytics::viewSubscription/$1', ['filter' => 'admin']);
+$routes->get('admin/blogs/create', 'AdminBlogController::create', ['filter' => 'admin']); // Use blog_form for create
+$routes->post('admin/blogs/store', 'AdminBlogController::store', ['filter' => 'admin']);
+$routes->get('admin/blogs/edit/(:num)', 'AdminBlogController::edit/$1', ['filter' => 'admin']);
+$routes->post('admin/blogs/update/(:num)', 'AdminBlogController::update/$1', ['filter' => 'admin']);
+$routes->post('admin/blogs/delete/(:num)', 'AdminBlogController::delete/$1', ['filter' => 'admin']);
+
 $routes->get('admin/company-ats-mappings', 'AdminCompanyAtsMappings::index', ['filter' => 'admin']);
 $routes->post('admin/company-ats-mappings/save', 'AdminCompanyAtsMappings::save', ['filter' => 'admin']);
 $routes->post('admin/company-ats-mappings/import', 'AdminCompanyAtsMappings::import', ['filter' => 'admin']);
@@ -42,10 +70,6 @@ $routes->post('recruiter/verify-phone', 'Auth::verifyRecruiterPhone');
 $routes->post('recruiter/resend-verification-email', 'Auth::resendRecruiterVerificationEmail');
 $routes->get('company/(:num)', 'CompanyProfile::show/$1', ['filter' => 'auth']);
 $routes->post('company/(:num)/review', 'CompanyProfile::submitReview/$1', ['filter' => 'candidate']);
-$routes->get('companies', 'CompanyProfile::index', ['filter' => 'candidate']);
-$routes->post('companies/search-jobs', 'CompanyProfile::searchJobs', ['filter' => 'candidate']);
-$routes->get('companies/my-targets', 'TargetCompanyController::myTargets', ['filter' => 'CandidateAuth']);
-$routes->post('companies/refresh-target/(:num)', 'TargetCompanyController::refreshTarget/$1', ['filter' => 'CandidateAuth']);
 
 // $routes->get('dashboard', 'Auth::dashboard');
 // Candidate Dashboard Routes
@@ -56,9 +80,12 @@ $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'cand
     $routes->get('dashboard', 'CandidateDashboardController::index');
     $routes->get('/', 'CandidateDashboardController::index'); // Default route
     $routes->get('applications', 'CandidateDashboardController::applications');
+    $routes->get('generate-ai-cover-letter', 'CandidateDashboardController::generateAiCoverLetter');
+    $routes->get('analyze-ats-match', 'CandidateDashboardController::analyzeAtsMatch');
     $routes->get('job-search-strategy', 'CandidateDashboardController::jobSearchStrategy');
     $routes->get('applications/(:num)/mock-interview', 'CandidateDashboardController::mockInterview/$1');
     $routes->get('saved-jobs', 'SavedJobs::index');
+    $routes->get('company-job-discovery', 'CandidateDashboardController::companyJobDiscovery'); // New route for combined discovery page
     $routes->get('job-alerts', 'JobAlerts::index');
     $routes->post('job-alerts/settings', 'JobAlerts::updateSettings');
     $routes->post('job-alerts/create', 'JobAlerts::create');
@@ -66,6 +93,7 @@ $routes->group('candidate', ['namespace' => 'App\Controllers', 'filter' => 'cand
     $routes->get('job-alerts/delete/(:num)', 'JobAlerts::delete/$1');
     $routes->get('messages/(:num)', 'CandidateMessages::thread/$1');
     $routes->post('messages/(:num)/reply', 'CandidateMessages::reply/$1');
+    $routes->get('blog/(:num)', 'CandidateDashboardController::blogDetail/$1');
 });
 
 // Career Transition AI Routes
@@ -116,6 +144,8 @@ $routes->group('recruiter', ['namespace' => 'App\Controllers', 'filter' => 'recr
 });
 
 $routes->get('jobs', 'Jobs::index', ['filter' => 'candidate']);
+// $routes->get('blog', 'Blog::index');
+// $routes->get('blog/(:segment)', 'Blog::show/$1');
 $routes->get('job/(:num)', 'Jobs::jobDetail/$1', ['filter' => 'candidate']);
 $routes->post('job/apply/(:num)', 'Applications::apply/$1', ['filter' => 'candidate']);
 $routes->post('candidate/applications/withdraw/(:num)', 'Applications::withdraw/$1', ['filter' => 'candidate']);
@@ -166,6 +196,8 @@ $routes->get('recruiter/candidate/(:num)/view-contact', 'RecruiterCandidates::vi
 $routes->get('recruiter/candidate/(:num)/download-resume', 'RecruiterCandidates::downloadResume/$1', ['filter' => 'recruiter']);
 $routes->post('recruiter/candidate/(:num)/send-message', 'RecruiterCandidates::sendMessage/$1', ['filter' => 'recruiter']);
 $routes->post('recruiter/candidate/(:num)/save-notes', 'RecruiterCandidates::saveNotes/$1', ['filter' => 'recruiter']);
+$routes->post('recruiter/candidate/(:num)/invite-job', 'RecruiterCandidates::inviteToJob/$1', ['filter' => 'recruiter']);
+$routes->post('recruiter/candidates/invite-job/bulk', 'RecruiterCandidates::bulkInviteToJob', ['filter' => 'recruiter']);
 
 // Notification Routes
 $routes->group('notifications', ['filter' => 'auth'], function($routes) {
@@ -215,20 +247,12 @@ $routes->group('career-chatbot', ['filter' => 'candidate'], function($routes) {
 });
 
 // Mentoring System Routes
-$routes->group('mentoring', ['filter' => 'candidate'], function($routes) {
+/*$routes->group('mentoring', ['filter' => 'candidate'], function($routes) {
     $routes->get('book/(:num)', 'MentoringController::bookSession/$1');
     $routes->post('book/(:num)', 'MentoringController::processBooking/$1');
     $routes->get('sessions', 'MentoringController::mySessions');
     $routes->post('sessions/(:num)/feedback', 'MentoringController::submitFeedback/$1');
-});
-
-// Mentor Dashboard Routes
-$routes->group('mentor', ['filter' => 'mentor'], function($routes) {
-    $routes->get('dashboard', 'MentorController::dashboard');
-    $routes->get('sessions', 'MentorController::sessions');
-    $routes->post('sessions/(:num)/complete', 'MentorController::completeSession/$1');
-    $routes->get('earnings', 'MentorController::earnings');
-});
+});*/
 
 // Premium Career Mentor Routes
 $routes->get('premium/plans', 'Premium::plans', ['filter' => 'candidate']);
@@ -248,10 +272,28 @@ $routes->group('payment', ['filter' => 'candidate'], function($routes) {
 // Razorpay webhook — no auth filter, verified by signature
 $routes->post('payment/webhook', 'PaymentController::webhook');
 
-// Target Companies Routes
-$routes->group('target-companies', ['filter' => 'candidate'], function($routes) {
-    $routes->post('add', 'TargetCompanyController::add');
-    $routes->get('remove/(:num)', 'TargetCompanyController::remove/$1');
-    $routes->post('fetch-jobs', 'TargetCompanyController::fetchJobs');
-    $routes->get('suggest', 'TargetCompanyController::suggest');
+// AI-powered MNC Job Discovery (new dedicated endpoint)
+$routes->get('mnc/discover', 'MncJobController::discover');
+$routes->get('mnc/job/save/(:num)', 'MncJobController::save/$1', ['filter' => 'candidate']);
+$routes->get('mnc/job/unsave/(:num)', 'MncJobController::unsave/$1', ['filter' => 'candidate']);
+//$routes->get('mnc', 'MncJobController::index'); // New route to render the UI
+
+// Company Jobs Routes
+$routes->get('candidate/company-jobs/suggestions', 'CompanyJobsController::suggestions');
+$routes->get('candidate/company-jobs/clear-cache/(:segment)', 'CompanyJobsController::clearCache/$1');
+$routes->get('candidate/company-jobs/clear-all-cache', 'CompanyJobsController::clearAllCache');
+$routes->get('candidate/company-jobs/(:segment)', 'CompanyJobsController::viewCompanyJobs/$1', ['filter' => 'candidate']);
+
+// Google Calendar Sync Routes
+$routes->group('auth', ['filter' => 'auth'], function($routes) {
+    $routes->get('google-calendar/connect', 'CalendarSyncController::connect');
+    $routes->get('google-calendar/callback', 'CalendarSyncController::callback');
+    $routes->get('google-calendar/disconnect', 'CalendarSyncController::disconnect');
+    $routes->get('google-calendar/sync/(:num)', 'CalendarSyncController::syncBooking/$1');
+    $routes->get('google-calendar/test-reminder/(:num)', 'CalendarSyncController::testReminder/$1');
 });
+
+// Cron/Background job routes (no auth, but secret protected)
+$routes->get('cron/reminders', 'CalendarSyncController::runReminders');
+ 
+                                

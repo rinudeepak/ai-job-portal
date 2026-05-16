@@ -138,7 +138,7 @@ $currentStepTitle = $stepLabels[$activeStep] ?? 'Onboarding';
                         </div>
                     </form>
                 <?php elseif ($activeStep === 'resume'): ?>
-                    <form method="post" action="<?= base_url('candidate/onboarding/resume') ?>" enctype="multipart/form-data" data-onboarding-form>
+                    <form method="post" action="<?= base_url('candidate/onboarding/resume') ?>" enctype="multipart/form-data" data-onboarding-form data-existing-resume="<?= !empty($user['resume_path']) ? '1' : '0' ?>">
                         <?= csrf_field() ?>
                         <div class="onboarding-card">
                             <div class="mb-3">

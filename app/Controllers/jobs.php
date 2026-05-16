@@ -3,11 +3,13 @@
 namespace App\Controllers;
 
 use App\Libraries\AiResumeCoach;
+use App\Libraries\AtsScoreService;
 use App\Libraries\AiJobMatcher;
 use App\Models\CompanyModel;
 use App\Models\CandidateResumeVersionModel;
 use App\Models\CandidateSkillsModel;
 use App\Models\JobModel;
+use App\Models\RecruiterJobInvitationModel;
 use App\Models\SavedJobModel;
 use App\Models\UserModel;
 
@@ -21,6 +23,19 @@ class Jobs extends BaseController
 
         $jobModel = new JobModel();
         $candidateId = (int) session()->get('user_id');
+
+        // Get resume information for ATS analysis
+        $hasBaseResume = false;
+        $primaryResumeId = 0;
+        if ($candidateId > 0) {
+            $userProfile = (new UserModel())->findCandidateWithProfile($candidateId) ?? [];
+            $hasBaseResume = !empty($userProfile['resume_path']);
+            
+            if (\Config\Database::connect()->tableExists('candidate_resume_versions')) {
+                $primary = (new CandidateResumeVersionModel())->where('candidate_id', $candidateId)->where('is_primary', 1)->first();
+                $primaryResumeId = (int) ($primary['id'] ?? 0);
+            }
+        }
 
         $filters = [
             'search'           => $this->request->getGet('search'),
@@ -38,6 +53,9 @@ class Jobs extends BaseController
         ];
 
         $builder = $jobModel->where('status', 'open');
+        
+        // Implicitly treat expired jobs as closed by hiding them from search
+        JobModel::applyApplicationDeadlineFilter($builder);
 
         if (!empty($filters['search'])) {
             $builder->groupStart()
@@ -325,6 +343,8 @@ class Jobs extends BaseController
             'showFilters' => $showFilters,
             'savedJobIds' => $savedJobIds,
             'allJobsAreExternal' => $allJobsAreExternal,
+            'hasBaseResume' => $hasBaseResume,
+            'primaryResumeId' => $primaryResumeId,
         ]);
     }
 
@@ -343,12 +363,14 @@ class Jobs extends BaseController
     private function rankJobsByApplicationBehavior(int $candidateId, array $behavior, int $limit): array
     {
         $jobModel = new JobModel();
-        $jobs = $jobModel->where('status', 'open')
+        $jobsBuilder = $jobModel->where('status', 'open')
             ->whereNotIn('id', static function ($builder) use ($candidateId) {
                 return $builder->select('job_id')->from('applications')->where('candidate_id', $candidateId);
             })
-            ->orderBy('created_at', 'DESC')
-            ->findAll(200);
+            ->orderBy('created_at', 'DESC');
+
+        JobModel::applyApplicationDeadlineFilter($jobsBuilder);
+        $jobs = $jobsBuilder->findAll(200);
 
         $topCategories = array_map('strtolower', array_column((array) ($behavior['top_categories'] ?? []), 'category'));
         $topLocations = array_map('strtolower', array_column((array) ($behavior['top_locations'] ?? []), 'location'));
@@ -356,30 +378,48 @@ class Jobs extends BaseController
 
         $ranked = [];
         foreach ($jobs as $job) {
-            $score = 0.0;
+            $categoryScore = 0.0;
+            $locationScore = 0.0;
+            $typeScore = 0.0;
+
             $jobCategory = strtolower(trim((string) ($job['category'] ?? '')));
             $jobLocation = strtolower(trim((string) ($job['location'] ?? '')));
             $jobType = strtolower(trim((string) ($job['employment_type'] ?? '')));
 
-            if ($jobCategory !== '' && in_array($jobCategory, $topCategories, true)) {
-                $score += 50;
+            // Weigh category most (50%)
+            if ($jobCategory !== '' && !empty($topCategories)) {
+                if (in_array($jobCategory, $topCategories, true)) {
+                    $categoryScore = 50.0;
+                } else {
+                    foreach ($topCategories as $topCat) {
+                        if (str_contains($jobCategory, $topCat) || str_contains($topCat, $jobCategory)) {
+                            $categoryScore = 35.0;
+                            break;
+                        }
+                    }
+                }
             }
+            
+            // Weigh location (30%)
             foreach ($topLocations as $loc) {
                 if ($loc !== '' && (str_contains($jobLocation, $loc) || str_contains($loc, $jobLocation))) {
-                    $score += 30;
+                    $locationScore = 30.0;
                     break;
                 }
             }
+
+            // Weigh employment type (20%)
             if ($jobType !== '' && in_array($jobType, $topEmploymentTypes, true)) {
-                $score += 20;
+                $typeScore = 20.0;
             }
 
-            if ($score <= 0) {
+            $totalScore = $categoryScore + $locationScore + $typeScore;
+            if ($totalScore <= 15) {
                 continue;
             }
 
-            $job['match_score'] = round(min(100, $score), 1);
-            $job['match_reason'] = '';
+            $job['match_score'] = round(min(100, $totalScore), 1);
+            $job['match_reason'] = 'Matches your interests in ' . ($job['category'] ?? 'this category') . ' based on your previous applications.';
             $ranked[] = $job;
         }
 
@@ -410,49 +450,63 @@ class Jobs extends BaseController
         )));
         $interests = array_values(array_filter(array_map('strtolower', array_map('trim', $candidateInterests))));
 
-        $jobs = $jobModel->where('status', 'open')
+        $jobsBuilder = $jobModel->where('status', 'open')
             ->whereNotIn('id', static function ($builder) use ($candidateId) {
                 return $builder->select('job_id')->from('applications')->where('candidate_id', $candidateId);
             })
-            ->orderBy('created_at', 'DESC')
-            ->findAll(200);
+            ->orderBy('created_at', 'DESC');
+
+        JobModel::applyApplicationDeadlineFilter($jobsBuilder);
+        $jobs = $jobsBuilder->findAll(200);
 
         $ranked = [];
         foreach ($jobs as $job) {
-            $score = 0.0;
+            $titleScore = 0.0;
+            $interestScore = 0.0;
+            $locationScore = 0.0;
+            $typeScore = 0.0;
+
             $blob = strtolower(trim((string) ($job['title'] ?? '') . ' ' . (string) ($job['category'] ?? '') . ' ' . (string) ($job['description'] ?? '')));
             $jobTitle = strtolower(trim((string) ($job['title'] ?? '')));
+            
+            // Preferred Titles (35%)
             foreach ($preferredJobTitles as $preferredJobTitle) {
                 if ($preferredJobTitle !== '' && (str_contains($jobTitle, $preferredJobTitle) || str_contains($preferredJobTitle, $jobTitle))) {
-                    $score += 35;
+                    $titleScore = 35.0;
                     break;
                 }
             }
+            
+            // Explicit Interests (25%)
             foreach ($interests as $interest) {
                 if ($interest !== '' && str_contains($blob, $interest)) {
-                    $score += 25;
+                    $interestScore = 25.0;
+                    break;
                 }
             }
 
+            // Preferred Locations (25%)
             $jobLocation = strtolower(trim((string) ($job['location'] ?? '')));
             foreach ($preferredLocations as $loc) {
                 if ($loc !== '' && (str_contains($jobLocation, $loc) || str_contains($loc, $jobLocation))) {
-                    $score += 25;
+                    $locationScore = 25.0;
                     break;
                 }
             }
 
+            // Employment Types (15%)
             $jobType = strtolower(trim((string) ($job['employment_type'] ?? '')));
             if ($jobType !== '' && in_array($jobType, $preferredEmploymentTypes, true)) {
-                $score += 15;
+                $typeScore = 15.0;
             }
 
-            if ($score <= 0) {
+            $totalScore = $titleScore + $interestScore + $locationScore + $typeScore;
+            if ($totalScore <= 15) {
                 continue;
             }
 
-            $job['match_score'] = round(min(100, $score), 1);
-            $job['match_reason'] = '';
+            $job['match_score'] = round(min(100, $totalScore), 1);
+            $job['match_reason'] = 'High alignment with your profile career preferences and interests.';
             $ranked[] = $job;
         }
 
@@ -518,6 +572,14 @@ class Jobs extends BaseController
                 ->with('error', 'Job not found');
         }
 
+        // Flag as expired for UI components
+        $isExpired = false;
+        if (!empty($job['application_deadline'])) {
+            if (strtotime($job['application_deadline'] . ' 23:59:59') < time()) {
+                $isExpired = true;
+            }
+        }
+
         // External jobs: skip the blank detail page and go straight to the source
         if ((int) ($job['is_external'] ?? 0) === 1) {
             $applyUrl = trim((string) ($job['external_apply_url'] ?? ''));
@@ -533,6 +595,8 @@ class Jobs extends BaseController
             ->first();
 
         $alreadyApplied = $application ? true : false;
+        $application = $this->maskFilteredStatus($application);
+
         $interviewId = null;
 
         $isSaved = (bool) (new SavedJobModel())
@@ -551,6 +615,8 @@ class Jobs extends BaseController
         }
 
         $resumeCoach = JobModel::isExternalJob($job) ? [] : $this->buildResumeCoach($candidateId, $job);
+        $invitation = $this->resolveInvitationContext($candidateId, (int) $id);
+        $applicationQuestionnaire = $this->decodeApplicationQuestionnaire((string) ($job['application_questionnaire'] ?? ''));
 
         return view('candidate/job_details', [
             'title' => 'Job Details',
@@ -560,7 +626,73 @@ class Jobs extends BaseController
             'interviewId' => $interviewId,
             'isSaved' => $isSaved,
             'resumeCoach' => $resumeCoach,
+            'invitation' => $invitation,
+            'applicationQuestionnaire' => $applicationQuestionnaire,
+            'application' => $application,
+            'isExpired' => $isExpired,
         ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function decodeApplicationQuestionnaire(string $rawQuestionnaire): array
+    {
+        if (trim($rawQuestionnaire) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($rawQuestionnaire, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $questions = [];
+        foreach ($decoded as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $id = trim((string) ($row['id'] ?? ''));
+            $label = trim((string) ($row['label'] ?? ''));
+            $type = strtolower(trim((string) ($row['type'] ?? 'textarea')));
+
+            if ($id === '' || $label === '' || !in_array($type, ['text', 'textarea'], true)) {
+                continue;
+            }
+
+            $questions[] = [
+                'id' => $id,
+                'label' => $label,
+                'type' => $type,
+                'placeholder' => trim((string) ($row['placeholder'] ?? '')),
+                'required' => (bool) ($row['required'] ?? false),
+                'knockout' => (bool) ($row['knockout'] ?? false),
+            ];
+        }
+
+        return $questions;
+    }
+
+    private function resolveInvitationContext(int $candidateId, int $jobId): ?array
+    {
+        $db = \Config\Database::connect();
+        if (!$db->tableExists('recruiter_job_invitations')) {
+            return null;
+        }
+
+        $invitation = (new RecruiterJobInvitationModel())->getLatestForCandidateJob($candidateId, $jobId);
+        if (!$invitation) {
+            return null;
+        }
+
+        if (($invitation['status'] ?? '') === RecruiterJobInvitationModel::STATUS_SENT) {
+            (new RecruiterJobInvitationModel())->markViewed((int) $invitation['id']);
+            $invitation['status'] = RecruiterJobInvitationModel::STATUS_VIEWED;
+            $invitation['viewed_at'] = date('Y-m-d H:i:s');
+        }
+
+        return $invitation;
     }
 
     private function buildResumeCoach(int $candidateId, array $job): array
@@ -568,6 +700,7 @@ class Jobs extends BaseController
         $user = (new UserModel())->findCandidateWithProfile($candidateId) ?? [];
         $skillsRow = (new CandidateSkillsModel())->where('candidate_id', $candidateId)->first();
         $resumeVersion = (new CandidateResumeVersionModel())->getPreferredVersionForJob($candidateId, (int) ($job['id'] ?? 0));
+        $atsAnalysis = (new AtsScoreService())->analyzeCandidateJob($candidateId, $job, (int) ($resumeVersion['id'] ?? 0));
 
         $requiredSkills = $this->tokenizeSkills((string) ($job['required_skills'] ?? ''));
         $profileSkills = $this->tokenizeSkills((string) ($skillsRow['skill_name'] ?? ''));
@@ -631,12 +764,12 @@ class Jobs extends BaseController
             . ' and one measurable result from past work.';
 
         $fallback = [
-            'score' => $readinessScore,
+            'score' => (int) ($atsAnalysis['score'] ?? $readinessScore),
             'required_skills' => $requiredSkills,
-            'matched_skills' => $matchedSkills,
-            'missing_skills' => $missingSkills,
+            'matched_skills' => !empty($atsAnalysis['matched_skills']) ? (array) $atsAnalysis['matched_skills'] : $matchedSkills,
+            'missing_skills' => !empty($atsAnalysis['missing_keywords']) ? (array) $atsAnalysis['missing_keywords'] : $missingSkills,
             'emphasis_skills' => $emphasisSkills,
-            'suggestions' => $suggestions,
+            'suggestions' => !empty($atsAnalysis['suggestions']) ? (array) $atsAnalysis['suggestions'] : $suggestions,
             'summary_suggestion' => $summarySuggestion,
             'resume_version' => $resumeVersion,
             'resume_studio_url' => base_url('candidate/resume-studio?generation_mode=job&job_id=' . (int) ($job['id'] ?? 0)),
@@ -661,7 +794,10 @@ class Jobs extends BaseController
             'candidate_skills' => $candidateSkills,
         ];
 
-        return (new AiResumeCoach())->generate($candidateId, $job, $resumeContext, $fallback);
+        $coach = (new AiResumeCoach())->generate($candidateId, $job, $resumeContext, $fallback);
+        $coach['score'] = (int) ($atsAnalysis['score'] ?? $fallback['score']);
+
+        return $coach;
     }
 
     private function tokenizeSkills(string $value): array
@@ -765,5 +901,16 @@ class Jobs extends BaseController
                     ->groupEnd();
                 break;
         }
+    }
+
+    /**
+     * Mask the 'filtered_out' status for candidate views.
+     */
+    private function maskFilteredStatus(?array $application): ?array
+    {
+        if ($application && ($application['status'] ?? '') === 'filtered_out') {
+            $application['status'] = 'applied';
+        }
+        return $application;
     }
 }

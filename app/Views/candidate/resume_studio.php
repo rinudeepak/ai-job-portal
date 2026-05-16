@@ -10,6 +10,7 @@ $resumeVersions = $resumeVersions ?? [];
 $resumeTemplates = $resumeTemplates ?? [];
 $blockedResumeTemplates = $blockedResumeTemplates ?? [];
 $resumeTargets = $resumeTargets ?? [];
+$profileReadiness = $profileReadiness ?? ['is_ready' => true, 'missing_details' => []];
 ?>
 
 <div class="job-details-jobboard resume-studio-jobboard">
@@ -53,8 +54,24 @@ $resumeTargets = $resumeTargets ?? [];
 
             <div class="resume-studio-layout">
                 <div class="resume-studio-main">
+                    <?php if (!$profileReadiness['is_ready']): ?>
+                        <div class="alert alert-warning border-0 shadow-sm mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-exclamation-triangle fa-2x mr-3 text-warning"></i>
+                                <h5 class="mb-0 font-weight-bold">Add a bit more information before generating an AI resume</h5>
+                            </div>
+                            <p class="small mb-3">Resume Studio only needs the minimum core information required to build a usable resume. Please complete the following first:</p>
+                            <ul class="small mb-3">
+                                <?php foreach ($profileReadiness['missing_details'] as $detail): ?>
+                                    <li><strong><?= esc($detail) ?></strong></li>
+                                <?php endforeach; ?>
+                            </ul>
+                            <a href="<?= base_url('candidate/profile') ?>" class="btn btn-warning btn-sm font-weight-bold">Complete Profile Now</a>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (!empty($activeTransition)): ?>
-                        <div class="detail-card resume-transition-card">
+                        <div class="detail-card resume-transition-card mb-4">
                             <div class="detail-card-title">
                                 <span class="detail-card-icon"><i class="fas fa-exchange-alt"></i></span>
                                 <span>Active Transition</span>
@@ -67,7 +84,7 @@ $resumeTargets = $resumeTargets ?? [];
                         </div>
                     <?php endif; ?>
 
-                    <div class="detail-card resume-generator-card">
+                    <div class="detail-card resume-generator-card mb-4">
                         <div class="detail-card-title">
                             <span class="detail-card-icon"><i class="fas fa-magic"></i></span>
                             <span>Create Resume Versions</span>
@@ -75,7 +92,6 @@ $resumeTargets = $resumeTargets ?? [];
                         <p class="job-details-section-text">Generate role-based resumes, tailor versions to specific jobs, and mark a primary version for quick reuse.</p>
 
                         <form method="post" action="<?= base_url('candidate/resume/generate') ?>" data-loading-form>
-                            <?= csrf_field() ?>
                             <div class="generation-mode-grid">
                                 <label class="generation-mode-option">
                                     <input type="radio" name="generation_mode" value="role" <?= $prefillGenerationMode === 'role' ? 'checked' : '' ?>>
@@ -182,16 +198,20 @@ $resumeTargets = $resumeTargets ?? [];
             </div>
 
             <?php if (!empty($resumeVersions)): ?>
-                <div class="resume-versions-grid">
+                <div class="row">
                     <?php foreach ($resumeVersions as $version): ?>
-                        <article class="detail-card resume-version-card">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap mb-2 gap-2">
+                        <div class="col-lg-6 mb-4">
+                            <article class="detail-card resume-version-card h-100 shadow-sm border-0">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap mb-3 gap-2">
                                 <div>
                                     <h6 class="mb-1">
                                         <?= esc($version['title'] ?? 'Resume Version') ?>
                                         <?php if ((int) ($version['is_primary'] ?? 0) === 1): ?>
                                             <span class="badge badge-success ml-2">Primary</span>
                                         <?php endif; ?>
+                                        <span class="badge badge-<?= $version['strength_class'] ?? 'secondary' ?> ml-2">
+                                            Strength: <?= (int)($version['strength_score'] ?? 0) ?>%
+                                        </span>
                                     </h6>
                                     <div class="text-muted small">
                                         Target role: <?= esc($version['target_role'] ?? '-') ?>
@@ -205,13 +225,16 @@ $resumeTargets = $resumeTargets ?? [];
                                     </div>
                                 </div>
                                 <div class="resume-version-actions">
-                                    <a href="<?= base_url('candidate/resume-version/' . (int) $version['id'] . '/download') ?>" class="btn btn-outline-secondary btn-sm">Download PDF</a>
-                                    <form method="post" action="<?= base_url('candidate/resume-version/' . (int) $version['id'] . '/delete') ?>" onsubmit="return confirm('Delete this saved resume version?');">
+                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="previewResumeVersion(<?= (int)$version['id'] ?>)" title="Quick Preview">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    <a href="<?= base_url('candidate/resume-version/' . (int) $version['id'] . '/download') ?>" class="btn btn-outline-secondary btn-sm" title="Download PDF"><i class="fas fa-download"></i></a>
+                                    <form method="post" action="<?= base_url('candidate/resume-version/' . (int) $version['id'] . '/delete') ?>" onsubmit="return confirm('Delete this saved resume version?');" style="display:inline-block;">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
                                     </form>
                                     <?php if ((int) ($version['is_primary'] ?? 0) !== 1): ?>
-                                        <form method="post" action="<?= base_url('candidate/resume-version/' . (int) $version['id'] . '/primary') ?>">
+                                        <form method="post" action="<?= base_url('candidate/resume-version/' . (int) $version['id'] . '/primary') ?>" style="display:inline-block;">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-outline-primary btn-sm">Set as primary</button>
                                         </form>
@@ -220,11 +243,15 @@ $resumeTargets = $resumeTargets ?? [];
                             </div>
 
                             <?php if (!empty($version['summary'])): ?>
-                                <p class="mb-2"><?= esc($version['summary']) ?></p>
+                                <p class="mb-3 text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"><?= esc($version['summary']) ?></p>
                             <?php endif; ?>
 
-                            <div class="resume-version-content"><?= $version['rendered_preview'] ?? '' ?></div>
+                                <div class="resume-version-content border rounded p-3 bg-light" style="max-height: 180px; overflow: hidden; position: relative; font-size: 0.85rem;">
+                                    <?= $version['rendered_preview'] ?? '' ?>
+                                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, #f8f9fa);"></div>
+                                </div>
                         </article>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
@@ -237,5 +264,52 @@ $resumeTargets = $resumeTargets ?? [];
         </div>
     </section>
 </div>
+
+<!-- Resume Preview Modal -->
+<div class="modal fade" id="resumePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="fas fa-eye mr-2"></i>Resume Preview</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0 bg-light">
+                <div id="previewLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Rendering preview...</p>
+                </div>
+                <div id="previewIframeContainer" class="d-none">
+                    <iframe id="resumePreviewIframe" style="width: 100%; height: 75vh; border: none;"></iframe>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewResumeVersion(versionId) {
+    const modal = $('#resumePreviewModal');
+    const iframe = document.getElementById('resumePreviewIframe');
+    const loading = document.getElementById('previewLoading');
+    const container = document.getElementById('previewIframeContainer');
+
+    loading.classList.remove('d-none');
+    container.classList.add('d-none');
+    modal.modal('show');
+
+    // Set iframe source to the existing preview endpoint
+    iframe.src = `<?= base_url('candidate/resume-version') ?>/${versionId}/preview`;
+
+    iframe.onload = function() {
+        loading.classList.add('d-none');
+        container.classList.remove('d-none');
+    };
+}
+</script>
 
 <?= view('Layouts/candidate_footer') ?>

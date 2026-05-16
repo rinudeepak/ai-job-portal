@@ -13,6 +13,7 @@ class ApplicationModel extends Model
         'job_id',
         'candidate_id',
         'resume_version_id',
+        'questionnaire_responses',
         'status',
         'interview_slot',
         'booking_id',

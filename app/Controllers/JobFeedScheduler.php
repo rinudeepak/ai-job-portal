@@ -30,10 +30,10 @@ class JobFeedScheduler extends Controller
         }
 
         try {
-            $limit = (int) $this->request->getVar('limit') ?? 50;
+            $limit = (int) ($this->request->getVar('limit') ?? 50);
             $limit = max(1, min(100, $limit));
 
-            $sourcesParam = $this->request->getVar('sources') ?? 'remotive,remoteok,arbeitnow';
+            $sourcesParam = (string) ($this->request->getVar('sources') ?? 'remotive,remoteok,arbeitnow');
             $sources = array_filter(array_map('trim', explode(',', $sourcesParam)));
 
             $keyword = trim((string) ($this->request->getVar('keyword') ?? ''));
@@ -78,10 +78,10 @@ class JobFeedScheduler extends Controller
         }
 
         try {
-            $limit = (int) $this->request->getPost('limit') ?? 30;
+            $limit = (int) ($this->request->getPost('limit') ?? 30);
             $limit = max(1, min(100, $limit));
 
-            $sourcesParam = $this->request->getPost('sources') ?? 'remotive,remoteok,arbeitnow';
+            $sourcesParam = (string) ($this->request->getPost('sources') ?? 'remotive,remoteok,arbeitnow');
             $sources = array_filter(array_map('trim', explode(',', $sourcesParam)));
 
             $keyword = trim((string) ($this->request->getPost('keyword') ?? ''));
@@ -121,7 +121,7 @@ class JobFeedScheduler extends Controller
 
         try {
             $db = \Config\Database::connect();
-            $days = (int) $this->request->getVar('days') ?? 30;
+            $days = (int) ($this->request->getVar('days') ?? 30);
 
             $stats = $db->table('jobs')
                 ->selectSum('1', 'total_jobs')
@@ -186,6 +186,10 @@ class JobFeedScheduler extends Controller
      */
     private function isAdminUser(): bool
     {
+        if (session()->get('admin_logged_in')) {
+            return true;
+        }
+
         $userId = session()->get('user_id');
         $userRole = session()->get('user_role');
 

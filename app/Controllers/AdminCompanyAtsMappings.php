@@ -36,7 +36,8 @@ class AdminCompanyAtsMappings extends BaseController
         $editId = (int) ($this->request->getGet('edit') ?: 0);
 
         return view('admin/company_ats_mappings', [
-            'mappings' => $model->orderBy('priority', 'ASC')->orderBy('company_name', 'ASC')->findAll(),
+            'mappings' => $model->orderBy('priority', 'ASC')->orderBy('company_name', 'ASC')->paginate(10),
+            'pager'    => $model->pager,
             'editing' => $editId > 0 ? $model->find($editId) : null,
             'importTemplateUrl' => base_url('admin/company-ats-mappings/template'),
         ]);
@@ -184,7 +185,7 @@ class AdminCompanyAtsMappings extends BaseController
                 'company_name' => $companyName,
                 'company_key' => $companyKey,
                 'aliases' => trim((string) ($assoc['aliases'] ?? '')),
-                'platform' => trim((string) ($assoc['platform'] ?? 'generic')) ?: 'generic',
+                'platform' => trim((string) ($assoc['platform'] ?? 'custom')) ?: 'custom',
                 'platform_slug' => trim((string) ($assoc['platform_slug'] ?? '')),
                 'career_url' => trim((string) ($assoc['career_url'] ?? '')),
                 'website_url' => trim((string) ($assoc['website_url'] ?? '')),

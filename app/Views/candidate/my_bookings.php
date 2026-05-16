@@ -24,11 +24,14 @@
                 return strtotime((string) ($a['slot_datetime'] ?? '')) <=> strtotime((string) ($b['slot_datetime'] ?? ''));
             });
 
-            $upcomingBookings = array_values(array_filter($bookings, static function (array $booking): bool {
-                return strtotime((string) ($booking['slot_datetime'] ?? '')) >= time();
+            $tz = new \DateTimeZone('Asia/Kolkata');
+            $now = new \DateTime('now', $tz);
+
+            $upcomingBookings = array_values(array_filter($bookings, static function (array $booking) use ($tz, $now): bool {
+                return new \DateTime($booking['slot_datetime'], $tz) >= $now;
             }));
-            $pastBookings = array_values(array_filter($bookings, static function (array $booking): bool {
-                return strtotime((string) ($booking['slot_datetime'] ?? '')) < time();
+            $pastBookings = array_values(array_filter($bookings, static function (array $booking) use ($tz, $now): bool {
+                return new \DateTime($booking['slot_datetime'], $tz) < $now;
             }));
             $nextBooking = $upcomingBookings[0] ?? null;
             $upcomingCount = count($upcomingBookings);
@@ -71,22 +74,31 @@
             <?php else: ?>
                 <?php if (!empty($nextBooking)): ?>
                     <?php
-                    $nextDiff = strtotime($nextBooking['slot_datetime']) - time();
-                    $nextDays = max(0, (int) floor($nextDiff / 86400));
-                    $nextHours = max(0, (int) floor(($nextDiff % 86400) / 3600));
-                    $nextCanReschedule = $nextBooking['reschedule_count'] < $nextBooking['max_reschedules']
-                        && $nextDiff > 86400;
-                    ?>
+                $target = new \DateTime($nextBooking['slot_datetime'], $tz);
+                $isPast = $now > $target;
+
+                $interval = $now->diff($target);
+                $nextDays = $interval->days;
+                $nextHours = $interval->h;
+                $nextMins = $interval->i;
+
+                $nextCanReschedule = $nextBooking['reschedule_count'] < $nextBooking['max_reschedules']
+                    && ($target->getTimestamp() - $now->getTimestamp()) > 86400; // 24 hours in seconds
+                ?>
                     <div class="booking-next-step">
                         <div class="booking-next-step-copy">
                             <span class="booking-next-step-kicker">Next action</span>
                             <h3><?= esc($nextBooking['job_title']) ?></h3>
                             <p>
                                 <?= date('l, F j, Y', strtotime($nextBooking['slot_datetime'])) ?> at <?= date('h:i A', strtotime($nextBooking['slot_datetime'])) ?>.
-                                <?php if ($nextDays > 0): ?>
-                                    You have <?= $nextDays ?> day(s) and <?= $nextHours ?> hour(s) left to prepare.
+                                <?php if ($isPast): ?>
+                                    <span class="text-danger font-weight-bold">This interview has already started.</span>
+                                <?php elseif ($nextDays > 0): ?>
+                                    You have <?= $nextDays ?>d <?= $nextHours ?>h left to prepare.
+                                <?php elseif ($nextHours > 0): ?>
+                                    You have <?= $nextHours ?>h <?= $nextMins ?>m left to prepare.
                                 <?php else: ?>
-                                    You have <?= $nextHours ?> hour(s) left to prepare.
+                                    You have <?= $nextMins ?> minute(s) left. Starting soon!
                                 <?php endif; ?>
                             </p>
                         </div>
@@ -110,10 +122,13 @@
                 <div class="booking-timeline">
                     <?php foreach ($upcomingBookings as $booking): ?>
                         <?php
-                        $diff = strtotime($booking['slot_datetime']) - time();
-                        $days = max(0, (int) floor($diff / 86400));
-                        $hours = max(0, (int) floor(($diff % 86400) / 3600));
-                        $canReschedule = $booking['reschedule_count'] < $booking['max_reschedules'] && $diff > 86400;
+                        $targetBooking = new \DateTime($booking['slot_datetime'], $tz);
+                        $intervalBooking = $now->diff($targetBooking);
+                        $days = $intervalBooking->days;
+                        $hours = $intervalBooking->h;
+                        $mins = $intervalBooking->i;
+                        $diffSeconds = $targetBooking->getTimestamp() - $now->getTimestamp();
+                        $canReschedule = $booking['reschedule_count'] < $booking['max_reschedules'] && $diffSeconds > 86400;
                         $statusColors = [
                             'booked' => 'primary',
                             'rescheduled' => 'warning',
@@ -161,7 +176,13 @@
                                         </p>
                                     </div>
                                     <div class="booking-timeline-pill">
-                                        <?= $days > 0 ? $days . ' day(s)' : $hours . ' hour(s)' ?> left
+                                        <?php if ($days > 0): ?>
+                                            <?= $days ?>d <?= $hours ?>h left
+                                        <?php elseif ($hours > 0): ?>
+                                            <?= $hours ?>h <?= $mins ?>m left
+                                        <?php else: ?>
+                                            <?= $mins ?>m left
+                                        <?php endif; ?>
                                     </div>
                                 </div>
 
@@ -200,6 +221,11 @@
                                 </div>
 
                                 <div class="booking-timeline-actions">
+                                    <?php if (!empty($booking['calendar_add_link'])): ?>
+                                        <a href="<?= esc($booking['calendar_add_link']) ?>" target="_blank" class="btn btn-outline-primary">
+                                            <i class="fas fa-calendar-plus mr-1"></i>Add to Calendar
+                                        </a>
+                                    <?php endif; ?>
                                     <?php if ($canReschedule): ?>
                                         <a href="<?= base_url('candidate/reschedule-slot/' . $booking['application_id']) ?>" class="btn btn-warning">
                                             <i class="fas fa-sync mr-1"></i>Reschedule interview

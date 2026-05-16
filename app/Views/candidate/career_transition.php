@@ -1,4 +1,4 @@
-<?= view('Layouts/candidate_header', ['title' => 'Career Transition AI']) ?>
+        <?= view('Layouts/candidate_header', ['title' => 'Career Transition AI']) ?>
 <?php
 $skillGaps = [];
 if (!empty($transition['skill_gaps'])) {
@@ -22,7 +22,7 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                     <p class="page-board-subtitle">Get a simple roadmap toward your target role with clear daily steps.</p>
                 </div>
                 <div class="page-board-actions">
-                    <a href="<?= base_url('career-transition/history') ?>" class="btn btn-outline-primary">
+                    <a href="<?= base_url('career-transition/history') ?>" class="btn btn-primary">
                         <i class="fas fa-history mr-1"></i> View History
                     </a>
                 </div>
@@ -118,7 +118,7 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
                                 <a href="<?= base_url('career-transition/course') ?>" class="btn btn-primary">
                                     <i class="fas fa-book-open"></i> View Course
                                 </a>
-                                <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-outline-primary">
+                                <a href="<?= base_url('career-transition/download-pdf') ?>" class="btn btn-primary">
                                     <i class="fas fa-file-pdf"></i> Download PDF
                                 </a>
                                 <button type="button" class="btn btn-outline-secondary" onclick="if(confirm('Save current path to history and start a new one? Your progress will be preserved.')) window.location.href='<?= base_url('career-transition/reset') ?>'">
@@ -192,3 +192,4 @@ $reactivationCount = (int) ($transition['reactivation_count'] ?? 0);
 </div>
 
 <?= view('Layouts/candidate_footer') ?>
+    

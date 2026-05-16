@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Models\ApplicationModel;
 use App\Models\CandidateResumeVersionModel;
 use App\Models\JobModel;
+use App\Models\RecruiterJobInvitationModel;
 
 class Applications extends BaseController
 {
+    private const QUESTIONNAIRE_TYPES = ['text', 'textarea'];
+
     public function apply($jobId)
     {
         $session = session();
@@ -32,6 +35,14 @@ class Applications extends BaseController
                 return $this->respondApplicationAction(false, 'Job not found or no longer open.', null, 404);
             }
             return redirect()->to(base_url('jobs'))->with('error', 'Job not found or no longer open.');
+        }
+
+        // Enforce application deadline
+        if (!empty($job['application_deadline'])) {
+            if (strtotime($job['application_deadline'] . ' 23:59:59') < time()) {
+                if ($isAjax) return $this->respondApplicationAction(false, 'The application deadline for this job has passed.', null, 410);
+                return redirect()->back()->with('error', 'The application deadline for this job has passed.');
+            }
         }
 
         if (JobModel::isExternalJob($job)) {
@@ -126,7 +137,6 @@ class Applications extends BaseController
                     (!$hasJobTitleSkill && !$hasRequiredSkills);
         $aiPolicy = JobModel::normalizeAiPolicy($job['ai_interview_policy'] ?? JobModel::AI_POLICY_REQUIRED_HARD);
         $initialStatus = $aiPolicy === JobModel::AI_POLICY_OFF ? 'shortlisted' : 'applied';
-        //$initialStatus = 'applied';
         $db = \Config\Database::connect();
         $resumeVersion = null;
         if ($db->tableExists('candidate_resume_versions') && $db->fieldExists('resume_version_id', 'applications')) {
@@ -140,18 +150,58 @@ class Applications extends BaseController
             'applied_at' => date('Y-m-d H:i:s')
         ];
 
+        $questionnaire = $this->decodeQuestionnaire((string) ($job['application_questionnaire'] ?? ''));
+        $questionnaireResponses = [];
+        if ($db->fieldExists('questionnaire_responses', 'applications')) {
+            [$responses, $questionnaireError] = $this->buildQuestionnaireResponses(
+                $questionnaire,
+                $this->request->getPost('questionnaire_response')
+            );
+
+            if ($questionnaireError !== null) {
+                if ($isAjax) {
+                    return $this->respondApplicationAction(false, $questionnaireError, null, 422);
+                }
+
+                return redirect()->back()->withInput()->with('error', $questionnaireError);
+            }
+
+            $questionnaireResponses = $responses;
+            $payload['questionnaire_responses'] = $responses !== [] ? json_encode($responses) : null;
+        }
+
+        $knockoutFailure = $this->findKnockoutFailure($questionnaire, $questionnaireResponses);
+        if ($knockoutFailure !== null) {
+            $payload['status'] = 'filtered_out';
+            $initialStatus = 'filtered_out';
+        }
+
         if ($db->fieldExists('resume_version_id', 'applications')) {
             $payload['resume_version_id'] = (int) ($resumeVersion['id'] ?? 0) > 0 ? (int) $resumeVersion['id'] : null;
         }
 
         $model->insert($payload);
+        $db = \Config\Database::connect();
+        if ($db->tableExists('recruiter_job_invitations')) {
+            (new RecruiterJobInvitationModel())->markAppliedForCandidateJob((int) $candidateId, (int) $jobId);
+        }
         
         $applicationId = $model->getInsertID();
         $stageModel = model('StageHistoryModel');
         $stageModel->moveToStage($applicationId, 'Applied');
+        if ($initialStatus === 'filtered_out') {
+            $stageModel->moveToStage($applicationId, 'Filtered Out (Knock-out Question)');
+        }
         if ($initialStatus === 'shortlisted') {
             $stageModel->moveToStage($applicationId, 'Shortlisted (AI Policy OFF)');
         }
+
+        // Mask status for candidate UI response to ensure 'filtered_out' remains hidden
+        $displayStatus = ($initialStatus === 'filtered_out') ? 'applied' : $initialStatus;
+
+        $applySuccessMessage = $knockoutFailure !== null
+            ? 'Application submitted successfully. It is now under recruiter review.'
+            : $this->getApplySuccessMessage($aiPolicy);
         if ($mismatch) {
             // Store multiple suggestions as array
             $suggestions = $session->get('career_suggestions') ?? [];
@@ -176,28 +226,30 @@ class Applications extends BaseController
             }
             
             if ($isAjax) {
-                return $this->respondApplicationAction(true, $this->getApplySuccessMessage($aiPolicy), [
+                return $this->respondApplicationAction(true, $applySuccessMessage, [
                     'application_id' => $applicationId,
-                    'status' => $initialStatus,
-                    'status_label' => ucwords(str_replace('_', ' ', $initialStatus)),
+                    'status' => $displayStatus,
+                    'status_label' => ucwords(str_replace('_', ' ', $displayStatus)),
+                    'filtered_out' => $knockoutFailure !== null,
                     'redirect_url' => base_url('candidate/dashboard'),
                     'mismatch' => true,
                 ]);
             }
 
-            return redirect()->to('candidate/dashboard')->with('success', $this->getApplySuccessMessage($aiPolicy));
+            return redirect()->to('candidate/dashboard')->with('success', $applySuccessMessage);
         }
 
         if ($isAjax) {
-            return $this->respondApplicationAction(true, $this->getApplySuccessMessage($aiPolicy), [
+            return $this->respondApplicationAction(true, $applySuccessMessage, [
                 'application_id' => $applicationId,
-                'status' => $initialStatus,
-                'status_label' => ucwords(str_replace('_', ' ', $initialStatus)),
+                'status' => $displayStatus,
+                'status_label' => ucwords(str_replace('_', ' ', $displayStatus)),
+                'filtered_out' => $knockoutFailure !== null,
                 'mismatch' => false,
             ]);
         }
 
-        return redirect()->back()->with('success', $this->getApplySuccessMessage($aiPolicy));
+        return redirect()->back()->with('success', $applySuccessMessage);
     }
 
     public function withdraw($applicationId)
@@ -241,7 +293,7 @@ class Applications extends BaseController
             return redirect()->back()->with('info', 'This application is already withdrawn.');
         }
 
-        if (in_array($status, ['rejected', 'selected', 'hired'], true)) {
+        if (in_array($status, ['filtered_out', 'rejected', 'selected', 'hired'], true)) {
             if ($isAjax) {
                 return $this->respondApplicationAction(false, 'This application can no longer be withdrawn.', null, 422);
             }
@@ -293,6 +345,166 @@ class Applications extends BaseController
         }
 
         return $this->response->setStatusCode($statusCode)->setJSON($payload);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function decodeQuestionnaire(string $rawQuestionnaire): array
+    {
+        if (trim($rawQuestionnaire) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($rawQuestionnaire, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $questions = [];
+        foreach ($decoded as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $id = trim((string) ($row['id'] ?? ''));
+            $label = trim((string) ($row['label'] ?? ''));
+            $type = strtolower(trim((string) ($row['type'] ?? 'textarea')));
+
+            if ($id === '' || $label === '' || !in_array($type, self::QUESTIONNAIRE_TYPES, true)) {
+                continue;
+            }
+
+            $questions[] = [
+                'id' => $id,
+                'label' => $label,
+                'type' => $type,
+                'placeholder' => trim((string) ($row['placeholder'] ?? '')),
+                'required' => (bool) ($row['required'] ?? false),
+                'knockout' => (bool) ($row['knockout'] ?? false),
+                'knockout_answer' => trim((string) ($row['knockout_answer'] ?? '')),
+                'knockout_match' => in_array(strtolower(trim((string) ($row['knockout_match'] ?? 'exact'))), ['exact', 'contains'], true)
+                    ? strtolower(trim((string) ($row['knockout_match'] ?? 'exact')))
+                    : 'exact',
+            ];
+        }
+
+        return $questions;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $questionnaire
+     * @param mixed $rawResponses
+     * @return array{0: array<int, array<string, mixed>>, 1: string|null}
+     */
+    private function buildQuestionnaireResponses(array $questionnaire, $rawResponses): array
+    {
+        if (empty($questionnaire)) {
+            return [[], null];
+        }
+
+        $rawResponses = is_array($rawResponses) ? $rawResponses : [];
+        $responses = [];
+
+        foreach ($questionnaire as $question) {
+            $questionId = (string) ($question['id'] ?? '');
+            $answer = trim((string) ($rawResponses[$questionId] ?? ''));
+
+            if (!empty($question['required']) && $answer === '') {
+                return [[], '"' . (string) ($question['label'] ?? 'This question') . '" is required.'];
+            }
+
+            if ($answer === '') {
+                continue;
+            }
+
+            if (mb_strlen($answer) > 5000) {
+                return [[], 'Each application response must be 5000 characters or fewer.'];
+            }
+
+            $responses[] = [
+                'question_id' => $questionId,
+                'label' => (string) ($question['label'] ?? ''),
+                'type' => (string) ($question['type'] ?? 'textarea'),
+                'answer' => $answer,
+                'required' => (bool) ($question['required'] ?? false),
+                'knockout' => (bool) ($question['knockout'] ?? false),
+                'knockout_passed' => !empty($question['knockout'])
+                    ? $this->answerMatchesKnockout($answer, (string) ($question['knockout_answer'] ?? ''), (string) ($question['knockout_match'] ?? 'exact'))
+                    : null,
+            ];
+        }
+
+        return [$responses, null];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $questionnaire
+     * @param array<int, array<string, mixed>> $responses
+     */
+    private function findKnockoutFailure(array $questionnaire, array $responses): ?array
+    {
+        if (empty($questionnaire)) {
+            return null;
+        }
+
+        $answerByQuestionId = [];
+        foreach ($responses as $response) {
+            $questionId = (string) ($response['question_id'] ?? '');
+            if ($questionId !== '') {
+                $answerByQuestionId[$questionId] = (string) ($response['answer'] ?? '');
+            }
+        }
+
+        foreach ($questionnaire as $question) {
+            if (empty($question['knockout'])) {
+                continue;
+            }
+
+            $questionId = (string) ($question['id'] ?? '');
+            $answer = trim((string) ($answerByQuestionId[$questionId] ?? ''));
+            if (!$this->answerMatchesKnockout($answer, (string) ($question['knockout_answer'] ?? ''), (string) ($question['knockout_match'] ?? 'exact'))) {
+                return [
+                    'question_id' => $questionId,
+                    'label' => (string) ($question['label'] ?? 'Knock-out question'),
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    private function answerMatchesKnockout(string $answer, string $expectedRaw, string $matchType): bool
+    {
+        $answer = $this->normalizeScreeningAnswer($answer);
+        $expectedAnswers = preg_split('/[,\r\n|;]+/', $expectedRaw) ?: [];
+        $expectedAnswers = array_values(array_filter(array_map(fn (string $value): string => $this->normalizeScreeningAnswer($value), $expectedAnswers)));
+
+        if ($answer === '' || empty($expectedAnswers)) {
+            return false;
+        }
+
+        foreach ($expectedAnswers as $expected) {
+            if ($matchType === 'contains') {
+                if (str_contains($answer, $expected)) {
+                    return true;
+                }
+                continue;
+            }
+
+            if ($answer === $expected) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function normalizeScreeningAnswer(string $value): string
+    {
+        $value = strtolower(trim($value));
+        $value = preg_replace('/[^a-z0-9+#.]+/', ' ', $value) ?? '';
+        return trim(preg_replace('/\s+/', ' ', $value) ?? '');
     }
 
     private function getApplySuccessMessage(string $aiPolicy): string

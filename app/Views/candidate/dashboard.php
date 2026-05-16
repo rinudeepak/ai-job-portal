@@ -1,4 +1,5 @@
-<?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
+                        <?= view('Layouts/candidate_header', ['title' => 'Dashboard']) ?>
+
 
 <?php
 $applicationCount = count($applications ?? []);
@@ -122,7 +123,78 @@ $resolveAssetUrl = static function (string $path): string {
     return base_url(ltrim($path, '/'));
 };
 ?>
+<style>
+    /* =====================================================
+   🎯 DASHBOARD BACKGROUND BASE
+===================================================== */
+.dashboard-jobboard {
+    position: relative;
+    overflow: hidden;
 
+    background:
+        repeating-linear-gradient(
+            120deg,
+            rgba(79,70,229,0.025) 0px,
+            rgba(79,70,229,0.025) 1px,
+            transparent 1px,
+            transparent 80px
+        ),
+        linear-gradient(
+            120deg,
+            #fafbff,
+            #f5f7ff,
+            #f8f9fc,
+            #fdf6f2
+        );
+}
+
+/* =====================================================
+   🌈 ANIMATED STRIPES LAYER
+===================================================== */
+.dashboard-jobboard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    background: repeating-linear-gradient(
+        120deg,
+        rgba(79,70,229,0.05) 0px,
+        rgba(79,70,229,0.05) 2px,
+        transparent 2px,
+        transparent 60px,
+
+        rgba(90,169,255,0.05) 60px,
+        rgba(90,169,255,0.05) 62px,
+        transparent 62px,
+        transparent 120px,
+
+        rgba(255,140,90,0.05) 120px,
+        rgba(255,140,90,0.05) 122px,
+        transparent 122px,
+        transparent 180px
+    );
+
+    animation: moveStripes 40s linear infinite;
+}
+
+/* =====================================================
+   🔥 KEEP CONTENT ABOVE BACKGROUND
+===================================================== */
+.dashboard-jobboard > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* =====================================================
+   🎬 ANIMATION
+===================================================== */
+@keyframes moveStripes {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-200px); }
+}
+</style>
 <div class="dashboard-jobboard">
 
     <div class="container dashboard-layout">
@@ -146,7 +218,7 @@ $resolveAssetUrl = static function (string $path): string {
                         <?php endif; ?>
                     </div>
                 </div>
-                <a href="<?= base_url('candidate/profile') ?>" class="btn btn-sm btn-outline-primary dashboard-sidebar-view-profile">View profile</a>
+                <a href="<?= base_url('candidate/profile') ?>" class="btn btn-sm btn-primary dashboard-sidebar-view-profile">View profile</a>
             </div>
             <div class="dashboard-sidebar-progress">
                 <div class="dashboard-sidebar-progress-header">
@@ -177,7 +249,7 @@ $resolveAssetUrl = static function (string $path): string {
                 <a href="<?= base_url('candidate/applications') ?>" class="<?= $sidebarClass('applications') ?>"><i class="fas fa-briefcase"></i> Applications <span class="dashboard-sidebar-pill"><?= esc($formatCompactCount($applicationCount)) ?></span></a>
                 <a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $sidebarClass('suggested') ?>"><i class="fas fa-fire"></i> Recommended Jobs <span class="dashboard-sidebar-pill dashboard-sidebar-pill-accent">For You</span></a>
                 <a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $sidebarClass('saved') ?>"><i class="fas fa-bookmark"></i> Saved Jobs <span class="dashboard-sidebar-pill"><?= esc($formatCompactCount($savedJobsCount)) ?></span></a>
-                <a href="<?= base_url('companies') ?>" class="<?= $sidebarClass('companies') ?>"><i class="fas fa-building"></i> Companies</a>
+                <a href="<?= base_url('candidate/company-job-discovery') ?>" class="<?= $sidebarClass('companies') ?>"><i class="fas fa-building"></i> Company & Job Discovery</a>
             </nav>
             <div class="dashboard-sidebar-cta">
                 <div class="dashboard-sidebar-cta-kicker">Next Step</div>
@@ -266,7 +338,7 @@ $resolveAssetUrl = static function (string $path): string {
                         Live Recommendations
                     </div>
                     <h2 class="section-title">Jobs Matching Your Profile</h2>
-                    <p class="section-subtitle">Based on your skills, preferences, and application history</p>
+                    <p class="section-subtitle">Based on your skills, target roles, and work preferences</p>
                 </div>
                 <a href="<?= base_url('jobs?tab=suggested') ?>" class="btn btn-ghost text-primary">View all jobs <i class="fas fa-arrow-right ms-2"></i></a>
             </div>
@@ -312,21 +384,12 @@ $resolveAssetUrl = static function (string $path): string {
                                 </div>
                                 <div class="job-card-tags">
                                     <span class="badge badge-primary"><?= esc($job['employment_type'] ?: 'Full-time') ?></span>
-                                    <?php if ($isExternalJob): ?>
-                                        <span class="badge badge-warning">External<?= $externalSource !== '' ? ' · ' . esc($externalSource) : '' ?></span>
-                                    <?php endif; ?>
                                     <span class="badge badge-secondary"><?= esc(substr($title, 0, 15) ?: 'Role') ?></span>
                                 </div>
-                                <?php if (!$isExternalJob): ?>
-                                <div class="progress-container">
-                                    <div class="progress-bar-custom" style="width: <?= $matchPct ?>%;"></div>
-                                    <span class="progress-label"><?= esc($matchLabel) ?></span>
-                                </div>
-                                <?php endif; ?>
                                 <a href="<?= base_url('job/' . (int) $job['id']) ?>" class="view-details">View Details &rarr;</a>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
                 <?php else: ?>
                     <div class="col-12">
                         <div class="dashboard-panel">
@@ -440,6 +503,28 @@ $resolveAssetUrl = static function (string $path): string {
 
     <section class="dashboard-section pt-0">
         <div class="container">
+            <?php if (!empty($jobCategories)): ?>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="section-title mb-0">Explore by Role</h2>
+                    <p class="section-subtitle mb-0">Quickly find openings in your preferred specialized domains.</p>
+                </div>
+            </div>
+            <div class="top-companies-grid mb-5">
+                <?php foreach ($jobCategories as $category): ?>
+                    <a href="<?= base_url('jobs?category=' . urlencode((string)($category['name'] ?? ''))) ?>" class="top-company-card">
+                        <div class="top-company-logo">
+                            <i class="<?= esc((string)($category['icon'] ?? 'fas fa-briefcase')) ?> text-primary" style="font-size: 1.25rem;"></i>
+                        </div>
+                        <div class="top-company-info">
+                            <div class="top-company-name"><?= esc((string)($category['name'] ?? 'Role')) ?></div>
+                            <div class="top-company-jobs"><?= (int)($category['job_count'] ?? 0) ?> <?= (int)($category['job_count'] ?? 0) === 1 ? 'opening' : 'openings' ?></div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
             <?php
             $topHiringCompanies = $topHiringCompanies ?? [];
             $resolveLogoUrl = static function (string $path): string {
@@ -486,6 +571,10 @@ $resolveAssetUrl = static function (string $path): string {
             <?php endif; ?>
         </div>
     </section>
+
+    <?php if (!empty($blogPosts)): ?>
+        <?= view('candidate/dashboard_blog_section', ['blogPosts' => $blogPosts]) ?>
+    <?php endif; ?>
 
     <section class="dashboard-section pt-0">
         <div class="container">
@@ -550,6 +639,7 @@ $resolveAssetUrl = static function (string $path): string {
 
 </div>
 
+
 <?php if (count($bannerItems) > 1): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -581,3 +671,4 @@ document.addEventListener('DOMContentLoaded', function () {
 <?php endif; ?>
 
 <?= view('Layouts/candidate_footer') ?>
+            

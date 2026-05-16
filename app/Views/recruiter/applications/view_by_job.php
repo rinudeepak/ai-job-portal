@@ -1,4 +1,4 @@
-<?= view('Layouts/recruiter_header', ['title' => 'Applications - ' . $job['title']]) ?>
+        <?= view('Layouts/recruiter_header', ['title' => 'Applications - ' . $job['title']]) ?>
 
 <div class="recruiter-applications-jobboard">
 <div class="container-fluid py-5">
@@ -106,6 +106,15 @@
                             <option value="ats_asc" <?= ($filters['sort'] ?? '') === 'ats_asc' ? 'selected' : '' ?>>ATS Low to High</option>
                         </select>
                     </div>
+                    <div class="col-md-2">
+    <label class="small text-muted mb-1">Last Active</label>
+    <select name="last_active" class="form-control">
+        <option value="">All</option>
+        <option value="7" <?= ($filters['last_active'] ?? '') === '7' ? 'selected' : '' ?>>Last 7 Days</option>
+        <option value="30" <?= ($filters['last_active'] ?? '') === '30' ? 'selected' : '' ?>>Last 30 Days</option>
+        <option value="90" <?= ($filters['last_active'] ?? '') === '90' ? 'selected' : '' ?>>Last 90 Days</option>
+    </select>
+</div>
                     <div class="col-md-1">
                         <label class="small text-muted mb-1">Status</label>
                         <select name="status" class="form-control">
@@ -179,6 +188,7 @@
                                 <th>Notes</th>
                                 <th>Status</th>
                                 <th>ATS Score</th>
+                                <th>Last Active</th>
                                 <th>Applied Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -230,6 +240,7 @@
                                             'applied' => 'warning',
                                             'shortlisted' => 'success',
                                             'hold' => 'secondary',
+                                            'filtered_out' => 'dark',
                                             'interview_slot_booked' => 'success',
                                             'selected' => 'success',
                                             'rejected' => 'danger'
@@ -240,6 +251,7 @@
                                             'applied' => 'Applied',
                                             'shortlisted' => 'Shortlisted',
                                             'hold' => 'On Hold',
+                                            'filtered_out' => 'Filtered Out',
                                             'interview_slot_booked' => 'Interview Booked',
                                             'selected' => 'Selected',
                                             'rejected' => 'Rejected',
@@ -264,6 +276,13 @@
                                         ?>
                                         <span class="badge badge-<?= $atsBadge ?>"><?= $ats ?>%</span>
                                     </td>
+                                    <td>
+    <?php if (!empty($app['last_login'])): ?>
+        <?= date('M d, Y', strtotime($app['last_login'])) ?>
+    <?php else: ?>
+        <span class="text-muted">Never</span>
+    <?php endif; ?>
+</td>
                                     <td><?= date('M d, Y', strtotime($app['applied_at'])) ?></td>
                                     <td>
                                         <div class="application-actions-wrap">
@@ -409,3 +428,4 @@
 })();
 </script>
 <?= view('Layouts/recruiter_footer') ?>
+    

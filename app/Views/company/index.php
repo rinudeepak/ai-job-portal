@@ -1,4 +1,4 @@
-<?= view('Layouts/candidate_header', ['title' => 'Companies']) ?>
+        <?= view('Layouts/candidate_header', ['title' => 'Companies']) ?>
 <?php
 $totalCompanies = (int) ($totalCompanies ?? 0);
 $totalOpenJobs  = (int) ($totalOpenJobs ?? 0);
@@ -55,8 +55,138 @@ $filters        = $filters ?? [];
                     </div>
                 </div>
             </div>
+ <script>
+document.addEventListener("DOMContentLoaded", function(){
 
+    if (typeof jQuery === "undefined") {
+        console.error("jQuery NOT loaded");
+        return;
+    }
+
+    let $ = jQuery;
+    let timer;
+    $("#companySearchInput").on("keyup", function(){
+        clearTimeout(timer);
+
+        let term = $(this).val();
+
+        timer = setTimeout(() => {
+
+            if(term.length < 2){
+                $("#suggestions").remove();
+                return;
+            }
+
+            $.get("<?= base_url('companies/suggest') ?>", { term: term }, function(data){
+
+                $("#suggestions").remove();
+
+                if(!data.length) return;
+
+                let html = `
+                <ul id="suggestions" class="list-group shadow" style="
+                    position:absolute;
+                    top:100%;
+                    left:0;
+                    right:0;
+                    z-index:9999;
+                    background:#fff;
+                ">`;
+
+                data.forEach(item => {
+                    html += `<li class="list-group-item suggestion-item" data-value="${item.value}">
+                                ${item.label}
+                             </li>`;
+                });
+
+                html += "</ul>";
+
+                $("#companySearchInput").parent().append(html);
+
+            });
+
+        }, 300);
+
+    });
+
+    $(document).on("click", ".suggestion-item", function(){
+        $("#companySearchInput").val($(this).data("value"));
+        $("#suggestions").remove();
+    });
+
+    $(document).on("click", function(e){
+        if(!$(e.target).closest("#companySearchInput, #suggestions").length){
+            $("#suggestions").remove();
+        }
+    });
+
+});
+</script>
             <style>
+            .company-search-panel {
+    position: relative;
+}
+
+#companySearchInput {
+    position: relative;
+    z-index: 2;
+}
+
+/* 🔥 Dropdown container */
+#suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #ffffff;
+    border-radius: 12px;
+    margin-top: 6px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e6eaf2;
+    overflow: hidden;
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+/* 🔥 Each item */
+#suggestions li {
+    cursor: pointer;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #2d3748;
+    border-bottom: 1px solid #f1f3f7;
+    transition: all 0.2s ease;
+}
+
+/* remove last border */
+#suggestions li:last-child {
+    border-bottom: none;
+}
+
+/* 🔥 Hover effect */
+#suggestions li:hover {
+    background: #f7faff;
+    color: #4dc000;
+    padding-left: 18px;
+}
+
+/* 🔥 Active (keyboard support ready) */
+#suggestions li.active {
+    background: #eaf2ff;
+    color: #4dc000;
+}
+
+/* 🔥 Smooth animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
                 .companies-search-card { background:#fff; border:1px solid #e9edf8; border-radius:22px; box-shadow:0 14px 35px rgba(15,23,42,.05); }
                 .company-search-panel { padding:1.6rem 1.6rem 1.25rem; }
                 .company-search-grid>[class*="col-"] { margin-bottom:1rem; }
@@ -309,3 +439,4 @@ $filters        = $filters ?? [];
 </script>
 
 <?= view('Layouts/candidate_footer') ?>
+    

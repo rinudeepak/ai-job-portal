@@ -62,10 +62,667 @@ $formatAge = static function ($value): string {
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/responsive.css?v=' . @filemtime(FCPATH . 'jobboard/css/responsive.css')) ?>">
+    <style> 
+/* ===============================
+   STATIC STRIPES (NO ANIMATION)
+================================= */
+
+:root {
+    --stripe-bg: repeating-linear-gradient(
+        120deg,
+        rgba(79,70,229,0.04) 0px,
+        rgba(79,70,229,0.04) 2px,
+        transparent 2px,
+        transparent 60px,
+
+        rgba(90,169,255,0.04) 60px,
+        rgba(90,169,255,0.04) 62px,
+        transparent 62px,
+        transparent 120px,
+
+        rgba(255,140,90,0.04) 120px,
+        rgba(255,140,90,0.04) 122px,
+        transparent 122px,
+        transparent 180px
+    );
+}
+
+body {
+    position: relative;
+    overflow-x: hidden;
+
+    background: #fafbff; /* base fallback */
+}
+
+
+/* 🔥 MOVING STRIPES LAYER */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+
+    background: repeating-linear-gradient(
+        120deg,
+        rgba(79,70,229,0.05) 0px,
+        rgba(79,70,229,0.05) 2px,
+        transparent 2px,
+        transparent 60px,
+
+        rgba(90,169,255,0.05) 60px,
+        rgba(90,169,255,0.05) 62px,
+        transparent 62px,
+        transparent 120px,
+
+        rgba(255,140,90,0.05) 120px,
+        rgba(255,140,90,0.05) 122px,
+        transparent 122px,
+        transparent 180px
+    );
+
+    animation: moveStripes 40s linear infinite;
+}
+body {
+    background:
+        repeating-linear-gradient(
+            120deg,
+            rgba(79,70,229,0.025) 0px,
+            rgba(79,70,229,0.025) 1px,
+            transparent 1px,
+            transparent 80px
+        ),
+        linear-gradient(
+            120deg,
+            #fafbff,
+            #f5f7ff,
+            #f8f9fc,
+            #fdf6f2
+        );
+}
+
+/* ===============================
+   ANIMATIONS
+================================= */
+
+@keyframes moveStripes {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-200px); /* slow slide */
+    }
+}
+
+@keyframes bodyGradientMove {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+    .hero { position: relative; padding: 100px 0; overflow: hidden; /* 🔥 stronger animated gradient */ background: linear-gradient( 120deg, #dbe6ff, #eef2ff, #fcefe6, #fbc5afa1, #dbe6ff ); background-size: 300% 300%; animation: gradientMove 6s ease-in-out infinite; } /* 🎯 gradient animation */ @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } } /* =============================== 🔥 BIG FLOATING BLOBS (VISIBLE) ================================= */ .hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; filter: blur(60px); /* less blur = stronger */ opacity: 0.7; z-index: 0; } .hero::before { width: 420px; height: 420px; background: #ac75ffac; top: -100px; left: -100px; animation: blobMove1 5s ease-in-out infinite alternate; } .hero::after { width: 420px; height: 420px; background: #6b95ffe5; bottom: -100px; right: -100px; animation: blobMove2 6s ease-in-out infinite alternate; } @keyframes blobMove1 { 0% { transform: translate(0, 0); } 100% { transform: translate(120px, 80px); } } @keyframes blobMove2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-120px, -80px); } } /* =============================== ✨ LIGHT SWEEP (VERY NOTICEABLE) ================================= */ .hero .light-sweep { position: absolute; top: 0; left: -120%; width: 60%; height: 100%; z-index: 1; background: linear-gradient( 120deg, transparent, rgba(255,255,255,0.5), transparent ); transform: skewX(-20deg); animation: sweepMove 4s linear infinite; } @keyframes sweepMove { 0% { left: -120%; } 100% { left: 130%; } }
+/* ===============================
+   STATUS PILL
+================================= */
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(79, 70, 229, 0.08);
+    color: rgba(78, 70, 229, 0.82);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 15px;
+
+    backdrop-filter: blur(10px);
+}
+
+
+/* ===============================
+   HERO TEXT
+================================= */
+
+.hero-title {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 15px;
+     color: #111827;
+}
+
+.hero-subtitle {
+    font-size: 16px;
+    color: #6b7280;
+    max-width: 600px;
+}
+
+
+/* gradient highlight */
+.gradient-text {
+    background: linear-gradient(90deg, #4f46e5, #9b87f5, #f4a261); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+/* ===============================
+   SEARCH PANEL
+================================= */
+
+.landing-search-panel {
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    background: #ffffff;
+}
+
+.landing-search-panel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+}
+
+
+/* search inputs */
+.search-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f9fafb;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: all 0.25s ease;
+}
+
+.search-input-group:hover {
+    border-color: rgba(79,70,229,0.3);
+    background: #fff;
+}
+
+.search-input-group input {
+    border: none !important;
+    background: transparent;
+    font-size: 14px;
+}
+
+.search-input-group input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+
+/* ===============================
+   SEARCH BUTTON
+================================= */
+
+.landing-search-submit {
+    border-radius: 10px;
+    font-weight: 600;
+
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    border: none;
+
+    box-shadow: 0 8px 18px rgba(79,70,229,0.25);
+    transition: all 0.3s ease;
+}
+
+.landing-search-submit:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 28px rgba(79,70,229,0.35);
+}
+
+
+/* ===============================
+   POPULAR TAGS
+================================= */
+
+.btn-group .btn {
+    border-radius: 50px !important;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+
+/* ===============================
+   FOOT NOTE TEXT
+================================= */
+
+.hero p.text-muted {
+    opacity: 0.8;
+}
+
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 32px;
+    }
+
+    .hero {
+        padding: 70px 0;
+    }
+}
+/* ===============================
+   CAREER TRANSITION BACKGROUND
+================================= */
+/* ===============================
+   CAREER TRANSITION (MATCH HERO)
+================================= */
+
+.landing-career-transition {
+    position: relative;
+    padding: 100px 0;
+    overflow: hidden;
+
+    /* 🔥 EXACT HERO GRADIENT */
+    background: linear-gradient(
+        120deg,
+        #dbe6ff,
+        #eef2ff,
+        #fcefe6,
+        #fbc5afa1,
+        #dbe6ff
+    );
+
+    background-size: 300% 300%;
+    animation: gradientMove 6s ease-in-out infinite;
+}
+
+/* SAME gradient animation */
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+
+/* ===============================
+   🔥 HERO STYLE BLOBS (MATCHED)
+================================= */
+
+.landing-career-transition::before,
+.landing-career-transition::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.7;
+    z-index: 0;
+}
+
+/* SAME COLORS AS HERO */
+.landing-career-transition::before {
+    width: 420px;
+    height: 420px;
+    background: #ac75ffac;
+    top: -100px;
+    left: -100px;
+    animation: blobMove1 5s ease-in-out infinite alternate;
+}
+
+.landing-career-transition::after {
+    width: 420px;
+    height: 420px;
+    background: #81a4fece;
+    bottom: -100px;
+    right: -100px;
+    animation: blobMove2 6s ease-in-out infinite alternate;
+}
+
+@keyframes blobMove1 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(120px, 80px); }
+}
+
+@keyframes blobMove2 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-120px, -80px); }
+}
+
+
+/* ===============================
+   ✨ LIGHT SWEEP (MATCH HERO)
+================================= */
+
+.landing-career-transition .light-sweep {
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 60%;
+    height: 100%;
+    z-index: 1;
+
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.5),
+        transparent
+    );
+
+    transform: skewX(-20deg);
+    animation: sweepMove 4s linear infinite;
+}
+
+@keyframes sweepMove {
+    0% { left: -120%; }
+    100% { left: 130%; }
+}
+
+
+/* ===============================
+   GLASS CARD (READABLE)
+================================= */
+
+.landing-career-transition-inner {
+    position: relative;
+    z-index: 2;
+
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(20px);
+
+    border-radius: 20px;
+    padding: 40px;
+
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+}
+
+
+/* ===============================
+   TEXT
+================================= */
+
+.landing-career-transition-kicker {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+
+    color: #4f46e5;
+    background: rgba(79,70,229,0.12);
+
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+}
+
+.landing-career-transition-title {
+    font-size: 32px;
+    font-weight: 700;
+
+     background: linear-gradient(90deg, #4f46e5, #9b87f5, #f4a261); 
+    background-size: 200% auto;
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    animation: textShine 4s linear infinite;
+}
+
+@keyframes textShine {
+    to { background-position: 200% center; }
+}
+
+.landing-career-transition-text {
+    font-size: 15px;
+    color: #374151;
+    opacity: 0.95;
+    max-width: 500px;
+}
+
+
+/* ===============================
+   BUTTON
+================================= */
+
+.landing-career-transition-btn {
+    display: inline-block;
+    margin-top: 20px;
+
+    background: #ffffff;
+    color: #4f46e5;
+    font-weight: 600;
+
+    padding: 10px 18px;
+    border-radius: 10px;
+
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+.landing-career-transition-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+
+/* ===============================
+   LAYER FIX
+================================= */
+
+.landing-career-transition .container {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 768px) {
+    .landing-career-transition-inner {
+        padding: 25px;
+    }
+
+    .landing-career-transition-title {
+        font-size: 24px;
+    }
+}
+.job-card {
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #f7f9ff 100%
+    );
+
+    border-radius: 14px;
+    padding: 20px;
+
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+
+    transition: all 0.3s ease;
+}
+ 
+.job-card:hover {
+    transform: translateY(-6px);
+
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #eef2ff 100%
+    );
+
+    box-shadow: 0 18px 35px rgba(0,0,0,0.10);
+}
+.job-card-title { 
+
+    background: linear-gradient(90deg, #4f46e5, #9b87f5, #f4a261);
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.section-title { 
+    background: linear-gradient(90deg, #4f46e5, #9b87f5, #f4a261);
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.landing-get-started-title{
+    background: linear-gradient(90deg, #4f46e5, #9b87f5, #f4a261);
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+/* ===============================
+   REMOVE SECTION BACKGROUND
+================================= */
+/* ===============================
+   SECTION BACKGROUND (SMOOTH + NO LINE)
+================================= */
+/* ===============================
+   SECTION BACKGROUND (CLEAN + SPACING)
+================================= */
+.landing-get-started {
+    padding: 100px 0 120px;
+
+    background: linear-gradient(
+        120deg,
+        #f8faff,
+        #f4f6ff,
+        #fdf7f3
+    );
+}
+/* ===============================
+   REMOVE GLOW EDGE BLEED
+================================= */
+.landing-get-started::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background:
+        radial-gradient(circle at 20% 30%, rgba(79,70,229,0.06), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255,140,90,0.06), transparent 40%);
+
+    pointer-events: none;
+}
+/* ===============================
+   CONTAINER LAYER FIX
+================================= */
+
+.landing-get-started .container {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* ===============================
+   CARD (REDUCE SHADOW SPILL)
+================================= */
+
+.landing-start-card {
+    position: relative;
+    border-radius: 18px;
+    padding: 30px;
+
+    background: linear-gradient(145deg, #ffffff, #f5f7ff);
+
+    border: none;
+
+    /* 👇 slightly tighter shadow to avoid line */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+
+    transition: all 0.3s ease;
+}
+
+
+/* ===============================
+   HOVER (CONTROLLED)
+================================= */
+
+.landing-start-card:hover {
+    transform: translateY(-6px);
+
+    /* 👇 controlled shadow (not too deep) */
+    box-shadow: 0 18px 35px rgba(0,0,0,0.10);
+}
+
+
+/* ===============================
+   EXTRA GAP BEFORE FOOTER
+================================= */
+
+footer,
+.site-footer {
+    margin-top: 0 !important;
+    border-top: none !important;
+    box-shadow: none !important;
+}
+
+/* Optional: add breathing space */
+footer {
+    padding-top: 40px;
+}
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 768px) {
+    .landing-get-started-title {
+        font-size: 28px;
+    }
+
+    .landing-start-card {
+        padding: 20px;
+    }
+}
+
+/* ===============================
+   MOBILE HEADER VISIBILITY FIX
+================================= */
+
+@media (max-width: 991px) {
+    .site-navbar {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        background: rgba(255, 255, 255, 0.98) !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+    }
+
+    .landing-header-logo-image {
+        height: 32px;
+    }
+
+    .landing-header-logo-text {
+        font-size: 1.35rem;
+    }
+
+    .site-menu-toggle {
+        text-decoration: none !important;
+        color: #111827 !important;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.04);
+        transition: background 0.2s ease;
+    }
+
+    .site-menu-toggle:active {
+        background: rgba(0, 0, 0, 0.1);
+    }
+}
+        </style>
 </head>
 <?= view('Layouts/public_header', ['body_class' => 'landing-page']) ?>
 
     <section class="hero py-5">
+        <div class="light-sweep"></div>
+<div class="glow"></div>
         <div class="container">
             <div class="status-pill">
                 <i class="fas fa-arrow-trend-up" style="color: var(--primary);"></i>
@@ -242,6 +899,7 @@ $formatAge = static function ($value): string {
     </section>
 
     <section class="landing-career-transition">
+        <div class="light-sweep"></div>
         <div class="container">
             <div class="landing-career-transition-inner">
                 <div class="landing-career-transition-copy">
@@ -257,12 +915,7 @@ $formatAge = static function ($value): string {
                     <a href="<?= base_url('career-transition') ?>" class="btn btn-light landing-career-transition-btn">
                         Generate Roadmap <i class="fas fa-arrow-right ms-2"></i>
                     </a>
-                </div>
-                <div class="landing-career-transition-art d-none d-lg-flex" aria-hidden="true">
-                    <div class="landing-career-transition-orb">
-                        <i class="fas fa-sparkles"></i>
-                    </div>
-                </div>
+                </div> 
             </div>
         </div>
     </section>
@@ -282,7 +935,7 @@ $formatAge = static function ($value): string {
                         <div class="landing-start-icon">
                             <i class="fas fa-users"></i>
                         </div>
-                        <h3>For Job Seekers</h3>
+                        <h3 style="color:#0a80ff">For Job Seekers</h3>
                         <p>Discover opportunities tailored to your skills and career goals.</p>
                         <ul class="landing-start-list">
                             <li><i class="fas fa-check"></i> AI-powered job recommendations</li>
@@ -300,7 +953,7 @@ $formatAge = static function ($value): string {
                         <div class="landing-start-icon landing-start-icon-recruiter">
                             <i class="fas fa-briefcase"></i>
                         </div>
-                        <h3>For Recruiters</h3>
+                        <h3 style="color:#ff8018">For Recruiters</h3>
                         <p>Find and connect with the best talent for your organization.</p>
                         <ul class="landing-start-list landing-start-list-recruiter">
                             <li><i class="fas fa-check"></i> Smart candidate matching</li>

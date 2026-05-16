@@ -5,6 +5,50 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        var drawerToggle = document.getElementById('hmDrawerToggle');
+        var drawer = document.getElementById('hmDrawer');
+        var drawerOverlay = document.getElementById('hmDrawerOverlay');
+        var drawerClose = document.getElementById('hmDrawerClose');
+
+        var openDrawer = function () {
+            if (!drawer || !drawerOverlay) {
+                return;
+            }
+            drawer.classList.add('is-open');
+            drawerOverlay.classList.add('is-open');
+            drawer.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('hm-drawer-open');
+            if (drawerToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'true');
+            }
+        };
+
+        var closeDrawer = function () {
+            if (!drawer || !drawerOverlay) {
+                return;
+            }
+            drawer.classList.remove('is-open');
+            drawerOverlay.classList.remove('is-open');
+            drawer.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('hm-drawer-open');
+            if (drawerToggle) {
+                drawerToggle.setAttribute('aria-expanded', 'false');
+            }
+        };
+
+        if (drawerToggle) {
+            drawerToggle.addEventListener('click', function (event) {
+                event.preventDefault();
+                openDrawer();
+            });
+        }
+        if (drawerClose) {
+            drawerClose.addEventListener('click', closeDrawer);
+        }
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', closeDrawer);
+        }
+
         var menu = document.getElementById('recruiterAvatarMenu');
         var button = document.getElementById('recruiterAvatarBtn');
         var dropdown = document.getElementById('recruiterAvatarDropdown');
@@ -21,6 +65,60 @@
                 if (!menu.contains(event.target)) {
                     dropdown.classList.remove('is-open');
                     button.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        // Theme Toggle Logic for Recruiter Panel
+        var themeToggles = document.querySelectorAll('.js-theme-checkbox');
+        if (themeToggles.length > 0) {
+            var getStoredTheme = function () {
+                try {
+                    return localStorage.getItem('recruiter-theme') || 'light';
+                } catch (error) {
+                    return 'light';
+                }
+            };
+
+            var setStoredTheme = function (theme) {
+                try {
+                    localStorage.setItem('recruiter-theme', theme);
+                } catch (error) {
+                    return false;
+                }
+                return true;
+            };
+
+            var applyTheme = function (theme) {
+                var isDark = theme === 'dark';
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                    document.documentElement.setAttribute('data-recruiter-theme', 'dark');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    document.documentElement.removeAttribute('data-recruiter-theme');
+                }
+                themeToggles.forEach(function(toggle) {
+                    toggle.checked = isDark;
+                    toggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
+                });
+            };
+
+            // Initialize from localStorage
+            applyTheme(getStoredTheme());
+
+            themeToggles.forEach(function(toggle) {
+                toggle.setAttribute('role', 'switch');
+                toggle.addEventListener('change', function () {
+                    var nextTheme = this.checked ? 'dark' : 'light';
+                    applyTheme(nextTheme);
+                    setStoredTheme(nextTheme);
+                });
+            });
+
+            window.addEventListener('storage', function (event) {
+                if (event.key === 'recruiter-theme') {
+                    applyTheme(event.newValue === 'dark' ? 'dark' : 'light');
                 }
             });
         }

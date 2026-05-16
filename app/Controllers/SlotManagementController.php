@@ -726,6 +726,22 @@ class SlotManagementController extends BaseController
     public function markCompleted($bookingId)
     {
         $bookingModel = model('InterviewBookingModel');
+        $currentUserId = (int) session()->get('user_id');
+
+        // Verify that the booking belongs to a job posted by this recruiter
+        $booking = $bookingModel
+            ->select('interview_bookings.*, jobs.recruiter_id')
+            ->join('jobs', 'jobs.id = interview_bookings.job_id', 'left')
+            ->where('interview_bookings.id', (int) $bookingId)
+            ->first();
+
+        if (!$booking) {
+            return redirect()->back()->with('error', 'Booking not found.');
+        }
+
+        if ((int) ($booking['recruiter_id'] ?? 0) !== $currentUserId && session()->get('role') === 'recruiter') {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
 
         $bookingModel->update($bookingId, [
             'booking_status' => 'completed'

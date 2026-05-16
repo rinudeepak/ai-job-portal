@@ -1,4 +1,4 @@
-<!doctype html>
+                <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -18,6 +18,38 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/responsive.css?v=' . @filemtime(FCPATH . 'jobboard/css/responsive.css')) ?>">
+    <!-- CSS Circle Progress (Required for visual ATS Score) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/css-percentage-circle/0.0.3/css/circle.min.css">
+<style>
+    .theme-toggle-btn{
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    outline: none;
+    cursor: pointer;
+
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 20px;
+
+    transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover{
+    transform: rotate(15deg) scale(1.08);
+}
+
+.theme-toggle-btn:focus{
+    outline: none;
+    box-shadow: none;
+}
+    </style>
 </head>
 <body id="top" class="hirematrix-app candidate-app">
 <div id="overlayer"></div>
@@ -83,13 +115,14 @@
     $isApplicationStatusActive = $pathEndsWith('/candidate/applications');
     $isSavedJobsActive = $pathEndsWith('/candidate/saved-jobs');
     $isJobAlertsActive = false;
-    $isCompaniesActive = $pathEndsWith('/companies') || str_contains($currentPath, '/company/');
+    $isCompaniesActive = str_contains($currentPath, '/company/') || str_contains($currentPath, '/candidate/company-job-discovery') || str_contains($currentPath, '/localcompany');
     $isJobsRoot = $isJobsListActive || $isSavedJobsActive || $isJobDetailsActive;
     $isJobsActive = $isJobsRoot || $isApplicationStatusActive || $isJobAlertsActive;
     $isCareerTransitionActive = str_contains($currentPath, '/career-transition');
     $isResumeStudioActive = $pathEndsWith('/candidate/resume-studio');
     $isPremiumMentorActive = str_contains($currentPath, '/premium-mentor');
-    $isServicesActive = $isCareerTransitionActive || $isResumeStudioActive || $isPremiumMentorActive;
+    $isJobStrategyActive = str_contains($currentPath, '/job-strategy');
+    $isServicesActive = $isCareerTransitionActive || $isResumeStudioActive || $isPremiumMentorActive || $isJobStrategyActive ;
 
     $homeNavClass = $isHomeActive ? 'nav-link active' : 'nav-link';
     $jobsNavClass = $isJobsActive ? 'nav-link active' : 'nav-link';
@@ -100,7 +133,11 @@
     $savedJobsClass = $isSavedJobsActive ? 'active' : '';
     $careerTransitionClass = $isCareerTransitionActive ? 'active' : '';
     $resumeStudioClass = $isResumeStudioActive ? 'active' : '';
-
+    $jobStrategyClass = $isJobStrategyActive ? 'active' : '';
+    $localCompanyClass = str_contains($currentPath, '/localcompany') ? 'active' : '';
+    $companyJobDiscoveryClass = str_contains($currentPath, '/candidate/company-job-discovery') ? 'active' : '';
+    $premiumMentorClass = $isPremiumMentorActive ? 'active' : '';
+    
     if ($candidatePhoto === '' && $candidateId > 0) {
         $candidateRecord = model('UserModel')->findCandidateWithProfile($candidateId);
         $candidatePhoto = (string) ($candidateRecord['profile_photo'] ?? '');
@@ -232,9 +269,13 @@
                         <span>Recommended Jobs</span>
                         <span class="hm-drawer-pill hm-drawer-pill-accent">For You</span>
                     </a>
-                    <a href="<?= base_url('companies') ?>" class="hm-drawer-link <?= $isCompaniesActive ? 'is-active' : '' ?>">
+                    <a href="<?= base_url('localcompany') ?>" class="hm-drawer-link <?= str_contains($currentPath, '/localcompany') ? 'is-active' : '' ?>">
                         <span class="hm-drawer-link-icon"><i class="fas fa-building"></i></span>
-                        <span>Companies</span>
+                        <span>Local Companies</span>
+                    </a>
+                    <a href="<?= base_url('candidate/company-job-discovery') ?>" class="hm-drawer-link <?= str_contains($currentPath, '/candidate/company-job-discovery') ? 'is-active' : '' ?>">
+                        <span class="hm-drawer-link-icon"><i class="fas fa-search-plus"></i></span>
+                        <span>Company & Job Discovery</span>
                     </a>
                     <a href="<?= base_url('candidate/job-alerts') ?>" class="hm-drawer-link">
                         <span class="hm-drawer-link-icon"><i class="fas fa-bell"></i></span>
@@ -243,9 +284,13 @@
                     </a>
                 </div>
 
-                <!-- Section: Career Tools -->
+                <!-- Section: Career Tools & Interview Prep -->
                 <div class="hm-drawer-section">
                     <div class="hm-drawer-section-title">Career Tools</div>
+                    <a href="<?= base_url('candidate/job-search-strategy') ?>" class="hm-drawer-link <?= $isJobStrategyActive ? 'is-active' : '' ?>">
+                        <span class="hm-drawer-link-icon"><i class="fas fa-chart-line"></i></span>
+                        <span>Job Search Strategy Coach</span>
+                    </a>
                     <a href="<?= esc($careerTransitionUrl) ?>" class="hm-drawer-link <?= $isCareerTransitionActive ? 'is-active' : '' ?>">
                         <span class="hm-drawer-link-icon"><i class="fas fa-route"></i></span>
                         <span>Career Transition AI</span>
@@ -260,10 +305,6 @@
                         <span class="hm-drawer-link-icon"><i class="fas fa-robot"></i></span>
                         <span>AI Career Mentor</span>
                         <?php if ($premiumLocked): ?><span class="hm-drawer-pro">Pro</span><?php endif; ?>
-                    </a>
-                    <a href="<?= base_url('candidate/mock-interview') ?>" class="hm-drawer-link">
-                        <span class="hm-drawer-link-icon"><i class="fas fa-microphone"></i></span>
-                        <span>Mock Interview</span>
                     </a>
                 </div>
 
@@ -313,20 +354,27 @@
                 <nav class="mx-auto site-navigation col-xl-7">
                     <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
                         <li class="has-children">
-                            <a href="<?= base_url('jobs') ?>" class="<?= $jobsNavClass ?>">Jobs</a>
+                            <a href="#" class="<?= $jobsNavClass ?>" style="cursor: default;">Jobs</a>
                             <ul class="dropdown">
                                 <li><a href="<?= base_url('jobs?tab=suggested') ?>" class="<?= $recommendedClass ?>">Recommended Jobs</a></li>
                                 <li><a href="<?= base_url('candidate/applications') ?>" class="<?= $applicationStatusClass ?>">Application Status</a></li>
                                 <li><a href="<?= base_url('candidate/saved-jobs') ?>" class="<?= $savedJobsClass ?>">Saved Jobs</a></li>
                             </ul>
                         </li>
-                        <li><a href="<?= base_url('companies') ?>" class="<?= $companiesNavClass ?>">Companies</a></li>
+                         <li class="has-children">
+                            <a href="#" class="<?= $companiesNavClass ?>" style="cursor: default;">Companies</a>
+                         <ul class="dropdown">
+                                <li><a href="<?= base_url('localcompany') ?>" class="<?= $localCompanyClass ?>">Local Companies</a></li>
+                                <li><a href="<?= base_url('candidate/company-job-discovery') ?>" class="<?= $companyJobDiscoveryClass ?>">Company & Job Discovery</a></li>
+                            </ul>
+                        </li>
                         <li class="has-children">
-                            <a href="#" class="<?= $servicesNavClass ?>">Services</a>
+                            <a href="#" class="<?= $servicesNavClass ?>" style="cursor: default;">Services</a>
                             <ul class="dropdown">
+                                <li><a href="<?= base_url('candidate/job-search-strategy') ?>" class="<?= $jobStrategyClass ?>">Job Strategy</a></li>
                                 <li><a href="<?= esc($careerTransitionUrl) ?>" class="<?= $careerTransitionClass ?>">Career Transition AI</a></li>
                                 <li><a href="<?= esc($resumeStudioUrl) ?>" class="<?= $resumeStudioClass ?>">Resume Studio</a></li>
-                                <li><a href="<?= esc($mentorUrl) ?>" class="">AI Career Mentor</a></li>
+                                <li><a href="<?= esc($mentorUrl) ?>" class="<?= $premiumMentorClass ?>">AI Career Mentor</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -366,8 +414,11 @@
                             </form>
                         </div>
                     </div>
-
+                    
                     <!-- Notification bell (desktop) -->
+                    <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+    🌙
+</button>
                     <a href="<?= base_url('notifications') ?>" class="header-notification-link <?= $unreadNotificationCount > 0 ? 'has-unread' : '' ?>" title="Notifications" aria-label="Notifications">
                         <span class="icon-bell" style="font-size:18px;line-height:1;"></span>
                         <?php if ($unreadNotificationCount > 0): ?>
@@ -387,8 +438,8 @@
                         <div class="candidate-avatar-dropdown" id="candidateAvatarDropdown">
                             <a href="<?= base_url('candidate/profile') ?>"><i class="fas fa-user"></i><span>My Profile</span></a>
                             <a href="<?= base_url('candidate/settings') ?>"><i class="fas fa-cog"></i><span>Settings</span></a>
-                            <a href="<?= base_url('premium/plans') ?>"><i class="fas fa-crown"></i><span>Premium Plans</span></a>
-                            <a href="<?= base_url('payment/history') ?>"><i class="fas fa-receipt"></i><span>Payment History</span></a>
+                            <a href="<?= base_url('premium/plans') ?>"><i class="fas fa-gem"></i><span>Premium Plans</span></a>
+                            <a href="<?= base_url('payment/history') ?>"><i class="fas fa-credit-card"></i><span>Payment History</span></a>
                             <a href="<?= base_url('logout') ?>"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                         </div>
                     </div>
@@ -398,9 +449,11 @@
                         <button type="button" class="mobile-nav-icon" id="mobileSearchToggle" title="Search" aria-label="Search">
                             <span class="icon-search"></span>
                         </button>
-                        <a href="<?= base_url('notifications') ?>" class="mobile-nav-icon <?= $unreadNotificationCount > 0 ? 'has-unread' : '' ?>" title="Notifications">
+                        <a href="<?= base_url('notifications') ?>" class="mobile-nav-icon <?= $unreadNotificationCount > 0 ? 'has-unread' : '' ?>" title="Notifications" aria-label="Notifications">
                             <span class="icon-bell"></span>
-                            <?php if ($unreadNotificationCount > 0): ?><span class="mobile-nav-dot"></span><?php endif; ?>
+                            <?php if ($unreadNotificationCount > 0): ?>
+                                <span class="mobile-nav-badge js-notification-badge" data-unread-count="<?= $unreadNotificationCount ?>"><?= $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount ?></span>
+                            <?php endif; ?>
                         </a>
                         <a href="#" class="mobile-nav-hamburger" id="hmDrawerToggle" aria-label="Menu" aria-expanded="false">
                             <span></span><span></span><span></span>
@@ -516,6 +569,57 @@
         }
     });
     </script>
+    <script>
+const toggleBtn = document.getElementById("themeToggle");
+const darkThemeId = "dark-theme-css";
+
+function loadDarkTheme() {
+    if (!document.getElementById(darkThemeId)) {
+        const link = document.createElement("link");
+        link.id = darkThemeId;
+        link.rel = "stylesheet";
+        link.href = document.querySelector('meta[name="base-url"]').content 
+           + "/jobboard/css/candidatedark.css?v=" + new Date().getTime();// your dark css file
+        document.head.appendChild(link);
+    }
+}
+
+function removeDarkTheme() {
+    const darkCss = document.getElementById(darkThemeId);
+    if (darkCss) {
+        darkCss.remove();
+    }
+}
+
+function updateThemeIcon() {
+    toggleBtn.innerHTML =
+        document.body.classList.contains("dark")
+            ? "☀️"
+            : "🌙";
+}
+
+// Load saved theme
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    loadDarkTheme();
+}
+
+updateThemeIcon();
+
+toggleBtn.addEventListener("click", function () {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        loadDarkTheme();
+    } else {
+        localStorage.setItem("theme", "light");
+        removeDarkTheme();
+    }
+
+    updateThemeIcon();
+});
+</script>
     <main>
     <!-- Global mobile bottom tab bar (visible on all candidate pages ≤1100px) -->
     <nav class="dash-mobile-tabs" aria-label="Quick navigation">
@@ -523,7 +627,7 @@
         $currentPath2 = '/' . trim((string) parse_url(current_url(), PHP_URL_PATH), '/');
         $tabActive = [
             'home'     => $currentPath2 === '/candidate' || $currentPath2 === '/candidate/dashboard',
-            'jobs'     => str_contains($currentPath2, '/jobs') || str_contains($currentPath2, '/job/'),
+            'jobs'     => str_contains($currentPath2, '/jobs') || str_contains($currentPath2, '/job/') || str_contains($currentPath2, '/candidate/company-job-discovery') || str_contains($currentPath2, '/localcompany'),
             'applied'  => str_contains($currentPath2, '/candidate/applications'),
             'saved'    => str_contains($currentPath2, '/candidate/saved-jobs'),
             'profile'  => str_contains($currentPath2, '/candidate/profile') || str_contains($currentPath2, '/candidate/settings'),
@@ -545,3 +649,4 @@
             <i class="fas fa-user"></i><span>Profile</span>
         </a>
     </nav>
+        
