@@ -5873,4 +5873,46 @@ body.dark .blog-secondary-action:hover {
     background: rgba(139, 92, 246, 0.18) !important;
     color: #fff !important;
 }
+
+/* =====================================================
+   🌙 BOOTSTRAP SELECT (SELECTPICKER) DARK THEME FIX
+   Ensures select boxes in registration forms are fully visible
+===================================================== */
+body.dark .bootstrap-select > .dropdown-toggle,
+body.dark .bootstrap-select.form-control > .dropdown-toggle {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(139, 92, 246, 0.25) !important;
+    color: #fff !important;
+    padding: 0 20px !important;
+    border-radius: 10px !important;
+    height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    box-shadow: none !important;
+}
+
+body.dark .bootstrap-select .dropdown-menu {
+    background-color: #1b1738 !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6) !important;
+    z-index: 9999 !important; /* Ensure it's not cut off by containers */
+}
+
+body.dark .bootstrap-select .dropdown-menu li a {
+    color: #f3f4f6 !important;
+    background: transparent !important;
+    padding: 8px 20px !important;
+}
+
+body.dark .bootstrap-select .dropdown-menu li a:hover,
+body.dark .bootstrap-select .dropdown-menu li.selected a {
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: #c4b5fd !important;
+}
+
+body.dark .bootstrap-select .bs-searchbox input {
+    background-color: #15122a !important;
+    color: #fff !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
     

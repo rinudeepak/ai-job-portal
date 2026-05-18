@@ -4063,6 +4063,33 @@
     line-height: 1;               /* remove extra height */
 }
 
+/* =====================================================
+   BOOTSTRAP SELECT (SELECTPICKER) GLOBAL VISIBILITY FIX
+   Ensures text like "Direct Employer" is fully visible
+===================================================== */
+.bootstrap-select {
+    width: 100% !important;
+}
+
+.bootstrap-select > .dropdown-toggle,
+.bootstrap-select.form-control > .dropdown-toggle {
+    min-height: 52px !important; /* Increased for better visibility */
+    padding: 12px 20px !important; /* Increased padding as suggested */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-radius: 10px !important;
+    text-align: left !important;
+}
+
+.bootstrap-select .filter-option {
+    display: flex !important;
+    align-items: center !important;
+    text-align: left !important;
+    height: 100% !important;
+    line-height: 1.2 !important;
+}
+
 .application-actions-wrap .btn i {
     display: flex;
     align-items: center;

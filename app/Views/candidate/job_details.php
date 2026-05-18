@@ -174,6 +174,13 @@ $policy = $policyMap[$policyRaw] ?? $policyMap['REQUIRED_HARD'];
                 </div>
             </div>
         </div>
+
+        <?php if (ENVIRONMENT !== 'production'): // Debugging client company visibility ?>
+            <div class="alert alert-info mt-3">
+                <strong>Debug Info:</strong> Job Company: <?= esc($job['company'] ?? 'N/A') ?>, Posted For: <?= esc($job['posted_for'] ?? 'N/A') ?>, Client Disclosure: <?= esc($job['client_disclosure'] ?? 'N/A') ?>, Client Company Name: <?= esc($job['client_company_name'] ?? 'N/A') ?>
+            </div>
+        <?php endif; ?>
+
     </div>
 
     <section class="site-section pt-0 content-wrap">

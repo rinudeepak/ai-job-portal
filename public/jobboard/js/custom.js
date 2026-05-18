@@ -102,6 +102,9 @@ jQuery(function($) {
 	// sitePlusMinus();
 
    var siteIstotope = function() {
+	if ( !$('#posts').length || !$.fn.isotope ) {
+		return;
+	}
   	/* activate jquery isotope */
 	  var $container = $('#posts').isotope({
 	    itemSelector : '.item',
@@ -129,6 +132,9 @@ jQuery(function($) {
   siteIstotope();
 
   var fancyBoxInit = function() {
+	  if ( !$('.fancybox').length || !$.fancybox ) {
+		  return;
+	  }
 	  $('.fancybox').on('click', function() {
 		  var visibleLinks = $('.fancybox');
 
@@ -141,6 +147,9 @@ jQuery(function($) {
 
 
 	var stickyFillInit = function() {
+		if ( typeof Stickyfill === 'undefined' || !$('.jm-sticky-top').length ) {
+			return;
+		}
 		$(window).on('resize orientationchange', function() {
 	    recalc();
 	  }).resize();
@@ -162,10 +171,11 @@ jQuery(function($) {
       e.preventDefault();
 
       var hash = this.hash;
+      var easing = ($.easing && $.easing.easeInOutCirc) ? 'easeInOutCirc' : 'swing';
 
       $('html, body').animate({
         'scrollTop': ($(hash).length ? $(hash).offset().top : 0)
-      }, 600, 'easeInOutCirc', function(){
+      }, 600, easing, function(){
         window.location.hash = hash;
       });
 
@@ -174,7 +184,7 @@ jQuery(function($) {
   OnePageNavigation();
 
   var counterInit = function() {
-		if ( $('.section-counter').length > 0 ) {
+		if ( $('.section-counter').length > 0 && $.fn.waypoint && $.animateNumber ) {
 			$('.section-counter').waypoint( function( direction ) {
 
 				if( direction === 'down' && !$(this.element).hasClass('ftco-animated') ) {
@@ -183,7 +193,6 @@ jQuery(function($) {
 					$('.number').each(function(){
 						var $this = $(this),
 							num = $this.data('number');
-							console.log(num);
 						$this.animateNumber(
 						  {
 						    number: num,
@@ -201,11 +210,17 @@ jQuery(function($) {
 	counterInit();
 
 	var selectPickerInit = function() {
+		if ( !$('.selectpicker').length || !$.fn.selectpicker ) {
+			return;
+		}
 		$('.selectpicker').selectpicker();
 	}
 	selectPickerInit();
 
 	var owlCarouselFunction = function() {
+		if ( !$('.single-carousel').length || !$.fn.owlCarousel ) {
+			return;
+		}
 		$('.single-carousel').owlCarousel({
 	    loop:true,
 	    margin:0,
@@ -220,6 +235,9 @@ jQuery(function($) {
 	owlCarouselFunction();
 
 	var quillInit = function() {
+		if ( typeof Quill === 'undefined' || !$('.editor').length ) {
+			return;
+		}
 
 		var toolbarOptions = [
 		  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons

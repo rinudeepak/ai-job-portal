@@ -8,6 +8,9 @@ use App\Models\JobModel;
 class RecruiterJobs extends BaseController
 {
     private const QUESTIONNAIRE_TYPES = ['text', 'textarea'];
+    private const POSTED_FOR_OPTIONS = ['own_company', 'client'];
+    private const CLIENT_DISCLOSURE_OPTIONS = ['visible', 'confidential'];
+    private const PAYROLL_TYPE_OPTIONS = ['company_payroll', 'client_payroll', 'consultancy_payroll', 'third_party_contract'];
 
     public function index()
     {
@@ -63,6 +66,10 @@ class RecruiterJobs extends BaseController
         $employmentType = trim((string) $this->request->getPost('employment_type'));
         $salaryRange = trim((string) $this->request->getPost('salary_range'));
         $applicationDeadlineRaw = trim((string) $this->request->getPost('application_deadline'));
+        $postedFor = $this->normalizeOption((string) $this->request->getPost('posted_for'), self::POSTED_FOR_OPTIONS, 'own_company');
+        $clientCompanyName = trim((string) $this->request->getPost('client_company_name'));
+        $clientDisclosure = $this->normalizeOption((string) $this->request->getPost('client_disclosure'), self::CLIENT_DISCLOSURE_OPTIONS, 'visible');
+        $payrollType = $this->normalizeOption((string) $this->request->getPost('payroll_type'), self::PAYROLL_TYPE_OPTIONS, '');
         $openings = (int) $this->request->getPost('openings');
         $minAiCutoffRaw = trim((string) $this->request->getPost('min_ai_cutoff_score'));
         $minAiCutoff = $minAiCutoffRaw === '' ? null : (int) $minAiCutoffRaw;
@@ -74,6 +81,10 @@ class RecruiterJobs extends BaseController
 
         if ($openings <= 0) {
             return redirect()->back()->withInput()->with('error', 'Openings must be greater than 0.');
+        }
+
+        if ($postedFor === 'client' && $clientCompanyName === '') {
+            return redirect()->back()->withInput()->with('error', 'Client company name is required when posting for a client.');
         }
 
         if ($questionnaireError !== null) {
@@ -126,6 +137,26 @@ class RecruiterJobs extends BaseController
 
         if ($db->fieldExists('salary_range', 'jobs')) {
             $data['salary_range'] = $salaryRange !== '' ? $salaryRange : null;
+        }
+
+        if ($db->fieldExists('posted_for', 'jobs')) {
+            $data['posted_for'] = $postedFor;
+        }
+
+        if ($db->fieldExists('client_company_name', 'jobs')) {
+            $data['client_company_name'] = $postedFor === 'client' ? $clientCompanyName : null;
+        }
+
+        if ($db->fieldExists('client_disclosure', 'jobs')) {
+            $data['client_disclosure'] = $postedFor === 'client' ? $clientDisclosure : 'visible';
+        }
+
+        if ($db->fieldExists('payroll_type', 'jobs')) {
+            $data['payroll_type'] = $payrollType !== '' ? $payrollType : null;
+        }
+
+        if ($db->fieldExists('candidate_fee_allowed', 'jobs')) {
+            $data['candidate_fee_allowed'] = 0;
         }
 
         if ($db->fieldExists('application_deadline', 'jobs')) {
@@ -248,4 +279,11 @@ class RecruiterJobs extends BaseController
 
         return [$questions, null];
     }
-}    
+
+    private function normalizeOption(string $value, array $allowed, string $default): string
+    {
+        $value = trim($value);
+
+        return in_array($value, $allowed, true) ? $value : $default;
+    }
+}

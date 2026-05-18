@@ -16,6 +16,13 @@ class RecruiterProfileModel extends Model
         'phone',
         'designation',
         'company_name_snapshot',
+        'recruiter_type',
+        'verification_status',
+        'agency_registration_number',
+        'gst_number',
+        'website',
+        'official_email',
+        'can_post_jobs',
         'created_at',
         'updated_at',
     ];

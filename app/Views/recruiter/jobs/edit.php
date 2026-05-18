@@ -28,6 +28,9 @@ $jobCategoryOptions = [
 ];
 $selectedCategory = (string) old('category', $job['category'] ?? '');
 $hasCustomCategory = $selectedCategory !== '' && !in_array($selectedCategory, $jobCategoryOptions, true);
+$postedFor = (string) old('posted_for', $job['posted_for'] ?? 'own_company');
+$clientDisclosure = (string) old('client_disclosure', $job['client_disclosure'] ?? 'visible');
+$payrollType = (string) old('payroll_type', $job['payroll_type'] ?? '');
 ?>
 
 <div class="recruiter-edit-jobboard">
@@ -57,6 +60,49 @@ $hasCustomCategory = $selectedCategory !== '' && !in_array($selectedCategory, $j
 
                     <form action="<?= base_url('recruiter/jobs/update/' . $job['id']) ?>" method="post" id="editJobForm">
                         <?= csrf_field() ?>
+                        <input type="hidden" name="candidate_fee_allowed" value="0">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Posting For *</label>
+                                    <select name="posted_for" class="form-control" required>
+                                        <option value="own_company" <?= $postedFor === 'own_company' ? 'selected' : '' ?>>Own company</option>
+                                        <option value="client" <?= $postedFor === 'client' ? 'selected' : '' ?>>Client company</option>
+                                    </select>
+                                    <small class="text-muted">Consultancies should choose client company when hiring for a client.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Payroll Type</label>
+                                    <select name="payroll_type" class="form-control">
+                                        <option value="">Select payroll type</option>
+                                        <option value="company_payroll" <?= $payrollType === 'company_payroll' ? 'selected' : '' ?>>Company payroll</option>
+                                        <option value="client_payroll" <?= $payrollType === 'client_payroll' ? 'selected' : '' ?>>Client payroll</option>
+                                        <option value="consultancy_payroll" <?= $payrollType === 'consultancy_payroll' ? 'selected' : '' ?>>Consultancy payroll</option>
+                                        <option value="third_party_contract" <?= $payrollType === 'third_party_contract' ? 'selected' : '' ?>>Third-party contract</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Client Company Name</label>
+                                    <input type="text" name="client_company_name" class="form-control" value="<?= esc(old('client_company_name', $job['client_company_name'] ?? '')) ?>" placeholder="Client company name">
+                                    <small class="text-muted">Required when posting for a client.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Client Disclosure</label>
+                                    <select name="client_disclosure" class="form-control">
+                                        <option value="visible" <?= $clientDisclosure === 'visible' ? 'selected' : '' ?>>Visible to candidates</option>
+                                        <option value="confidential" <?= $clientDisclosure === 'confidential' ? 'selected' : '' ?>>Confidential</option>
+                                    </select>
+                                    <small class="text-muted">Candidate fees are never allowed on this portal.</small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label>Job Title *</label>
                             <input type="text" name="title" class="form-control" value="<?= esc(old('title', $job['title'])) ?>" required>

@@ -8,6 +8,9 @@ use App\Models\JobModel;
 class Recruiter extends BaseController
 {
     private const QUESTIONNAIRE_TYPES = ['text', 'textarea'];
+    private const POSTED_FOR_OPTIONS = ['own_company', 'client'];
+    private const CLIENT_DISCLOSURE_OPTIONS = ['visible', 'confidential'];
+    private const PAYROLL_TYPE_OPTIONS = ['company_payroll', 'client_payroll', 'consultancy_payroll', 'third_party_contract'];
 
     public function postJob()
     {
@@ -41,6 +44,10 @@ class Recruiter extends BaseController
         $employmentType = trim((string) $this->request->getPost('employment_type'));
         $salaryRange = trim((string) $this->request->getPost('salary_range'));
         $applicationDeadlineRaw = trim((string) $this->request->getPost('application_deadline'));
+        $postedFor = $this->normalizeOption((string) $this->request->getPost('posted_for'), self::POSTED_FOR_OPTIONS, 'own_company');
+        $clientCompanyName = trim((string) $this->request->getPost('client_company_name'));
+        $clientDisclosure = $this->normalizeOption((string) $this->request->getPost('client_disclosure'), self::CLIENT_DISCLOSURE_OPTIONS, 'visible');
+        $payrollType = $this->normalizeOption((string) $this->request->getPost('payroll_type'), self::PAYROLL_TYPE_OPTIONS, '');
         $aiInterviewPolicy = JobModel::normalizeAiPolicy($this->request->getPost('ai_interview_policy'));
         $minAiCutoffRaw = trim((string) $this->request->getPost('min_ai_cutoff_score'));
         $minAiCutoff = $minAiCutoffRaw === '' ? null : (int) $minAiCutoffRaw;
@@ -68,6 +75,10 @@ class Recruiter extends BaseController
             return redirect()->back()->withInput()->with('error', 'Openings must be greater than 0.');
         }
 
+        if ($postedFor === 'client' && $clientCompanyName === '') {
+            return redirect()->back()->withInput()->with('error', 'Client company name is required when posting for a client.');
+        }
+
         if ($questionnaireError !== null) {
             return redirect()->back()->withInput()->with('error', $questionnaireError);
         }
@@ -87,7 +98,7 @@ class Recruiter extends BaseController
         $riskReasons = $this->runAutoJobChecks(
             $currentUserId,
             $title,
-            $company,
+            $postedFor === 'client' ? $clientCompanyName : $company,
             $location,
             $description
         );
@@ -124,6 +135,21 @@ class Recruiter extends BaseController
         $db = \Config\Database::connect();
         if ($db->fieldExists('employment_type', 'jobs')) {
             $data['employment_type'] = $employmentType !== '' ? $employmentType : null;
+        }
+        if ($db->fieldExists('posted_for', 'jobs')) {
+            $data['posted_for'] = $postedFor;
+        }
+        if ($db->fieldExists('client_company_name', 'jobs')) {
+            $data['client_company_name'] = $postedFor === 'client' ? $clientCompanyName : null;
+        }
+        if ($db->fieldExists('client_disclosure', 'jobs')) {
+            $data['client_disclosure'] = $postedFor === 'client' ? $clientDisclosure : 'visible';
+        }
+        if ($db->fieldExists('payroll_type', 'jobs')) {
+            $data['payroll_type'] = $payrollType !== '' ? $payrollType : null;
+        }
+        if ($db->fieldExists('candidate_fee_allowed', 'jobs')) {
+            $data['candidate_fee_allowed'] = 0;
         }
         if ($db->fieldExists('salary_range', 'jobs')) {
             $data['salary_range'] = $salaryRange !== '' ? $salaryRange : null;
@@ -238,7 +264,7 @@ class Recruiter extends BaseController
         }
 
         $userModel = model('UserModel');
-        $user = $userModel->find($session->get('user_id'));
+        $user = $userModel->findRecruiterWithProfile((int) $session->get('user_id')) ?? $userModel->find($session->get('user_id'));
         if (!$user) {
             return redirect()->to(base_url('login'))->with('error', 'User not found.');
         }
@@ -248,7 +274,27 @@ class Recruiter extends BaseController
                 ->with('error', 'Verify your phone OTP before posting jobs.');
         }
 
+        if (array_key_exists('verification_status', $user) && (string) $user['verification_status'] !== 'verified') {
+            $message = (string) $user['verification_status'] === 'rejected'
+                ? 'Your recruiter verification was rejected. Contact support before posting jobs.'
+                : 'Your consultancy account is pending admin verification before job posting is enabled.';
+
+            return redirect()->to(base_url('recruiter/dashboard'))->with('error', $message);
+        }
+
+        if (array_key_exists('can_post_jobs', $user) && (int) $user['can_post_jobs'] !== 1) {
+            return redirect()->to(base_url('recruiter/dashboard'))
+                ->with('error', 'Job posting is not enabled for this recruiter account yet.');
+        }
+
         return null;
+    }
+
+    private function normalizeOption(string $value, array $allowed, string $default): string
+    {
+        $value = trim($value);
+
+        return in_array($value, $allowed, true) ? $value : $default;
     }
 
     private function runAutoJobChecks(int $recruiterId, string $title, string $company, string $location, string $description): array

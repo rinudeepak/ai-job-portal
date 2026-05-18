@@ -64,13 +64,32 @@ class UserModel extends Model
 
     public function findRecruiterWithProfile(int $userId): ?array
     {
-        $row = $this->select(
-            "users.*,
+        $db = \Config\Database::connect();
+        $select = "users.*,
             recruiter_profiles.full_name AS recruiter_full_name,
             recruiter_profiles.phone AS recruiter_phone,
             recruiter_profiles.designation AS recruiter_designation,
-            COALESCE(companies.name, recruiter_profiles.company_name_snapshot) AS company_name"
-        )
+            COALESCE(companies.name, recruiter_profiles.company_name_snapshot) AS company_name";
+
+        $optionalProfileFields = [
+            'recruiter_type',
+            'verification_status',
+            'agency_registration_number',
+            'gst_number',
+            'website',
+            'official_email',
+            'can_post_jobs',
+        ];
+
+        if ($db->tableExists('recruiter_profiles')) {
+            foreach ($optionalProfileFields as $field) {
+                if ($db->fieldExists($field, 'recruiter_profiles')) {
+                    $select .= ", recruiter_profiles.{$field} AS {$field}";
+                }
+            }
+        }
+
+        $row = $this->select($select)
             ->join('recruiter_profiles', 'recruiter_profiles.user_id = users.id', 'left')
             ->join('companies', 'companies.id = users.company_id', 'left')
             ->where('users.id', $userId)
@@ -177,6 +196,13 @@ class UserModel extends Model
             'designation' => 'designation',
             'company_name' => 'company_name_snapshot',
             'company_name_snapshot' => 'company_name_snapshot',
+            'recruiter_type' => 'recruiter_type',
+            'verification_status' => 'verification_status',
+            'agency_registration_number' => 'agency_registration_number',
+            'gst_number' => 'gst_number',
+            'website' => 'website',
+            'official_email' => 'official_email',
+            'can_post_jobs' => 'can_post_jobs',
         ];
 
         $payload = [];

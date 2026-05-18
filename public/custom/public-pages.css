@@ -108,6 +108,24 @@
   padding-left: 2.5rem;
 }
 
+.public-auth-page select.auth-input {
+  color: var(--foreground);
+  padding-right: 2.5rem;
+  line-height: 1.5;
+  padding: 0.25rem 1rem;
+}
+
+.public-auth-page select.auth-input option {
+  color: #1f2937;
+  background: #ffffff;
+}
+
+body.dark.public-auth-page select.auth-input option,
+body.dark .public-auth-page select.auth-input option {
+  color: #f3f4f6;
+  background: #14141e;
+}
+
 .public-auth-page .auth-input--password {
   padding-right: 2.5rem;
 }

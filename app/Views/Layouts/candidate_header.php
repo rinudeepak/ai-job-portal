@@ -5,21 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="base-url" content="<?= base_url() ?>">
     <title><?= esc($title ?? 'Candidate Portal') ?></title>
+    <?php
+        $candidateAssetPath = '/' . trim((string) parse_url(current_url(), PHP_URL_PATH), '/');
+        $candidateAssetOptions = is_array($candidateAssets ?? null) ? $candidateAssets : [];
+        $candidateAssetEnabled = static function (string $key, bool $default = false) use ($candidateAssetOptions): bool {
+            return array_key_exists($key, $candidateAssetOptions) ? (bool) $candidateAssetOptions[$key] : $default;
+        };
+        $candidateNeedsFancybox = $candidateAssetEnabled('fancybox');
+        $candidateNeedsBootstrapSelect = $candidateAssetEnabled('bootstrap-select');
+        $candidateNeedsOwlCarousel = $candidateAssetEnabled('owl-carousel');
+        $candidateNeedsAnimate = $candidateAssetEnabled('animate');
+        $candidateNeedsAtsCircle = $candidateAssetEnabled(
+            'ats-circle',
+            str_ends_with($candidateAssetPath, '/jobs') || str_contains($candidateAssetPath, '/candidate/smart-jobs')
+        );
+    ?>
 
     <link rel="stylesheet" href="<?= base_url('jobboard/css/custom-bs.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/jquery.fancybox.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/bootstrap-select.min.css') ?>">
+    <?php if ($candidateNeedsFancybox): ?>
+        <link rel="stylesheet" href="<?= base_url('jobboard/css/jquery.fancybox.min.css') ?>">
+    <?php endif; ?>
+    <?php if ($candidateNeedsBootstrapSelect): ?>
+        <link rel="stylesheet" href="<?= base_url('jobboard/css/bootstrap-select.min.css') ?>">
+    <?php endif; ?>
     <link rel="stylesheet" href="<?= base_url('jobboard/fonts/icomoon/style.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/fonts/line-icons/style.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/owl.carousel.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
+    <?php if ($candidateNeedsOwlCarousel): ?>
+        <link rel="stylesheet" href="<?= base_url('jobboard/css/owl.carousel.min.css') ?>">
+    <?php endif; ?>
+    <?php if ($candidateNeedsAnimate): ?>
+        <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
+    <?php endif; ?>
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/candidate-pages.css?v=' . @filemtime(FCPATH . 'jobboard/css/candidate-pages.css')) ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/candidate-bundle.min.css?v=' . @filemtime(FCPATH . 'jobboard/css/candidate-bundle.min.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/responsive.css?v=' . @filemtime(FCPATH . 'jobboard/css/responsive.css')) ?>">
-    <!-- CSS Circle Progress (Required for visual ATS Score) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/css-percentage-circle/0.0.3/css/circle.min.css">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/responsive.min.css?v=' . @filemtime(FCPATH . 'jobboard/css/responsive.min.css')) ?>">
+    <?php if ($candidateNeedsAtsCircle): ?>
+        <!-- CSS Circle Progress (Required for visual ATS Score) -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/css-percentage-circle/0.0.3/css/circle.min.css">
+    <?php endif; ?>
 <style>
     .theme-toggle-btn{
     width: 42px;
@@ -572,14 +596,14 @@
     <script>
 const toggleBtn = document.getElementById("themeToggle");
 const darkThemeId = "dark-theme-css";
+const darkThemeHref = <?= json_encode(base_url('jobboard/css/candidatedark.min.css?v=' . @filemtime(FCPATH . 'jobboard/css/candidatedark.min.css'))) ?>;
 
 function loadDarkTheme() {
     if (!document.getElementById(darkThemeId)) {
         const link = document.createElement("link");
         link.id = darkThemeId;
         link.rel = "stylesheet";
-        link.href = document.querySelector('meta[name="base-url"]').content 
-           + "/jobboard/css/candidatedark.css?v=" + new Date().getTime();// your dark css file
+        link.href = darkThemeHref;
         document.head.appendChild(link);
     }
 }

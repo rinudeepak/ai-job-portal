@@ -214,19 +214,53 @@ $premiumMentorSubLabel = $premiumMentorSubscription ? 'Open your mentor' : 'View
 </footer>
 
 <!-- SCRIPTS -->
+<?php
+    $candidateAssetPath = '/' . trim((string) parse_url(current_url(), PHP_URL_PATH), '/');
+    $candidateAssetOptions = is_array($candidateAssets ?? null) ? $candidateAssets : [];
+    $candidateAssetEnabled = static function (string $key, bool $default = false) use ($candidateAssetOptions): bool {
+        return array_key_exists($key, $candidateAssetOptions) ? (bool) $candidateAssetOptions[$key] : $default;
+    };
+    $candidateNeedsIsotope = $candidateAssetEnabled('isotope');
+    $candidateNeedsStickyfill = $candidateAssetEnabled('stickyfill');
+    $candidateNeedsFancybox = $candidateAssetEnabled('fancybox');
+    $candidateNeedsEasing = $candidateAssetEnabled('easing');
+    $candidateNeedsCounter = $candidateAssetEnabled('counter');
+    $candidateNeedsOwlCarousel = $candidateAssetEnabled('owl-carousel');
+    $candidateNeedsBootstrapSelect = $candidateAssetEnabled('bootstrap-select');
+    $candidateNeedsApplicationActions = $candidateAssetEnabled(
+        'application-actions',
+        str_contains($candidateAssetPath, '/candidate/applications')
+    );
+?>
 <script src="<?= base_url('jobboard/js/jquery.min.js') ?>"></script>
 <script src="<?= base_url('jobboard/js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/isotope.pkgd.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/stickyfill.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.fancybox.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.easing.1.3.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.waypoints.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/jquery.animateNumber.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
-<script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
+<?php if ($candidateNeedsIsotope): ?>
+    <script src="<?= base_url('jobboard/js/isotope.pkgd.min.js') ?>"></script>
+<?php endif; ?>
+<?php if ($candidateNeedsStickyfill): ?>
+    <script src="<?= base_url('jobboard/js/stickyfill.min.js') ?>"></script>
+<?php endif; ?>
+<?php if ($candidateNeedsFancybox): ?>
+    <script src="<?= base_url('jobboard/js/jquery.fancybox.min.js') ?>"></script>
+<?php endif; ?>
+<?php if ($candidateNeedsEasing): ?>
+    <script src="<?= base_url('jobboard/js/jquery.easing.1.3.js') ?>"></script>
+<?php endif; ?>
+<?php if ($candidateNeedsCounter): ?>
+    <script src="<?= base_url('jobboard/js/jquery.waypoints.min.js') ?>"></script>
+    <script src="<?= base_url('jobboard/js/jquery.animateNumber.min.js') ?>"></script>
+<?php endif; ?>
+<?php if ($candidateNeedsOwlCarousel): ?>
+    <script src="<?= base_url('jobboard/js/owl.carousel.min.js') ?>"></script>
+<?php endif; ?>
+<?php if ($candidateNeedsBootstrapSelect): ?>
+    <script src="<?= base_url('jobboard/js/bootstrap-select.min.js') ?>"></script>
+<?php endif; ?>
 <script src="<?= base_url('jobboard/js/custom.js?v=' . @filemtime(FCPATH . 'jobboard/js/custom.js')) ?>"></script>
 <script src="<?= base_url('jobboard/js/candidate-pages.js?v=' . @filemtime(FCPATH . 'jobboard/js/candidate-pages.js')) ?>"></script>
-<script src="<?= base_url('jobboard/js/candidate-application-actions.js?v=' . @filemtime(FCPATH . 'jobboard/js/candidate-application-actions.js')) ?>"></script>
+<?php if ($candidateNeedsApplicationActions): ?>
+    <script src="<?= base_url('jobboard/js/candidate-application-actions.js?v=' . @filemtime(FCPATH . 'jobboard/js/candidate-application-actions.js')) ?>"></script>
+<?php endif; ?>
 <script src="<?= base_url('jobboard/js/notification-actions.js?v=' . @filemtime(FCPATH . 'jobboard/js/notification-actions.js')) ?>"></script>
 <!-- Service Worker Registration -->
 <script>

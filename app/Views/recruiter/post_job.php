@@ -22,6 +22,9 @@ $jobCategoryOptions = [
     'Cybersecurity',
 ];
 $selectedCategory = old('category');
+$postedFor = old('posted_for', 'own_company');
+$clientDisclosure = old('client_disclosure', 'visible');
+$payrollType = old('payroll_type', '');
 ?>
 
 <div class="recruiter-post-jobboard">
@@ -57,7 +60,47 @@ $selectedCategory = old('category');
                 <div class="card-body">
                     <form class="form-contact contact_form recruiter-job-form" method="post" action="<?= base_url('recruiter/post_job') ?>" id="jobForm">
                         <?= csrf_field() ?>
+                        <input type="hidden" name="candidate_fee_allowed" value="0">
                         <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label>Posting For *</label>
+                                    <select class="form-control" name="posted_for" id="posted_for" required>
+                                        <option value="own_company" <?= $postedFor === 'own_company' ? 'selected' : '' ?>>Own company</option>
+                                        <option value="client" <?= $postedFor === 'client' ? 'selected' : '' ?>>Client company</option>
+                                    </select>
+                                    <small class="text-muted">Consultancies should choose client company when hiring for a client.</small>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label>Payroll Type</label>
+                                    <select class="form-control" name="payroll_type" id="payroll_type">
+                                        <option value="">Select payroll type</option>
+                                        <option value="company_payroll" <?= $payrollType === 'company_payroll' ? 'selected' : '' ?>>Company payroll</option>
+                                        <option value="client_payroll" <?= $payrollType === 'client_payroll' ? 'selected' : '' ?>>Client payroll</option>
+                                        <option value="consultancy_payroll" <?= $payrollType === 'consultancy_payroll' ? 'selected' : '' ?>>Consultancy payroll</option>
+                                        <option value="third_party_contract" <?= $payrollType === 'third_party_contract' ? 'selected' : '' ?>>Third-party contract</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label>Client Company Name</label>
+                                    <input class="form-control" name="client_company_name" id="client_company_name" type="text" value="<?= old('client_company_name') ?>" placeholder="Client company name">
+                                    <small class="text-muted">Required when posting for a client.</small>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label>Client Disclosure</label>
+                                    <select class="form-control" name="client_disclosure" id="client_disclosure">
+                                        <option value="visible" <?= $clientDisclosure === 'visible' ? 'selected' : '' ?>>Visible to candidates</option>
+                                        <option value="confidential" <?= $clientDisclosure === 'confidential' ? 'selected' : '' ?>>Confidential</option>
+                                    </select>
+                                    <small class="text-muted">Candidate fees are never allowed on this portal.</small>
+                                </div>
+                            </div>
                             <div class="col-sm-12">
                                 <div class="form-group">
                                     <label>Job Title *</label>

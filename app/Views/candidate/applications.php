@@ -206,9 +206,22 @@ $completedApplications = count(array_filter($applications ?? [], function ($appl
                                                 <?php if ($policy === 'OFF'): ?>
                                                     <span class="badge badge-info p-2">AI interview disabled for this job</span>
                                                 <?php else: ?>
-                                                    <a href="<?= base_url('interview/start/' . $application['id']) ?>"
-                                                        class="btn btn-success btn-sm"><i class="fas fa-video"></i>
-                                                        <?= $policy === 'OPTIONAL' ? 'Start AI Interview (Optional)' : 'Start AI Interview' ?></a>
+                                                    
+<form action='ai_interview/index.php' method="post" style="display:inline;">
+    <input type="hidden" name="candidate_id"
+           value="<?= htmlspecialchars($application['candidate_id'], ENT_QUOTES, 'UTF-8') ?>">
+
+    <input type="hidden" name="job_title"
+           value="<?= htmlspecialchars($application['job_title'], ENT_QUOTES, 'UTF-8') ?>">
+
+    <input type="hidden" name="highlight_skills"
+           value="<?= htmlspecialchars($application['resume_version_highlight_skills'], ENT_QUOTES, 'UTF-8') ?>">
+
+    <button type="submit" class="btn btn-sm btn-primary">
+        <?= $policy === 'OPTIONAL' ? 'Start AI Interview (Optional)' : 'Start AI Interview' ?>
+    </button>
+</form> 
+
                                                 <?php endif; ?>
                                             <?php elseif ($status === 'shortlisted'): ?>
                                                 <a href="<?= base_url('candidate/book-slot/' . $application['id']) ?>"

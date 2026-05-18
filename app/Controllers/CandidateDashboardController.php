@@ -103,6 +103,8 @@ class CandidateDashboardController extends BaseController
         $db = \Config\Database::connect();
         $hasPolicyColumn = $db->fieldExists('ai_interview_policy', 'jobs');
         $hasResumeVersions = $db->tableExists('candidate_resume_versions') && $db->fieldExists('resume_version_id', 'applications');
+        $hasClientInfo = $db->fieldExists('client_company_name', 'jobs') && $db->fieldExists('client_disclosure', 'jobs') && $db->fieldExists('posted_for', 'jobs');
+        $hasFeeInfo = $db->fieldExists('candidate_fee_allowed', 'jobs');
         $policySelect = $hasPolicyColumn
             ? 'jobs.ai_interview_policy'
             : "'REQUIRED_HARD' as ai_interview_policy";
@@ -114,12 +116,20 @@ class CandidateDashboardController extends BaseController
                 candidate_resume_versions.content as resume_version_content,
                 candidate_resume_versions.updated_at as resume_version_updated_at,'
             : "'' as resume_version_title, '' as resume_version_target_role, '' as resume_version_summary, '' as resume_version_highlight_skills, '' as resume_version_content, NULL as resume_version_updated_at,";
+        $clientSelect = $hasClientInfo 
+            ? 'jobs.posted_for, jobs.client_company_name, jobs.client_disclosure,' 
+            : "'' as posted_for, '' as client_company_name, 'visible' as client_disclosure,";
+        $feeSelect = $hasFeeInfo 
+            ? 'jobs.candidate_fee_allowed,' 
+            : "0 as candidate_fee_allowed,";
         
         $builder = $applicationModel
             ->select('
                 applications.*,
                 jobs.title as job_title,
                 jobs.company,
+                ' . $clientSelect . '
+                ' . $feeSelect . '
                 jobs.description as job_description,
                 jobs.required_skills,
                 jobs.experience_level,
@@ -143,6 +153,20 @@ class CandidateDashboardController extends BaseController
         
         // Add next action for each application
         foreach ($applications as &$application) {
+            // Handle Client Company Visibility
+            if (($application['posted_for'] ?? '') === 'client') {
+                if (($application['client_disclosure'] ?? '') === 'visible' && !empty($application['client_company_name'])) {
+                    $application['company'] = $application['client_company_name'];
+                } else {
+                    $application['company'] = ($application['company'] ?? 'Recruiter') . ' (Hiring for a Client)';
+                }
+            }
+
+            // Handle Candidate Fee Disclaimer
+            if (isset($application['candidate_fee_allowed']) && (int)$application['candidate_fee_allowed'] === 0) {
+                $application['fee_disclaimer'] = 'Candidate fees are never allowed on this portal.';
+            }
+
             $application['next_action'] = $this->getNextAction($application);
             $application['interview_prep'] = $this->buildInterviewPrepCoach($application);
             $application['interview_review_label'] = $this->formatInterviewReviewStatus((string) ($application['interview_review_status'] ?? ''));
@@ -963,6 +987,20 @@ class CandidateDashboardController extends BaseController
         }
 
         foreach ($suggestedJobs as $idx => $job) {
+            // Handle Client Company Visibility
+            if (($job['posted_for'] ?? '') === 'client') {
+                if (($job['client_disclosure'] ?? '') === 'visible' && !empty($job['client_company_name'])) {
+                    $suggestedJobs[$idx]['company'] = $job['client_company_name'];
+                } else {
+                    $suggestedJobs[$idx]['company'] = ($job['company'] ?? 'Recruiter') . ' (Hiring for a Client)';
+                }
+            }
+
+            // Handle Candidate Fee Disclaimer
+            if (isset($job['candidate_fee_allowed']) && (int)$job['candidate_fee_allowed'] === 0) {
+                $suggestedJobs[$idx]['fee_disclaimer'] = 'Candidate fees are never allowed on this portal.';
+            }
+
             $companyId = (int) ($job['company_id'] ?? 0);
             $suggestedJobs[$idx]['company_logo'] = $companyLogoMap[$companyId] ?? '';
         }

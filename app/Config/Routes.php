@@ -23,6 +23,7 @@ $routes->get('admin/logout', 'AdminAnalytics::logout', ['filter' => 'admin']);
 $routes->get('admin/dashboard', 'AdminAnalytics::dashboard', ['filter' => 'admin']);
 $routes->get('admin/users', 'AdminUserController::index');
 $routes->get('admin/users/suggestions', 'AdminUserController::suggestions');
+$routes->post('admin/users/recruiter-verification/(:num)', 'AdminUserController::updateRecruiterVerification/$1', ['filter' => 'admin']);
 $routes->get('admin/feedback', 'AdminFeedbackController::index');
 $routes->get('admin/feedback/suggestions', 'AdminFeedbackController::suggestions');
 $routes->get('admin/companies', 'AdminCompanyController::index');

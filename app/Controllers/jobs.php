@@ -588,6 +588,16 @@ class Jobs extends BaseController
             }
         }
 
+        // Handle Client Company Visibility and Declaration
+        if (($job['posted_for'] ?? '') === 'client') {
+            if (($job['client_disclosure'] ?? '') === 'visible' && !empty($job['client_company_name'])) {
+                $job['company'] = $job['client_company_name'];
+            } else {
+                $job['company'] = ($job['company'] ?? 'Recruiter') . ' (Hiring for a Client)';
+            }
+        }
+
+
         $application = $applicationModel
             ->where('job_id', $id)
             ->where('candidate_id', $candidateId)

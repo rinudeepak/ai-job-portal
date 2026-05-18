@@ -497,9 +497,14 @@ class Auth extends BaseController
         // Validate input
         if (!$this->validate([
             'company_name' => 'required|min_length[2]',
+            'recruiter_type' => 'required|in_list[direct_employer,consultancy]',
             'name' => 'required|min_length[3]',
             'designation' => 'required|min_length[2]',
             'email' => 'required|valid_email|is_unique[users.email]',
+            'official_email' => 'permit_empty|valid_email',
+            'website' => 'permit_empty|max_length[255]',
+            'agency_registration_number' => 'permit_empty|max_length[100]',
+            'gst_number' => 'permit_empty|max_length[30]',
             'phone' => 'required|numeric|min_length[10]|max_length[15]',
             'password' => 'required|min_length[6]',
             'confirm_password' => 'required|matches[password]'
@@ -510,11 +515,26 @@ class Auth extends BaseController
         $email = strtolower(trim((string) $this->request->getPost('email')));
         $companyName = trim((string) $this->request->getPost('company_name'));
         $designation = trim((string) $this->request->getPost('designation'));
+        $recruiterType = (string) $this->request->getPost('recruiter_type');
+        $recruiterType = in_array($recruiterType, ['direct_employer', 'consultancy'], true) ? $recruiterType : 'direct_employer';
+        $officialEmail = strtolower(trim((string) $this->request->getPost('official_email')));
+        $officialEmail = $officialEmail !== '' ? $officialEmail : $email;
+        $website = trim((string) $this->request->getPost('website'));
+        $agencyRegistrationNumber = trim((string) $this->request->getPost('agency_registration_number'));
+        $gstNumber = trim((string) $this->request->getPost('gst_number'));
         $domain = substr(strrchr($email, "@"), 1);
         if ($this->isFreeEmailDomain($domain)) {
             return redirect()->back()->withInput()->with(
                 'error',
                 'Please use your company email address (free email providers are not allowed for recruiters).'
+            );
+        }
+
+        $officialDomain = substr(strrchr($officialEmail, "@"), 1);
+        if ($officialDomain && $this->isFreeEmailDomain($officialDomain)) {
+            return redirect()->back()->withInput()->with(
+                'error',
+                'Please use an official business email address for recruiter verification.'
             );
         }
 
@@ -553,6 +573,13 @@ class Auth extends BaseController
             'phone' => (string) $this->request->getPost('phone'),
             'designation' => $designation,
             'company_name' => $companyName,
+            'recruiter_type' => $recruiterType,
+            'verification_status' => $recruiterType === 'consultancy' ? 'pending' : 'verified',
+            'agency_registration_number' => $agencyRegistrationNumber !== '' ? $agencyRegistrationNumber : null,
+            'gst_number' => $gstNumber !== '' ? $gstNumber : null,
+            'website' => $website !== '' ? $website : null,
+            'official_email' => $officialEmail,
+            'can_post_jobs' => $recruiterType === 'consultancy' ? 0 : 1,
         ]);
 
         $db = \Config\Database::connect();
@@ -587,8 +614,12 @@ class Auth extends BaseController
             );
         }
 
+        $successMessage = $recruiterType === 'consultancy'
+            ? 'Consultancy account created. Verify your email and phone; job posting will unlock after admin verification.'
+            : 'Account created. Check your inbox to verify your company email, then complete phone verification.';
+
         return redirect()->to(base_url('recruiter/verification?email=' . urlencode($email)))
-            ->with('success', 'Account created. Check your inbox to verify your company email, then complete phone verification.');
+            ->with('success', $successMessage);
     }
 
     public function recruiterVerification()

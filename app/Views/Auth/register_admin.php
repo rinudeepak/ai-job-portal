@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="<?= base_url('jobboard/css/animate.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/fontawesome-all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('jobboard/css/style.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.css')) ?>">
+    <link rel="stylesheet" href="<?= base_url('jobboard/css/hirematrix-style.min.css?v=' . @filemtime(FCPATH . 'jobboard/css/hirematrix-style.min.css')) ?>">
     <link rel="stylesheet" href="<?= base_url('custom/public-pages.css?v=' . @filemtime(FCPATH . 'custom/public-pages.css')) ?>">
     <style>
 /* ===============================
@@ -276,6 +276,22 @@ body.dark select:-webkit-autofill {
               </div>
 
               <div>
+                <label class="form-label auth-field-label">Recruiter Type</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-user-tie auth-field-icon"></i>
+                  <?php $recruiterType = old('recruiter_type', 'direct_employer'); ?>
+                  <select id="recruiter_type" name="recruiter_type" class="form-control auth-input" required>
+                    <option value="direct_employer" <?= $recruiterType === 'direct_employer' ? 'selected' : '' ?>>Direct employer</option>
+                    <option value="consultancy" <?= $recruiterType === 'consultancy' ? 'selected' : '' ?>>Consultancy / staffing agency</option>
+                  </select>
+                </div>
+                <small class="text-muted">Consultancy accounts can register here, but job posting starts after admin verification.</small>
+                <?php if (session('validation') && session('validation')->hasError('recruiter_type')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('recruiter_type') ?></small>
+                <?php endif; ?>
+              </div>
+
+              <div>
                 <label class="form-label auth-field-label">Recruiter Name</label>
                 <div class="auth-field-wrap">
                   <i class="fas fa-user auth-field-icon"></i>
@@ -307,6 +323,42 @@ body.dark select:-webkit-autofill {
                 <?php if (session('validation') && session('validation')->hasError('email')): ?>
                     <small class="text-danger"><?= session('validation')->getError('email') ?></small>
                 <?php endif; ?>
+              </div>
+
+              <div>
+                <label class="form-label auth-field-label">Official Verification Email</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-at auth-field-icon"></i>
+                  <input type="email" id="official_email" name="official_email" placeholder="verification@company.com" class="form-control auth-input" value="<?= old('official_email') ?>">
+                </div>
+                <small class="text-muted">Leave blank to use the login email above.</small>
+                <?php if (session('validation') && session('validation')->hasError('official_email')): ?>
+                    <small class="text-danger"><?= session('validation')->getError('official_email') ?></small>
+                <?php endif; ?>
+              </div>
+
+              <div>
+                <label class="form-label auth-field-label">Website</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-globe auth-field-icon"></i>
+                  <input type="text" id="website" name="website" placeholder="https://company.com" class="form-control auth-input" value="<?= old('website') ?>">
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label auth-field-label">Agency Registration Number</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-certificate auth-field-icon"></i>
+                  <input type="text" id="agency_registration_number" name="agency_registration_number" placeholder="Required for consultancies if available" class="form-control auth-input" value="<?= old('agency_registration_number') ?>">
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label auth-field-label">GST Number</label>
+                <div class="auth-field-wrap">
+                  <i class="fas fa-receipt auth-field-icon"></i>
+                  <input type="text" id="gst_number" name="gst_number" placeholder="GSTIN" class="form-control auth-input" value="<?= old('gst_number') ?>">
+                </div>
               </div>
 
               <div>
